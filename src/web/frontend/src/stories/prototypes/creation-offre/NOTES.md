@@ -728,3 +728,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - **Proposer des modifications** : bouton dans les sections Annonce, Formulaire de candidature et Publication. Le valideur modifie les champs dans une copie (cadre pointillé « Mode proposition »), puis « Ajouter à ma réponse ». L'offre n'est jamais modifiée par le valideur ; tout part avec sa décision (« 1 modification proposée partira avec votre réponse », retirable).
 - **Rédacteur** : bandeau « N propositions à traiter » ; dans la section « Validation pour publication », chaque proposition montre, champ par champ, la valeur actuelle (barrée) et la valeur proposée (surlignée), avec **Accepter** (le champ est remplacé) ou **Ignorer**. Exemple : propositions d'Anne Dubois sur « Chargé·e de recrutement ».
 - Le commentaire de décision remplace le « commentaire de l'équipe RH » séparé ; il apparaît sur la ligne du bureau, côté rédacteur.
+
+## Itération 23 — « Proposer des modifications » depuis le bloc de décision
+
+- Le bouton **« Proposer des modifications »** est sous le commentaire, dans « Votre réponse ». Il ouvre un menu : Annonce, Formulaire de candidature, Publication (« déjà modifiée » si besoin).
+- Au choix, l'écran défile jusqu'à la section, en **mode modification** (cadre pointillé, message d'explication), avec **« Valider les modifications »** et « Annuler » en haut de la section et dans une barre fixe en bas.
+- Après « Valider les modifications », retour sur « Votre réponse » avec la liste des propositions qui partiront avec la décision (retirables).
+- Plus de bouton « Proposer » dans chaque section : le bloc de décision est le seul point de départ.

@@ -90,7 +90,8 @@ function commencerProposition(section: Proposition['section']) {
     (copie as unknown as Record<string, unknown>)[c.cle] = JSON.parse(JSON.stringify(c.apres))
   }
   edition.value = { section, copie }
-  ouverts[section] = true
+  // Laisse le menu se refermer (il rend le focus au bouton) avant de faire défiler jusqu'à la section.
+  setTimeout(() => void allerA(section), 200)
 }
 function ajouterProposition() {
   if (!edition.value) {
@@ -104,7 +105,8 @@ function ajouterProposition() {
   ]
   edition.value = null
   notifier(champs.length ? `${champs.length} modification${champs.length > 1 ? 's' : ''} ajoutée${champs.length > 1 ? 's' : ''} à votre réponse.` : 'Aucune modification : rien n\'a été ajouté.')
-  void allerA('validation')
+  // Retour sur « Votre réponse », là où la liste des propositions s'affiche.
+  void nextTick(() => document.querySelector('.decision__reponse')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 function retirerProposition(section: Proposition['section']) {
   propositionsEnCours.value = propositionsEnCours.value.filter(p => p.section !== section)
@@ -114,7 +116,7 @@ function reponseEnvoyee() {
   edition.value = null
 }
 const enEdition = (section: Proposition['section']) => edition.value?.section === section
-const MODE_PROPOSITION = 'Mode proposition : modifiez les champs voulus. L\'offre n\'est pas modifiée ; vos changements partiront avec votre réponse.'
+const MODE_PROPOSITION = 'Mode modification : changez les champs voulus puis « Valider les modifications ». L\'offre n\'est pas modifiée ; vos propositions partiront avec votre réponse.'
 
 // Barre « Accéder à » fixe au défilement : la section visible est mise en avant.
 let defileur: HTMLElement | null = null
@@ -374,6 +376,7 @@ const FREQ = [
             :offre="o"
             :fiche="f"
             :propositions="propositionsEnCours"
+            @proposer="commencerProposition"
             @retirer="retirerProposition"
             @envoye="reponseEnvoyee"
           />
@@ -625,22 +628,13 @@ const FREQ = [
               @click="edition = null"
             />
             <CspButton
-              label="Ajouter à ma réponse"
+              label="Valider les modifications"
               size="sm"
-              icon="ri:add-line"
+              icon="ri:check-line"
               is-icon-left
               @click="ajouterProposition"
             />
           </template>
-          <CspButton
-            v-else-if="!edition"
-            label="Proposer des modifications"
-            size="sm"
-            variant="secondary"
-            icon="ri:edit-line"
-            is-icon-left
-            @click="commencerProposition('annonce')"
-          />
         </template>
         <template #intro>
           <p class="source">
@@ -671,6 +665,22 @@ const FREQ = [
             :fiche="f"
           />
         </fieldset>
+        <div
+          v-if="enEdition('annonce')"
+          class="barre-proposition"
+        >
+          <CspButton
+            label="Annuler"
+            variant="tertiary-no-outline"
+            @click="edition = null"
+          />
+          <CspButton
+            label="Valider les modifications"
+            icon="ri:check-line"
+            is-icon-left
+            @click="ajouterProposition"
+          />
+        </div>
       </SectionOffre>
 
       <SectionOffre
@@ -717,22 +727,13 @@ const FREQ = [
               @click="edition = null"
             />
             <CspButton
-              label="Ajouter à ma réponse"
+              label="Valider les modifications"
               size="sm"
-              icon="ri:add-line"
+              icon="ri:check-line"
               is-icon-left
               @click="ajouterProposition"
             />
           </template>
-          <CspButton
-            v-else-if="!edition"
-            label="Proposer des modifications"
-            size="sm"
-            variant="secondary"
-            icon="ri:edit-line"
-            is-icon-left
-            @click="commencerProposition('candidature')"
-          />
         </template>
         <fieldset
           class="verrou"
@@ -744,6 +745,22 @@ const FREQ = [
             :verrouille="o.etat !== 'brouillon'"
           />
         </fieldset>
+        <div
+          v-if="enEdition('candidature')"
+          class="barre-proposition"
+        >
+          <CspButton
+            label="Annuler"
+            variant="tertiary-no-outline"
+            @click="edition = null"
+          />
+          <CspButton
+            label="Valider les modifications"
+            icon="ri:check-line"
+            is-icon-left
+            @click="ajouterProposition"
+          />
+        </div>
       </SectionOffre>
 
       <SectionOffre
@@ -823,22 +840,13 @@ const FREQ = [
               @click="edition = null"
             />
             <CspButton
-              label="Ajouter à ma réponse"
+              label="Valider les modifications"
               size="sm"
-              icon="ri:add-line"
+              icon="ri:check-line"
               is-icon-left
               @click="ajouterProposition"
             />
           </template>
-          <CspButton
-            v-else-if="!edition"
-            label="Proposer des modifications"
-            size="sm"
-            variant="secondary"
-            icon="ri:edit-line"
-            is-icon-left
-            @click="commencerProposition('publication')"
-          />
         </template>
         <fieldset
           class="verrou"
@@ -852,6 +860,22 @@ const FREQ = [
             />
           </div>
         </fieldset>
+        <div
+          v-if="enEdition('publication')"
+          class="barre-proposition"
+        >
+          <CspButton
+            label="Annuler"
+            variant="tertiary-no-outline"
+            @click="edition = null"
+          />
+          <CspButton
+            label="Valider les modifications"
+            icon="ri:check-line"
+            is-icon-left
+            @click="ajouterProposition"
+          />
+        </div>
       </SectionOffre>
     </div>
 
@@ -1102,6 +1126,19 @@ const FREQ = [
 
 // Lecture seule (valideur, offre retirée ou archivée) : seuls les champs sont verrouillés,
 // pas l'ouverture des sections ni la consultation de la fiche.
+.barre-proposition {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--csp-space-2);
+  margin: 0 calc(-1 * var(--csp-space-2));
+  padding: var(--csp-space-3) var(--csp-space-2);
+  background: var(--background-default-grey);
+  box-shadow: 0 -1px 0 var(--border-default-grey);
+}
+
 .verrou {
   min-width: 0;
   margin: 0;

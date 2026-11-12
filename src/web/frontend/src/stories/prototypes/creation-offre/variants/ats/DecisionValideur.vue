@@ -2,6 +2,7 @@
 import type { Fiche, Offre, Proposition } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import BlocValidation from './BlocValidation.vue'
@@ -13,7 +14,7 @@ import { le, repondre, sauvegarder, UTILISATEUR } from './store'
 // (valider tel quel, valider avec un commentaire, refuser avec un commentaire).
 // Les propositions de modification préparées dans les sections partent avec la réponse.
 const props = defineProps<{ offre: Offre, fiche?: Fiche, propositions: Proposition[] }>()
-const emit = defineEmits<{ retirer: [section: Proposition['section']], envoye: [] }>()
+const emit = defineEmits<{ retirer: [section: Proposition['section']], proposer: [section: Proposition['section']], envoye: [] }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
@@ -32,6 +33,13 @@ const nbChamps = computed(() => props.propositions.reduce((n, p) => n + p.champs
 const commentaireRequis = computed(() => choix.value !== 'tel_quel')
 const pret = computed(() => !commentaireRequis.value || Boolean(commentaire.value.trim()))
 const SECTIONS: Record<Proposition['section'], string> = { annonce: 'Annonce', candidature: 'Formulaire de candidature', publication: 'Publication' }
+// « Proposer des modifications » : on choisit la partie à modifier, l'écran défile jusqu'à elle en mode modification.
+const MENU = computed(() => [{
+  items: (Object.keys(SECTIONS) as Proposition['section'][]).map(id => ({
+    label: props.propositions.some(p => p.section === id) ? `${SECTIONS[id]} (déjà modifiée)` : SECTIONS[id],
+    onSelect: () => emit('proposer', id),
+  })),
+}])
 
 function envoyer() {
   if (!pret.value || indice.value < 0) {
@@ -88,14 +96,32 @@ function envoyer() {
         :rows="3"
       />
 
-      <div class="decision__props">
-        <p
-          v-if="!propositions.length"
-          class="mention"
+      <div>
+        <CspDropdownMenu
+          :sections="MENU"
+          side="bottom"
+          align="start"
         >
-          Pour proposer des modifications, cliquez sur « Proposer des modifications » dans la section concernée, plus bas : elles partiront avec votre réponse.
+          <template #trigger>
+            <CspButton
+              label="Proposer des modifications"
+              variant="secondary"
+              size="sm"
+              icon="ri:edit-line"
+              is-icon-left
+            />
+          </template>
+        </CspDropdownMenu>
+        <p class="aide">
+          Choisissez la partie à modifier : vos changements ne modifient pas l'offre et partiront avec votre réponse.
         </p>
-        <template v-else>
+      </div>
+
+      <div
+        v-if="propositions.length"
+        class="decision__props"
+      >
+        <template v-if="propositions.length">
           <p class="mention">
             {{ nbChamps > 1 ? `${nbChamps} modifications proposées partiront` : '1 modification proposée partira' }} avec votre réponse :
           </p>
@@ -160,6 +186,7 @@ function envoyer() {
 }
 
 .decision__reponse {
+  scroll-margin-top: 4.5rem;
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-4);
@@ -180,6 +207,12 @@ function envoyer() {
 .mention {
   margin: 0;
   font-size: var(--csp-font-size-sm);
+}
+
+.aide {
+  margin: var(--csp-space-2) 0 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
 }
 
 .liste {
