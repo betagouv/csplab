@@ -858,7 +858,7 @@ export interface components {
             error: string;
         };
         MotifRefus: {
-            value: string;
+            value: components["schemas"]["MotifRefusEnum"];
             label: string;
         };
         /**

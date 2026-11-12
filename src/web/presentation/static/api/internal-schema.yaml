@@ -6339,7 +6339,7 @@ components:
       type: object
       properties:
         value:
-          type: string
+          $ref: '#/components/schemas/MotifRefusEnum'
         label:
           type: string
       required:

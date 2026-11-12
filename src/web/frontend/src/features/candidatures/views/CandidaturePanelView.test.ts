@@ -133,7 +133,7 @@ describe('candidaturePanelView', () => {
     const refusee = {
       ...candidatureDetail(CANDIDATURE_ALICE),
       etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
-      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+      motif_refus: { value: 'experience_insuffisante' as const, label: 'Expérience insuffisante' },
     }
     vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])

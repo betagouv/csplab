@@ -436,6 +436,11 @@ SPECTACULAR_SETTINGS = {
         "presentation.api.openapi_hooks.postprocess_add_rate_limit_headers",
         "presentation.api.openapi_hooks.postprocess_add_too_many_requests_response",
     ],
+    "ENUM_NAME_OVERRIDES": {
+        "MotifRefusEnum": (
+            "infrastructure.django_apps.recruteur.enums.motif_refus.MotifRefus"
+        ),
+    },
     "TAGS": [
         # Sections de documentation sans endpoint, affichées dans le menu de Redoc.
         # Le titre du fichier est retiré, Redoc affichant déjà x-displayName.
