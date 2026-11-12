@@ -13,7 +13,6 @@ const mockSetAgentRole = vi.fn()
 const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismeAgents: (...args: unknown[]) => mockGetOrganismeAgents(...args),
   setAgentRole: (...args: unknown[]) => mockSetAgentRole(...args),
   updateAgentRole: vi.fn(),

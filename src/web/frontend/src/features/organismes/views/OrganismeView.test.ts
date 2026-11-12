@@ -10,10 +10,6 @@ vi.mock('@/api/organismes', () => ({
   getOrganismeDetail: vi.fn(),
 }))
 
-vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
-}))
-
 vi.mock('@/features/etapes-recrutement/api', () => ({
   getEtapesRecrutement: vi.fn(() => new Promise(() => {})),
 }))

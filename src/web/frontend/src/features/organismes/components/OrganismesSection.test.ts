@@ -8,7 +8,6 @@ import { createOrganisme, getOrganismesPage } from '../api'
 import OrganismesSection from './OrganismesSection.vue'
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismesPage: vi.fn(),
   createOrganisme: vi.fn(),
   updateOrganisme: vi.fn(),

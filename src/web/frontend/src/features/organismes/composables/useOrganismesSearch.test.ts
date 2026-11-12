@@ -7,7 +7,6 @@ import { searchOrganismes } from '../api'
 import { useOrganismesSearch } from './useOrganismesSearch'
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   searchOrganismes: vi.fn(),
 }))
 

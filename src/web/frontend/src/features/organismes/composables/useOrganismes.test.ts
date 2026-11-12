@@ -11,7 +11,6 @@ const mockCreateOrganisme = vi.fn()
 const mockUpdateOrganisme = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismesPage: (...args: unknown[]) => mockGetOrganismesPage(...args),
   createOrganisme: (...args: unknown[]) => mockCreateOrganisme(...args),
   updateOrganisme: (...args: unknown[]) => mockUpdateOrganisme(...args),
