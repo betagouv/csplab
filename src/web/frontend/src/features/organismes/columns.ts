@@ -11,11 +11,11 @@ import { ROLE_FIELD_LABEL } from './constants/organisme'
 import { formatAgentRole } from './format'
 
 export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
-  { id: 'nom', header: 'Nom organisme', sortable: true, accessor: row => row.nom, cellComponent: OrganismeNomCell },
+  { id: 'nom', header: 'Nom organisme', accessor: row => row.nom, cellComponent: OrganismeNomCell },
   { id: 'siret', header: 'SIRET', width: '9.5rem', accessor: row => row.siret },
-  { id: 'superviseurs', header: 'Superviseurs', sortable: true, width: '11rem', accessor: row => row.superviseurs },
+  { id: 'superviseurs', header: 'Superviseurs', width: '11rem', accessor: row => row.superviseurs },
   { id: 'gestion_ats', header: 'Recrutements sur l\'outil', width: '8.5rem', wrapHeader: true, accessor: row => row.gestion_ats ? 'Oui' : 'Non' },
-  { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, width: '9.5rem', wrapHeader: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
+  { id: 'date_derniere_activite', header: 'Dernière activité', width: '9.5rem', wrapHeader: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
   { id: 'nombre_agents', header: 'Nombre d\'agents', align: 'end', width: '7rem', wrapHeader: true, accessor: row => row.nombre_agents },
   { id: 'nombre_offres_publiees', header: 'Nombre de recrutements', align: 'end', width: '8.5rem', wrapHeader: true, accessor: row => row.nombre_offres_publiees },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: OrganismeActionsCell },
