@@ -1,0 +1,10 @@
+/* Light rounding, set by data-csp-shape='rounded' outside production */
+:root[data-csp-shape='rounded'] {
+  --csp-action-radius: 0.25rem;
+  --csp-surface-radius: 0.25rem;
+  --csp-menu-item-radius: 0.25rem;
+  --csp-region-radius: 0.375rem;
+  --csp-lifted-radius: 0.375rem;
+  /* the accent keeps its width up to the rounded corners of a column */
+  --csp-kanban-column-accent-radius: var(--csp-kanban-column-accent-width);
+}
