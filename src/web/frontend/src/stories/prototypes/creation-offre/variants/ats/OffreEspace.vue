@@ -18,7 +18,6 @@ import BlocValidation from './BlocValidation.vue'
 import ChampsPublication from './ChampsPublication.vue'
 import CycleOffre from './CycleOffre.vue'
 import DemandeValidation from './DemandeValidation.vue'
-import EtatBadge from './EtatBadge.vue'
 import FicheSource from './FicheSource.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
@@ -28,7 +27,6 @@ import PageAts from './PageAts.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
 import { archiverOffre, arreterSupport, aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
-import ValidationBadge from './ValidationBadge.vue'
 
 // Page unique de l'offre : on y arrive en créant l'offre et on y revient pour la suivre.
 // En haut : résumé pour la validation et encart de l'étape en cours (demander la validation, publier…).
@@ -179,14 +177,7 @@ const FREQ = [
     :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
   >
     <template #meta>
-      <div class="meta">
-        <EtatBadge :etat="o.etat" />
-        <ValidationBadge
-          v-if="db.organisme.validationActive || o.validationEtat !== 'non_demandee'"
-          :offre="o"
-        />
-        <CspMetaList :items="meta" />
-      </div>
+      <CspMetaList :items="meta" />
     </template>
     <template #actions>
       <span
@@ -661,17 +652,6 @@ const FREQ = [
 </template>
 
 <style scoped lang="scss">
-.meta {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-2);
-
-  > :last-child {
-    flex: 1;
-    margin-left: var(--csp-space-2);
-  }
-}
-
 .encart {
   &--action {
     border-top: 3px solid var(--border-plain-blue-france);
