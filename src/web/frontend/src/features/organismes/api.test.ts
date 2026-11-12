@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { ORGANISME } from '@/test/fixtures/organismes'
-import { getOrganismesList } from './api'
+import { getOrganismesList, getOrganismesPage } from './api'
 
 const BACK_MAX_PAGE_SIZE = 1_000
 
@@ -44,5 +45,22 @@ describe('getOrganismesList', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1)
     expect(organismes).toHaveLength(42)
+  })
+})
+
+describe('getOrganismesPage', () => {
+  it('requests the page and the filter with the table page size', async () => {
+    serveOrganismes(42)
+
+    const page = await getOrganismesPage({ page: 2, filter: 'mairie' })
+
+    const url = new URL((vi.mocked(fetch).mock.calls[0]![0] as Request).url)
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      page: '2',
+      taille: String(TABLE_PAGE_SIZE),
+      filter: 'mairie',
+    })
+    expect(page.count).toBe(42)
+    expect(page.results).toHaveLength(42 - TABLE_PAGE_SIZE)
   })
 })
