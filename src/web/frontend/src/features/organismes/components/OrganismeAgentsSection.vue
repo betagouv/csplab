@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Role } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -13,9 +13,10 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
-import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
+import { agentSearchKeys, formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
@@ -28,7 +29,7 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { agents, pending, error, revoke, revoking, changeRole, changingRole } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
@@ -36,9 +37,9 @@ const { addToast } = useToast()
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const revocationDialogOpen = ref(false)
+const revocationDialogOpen = useRequestOpen(revocation)
 const attachDrawerOpen = ref(false)
-const roleDrawerOpen = ref(false)
+const roleDrawerOpen = useRequestOpen(roleChange)
 const attachEmailError = ref('')
 
 async function handleAdd(role: Role) {
@@ -72,27 +73,11 @@ function openAttachDrawer(): void {
 
 const rows = computed(() => agents.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [
-  `${row.prenom} ${row.nom}`,
-  `${row.nom} ${row.prenom}`,
-  row.email,
-])
+const { search, filtered } = useTextSearch(rows, agentSearchKeys)
 
 const countLabel = computed(() => {
   const count = filtered.value.length
   return `${count} ${pluralize(count, 'compte utilisateur', 'comptes utilisateurs')}`
-})
-
-watch(() => roleChange.requested, (agent) => {
-  if (agent) {
-    roleDrawerOpen.value = true
-  }
-})
-
-watch(roleDrawerOpen, (isOpen) => {
-  if (!isOpen) {
-    roleChange.clear()
-  }
 })
 
 async function handleRoleChange(role: Role): Promise<void> {
@@ -101,7 +86,7 @@ async function handleRoleChange(role: Role): Promise<void> {
     return
   }
   try {
-    await updateAgent({ agent_id: agent.uuid, role })
+    await changeRole({ agent, role })
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
@@ -114,29 +99,13 @@ async function handleRoleChange(role: Role): Promise<void> {
   }
 }
 
-watch(() => revocation.requested, (agent) => {
-  if (agent) {
-    revocationDialogOpen.value = true
-  }
-})
-
-watch(revocationDialogOpen, (isOpen) => {
-  if (!isOpen) {
-    revocation.clear()
-  }
-})
-
 async function handleRevocation(): Promise<void> {
   if (!revocation.requested) {
     return
   }
   const agent = revocation.requested
   try {
-    await updateAgent({
-      agent_id: agent.uuid,
-      role: agent.role,
-      date_revocation: new Date().toISOString(),
-    })
+    await revoke(agent)
     addToast({
       variant: 'success',
       title: 'Utilisateur révoqué',
@@ -244,7 +213,7 @@ async function handleRevocation(): Promise<void> {
         :role="roleChange.requested.role"
         :role-label="ROLE_FIELD_LABEL"
         :options="ROLE_OPTIONS"
-        :submitting="updatingAgent"
+        :submitting="changingRole"
         @submit="handleRoleChange"
         @cancel="roleDrawerOpen = false"
       />
@@ -269,7 +238,7 @@ async function handleRevocation(): Promise<void> {
         />
         <CspButton
           label="Révoquer les accès"
-          :disabled="updatingAgent"
+          :disabled="revoking"
           @click="handleRevocation"
         />
       </template>

@@ -38,7 +38,7 @@ export async function getRecrutementsArchives({ organismeUuid }: OrganismeParams
 }
 
 export async function setRecrutementsResponsable(
-  organismeUuid: string,
+  { organismeUuid }: OrganismeParams,
   payload: AssignationResponsablePayload,
 ): Promise<AssignationResponsableResultat> {
   const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/recrutements/responsable', {

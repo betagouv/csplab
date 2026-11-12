@@ -73,12 +73,15 @@ const {
 
 const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
-const drawerInitialEtapeUuid = ref<string | null>(null)
 const refus = useRefusCandidature(() => props.organismeUuid, recrutementEtapes)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
 })
+
+const canRefuseSelection = computed(() =>
+  refusEtapeUuid.value !== null && currentEtapeUuid.value !== refusEtapeUuid.value,
+)
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value) {
@@ -115,13 +118,13 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
 }
 
 function handleOpenChangerEtape(): void {
-  drawerInitialEtapeUuid.value = null
   isDrawerOpen.value = true
 }
 
 function handleRefuser(): void {
-  drawerInitialEtapeUuid.value = refusEtapeUuid.value
-  isDrawerOpen.value = true
+  if (refusEtapeUuid.value) {
+    handleConfirmBatchMove(refusEtapeUuid.value)
+  }
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
@@ -159,7 +162,7 @@ publishCandidaturesToolbar(() => ({
   selectionActions: canChangeEtape.value
     ? [
         { label: 'Changer d\'étape', icon: 'ri:arrow-left-right-line', onClick: handleOpenChangerEtape },
-        { label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser },
+        ...(canRefuseSelection.value ? [{ label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser }] : []),
       ]
     : [],
 }))
@@ -191,7 +194,6 @@ publishCandidaturesToolbar(() => ({
       :source-etape="sourceEtape"
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
-      :initial-etape-uuid="drawerInitialEtapeUuid"
       @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
       @toggle-candidature="toggleCandidatureSelection"

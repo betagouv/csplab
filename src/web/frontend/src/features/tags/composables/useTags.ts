@@ -1,7 +1,7 @@
 import type { CreateTagPayload, UpdateTagPayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { organismeKeys } from '@/api/queryKeys'
-import { createTag, updateTag } from '../api'
+import { createTag, deleteTag, updateTag } from '../api'
 import { tagsQuery } from '../queries'
 
 export function useTags(organismeUuid: string) {
@@ -9,12 +9,17 @@ export function useTags(organismeUuid: string) {
   const query = useQuery(() => tagsQuery({ organismeUuid }))
 
   const createMutation = useMutation({
-    mutation: (payload: CreateTagPayload) => createTag(organismeUuid, payload),
+    mutation: (payload: CreateTagPayload) => createTag({ organismeUuid }, payload),
     onSettled: () => queryCache.invalidateQueries({ key: organismeKeys.tags({ organismeUuid }) }),
   })
 
   const updateMutation = useMutation({
-    mutation: ({ tagUuid, payload }: { tagUuid: string, payload: UpdateTagPayload }) => updateTag(organismeUuid, tagUuid, payload),
+    mutation: ({ tagUuid, payload }: { tagUuid: string, payload: UpdateTagPayload }) => updateTag({ organismeUuid, tagUuid }, payload),
+    onSettled: () => queryCache.invalidateQueries({ key: organismeKeys.tags({ organismeUuid }) }),
+  })
+
+  const deleteMutation = useMutation({
+    mutation: (tagUuid: string) => deleteTag({ organismeUuid, tagUuid }),
     onSettled: () => queryCache.invalidateQueries({ key: organismeKeys.tags({ organismeUuid }) }),
   })
 
@@ -26,5 +31,7 @@ export function useTags(organismeUuid: string) {
     creatingTag: createMutation.isLoading,
     updateTag: updateMutation.mutateAsync,
     updatingTag: updateMutation.isLoading,
+    deleteTag: deleteMutation.mutateAsync,
+    deletingTag: deleteMutation.isLoading,
   }
 }

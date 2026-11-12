@@ -28,6 +28,20 @@ from infrastructure.factories.tag.tag_django_factory import (
 )
 from presentation.commons.pagination import TaillePageNumberPagination
 
+NB_NOTES_N_PLUS_UN = 3
+NOMBRE_REQUETES_LISTE_ATTENDU = (
+    2  # authentication: session + user
+    + 1  # organisme exists
+    + 1  # agent's organisme role
+    + 1  # recrutement belongs to organisme
+    + 1  # candidature belongs to recrutement
+    + 2  # pagination: count + page (author via select_related)
+    + 1  # prefetch tags_liaisons (tag via select_related)
+    + 1  # organisme exists, for the authorized actions
+    + 1  # agent's organisme role, for the authorized actions
+    + 1  # agent's recrutement role
+)
+
 
 def _notes_url(organisme_id, recrutement_id, candidature_id) -> str:
     return reverse(
@@ -376,6 +390,65 @@ class TestCandidatureNotesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert [n["authorized_actions"] for n in response.json()["results"]] == [[]]
+
+    def test_lists_each_note_tags_in_pose_order(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        tagged = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        untagged = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        NoteModel.objects.filter(pk=untagged.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+        alpha = TagDjangoFactory(
+            organisme=organisme,
+            category=TagCategory.NOTE,
+            name="Alpha",
+            color=TagColor.ROUGE,
+        )
+        bravo = TagDjangoFactory(
+            organisme=organisme,
+            category=TagCategory.NOTE,
+            name="Bravo",
+            color=TagColor.VERT,
+        )
+        NoteTagDjangoFactory(note=tagged, tag=alpha)
+        bravo_pose = NoteTagDjangoFactory(note=tagged, tag=bravo)
+        NoteTagModel.objects.filter(pk=bravo_pose.pk).update(
+            created_at=timezone.now() - timedelta(minutes=1)
+        )
+
+        response = authenticated_client.get(
+            _notes_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [n["tags"] for n in response.json()["results"]] == [
+            [
+                {"uuid": str(bravo.id), "name": "Bravo", "color": "vert"},
+                {"uuid": str(alpha.id), "name": "Alpha", "color": "rouge"},
+            ],
+            [],
+        ]
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        for note in NoteDjangoFactory.create_batch(
+            NB_NOTES_N_PLUS_UN, candidature=candidature, publie_par=agent
+        ):
+            NoteTagDjangoFactory.create_batch(2, note=note)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(
+                _notes_url(organisme.id, recrutement.pk, candidature.id)
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == NB_NOTES_N_PLUS_UN
 
     def test_post_creates_and_logs_a_private_note(
         self, authenticated_client, test_user

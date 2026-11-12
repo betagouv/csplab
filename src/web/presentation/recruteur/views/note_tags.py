@@ -12,6 +12,7 @@ from domain.recruteur.errors.tag_errors import (
     TagCategoryMismatch,
     TagNotFound,
     TagNotOnNote,
+    TagOrganismeMismatch,
 )
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import AddNoteTagSerializer
@@ -24,7 +25,7 @@ class NoteTagBaseView(NoteBaseView):
             return Response(
                 {"tag_uuid": [str(exc)]}, status=status.HTTP_400_BAD_REQUEST
             )
-        if isinstance(exc, (TagNotFound, TagNotOnNote)):
+        if isinstance(exc, (TagNotFound, TagNotOnNote, TagOrganismeMismatch)):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,

@@ -1,17 +1,19 @@
 import type { Tag } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
+import { useToast } from '@/composables/ui/useToast'
 import { renderWithApp, setupUser } from '@/test/render'
-import { createTag, getTags, updateTag } from '../api'
+import { createTag, deleteTag, getTags, updateTag } from '../api'
 import TagsSection from './TagsSection.vue'
 
 vi.mock('../api', () => ({
   getTags: vi.fn(),
   createTag: vi.fn(),
   updateTag: vi.fn(),
+  deleteTag: vi.fn(),
 }))
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -53,6 +55,12 @@ describe('tagsSection', () => {
     vi.mocked(getTags).mockReset().mockResolvedValue(TAGS)
     vi.mocked(createTag).mockReset()
     vi.mocked(updateTag).mockReset()
+    vi.mocked(deleteTag).mockReset()
+  })
+
+  afterEach(() => {
+    const { toasts, dismissToast } = useToast()
+    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the tags of each category', async () => {
@@ -80,7 +88,7 @@ describe('tagsSection', () => {
     await user.click(screen.getByRole('radio', { name: 'Rouge' }))
     await user.click(save)
 
-    expect(createTag).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'rouge' })
+    expect(createTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, { name: 'Synthèse', category: 'note', color: 'rouge' })
     expect(await screen.findByText('Étiquette ajoutée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()
@@ -102,7 +110,7 @@ describe('tagsSection', () => {
     await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
     await user.click(within(drawer).getByRole('button', { name: 'Enregistrer' }))
 
-    expect(updateTag).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid, { name: 'À relancer', color: 'rouge' })
+    expect(updateTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid }, { name: 'À relancer', color: 'rouge' })
     expect(await screen.findByText('Étiquette modifiée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -160,6 +168,19 @@ describe('tagsSection', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('closes the drawer when the edited tag was deleted meanwhile', async () => {
+    vi.mocked(updateTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    const user = await openEditDrawer('Profil senior')
+
+    const name = screen.getByRole('textbox', { name: /Libellé/ })
+    await user.clear(name)
+    await user.type(name, 'Profil junior')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(await screen.findByText('Cette étiquette a été supprimée')).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
   it('keeps the duplicate error when only the case changes', async () => {
     vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
     const user = await openDrawerFrom('Candidature')
@@ -186,5 +207,61 @@ describe('tagsSection', () => {
 
     expect(screen.queryByText('Une étiquette de ce type porte déjà ce libellé.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeEnabled()
+  })
+
+  it('deletes a tag once confirmed, after saying how many objects carry it', async () => {
+    vi.mocked(getTags).mockResolvedValue([{ ...TO_RECALL, usage_count: 3 }, ...TAGS.slice(1)])
+    vi.mocked(deleteTag).mockResolvedValue()
+    const user = setupUser()
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer l\'étiquette À rappeler' }))
+    const dialog = screen.getByRole('dialog', { name: 'Supprimer l\'étiquette «\u00A0À rappeler\u00A0»' })
+    expect(within(dialog).getByText('Cette étiquette est posée sur 3 candidatures. Elle en sera retirée.')).toBeInTheDocument()
+
+    vi.mocked(getTags).mockResolvedValue(TAGS.slice(1))
+    await user.click(within(dialog).getByRole('button', { name: 'Supprimer' }))
+
+    expect(deleteTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid })
+    expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('button', { name: 'Modifier l\'étiquette À rappeler' })).not.toBeInTheDocument())
+  })
+
+  it('keeps the tag when the deletion is cancelled', async () => {
+    const user = setupUser()
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer l\'étiquette Entretien' }))
+    const dialog = screen.getByRole('dialog', { name: 'Supprimer l\'étiquette «\u00A0Entretien\u00A0»' })
+    expect(within(dialog).getByText('Cette étiquette n\'est posée nulle part.')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Annuler' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(deleteTag).not.toHaveBeenCalled()
+  })
+
+  it('confirms the deletion of a tag already deleted meanwhile', async () => {
+    vi.mocked(deleteTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    const user = setupUser()
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer l\'étiquette Entretien' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Supprimer' }))
+
+    expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('keeps the dialog open when the deletion fails', async () => {
+    vi.mocked(deleteTag).mockRejectedValue(new HttpError(500, 'Erreur'))
+    const user = setupUser()
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer l\'étiquette Entretien' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Supprimer' }))
+
+    expect(await screen.findByText('La suppression de l\'étiquette a échoué')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Supprimer l\'étiquette «\u00A0Entretien\u00A0»' })).toBeInTheDocument()
   })
 })

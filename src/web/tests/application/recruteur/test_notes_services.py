@@ -104,20 +104,24 @@ class TestListNotes:
 
         assert list(notes) == []
 
+    # TODO(#2404): remove — nominal case covered by the view's query-budget test
     def test_loads_author_without_extra_queries(self, db, django_assert_num_queries):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent()
         )
         notes = NoteDjangoFactory.create_batch(3, candidature=candidature)
 
-        result = list_notes(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            candidature_id=candidature.id,
-            utilisateur=agent.utilisateur,
+        result = list(
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                utilisateur=agent.utilisateur,
+            )
         )
 
-        with django_assert_num_queries(1):
+        # notes already loaded above: only the author access is measured
+        with django_assert_num_queries(0):
             author_ids = [note.publie_par.utilisateur.pk for note in result]
 
         assert len(author_ids) == len(notes)

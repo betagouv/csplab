@@ -126,7 +126,7 @@ describe('useEtapesRecrutement', () => {
     const { etapes, resetEtapes } = await mountEtapes()
     await resetEtapes()
 
-    expect(mockInitEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(mockInitEtapesRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
@@ -195,9 +195,8 @@ describe('useEtapesRecrutement — type offre', () => {
     const { renameEtape } = await mountEtapes(PARAMS_OFFRE)
     await renameEtape('bbbb', 'Présélection RH')
 
-    const [organismeUuid, recrutementUuid, payload] = mockUpdateEtapesOffre.mock.calls[0]!
-    expect(organismeUuid).toBe(ORGANISME_UUID)
-    expect(recrutementUuid).toBe(RECRUTEMENT_UUID)
+    const [recrutement, payload] = mockUpdateEtapesOffre.mock.calls[0]!
+    expect(recrutement).toEqual({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
     expect((payload as UpdateEtapeRecrutement[]).find(p => p.uuid === 'bbbb')?.nom)
       .toBe('Présélection RH')
     expect(mockUpdateEtapesRecrutement).not.toHaveBeenCalled()
@@ -223,7 +222,7 @@ describe('useEtapesRecrutement — type offre', () => {
     const { etapes, resetEtapes } = await mountEtapes(PARAMS_OFFRE)
     await resetEtapes()
 
-    expect(mockInitEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(mockInitEtapesOffre).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 })

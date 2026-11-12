@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/vue'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { setupUser } from '@/test/render'
 import CspLabel from './CspLabel.vue'
 
@@ -32,5 +32,20 @@ describe('cspLabel', () => {
     expect(button).toHaveAttribute('type', 'button')
     await setupUser().click(button)
     expect(emitted().click).toHaveLength(1)
+  })
+
+  it('adds a dismiss button next to the label when it has a dismiss label', async () => {
+    const onClick = vi.fn()
+    const { emitted } = render(CspLabel, { props: { label: 'Libellé', clickable: true, dismissLabel: 'Retirer Libellé' }, attrs: { 'aria-label': 'Modifier Libellé', onClick } })
+    await setupUser().click(screen.getByRole('button', { name: 'Retirer Libellé' }))
+    expect(emitted().dismiss).toHaveLength(1)
+    expect(onClick).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Modifier Libellé' })).toBeInTheDocument()
+  })
+
+  it('keeps the class and style of the caller on the label', () => {
+    render(CspLabel, { props: { label: 'Libellé', clickable: true }, attrs: { class: 'mise-en-page', style: 'margin: 4px' } })
+    expect(labelRoot()).toHaveClass('mise-en-page')
+    expect(labelRoot().style.margin).toBe('4px')
   })
 })

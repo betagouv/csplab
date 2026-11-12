@@ -50,21 +50,20 @@ function insertEtape(
 function resolveEtapesApi(params: EtapesRecrutementType) {
   if (params.type === 'offre') {
     const { organismeUuid, recrutementUuid } = params
+    const recrutement = { organismeUuid, recrutementUuid }
     return {
-      queryOptions: etapesOffreQuery({ organismeUuid, recrutementUuid }),
-      update: (payload: UpdateEtapeRecrutement[]) =>
-        updateEtapesOffre(organismeUuid, recrutementUuid, payload),
-      init: () => initEtapesOffre(organismeUuid, recrutementUuid),
-      clesAffectees: [recrutementKeys.root({ organismeUuid, recrutementUuid })],
+      queryOptions: etapesOffreQuery(recrutement),
+      update: (payload: UpdateEtapeRecrutement[]) => updateEtapesOffre(recrutement, payload),
+      init: () => initEtapesOffre(recrutement),
+      clesAffectees: [recrutementKeys.root(recrutement)],
     }
   }
 
-  const { organismeUuid } = params
+  const organisme = { organismeUuid: params.organismeUuid }
   return {
-    queryOptions: etapesRecrutementQuery({ organismeUuid }),
-    update: (payload: UpdateEtapeRecrutement[]) =>
-      updateEtapesRecrutement(organismeUuid, payload),
-    init: () => initEtapesRecrutement(organismeUuid),
+    queryOptions: etapesRecrutementQuery(organisme),
+    update: (payload: UpdateEtapeRecrutement[]) => updateEtapesRecrutement(organisme, payload),
+    init: () => initEtapesRecrutement(organisme),
     clesAffectees: [],
   }
 }

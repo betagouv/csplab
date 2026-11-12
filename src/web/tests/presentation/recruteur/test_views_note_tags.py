@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -5,8 +6,13 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from domain.recruteur.errors.tag_errors import TagOrganismeMismatch
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.tag.models import NoteTagModel, TagCategory
+from infrastructure.django_apps.tag.models import (
+    NoteTagModel,
+    NoteTagQuerySet,
+    TagCategory,
+)
 from infrastructure.factories.candidate.candidature_django_factory import (
     create_recrutement_and_candidature_for_agent,
 )
@@ -174,6 +180,27 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert NoteTagModel.objects.filter(note=note, tag=tag).count() == 1
+
+    def test_tag_outside_the_note_organisme_is_not_found(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        tag = TagDjangoFactory(organisme=organisme, category=TagCategory.NOTE)
+        erreur = TagOrganismeMismatch(tag.id)
+
+        # unreachable through the service, forced on the queryset
+        with patch.object(NoteTagQuerySet, "poser", side_effect=erreur):
+            response = authenticated_client.post(
+                _note_tags_url(organisme.id, recrutement.pk, candidature.id, note.id),
+                data={"tag_uuid": str(tag.id)},
+                format="json",
+            )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": str(erreur)}
 
     @pytest.mark.parametrize("est_privee", [False, True])
     def test_tags_my_note(self, authenticated_client, test_user, est_privee):

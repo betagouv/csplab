@@ -127,7 +127,7 @@ describe('equipeRecrutementSection', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
     expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
-    expect(updateMembreEquipe).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, expect.objectContaining({ recrutement_role: 'contributeur' }))
+    expect(updateMembreEquipe).toHaveBeenCalledWith({ organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID }, expect.objectContaining({ recrutement_role: 'contributeur' }))
   })
 
   it('only lists the team without the right to manage it', async () => {

@@ -7,21 +7,24 @@ export const TAG_CATEGORIES: TagCategory[] = ['candidature', 'note', 'recrutemen
 
 export const TAG_CATEGORY_OPTIONS_ORDER: TagCategory[] = ['candidature', 'recrutement_agent', 'note']
 
-export const TAG_CATEGORY_TEXTS: Record<TagCategory, { title: string, option: string, description: string }> = {
+export const TAG_CATEGORY_TEXTS: Record<TagCategory, { title: string, option: string, description: string, usage: [singular: string, plural: string] }> = {
   candidature: {
     title: 'Candidature',
     option: 'Candidature',
     description: 'Affichée sur la candidature. Permet de qualifier rapidement les profils candidats.',
+    usage: ['candidature', 'candidatures'],
   },
   note: {
     title: 'Note',
     option: 'Note',
     description: 'Affichée sur les notes d\'une candidature. Permet d\'identifier la nature des notes.',
+    usage: ['note', 'notes'],
   },
   recrutement_agent: {
     title: 'Équipe de recrutement',
     option: 'Membre recrutement',
     description: 'Affichée dans l\'équipe d\'un recrutement. Permet d\'indiquer ce que fait chaque membre sur ce recrutement.',
+    usage: ['membre d\'équipe', 'membres d\'équipe'],
   },
 }
 
