@@ -1,19 +1,19 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string = string">
 import type { CspRadioSize } from '@/components/base/CspRadio/CspRadio.vue'
 import { RadioGroupRoot } from 'reka-ui'
 import { useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspRadio from '@/components/base/CspRadio/CspRadio.vue'
 
-export interface CspRadioGroupOption {
-  value: string
+export interface CspRadioGroupOption<V extends string = string> {
+  value: V
   label: string
   hint?: string
   disabled?: boolean
 }
 
-export interface CspRadioGroupProps {
-  options: CspRadioGroupOption[]
+export interface CspRadioGroupProps<V extends string = string> {
+  options: CspRadioGroupOption<V>[]
   label?: string
   name?: string
   disabled?: boolean
@@ -23,7 +23,7 @@ export interface CspRadioGroupProps {
   columns?: number
 }
 
-withDefaults(defineProps<CspRadioGroupProps>(), {
+const props = withDefaults(defineProps<CspRadioGroupProps<NoInfer<T>>>(), {
   label: undefined,
   name: undefined,
   disabled: false,
@@ -34,16 +34,17 @@ withDefaults(defineProps<CspRadioGroupProps>(), {
 })
 
 defineSlots<{
-  option?: (props: { option: CspRadioGroupOption }) => unknown
+  option?: (props: { option: CspRadioGroupOption<T> }) => unknown
 }>()
 
 const messagesId = useId()
 
-const model = defineModel<string>({ required: true })
+const model = defineModel<T>({ required: true })
 
 function updateModel(val: unknown): void {
-  if (typeof val === 'string') {
-    model.value = val
+  const option = props.options.find(({ value }) => value === val)
+  if (option) {
+    model.value = option.value
   }
 }
 </script>
