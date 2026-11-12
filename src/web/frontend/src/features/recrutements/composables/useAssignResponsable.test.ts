@@ -92,7 +92,7 @@ describe('useAssignResponsable', () => {
 
     expect(result.status.value).toBe('found')
     expect(mockCreateAgent).not.toHaveBeenCalled()
-    expect(mockSetRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(mockSetRecrutementsResponsable).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       recrutement_ids: ['rec-1'],
       agent_id: AGENT_ID,
     })

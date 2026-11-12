@@ -171,7 +171,7 @@ describe('candidaturesKanbanView', () => {
     await user.click(await screen.findByRole('option', { name: 'Autre' }))
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
       motifRefus: 'autre',
@@ -245,7 +245,7 @@ describe('candidaturesKanbanView', () => {
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
     await user.click(drawer.getByRole('button', { name: 'Valider le changement d\'étape' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     }))
@@ -260,7 +260,7 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Déposer en entretien' }))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
@@ -279,7 +279,7 @@ describe('candidaturesKanbanView', () => {
     await user.click(await screen.findByRole('option', { name: 'Autre' }))
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'autre',

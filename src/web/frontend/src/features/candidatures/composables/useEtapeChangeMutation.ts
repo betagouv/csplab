@@ -49,7 +49,7 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
 
   const mutation = useMutation({
     mutation: (change: EtapeChange, { params }) =>
-      patchEtapeCandidatures(params.organismeUuid, params.recrutementUuid, change),
+      patchEtapeCandidatures(params, change),
     onMutate: ({ candidatureUuids, etapeCibleUuid }: EtapeChange) => {
       const params = { ...toValue(recrutement) }
       const snapshots: (Snapshot | null)[] = []

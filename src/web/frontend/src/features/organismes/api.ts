@@ -58,7 +58,7 @@ export async function getOrganismeAgents({ organismeUuid }: OrganismeParams): Pr
 }
 
 export async function setAgentRole(
-  organismeUuid: string,
+  { organismeUuid }: OrganismeParams,
   payload: SetAgentRolePayload,
 ): Promise<AgentOrganisme> {
   const { data } = await api.POST('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
@@ -69,7 +69,7 @@ export async function setAgentRole(
 }
 
 export async function updateAgentRole(
-  organismeUuid: string,
+  { organismeUuid }: OrganismeParams,
   payload: UpdateAgentRolePayload,
 ): Promise<AgentOrganisme> {
   const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
