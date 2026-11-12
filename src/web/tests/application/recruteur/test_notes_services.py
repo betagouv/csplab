@@ -120,6 +120,7 @@ class TestListNotes:
             )
         )
 
+        # notes already loaded above: only the author access is measured
         with django_assert_num_queries(0):
             author_ids = [note.publie_par.utilisateur.pk for note in result]
 
