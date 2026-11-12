@@ -523,22 +523,18 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
-    usage_count = serializers.IntegerField(read_only=True, default=0)
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
 
     class Meta:
         model = TagModel
-        fields = ["uuid", "name", "category", "color", "usage_count"]
-
-
-class TagResumeSerializer(TagSerializer):
-    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
-
-    class Meta(TagSerializer.Meta):
         fields = ["uuid", "name", "color"]
 
 
-class NoteTagSerializer(TagResumeSerializer):
-    pass
+class TagDetailSerializer(TagSerializer):
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta(TagSerializer.Meta):
+        fields = ["uuid", "name", "category", "color", "usage_count"]
 
 
 class TagListQuerySerializer(serializers.Serializer):
@@ -561,10 +557,6 @@ class UpdateTagSerializer(serializers.Serializer):
 # ---------------------------------------------------------------------------
 
 
-class RecrutementAgentTagSerializer(TagResumeSerializer):
-    pass
-
-
 class RecrutementAgentSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="agent.utilisateur.username")
     nom = serializers.CharField(source="agent.utilisateur.last_name")
@@ -574,7 +566,7 @@ class RecrutementAgentSerializer(serializers.ModelSerializer):
     recrutement_role = serializers.ChoiceField(
         source="role", choices=[(r.value, r.value) for r in AgentRecrutementRole]
     )
-    tags = RecrutementAgentTagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = RecrutementAgentModel
@@ -651,7 +643,7 @@ class NoteSerializer(serializers.ModelSerializer):
     publie_le = serializers.DateTimeField(source="created_at")
     est_privee = serializers.BooleanField()
     authorized_actions = authorized_actions_field()
-    tags = NoteTagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = NoteModel
@@ -675,7 +667,7 @@ class NoteDetailSerializer(serializers.ModelSerializer):
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
     est_privee = serializers.BooleanField()
-    tags = NoteTagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = NoteModel

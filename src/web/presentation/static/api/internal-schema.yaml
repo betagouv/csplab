@@ -1585,7 +1585,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedTagList'
+                $ref: '#/components/schemas/PaginatedTagDetailList'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1709,7 +1709,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/TagDetail'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1853,7 +1853,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/TagDetail'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6406,7 +6406,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/NoteTag'
+            $ref: '#/components/schemas/Tag'
           readOnly: true
       required:
       - authorized_actions
@@ -6438,7 +6438,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/NoteTag'
+            $ref: '#/components/schemas/Tag'
           readOnly: true
       required:
       - candidature_id
@@ -6446,23 +6446,6 @@ components:
       - message
       - publie_par_id
       - tags
-      - uuid
-    NoteTag:
-      type: object
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        name:
-          type: string
-          maxLength: 25
-        color:
-          allOf:
-          - $ref: '#/components/schemas/ColorEnum'
-          readOnly: true
-      required:
-      - color
-      - name
       - uuid
     NoteVisibilite:
       type: object
@@ -6888,7 +6871,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsArchives'
-    PaginatedTagList:
+    PaginatedTagDetailList:
       type: object
       required:
       - count
@@ -6910,7 +6893,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/schemas/TagDetail'
     PatchedChangerEtapeCandidatures:
       type: object
       properties:
@@ -6950,7 +6933,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/RecrutementAgentTag'
+            $ref: '#/components/schemas/Tag'
           readOnly: true
       required:
       - email
@@ -6975,23 +6958,6 @@ components:
       required:
       - agent_id
       - recrutement_role
-    RecrutementAgentTag:
-      type: object
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        name:
-          type: string
-          maxLength: 25
-        color:
-          allOf:
-          - $ref: '#/components/schemas/ColorEnum'
-          readOnly: true
-      required:
-      - color
-      - name
-      - uuid
     RecrutementDetail:
       type: object
       properties:
@@ -7250,16 +7216,36 @@ components:
         name:
           type: string
           maxLength: 25
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
+      required:
+      - color
+      - name
+      - uuid
+    TagDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
         category:
           $ref: '#/components/schemas/CategoryEnum'
         color:
-          $ref: '#/components/schemas/ColorEnum'
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
         usage_count:
           type: integer
           readOnly: true
           default: 0
       required:
       - category
+      - color
       - name
       - usage_count
       - uuid
