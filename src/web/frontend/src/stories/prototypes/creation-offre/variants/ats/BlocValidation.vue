@@ -3,14 +3,15 @@ import type { Offre } from './store'
 import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
-import SimulationNote from '../../shared/SimulationNote.vue'
 import { useNav } from './nav'
 import { db, forcerValidation, le, repondre } from './store'
 
 // Bloc « Validation » : une ligne par validation, avec ses valideurs, l'état, la date et le commentaire.
 // Les validations se font en parallèle ; l'accord d'un seul valideur suffit pour chacune.
-// Les réponses des valideurs et le forçage par le superviseur sont simulés (encadrés violets).
+// Les réponses des valideurs et le forçage par le superviseur sont simulés : regroupés sous un lien replié
+// « Simuler la réponse des valideurs (proto) », pour que l'encart montre ce que voit vraiment le demandeur.
 const props = defineProps<{ offre: Offre, simulation?: boolean }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
@@ -24,6 +25,8 @@ const ETATS = {
 const refusEn = ref<number | null>(null)
 const commentaire = ref('')
 const enCours = computed(() => o.value.validationEtat === 'en_attente')
+const simuOuverte = ref(false)
+const enAttente = computed(() => (o.value.validations ?? []).map((v, i) => ({ v, i })).filter(x => x.v.decision === 'attente'))
 
 function accorder(i: number) {
   const v = o.value.validations![i]!
@@ -50,7 +53,7 @@ function forcer() {
   <div class="bloc">
     <ul class="lignes">
       <li
-        v-for="(v, i) in o.validations"
+        v-for="v in o.validations"
         :key="v.nom"
         class="ligne"
       >
@@ -74,23 +77,58 @@ function forcer() {
             : « {{ v.commentaire }} »
           </template>
         </p>
+      </li>
+    </ul>
 
-        <template v-if="simulation && enCours && v.decision === 'attente'">
-          <SimulationNote :titre="`Réponse du ${v.nom}`">
-            <CspButton
-              label="Valider"
-              size="sm"
-              @click="accorder(i)"
-            />
-            <CspButton
-              label="Refuser"
-              size="sm"
-              variant="secondary"
-              @click="refusEn = refusEn === i ? null : i"
-            />
-          </SimulationNote>
+    <div
+      v-if="simulation && enCours"
+      class="simu"
+    >
+      <button
+        type="button"
+        class="simu__lien"
+        :aria-expanded="simuOuverte"
+        @click="simuOuverte = !simuOuverte"
+      >
+        <CspIcon
+          name="ri:flask-line"
+          :size="14"
+        />
+        Simuler la réponse des valideurs (proto)
+        <CspIcon
+          :name="simuOuverte ? 'ri:arrow-up-s-line' : 'ri:arrow-down-s-line'"
+          :size="16"
+        />
+      </button>
+      <div
+        v-if="simuOuverte"
+        class="simu__corps"
+      >
+        <p class="simu__explication">
+          N'existe pas dans le produit : chaque valideur répond depuis son propre compte. Ces boutons servent seulement à faire avancer le scénario.
+        </p>
+        <template
+          v-for="x in enAttente"
+          :key="x.v.nom"
+        >
+          <div class="simu__ligne">
+            <span>Jouer <strong>{{ x.v.valideurs[0] ?? x.v.nom }}</strong> ({{ x.v.nom }})</span>
+            <span class="simu__boutons">
+              <CspButton
+                label="Valider"
+                size="sm"
+                @click="accorder(x.i)"
+              />
+              <CspButton
+                label="Refuser"
+                size="sm"
+                variant="secondary"
+                @click="refusEn = refusEn === x.i ? null : x.i"
+              />
+            </span>
+          </div>
           <div
-            v-if="refusEn === i"
+            v-if="refusEn === x.i"
             class="refus"
           >
             <CspTextarea
@@ -103,24 +141,24 @@ function forcer() {
                 label="Envoyer le refus"
                 size="sm"
                 :disabled="!commentaire.trim()"
-                @click="refuser(i)"
+                @click="refuser(x.i)"
               />
             </div>
           </div>
         </template>
-      </li>
-    </ul>
-    <SimulationNote
-      v-if="simulation && enCours"
-      :titre="`Superviseur (${db.organisme.superviseur})`"
-    >
-      <CspButton
-        label="Forcer la validation"
-        size="sm"
-        variant="tertiary"
-        @click="forcer"
-      />
-    </SimulationNote>
+        <div class="simu__ligne">
+          <span>Jouer <strong>{{ db.organisme.superviseur }}</strong> (superviseur)</span>
+          <span class="simu__boutons">
+            <CspButton
+              label="Forcer la validation"
+              size="sm"
+              variant="tertiary"
+              @click="forcer"
+            />
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -171,6 +209,59 @@ function forcer() {
   margin: 0;
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
+}
+
+.simu {
+  margin-top: var(--csp-space-2);
+  padding-top: var(--csp-space-3);
+  border-top: 1px dashed var(--border-default-grey);
+}
+
+.simu__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-action-high-blue-france);
+  }
+}
+
+.simu__corps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-3);
+  margin-top: var(--csp-space-3);
+  padding: var(--csp-space-3);
+  border: 1px dashed var(--border-plain-purple-glycine, #a558a0);
+  background: var(--background-alt-purple-glycine, #fbf5fa);
+}
+
+.simu__explication {
+  margin: 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.simu__ligne {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--csp-space-2);
+  font-size: var(--csp-font-size-sm);
+}
+
+.simu__boutons {
+  display: flex;
+  gap: var(--csp-space-2);
 }
 
 .refus {
