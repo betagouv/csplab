@@ -47,6 +47,7 @@ env = environ.Env(
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_UI_SHAPE=(str, ""),
     WEB_FRET_ENABLED=(bool, False),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
@@ -335,6 +336,13 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ROBOTS
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
+
+# UI SHAPE
+# ---------------------------------------
+# Radii of the interface, set outside production only: "rounded" applies the
+# light rounding of frontend/src/styles/shapes.css.
+# Without it, the interface follows the radius rule of the kit.
+UI_SHAPE = env.str("UI_SHAPE")
 
 # FRET
 # ---------------------------------------
