@@ -14,3 +14,7 @@ export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
 export function formatAgentLabel(agent: AgentIdentite & { email: string }): string {
   return formatAgentName(agent) || agent.email
 }
+
+export function agentSearchKeys(agent: AgentIdentite & { email: string }): string[] {
+  return [formatAgentName(agent), formatAgentNameAlphabetical(agent), agent.email]
+}
