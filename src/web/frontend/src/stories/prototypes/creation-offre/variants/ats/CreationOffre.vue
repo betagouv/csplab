@@ -22,10 +22,11 @@ type Mode = 'fiche' | 'manuel' | 'duplication'
 const props = defineProps<{ mode?: Mode, ficheId?: string, offreId?: string }>()
 const { aller, notifier } = useNav()
 
-const MODES: { id: Mode, titre: string, desc: string, rattachement: string, icon: string }[] = [
-  { id: 'fiche', titre: 'Depuis une fiche de poste', desc: 'Les informations de la fiche préremplissent l\'offre.', rattachement: 'Rattachée à la fiche choisie', icon: 'ri:file-text-line' },
-  { id: 'manuel', titre: 'Saisie manuelle', desc: 'Sans fiche de poste préexistante : saisissez l\'essentiel du poste.', rattachement: 'Une fiche de référence est créée avec votre saisie', icon: 'ri:edit-line' },
-  { id: 'duplication', titre: 'Depuis une offre existante', desc: 'Dupliquer un recrutement similaire : le contenu est copié dans une nouvelle offre indépendante.', rattachement: 'Rattachée à la fiche de l\'offre reprise (modifiable)', icon: 'ri:file-copy-2-line' },
+// Cartes sans pictogramme ni ligne de rattachement : le rattachement est donné une seule fois, en bas de page.
+const MODES: { id: Mode, titre: string, desc: string }[] = [
+  { id: 'fiche', titre: 'Depuis une fiche de poste', desc: 'Les informations de la fiche préremplissent l\'offre.' },
+  { id: 'manuel', titre: 'Saisie manuelle', desc: 'Saisissez l\'offre de toutes pièces.' },
+  { id: 'duplication', titre: 'Depuis une offre existante', desc: 'Récupérez toutes les informations d\'une offre précédemment publiée dans une nouvelle offre.' },
 ]
 
 const mode = ref<Mode | null>(props.mode ?? null)
@@ -123,17 +124,8 @@ function creer() {
           :value="m.id"
           class="mode__radio"
         >
-        <CspIcon
-          :name="m.icon"
-          :size="20"
-          class="mode__icon"
-        />
         <strong class="mode__titre">{{ m.titre }}</strong>
         <span class="mode__desc">{{ m.desc }}</span>
-        <span class="mode__ratt"><CspIcon
-          name="ri:link"
-          :size="12"
-        /> {{ m.rattachement }}</span>
       </label>
     </div>
 
@@ -309,11 +301,6 @@ function creer() {
   accent-color: var(--background-action-high-blue-france);
 }
 
-.mode__icon {
-  color: var(--text-action-high-blue-france);
-  margin-bottom: var(--csp-space-2);
-}
-
 .mode__titre {
   padding-right: var(--csp-space-5);
 }
@@ -321,16 +308,6 @@ function creer() {
 .mode__desc {
   font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
-}
-
-.mode__ratt {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--csp-space-1);
-  margin-top: auto;
-  padding-top: var(--csp-space-2);
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-action-high-blue-france);
 }
 
 .choix {
