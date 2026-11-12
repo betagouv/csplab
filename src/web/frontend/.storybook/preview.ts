@@ -19,9 +19,19 @@ function applyTheme(theme: string) {
   document.documentElement.setAttribute('data-fr-theme', theme)
 }
 
+function applyShape(shape: string) {
+  if (shape === 'rounded') {
+    document.documentElement.setAttribute('data-csp-shape', shape)
+  }
+  else {
+    document.documentElement.removeAttribute('data-csp-shape')
+  }
+}
+
 const preview: Preview = {
   initialGlobals: {
     theme: 'light',
+    shape: 'rule',
   },
   globalTypes: {
     theme: {
@@ -36,10 +46,23 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    shape: {
+      description: 'Rayons',
+      toolbar: {
+        title: 'Rayons',
+        icon: 'component',
+        items: [
+          { value: 'rule', title: 'Règle' },
+          { value: 'rounded', title: 'Arrondi léger' },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
+      applyShape(context.globals.shape ?? 'rule')
       return { components: { story }, template: '<story />' }
     },
   ],

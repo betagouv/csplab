@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..')
+const STYLES = 'styles/'
 const OWNER = 'styles/csp-variables.css'
+const SHAPES = 'styles/shapes.css'
 
 const sources = readdirSync(SRC, { recursive: true, encoding: 'utf8' })
   .filter(file => /\.(?:vue|ts|css|scss)$/.test(file) && !file.endsWith('.test.ts'))
@@ -33,7 +35,14 @@ describe('csp variables', () => {
   it('declares the variables of csp-variables.css in the stylesheets of styles/ only', () => {
     const redeclared = [...declarations]
       .filter(([, files]) => files.has(OWNER))
-      .flatMap(([name, files]) => [...files].filter(file => !file.startsWith('styles/')).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
+      .flatMap(([name, files]) => [...files].filter(file => !file.startsWith(STYLES)).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
     expect(redeclared).toEqual([])
+  })
+
+  it('sets in shapes.css only variables that csp-variables.css declares', () => {
+    const unowned = [...declarations]
+      .filter(([, files]) => files.has(SHAPES) && !files.has(OWNER))
+      .map(([name]) => `${name} in ${SHAPES}: declare it in ${OWNER} first`)
+    expect(unowned).toEqual([])
   })
 })
