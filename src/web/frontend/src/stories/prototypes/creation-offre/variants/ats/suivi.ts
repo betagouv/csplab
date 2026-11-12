@@ -58,8 +58,8 @@ export function actionAFaire(o: Offre): ActionAFaire | null {
         const j = joursRestants(o.dateFin)
         return { label: `Prolonger (fin ${j <= 0 ? 'aujourd\'hui' : `dans ${j} j`})`, ecran: offre }
       }
-      const n = o.nouvellesCandidatures ?? 0
-      return n ? { label: `${n} nouvelle${n > 1 ? 's' : ''} candidature${n > 1 ? 's' : ''}`, ecran: offre } : null
+      // Publication en cours sans échéance proche : rien à faire.
+      return null
     }
     case 'retiree':
       return { label: 'Archiver', ecran: offre }
