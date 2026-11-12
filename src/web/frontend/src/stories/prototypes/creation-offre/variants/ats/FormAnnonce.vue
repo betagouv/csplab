@@ -10,14 +10,14 @@ import FieldRow from '../../shared/FieldRow.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
-import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, MOTIFS_DEPART, MOTIFS_RECRUTEMENT, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, MOTIFS_DEPART, MOTIFS_RECRUTEMENT, STATUTS_POSTE, TEMPS_TRAVAIL, VERSANTS } from './store'
 import SuiviInterne from './SuiviInterne.vue'
 
 // Section « Annonce » de la page de l'offre : ce que lit le candidat sur Choisir le Service Public (D311-8).
 // Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Le suivi interne (jamais publié)
 // est dans un encadré gris du bloc « Le poste ». Le résumé pour la validation est en haut de la page.
 // Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
-const props = defineProps<{ offre: Offre, fiche: Fiche }>()
+const props = defineProps<{ offre: Offre, fiche?: Fiche }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
@@ -36,6 +36,24 @@ const depart = modele('motifDepart')
 const temps = computed({ get: () => o.value.tempsTravail || 'aucun', set: (v: string) => (o.value.tempsTravail = v === 'aucun' ? '' : v) })
 const OPTIONS_TEMPS = [{ value: 'aucun', label: 'Choisir' }, ...TEMPS_TRAVAIL]
 const rifseep = modele('groupeRifseep')
+// Champs facultatifs à liste : « aucun » = non renseigné.
+function choix(cle: 'versant' | 'natureContrat' | 'niveauExperience' | 'niveauEtudes' | 'management') {
+  return computed({
+    get: () => o.value[cle] || 'aucun',
+    set: (v: string) => (o.value[cle] = v === 'aucun' ? '' : v),
+  })
+}
+const versant = choix('versant')
+const natureContrat = choix('natureContrat')
+const experience = choix('niveauExperience')
+const etudes = choix('niveauEtudes')
+const management = choix('management')
+const OPTIONS_VERSANT = VERSANTS.map(v => ({ value: v, label: v }))
+const CONTRATS = ['Contrat à durée déterminée (CDD)', 'Contrat à durée indéterminée (CDI)', 'Contrat de projet']
+const EXPERIENCES = ['Débutant accepté', 'Confirmé (2 à 5 ans)', 'Expert (plus de 5 ans)']
+const ETUDES = ['Sans diplôme', 'CAP, BEP', 'Baccalauréat', 'Bac + 2', 'Bac + 3', 'Bac + 5 et plus']
+const MANAGEMENT = ['Pas d\'encadrement', 'Encadrement d\'une équipe', 'Encadrement de plusieurs équipes']
+const contractuels = computed(() => o.value.ouvertA.includes('contractuel'))
 const avecAgent = computed(() => ['Remplacement', 'Renouvellement'].includes(o.value.motifRecrutement))
 const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné' }, ...l.map(v => ({ value: v, label: v }))]
 
@@ -65,17 +83,17 @@ const OUVERT = [{ value: 'titulaire', label: 'Fonctionnaires' }, { value: 'contr
 const FONDEMENTS = ['Article L332-2 (besoins permanents)', 'Article L332-8 (emplois de catégorie A)', 'Article L332-23 (accroissement temporaire)', 'Article L332-24 (contrat de projet)']
 
 // « Repris de la fiche » tant que le texte est identique à ce que la fiche propose.
-const source = computed(() => contenuDepuisFiche(props.fiche))
+const source = computed(() => (props.fiche ? contenuDepuisFiche(props.fiche) : undefined))
 type CleTexte = 'titre' | 'presentation' | 'missions' | 'profil' | 'lieu'
-const avecFiche = computed(() => o.value.origineContenu === 'fiche' || o.value.origineContenu === 'fichier')
+const avecFiche = computed(() => Boolean(props.fiche) && (o.value.origineContenu === 'fiche' || o.value.origineContenu === 'fichier'))
 function repris(cle: CleTexte) {
-  return avecFiche.value && Boolean(source.value[cle]) && o.value[cle] === source.value[cle]
+  return avecFiche.value && Boolean(source.value?.[cle]) && o.value[cle] === source.value?.[cle]
 }
 function modifie(cle: CleTexte) {
-  return avecFiche.value && Boolean(source.value[cle]) && !repris(cle)
+  return avecFiche.value && Boolean(source.value?.[cle]) && !repris(cle)
 }
 function restaurer(cle: CleTexte) {
-  o.value[cle] = source.value[cle]
+  o.value[cle] = source.value?.[cle] ?? o.value[cle]
 }
 function formater() {
   o.value.missions = mettreEnForme(o.value.missions)
@@ -91,6 +109,11 @@ function formater() {
           :model-value="db.organisme.nom"
           label="Organisme"
           disabled
+        />
+        <CspSelect
+          v-model="versant"
+          label="Versant"
+          :options="OPTIONS_VERSANT"
         />
       </FieldRow>
       <ChampOffre
@@ -117,7 +140,7 @@ function formater() {
         <CspInput
           v-model="o.nbPostes"
           type="number"
-          label="Nombre de postes"
+          label="Nombre de postes (facultatif)"
         />
         <ChampOffre
           :offre="o"
@@ -136,34 +159,29 @@ function formater() {
       <FieldRow :cols="2">
         <CspCheckboxGroup
           v-model="o.ouvertA"
-          label="Cible : emploi ouvert aux"
+          label="Nature de l'emploi : ouvert aux"
           :options="OUVERT"
         />
-        <CspSelect
-          v-if="o.ouvertA.includes('contractuel')"
-          v-model="fondement"
-          label="Fondement juridique"
-          :options="opts(FONDEMENTS, 'Choisir')"
-        />
-      </FieldRow>
-      <FieldRow :cols="2">
         <CspSelect
           v-model="categorie"
           label="Catégorie"
           :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
         />
-        <ChampOffre
-          :offre="o"
-          champ="remuneration"
-          label="Rémunération (facultatif)"
-          for-id="a-remu"
-        >
-          <CspInput
-            id="a-remu"
-            v-model="o.remuneration"
-            placeholder="Ex. : grille indiciaire de catégorie C, selon expérience"
-          />
-        </ChampOffre>
+      </FieldRow>
+      <FieldRow
+        v-if="contractuels"
+        :cols="2"
+      >
+        <CspSelect
+          v-model="fondement"
+          label="Fondement juridique"
+          :options="opts(FONDEMENTS, 'Choisir')"
+        />
+        <CspSelect
+          v-model="natureContrat"
+          label="Nature du contrat (facultatif)"
+          :options="opts(CONTRATS, 'Non renseigné')"
+        />
       </FieldRow>
       <FieldRow :cols="2">
         <CspSelect
@@ -179,14 +197,50 @@ function formater() {
       </FieldRow>
       <FieldRow :cols="2">
         <CspInput
+          v-model="o.corps"
+          label="Corps (facultatif)"
+          placeholder="Ex. : attachés d'administration de l'État"
+        />
+        <CspInput
+          v-model="o.grade"
+          label="Grade (facultatif)"
+        />
+      </FieldRow>
+      <FieldRow :cols="3">
+        <CspSelect
+          v-model="temps"
+          label="Temps de travail"
+          :options="OPTIONS_TEMPS"
+        />
+        <CspInput
           v-model="o.teletravail"
           label="Télétravail (facultatif)"
           placeholder="Ex. : 2 jours par semaine"
         />
         <CspSelect
-          v-model="temps"
-          label="Temps de travail"
-          :options="OPTIONS_TEMPS"
+          v-model="management"
+          label="Management (facultatif)"
+          :options="opts(MANAGEMENT, 'Non renseigné')"
+        />
+      </FieldRow>
+      <FieldRow :cols="2">
+        <ChampOffre
+          :offre="o"
+          champ="remuneration"
+          label="Rémunération des fonctionnaires (facultatif)"
+          for-id="a-remu"
+        >
+          <CspInput
+            id="a-remu"
+            v-model="o.remuneration"
+            placeholder="Ex. : grille indiciaire, selon expérience"
+          />
+        </ChampOffre>
+        <CspInput
+          v-if="contractuels"
+          v-model="o.remunerationContractuels"
+          label="Rémunération des contractuels (facultatif)"
+          placeholder="Ex. : 2 600 à 3 200 € brut mensuel"
         />
       </FieldRow>
       <ChampOffre
@@ -208,6 +262,12 @@ function formater() {
             v-model="o.referenceInterne"
             label="Référence interne (facultatif)"
           />
+          <CspInput
+            v-model="o.referenceFranceTravail"
+            label="Référence France Travail (facultatif)"
+          />
+        </FieldRow>
+        <FieldRow :cols="2">
           <CspInput
             v-model="o.codePoste"
             label="Code poste (facultatif)"
@@ -374,6 +434,35 @@ function formater() {
           :rows="3"
         />
       </ChampOffre>
+      <FieldRow :cols="3">
+        <CspSelect
+          v-model="experience"
+          label="Niveau d'expérience (facultatif)"
+          :options="opts(EXPERIENCES, 'Non renseigné')"
+        />
+        <CspSelect
+          v-model="etudes"
+          label="Niveau d'études (facultatif)"
+          :options="opts(ETUDES, 'Non renseigné')"
+        />
+        <CspInput
+          v-model="o.langues"
+          label="Langues (facultatif)"
+          placeholder="Ex. : anglais, niveau B2"
+        />
+      </FieldRow>
+    </div>
+
+    <div class="groupe">
+      <h3 class="groupe__titre">
+        Informations complémentaires
+      </h3>
+      <CspTextarea
+        v-model="o.infosComplementaires"
+        label="Informations complémentaires (facultatif)"
+        hint="Ex. : accessibilité du poste aux personnes en situation de handicap, avantages sociaux."
+        :rows="2"
+      />
     </div>
   </div>
 </template>

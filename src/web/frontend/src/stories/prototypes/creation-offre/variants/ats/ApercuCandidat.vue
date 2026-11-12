@@ -110,6 +110,9 @@ const etiquettes = computed(() => [
       <p v-if="offre.profil">
         {{ offre.profil }}
       </p>
+      <p v-if="offre.niveauExperience || offre.niveauEtudes || offre.langues">
+        {{ [offre.niveauExperience, offre.niveauEtudes, offre.langues && `Langues : ${offre.langues}`].filter(Boolean).join(' · ') }}
+      </p>
       <template v-if="offre.competences.length">
         <p class="apercu__sous">
           Compétences
@@ -137,8 +140,19 @@ const etiquettes = computed(() => [
       <p v-if="offre.conditions">
         {{ offre.conditions }}
       </p>
+      <p v-if="offre.corps || offre.grade || offre.management">
+        {{ [offre.corps && `Corps : ${offre.corps}`, offre.grade && `Grade : ${offre.grade}`, offre.management].filter(Boolean).join(' · ') }}
+      </p>
       <p v-if="offre.remuneration">
-        Rémunération : {{ offre.remuneration }}
+        Rémunération des fonctionnaires : {{ offre.remuneration }}
+      </p>
+      <p v-if="offre.remunerationContractuels">
+        Rémunération des contractuels : {{ offre.remunerationContractuels }}<template v-if="offre.natureContrat">
+          ({{ offre.natureContrat }})
+        </template>
+      </p>
+      <p v-if="offre.infosComplementaires">
+        {{ offre.infosComplementaires }}
       </p>
     </section>
 
@@ -146,9 +160,6 @@ const etiquettes = computed(() => [
       <h3>Pour candidater</h3>
       <p v-if="pieces.length">
         Pièces demandées : {{ pieces.join(', ') }}.
-      </p>
-      <p v-if="offre.contact">
-        Contact : {{ offre.contact }}
       </p>
     </section>
 

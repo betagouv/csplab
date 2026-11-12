@@ -62,8 +62,18 @@ export interface Membre {
   role: 'Responsable' | 'Recruteur' | 'Contributeur'
 }
 
+/** Proposition de modification faite par un valideur : c'est la personne qui rédige l'offre qui l'applique. */
+export interface Proposition {
+  par: string
+  le: string
+  section: 'annonce' | 'candidature' | 'publication' | 'interne'
+  texte: string
+  traitee?: boolean
+}
+
 export interface Offre {
   id: string
+  /** Fiche de poste rattachée ; vide si l'offre n'en a pas (formulaire vide, offre reprise sans fiche). */
   ficheId: string
   etat: EtatOffre
   origineContenu: OrigineContenu
@@ -82,6 +92,9 @@ export interface Offre {
   groupeRifseep: string
   cycleTravail: string
   commentaireValideurs: string
+  /** Saisi par l'équipe RH (valideurs) pendant la validation. */
+  commentaireRH?: string
+  referenceFranceTravail?: string
   ficheJointe?: string
 
   // 2. Annonce — ce que lit le candidat (article D311-8 du CGFP)
@@ -98,10 +111,22 @@ export interface Offre {
   profil: string
   conditions: string
   tempsTravail: string
+  /** Rémunération des fonctionnaires. */
   remuneration: string
+  remunerationContractuels?: string
   teletravail: string
   lieu: string
+  /** Retiré de l'annonce (paramétré dans l'ATS) ; conservé pour les anciennes données. */
   contact: string
+  versant?: string
+  natureContrat?: string
+  niveauExperience?: string
+  niveauEtudes?: string
+  langues?: string
+  management?: string
+  corps?: string
+  grade?: string
+  infosComplementaires?: string
 
   // 3. Formulaire de candidature
   modeCandidature: 'ats' | 'courriel' | 'externe'
@@ -129,6 +154,7 @@ export interface Offre {
   validationDemandeeLe?: string
   validationObtenueLe?: string
   modifieeDepuisValidation?: boolean
+  propositions?: Proposition[]
 
   notifications: 'chaque' | 'cinq' | 'quotidien' | 'aucune'
   /** Candidatures pas encore ouvertes (fictif, pour la colonne « Action à faire »). */
@@ -216,9 +242,13 @@ export interface Organisme {
   validationActive: boolean
   groupes: GroupeValidation[]
   etapesRecrutement: string[]
-  agents: { nom: string, creer: boolean, publier: boolean }[]
+  /** Droits des agents : créer des offres, publier, autoriser (peut être désigné valideur). */
+  agents: { nom: string, creer: boolean, publier: boolean, autoriser?: boolean }[]
+  versant?: string
   journal: Evenement[]
 }
+
+export const VERSANTS = ['Fonction publique de l\'État', 'Fonction publique territoriale', 'Fonction publique hospitalière']
 
 export const UTILISATEUR = 'Camille Moreau'
 
@@ -419,7 +449,9 @@ function socle() {
     descriptifEmployeur: 'La DREAL Occitanie met en œuvre les politiques de l\'État en matière de transition écologique, d\'énergie et de logement.',
     conditions: '',
     tempsTravail: 'complet',
+    versant: 'Fonction publique de l\'État',
     remuneration: '',
+    remunerationContractuels: '',
     teletravail: '',
     contact: '',
     modeCandidature: 'ats' as const,
@@ -528,6 +560,7 @@ function offresInitiales(f: Fiche[]): Offre[] {
       groupeRifseep: 'Groupe 2',
       commentaireValideurs: 'Remplacement à l\'identique, poste budgété.',
       remuneration: 'Selon expérience et grille indiciaire',
+      propositions: [{ par: 'Claire Morel', le: '21 octobre 2026', section: 'annonce', texte: 'Indiquer une fourchette de rémunération pour les contractuels (2 600 à 3 200 € brut).' }],
       validationEtat: 'en_attente',
       validationDemandeeLe: '17 octobre 2026',
       validations: [
@@ -665,7 +698,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v13'
+const CLE = 'csplab-proto-ats-v14'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -682,18 +715,19 @@ function lire(): Base | null {
 function organismeInitial(): Organisme {
   return {
     nom: 'DREAL Occitanie',
+    versant: 'Fonction publique de l\'État',
     superviseur: 'Isabelle Fournier',
     validationActive: true,
     groupes: [{ ...BUDGET, valideurs: [...BUDGET.valideurs] }, { ...RECRUTEMENT, valideurs: [...RECRUTEMENT.valideurs] }],
     etapesRecrutement: [...ETAPES_RECRUTEMENT],
     agents: [
-      { nom: 'Camille Moreau', creer: true, publier: true },
-      { nom: 'Nadia Benali', creer: true, publier: true },
-      { nom: 'Julien Lefèvre', creer: true, publier: false },
-      { nom: 'Anne Dubois', creer: false, publier: false },
-      { nom: 'Paul Martin', creer: false, publier: false },
-      { nom: 'Claire Morel', creer: true, publier: true },
-      { nom: 'Hélène Robert', creer: false, publier: false },
+      { nom: 'Camille Moreau', creer: true, publier: true, autoriser: true },
+      { nom: 'Nadia Benali', creer: true, publier: true, autoriser: false },
+      { nom: 'Julien Lefèvre', creer: true, publier: false, autoriser: false },
+      { nom: 'Anne Dubois', creer: false, publier: false, autoriser: true },
+      { nom: 'Paul Martin', creer: false, publier: false, autoriser: true },
+      { nom: 'Claire Morel', creer: true, publier: true, autoriser: true },
+      { nom: 'Hélène Robert', creer: false, publier: false, autoriser: false },
     ],
     journal: [
       { date: '3 septembre 2026', texte: 'Circuit de validation activé par Isabelle Fournier' },
@@ -814,7 +848,12 @@ export function nouvelleFiche(partiel: Partial<Fiche>, origine: OrigineFiche, ev
 }
 
 /** Les données de contexte (informations internes, dates de publication) ne sont jamais reprises. */
-export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?: Offre): Offre {
+/**
+ * Nouvelle offre : depuis une fiche (contenu proposé), un formulaire vide (saisie de départ) ou une offre reprise.
+ * La fiche est facultative. Les données de contexte (date de vacance, motif, agent remplacé, code poste,
+ * nombre de postes, dates, commentaires de validation) ne sont jamais reprises.
+ */
+export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineContenu, depuis?: Offre, saisie?: Partial<Offre>): Offre {
   const annonce = depuis
     ? {
         titre: depuis.titre,
@@ -831,38 +870,61 @@ export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?:
         conditions: depuis.conditions,
         tempsTravail: depuis.tempsTravail,
         remuneration: depuis.remuneration,
+        remunerationContractuels: depuis.remunerationContractuels,
         teletravail: depuis.teletravail,
         lieu: depuis.lieu,
-        contact: depuis.contact,
+        versant: depuis.versant,
+        natureContrat: depuis.natureContrat,
+        niveauExperience: depuis.niveauExperience,
+        niveauEtudes: depuis.niveauEtudes,
+        langues: depuis.langues,
+        management: depuis.management,
+        corps: depuis.corps,
+        grade: depuis.grade,
+        infosComplementaires: depuis.infosComplementaires,
         modeCandidature: depuis.modeCandidature,
         courrielCandidature: depuis.courrielCandidature,
         urlCandidature: depuis.urlCandidature,
         pieces: { ...depuis.pieces },
         questions: [...depuis.questions],
       }
-    : contenuDepuisFiche(f)
+    : f ? contenuDepuisFiche(f) : ({ titre: '', categorie: '', statutPoste: '', metier: '', competences: [], presentation: '', missions: '', profil: '', lieu: '', ...saisie } as Partial<Offre>)
   const texte = {
-    fiche: `Offre créée depuis la fiche ${f.id}`,
-    fichier: `Offre créée depuis un fichier (fiche ${f.id})`,
-    manuel: `Offre créée depuis un formulaire vide (fiche ${f.id})`,
+    fiche: `Offre créée depuis la fiche ${f?.id}`,
+    fichier: `Offre créée depuis un fichier (fiche ${f?.id})`,
+    manuel: 'Offre créée depuis un formulaire vide, sans fiche de poste',
     duplication: `Offre créée par duplication de ${depuis?.id} — données de contexte non reprises`,
   }[origineContenu]
-  const o: Offre = {
+  const o = {
     ...socle(),
     ...annonce,
     id: `OFF-2026-0${prochainNumero('', db.offres.filter(x => x.id.startsWith('OFF-2026-')))}`,
-    ficheId: f.id,
+    ficheId: f?.id ?? '',
     etat: 'brouillon',
     origineContenu,
     sourceOffreId: depuis?.id,
     creeLe: maintenant(),
     modifieLe: maintenant(),
     historique: [{ date: maintenant(), texte }],
-  }
+  } as Offre
   db.offres.unshift(o)
-  f.historique.push({ date: maintenant(), texte: `Offre ${o.id} rattachée` })
+  f?.historique.push({ date: maintenant(), texte: `Offre ${o.id} rattachée` })
   sauvegarder()
   return o
+}
+
+// --- Propositions de modification des valideurs ---
+
+export function proposer(o: Offre, section: Proposition['section'], texte: string) {
+  o.propositions = [...(o.propositions ?? []), { par: UTILISATEUR, le: maintenant(), section, texte }]
+  journal(o, `Proposition de modification de ${UTILISATEUR} : « ${texte} »`)
+}
+export function traiterProposition(o: Offre, i: number) {
+  const p = o.propositions?.[i]
+  if (p) {
+    p.traitee = true
+    journal(o, `Proposition de ${p.par} traitée`)
+  }
 }
 
 // --- Circuit de validation (ancienne DAR) ---

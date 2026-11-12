@@ -24,6 +24,7 @@ import FormCandidature from './FormCandidature.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
+import Propositions from './Propositions.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
 import { archiverOffre, arreterSupport, aujourdhui, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
@@ -37,11 +38,13 @@ const props = defineProps<{ id: string, section?: EtapeFormulaire }>()
 const { aller, notifier } = useNav()
 
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
-const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId)!)
+// Fiche de poste facultative : absente pour une offre partie d'un formulaire vide ou reprise d'une offre sans fiche.
+const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId))
 // Vue « valideur » : l'offre a été créée par un collègue et le compte connecté doit la valider.
 // Tout est en lecture seule ; ses boutons Valider / Refuser sont dans l'encart du haut.
 const valideur = computed(() => aValiderParMoi(o.value))
 // Offre d'un collègue : consultable seulement, avant comme après la réponse du valideur.
+const aTraiter = computed(() => (o.value.propositions ?? []).filter(p => !p.traitee).length)
 const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
 const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
 const manques = computed(() => manquesPublication(o.value))
@@ -148,12 +151,17 @@ const responsable = computed({
   },
 })
 // Phrase sous le titre « Annonce » : d'où vient le contenu, et la fiche de poste rattachée.
-const origineAnnonce = computed(() => ({
-  fiche: 'Annonce écrite à partir de la fiche de poste',
-  fichier: 'Annonce écrite à partir d\'un document, rattachée à la fiche de poste',
-  manuel: 'Annonce saisie directement, rattachée à la fiche de poste',
-  duplication: 'Annonce reprise d\'une offre existante, rattachée à la fiche de poste',
-})[o.value.origineContenu])
+const origineAnnonce = computed(() => {
+  if (!f.value) {
+    return o.value.origineContenu === 'duplication' ? 'Annonce reprise d\'une offre existante, sans fiche de poste.' : 'Annonce saisie directement, sans fiche de poste.'
+  }
+  return {
+    fiche: 'Annonce écrite à partir de la fiche de poste',
+    fichier: 'Annonce écrite à partir d\'un document, rattachée à la fiche de poste',
+    manuel: 'Annonce saisie directement, rattachée à la fiche de poste',
+    duplication: 'Annonce reprise d\'une offre existante, rattachée à la fiche de poste',
+  }[o.value.origineContenu]
+})
 const OPTIONS_AGENTS = computed(() => db.organisme.agents.map(a => ({ value: a.nom, label: a.nom })))
 
 // Informations sous le titre, comme sur la page d'un recrutement de l'application.
@@ -166,7 +174,7 @@ const meta = computed(() => [
 ])
 const menu = computed(() => [{
   items: [
-    { label: 'Voir la fiche de poste', icon: 'ri:file-text-line', onSelect: () => aller({ nom: 'fiche', id: f.value.id }) },
+    ...(f.value ? [{ label: 'Voir la fiche de poste', icon: 'ri:file-text-line', onSelect: () => aller({ nom: 'fiche', id: f.value!.id }) }] : []),
     { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: o.value.id }) },
   ],
 }])
@@ -296,6 +304,24 @@ const FREQ = [
         :size="16"
       />
       Modifiée depuis la validation. Le circuit n'est pas relancé ; le détail figure dans le journal d'activité.
+    </p>
+
+    <p
+      v-if="!lectureSeule && aTraiter"
+      class="bandeau bandeau--action"
+    >
+      <CspIcon
+        name="ri:chat-3-line"
+        :size="16"
+      />
+      <span>{{ aTraiter }} proposition{{ aTraiter > 1 ? 's' : '' }} de modification des valideurs à traiter.</span>
+      <button
+        type="button"
+        class="lien"
+        @click="allerA('validation')"
+      >
+        Voir {{ aTraiter > 1 ? 'les propositions' : 'la proposition' }}
+      </button>
     </p>
 
     <div
@@ -544,9 +570,12 @@ const FREQ = [
           <p class="source">
             <span>
               {{ origineAnnonce }}
-              <strong>{{ f.intitule }}</strong> ({{ f.id }})
+              <template v-if="f">
+                <strong>{{ f.intitule }}</strong> ({{ f.id }})
+              </template>
             </span>
             <CspButton
+              v-if="f"
               label="Voir la fiche de poste"
               variant="tertiary-no-outline"
               size="sm"
@@ -585,6 +614,13 @@ const FREQ = [
           :editable="modifiable"
           integre
         />
+        <Propositions
+          v-if="o.validationEtat !== 'non_demandee'"
+          :offre="o"
+          :valideur="valideur"
+          :redacteur="!lectureSeule"
+          @aller="allerA"
+        />
       </SectionOffre>
 
       <SectionOffre
@@ -618,12 +654,10 @@ const FREQ = [
               label="Responsable du recrutement"
               :options="OPTIONS_AGENTS"
             />
-            <CspInput
-              v-model="o.contact"
-              label="Contact (facultatif)"
-              hint="Visible sur l'offre, pour les questions des candidats."
-            />
-            <div class="fiche">
+            <div
+              v-if="f"
+              class="fiche"
+            >
               <div>
                 <p class="mention">
                   Fiche de poste rattachée
@@ -643,6 +677,14 @@ const FREQ = [
                 size="sm"
                 @click="aller({ nom: 'fiche', id: f.id })"
               />
+            </div>
+            <div v-else>
+              <p class="mention">
+                Fiche de poste rattachée
+              </p>
+              <p class="source">
+                Aucune fiche de poste
+              </p>
             </div>
             <CspRadioGroup
               v-if="o.etat === 'publiee'"
@@ -742,7 +784,10 @@ const FREQ = [
       :overlay="false"
       @update:open="(v: boolean) => !v && (panneau = null)"
     >
-      <FicheSource :fiche="f" />
+      <FicheSource
+        v-if="f"
+        :fiche="f"
+      />
     </CspDrawer>
   </PageAts>
 </template>
@@ -869,6 +914,10 @@ const FREQ = [
     background: var(--background-action-high-blue-france);
     color: var(--text-inverted-blue-france);
   }
+}
+
+.bandeau.bandeau--action {
+  background: var(--background-alt-blue-france);
 }
 
 .bandeau {

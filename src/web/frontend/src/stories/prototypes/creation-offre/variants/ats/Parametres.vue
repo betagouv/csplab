@@ -34,7 +34,8 @@ function basculer(v: boolean) {
 }
 
 // --- Validations : un nom et un ou plusieurs valideurs choisis parmi les agents ---
-const AGENTS = computed(() => db.organisme.agents.map(a => ({ value: a.nom, label: a.nom })))
+// Seuls les agents qui ont le droit « Autoriser » peuvent être désignés valideurs.
+const AGENTS = computed(() => db.organisme.agents.filter(a => a.autoriser).map(a => ({ value: a.nom, label: a.nom })))
 const enEdition = ref<number | null>(null)
 const nomEdite = ref('')
 const valideursEdites = ref<string[]>([])
@@ -62,10 +63,11 @@ function ajouter() {
   tracer('Validation ajoutée')
 }
 
-function droit(nom: string, cle: 'creer' | 'publier', v: boolean) {
+const LIBELLES_DROITS = { creer: 'Créer des offres', publier: 'Publier des offres', autoriser: 'Autoriser (valider des offres)' }
+function droit(nom: string, cle: 'creer' | 'publier' | 'autoriser', v: boolean) {
   const a = db.organisme.agents.find(x => x.nom === nom)!
   a[cle] = v
-  tracer(`Droit « ${cle === 'creer' ? 'Créer des offres' : 'Publier des offres'} » ${v ? 'donné à' : 'retiré à'} ${nom}`)
+  tracer(`Droit « ${LIBELLES_DROITS[cle]} » ${v ? 'donné à' : 'retiré à'} ${nom}`)
 }
 </script>
 
@@ -220,7 +222,7 @@ function droit(nom: string, cle: 'creer' | 'publier', v: boolean) {
 
     <Panel
       titre="Droits des agents"
-      description="Le superviseur peut donner à un agent les droits « Créer des offres » et « Publier des offres »."
+      description="Le superviseur donne à chaque agent les droits « Créer », « Publier » et « Autoriser ». Seuls les agents qui peuvent autoriser sont proposés comme valideurs."
     >
       <table class="circuit">
         <thead>
@@ -233,6 +235,9 @@ function droit(nom: string, cle: 'creer' | 'publier', v: boolean) {
             </th>
             <th scope="col">
               Publier des offres
+            </th>
+            <th scope="col">
+              Autoriser (valider)
             </th>
           </tr>
         </thead>
@@ -256,6 +261,14 @@ function droit(nom: string, cle: 'creer' | 'publier', v: boolean) {
                 :label="a.publier ? 'Oui' : 'Non'"
                 :disabled="lecture"
                 @update:model-value="v => droit(a.nom, 'publier', v)"
+              />
+            </td>
+            <td>
+              <CspSwitch
+                :model-value="Boolean(a.autoriser)"
+                :label="a.autoriser ? 'Oui' : 'Non'"
+                :disabled="lecture"
+                @update:model-value="v => droit(a.nom, 'autoriser', v)"
               />
             </td>
           </tr>

@@ -4,7 +4,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { db, fiche, nouvelleFiche, termineBientot } from './store'
+import { db, nouvelleFiche, termineBientot } from './store'
 import { statutListe } from './suivi'
 
 // Écran 1 — tableau de bord : accès aux deux espaces et quelques compteurs, sans analytique.
@@ -82,7 +82,7 @@ const aTraiter = computed(() => db.offres.filter(o => o.etat === 'brouillon' || 
             >
               <span>
                 <strong>{{ o.titre }}</strong>
-                <small>{{ o.id }} · fiche {{ fiche(o.ficheId)?.id }} · {{ o.nbPostes }} poste(s) · modifiée {{ o.modifieLe.toLowerCase() }}</small>
+                <small>{{ o.id }} · {{ o.ficheId ? `fiche ${o.ficheId}` : 'sans fiche de poste' }} · {{ o.nbPostes }} poste(s) · modifiée {{ o.modifieLe.toLowerCase() }}</small>
               </span>
               <EtatBadge :etat="o.etat" />
             </button>

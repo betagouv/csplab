@@ -8,7 +8,7 @@ import { dateLongue } from './store'
 // Cadre « Résumé pour la validation » : présent seulement quand l'organisme fait valider ses offres.
 // Il reprend automatiquement les informations utiles aux valideurs (saisies dans l'annonce) ;
 // seul le commentaire pour les valideurs se saisit ici. Rien de ce cadre n'est publié tel quel.
-const props = defineProps<{ offre: Offre, fiche: Fiche, editable?: boolean, compact?: boolean, integre?: boolean }>()
+const props = defineProps<{ offre: Offre, fiche?: Fiche, editable?: boolean, compact?: boolean, integre?: boolean }>()
 const o = computed(() => props.offre)
 
 const motif = computed(() => {
@@ -27,7 +27,7 @@ const lignes = computed(() => [
   { k: 'Lieu', v: o.value.lieu },
   { k: 'Rémunération annoncée', v: o.value.remuneration },
   { k: 'Groupe RIFSEEP', v: o.value.groupeRifseep },
-  { k: 'Fiche de poste', v: `${props.fiche.intitule} (${props.fiche.id})${o.value.ficheJointe ? ` · ${o.value.ficheJointe}` : ''}` },
+  { k: 'Fiche de poste', v: `${props.fiche ? `${props.fiche.intitule} (${props.fiche.id})` : 'Aucune'}${o.value.ficheJointe ? ` · document joint : ${o.value.ficheJointe}` : ''}` },
 ])
 
 function joindre(e: Event) {

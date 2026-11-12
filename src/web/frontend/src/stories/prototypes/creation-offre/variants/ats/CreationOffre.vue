@@ -2,7 +2,6 @@
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
@@ -13,10 +12,10 @@ import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
-import { db, fiche, le, nouvelleFiche, nouvelleOffre, offresDe } from './store'
+import { db, fiche, le, nouvelleOffre, offresDe } from './store'
 
 // Lancer un recrutement : 3 sources (fiche de poste, offre existante, saisie manuelle). Quelle que soit la source,
-// l'offre est rattachée à une fiche de poste : existante, créée à partir de la saisie, ou celle de l'offre reprise.
+// la fiche de poste est facultative : celle choisie, aucune (formulaire vide) ou celle de l'offre reprise si elle en a une.
 // Le nombre de postes se renseigne sur la page de l'offre.
 type Mode = 'fiche' | 'manuel' | 'duplication'
 const props = defineProps<{ mode?: Mode, ficheId?: string, offreId?: string }>()
@@ -41,7 +40,9 @@ const fichesActives = computed(() => {
 })
 
 // 3. Saisie manuelle
-const manuel = ref({ intitule: '', service: '', localisation: '', categories: [] as string[] })
+const manuel = ref({ intitule: '', localisation: '', categorie: '' })
+const OPTIONS_CATEGORIE = [{ value: 'aucune', label: 'Choisir' }, ...CATEGORIES]
+const categorieManuelle = computed({ get: () => manuel.value.categorie || 'aucune', set: (v: string) => (manuel.value.categorie = v === 'aucune' ? '' : v) })
 
 // 4. Duplication
 const offreSource = ref<string | null>(props.offreId ?? null)
@@ -49,16 +50,20 @@ const offresReprenables = computed(() => db.offres.filter(o => o.etat === 'publi
 const ficheDuplication = ref<string | null>(props.offreId ? db.offres.find(o => o.id === props.offreId)?.ficheId ?? null : null)
 function choisirSource(id: string) {
   offreSource.value = id
-  ficheDuplication.value = db.offres.find(o => o.id === id)!.ficheId
+  ficheDuplication.value = db.offres.find(o => o.id === id)!.ficheId || null
 }
-const optionsFiches = computed(() => db.fiches.filter(f => f.statut === 'active' || f.id === ficheDuplication.value).map(f => ({ value: f.id, label: `${f.intitule} (${f.id})` })))
+const optionsFiches = computed(() => [{ value: 'aucune', label: 'Aucune fiche de poste' }, ...db.fiches.filter(f => f.statut === 'active' || f.id === ficheDuplication.value).map(f => ({ value: f.id, label: `${f.intitule} (${f.id})` }))])
 
-/** Ce à quoi l'offre sera rattachée : toujours affiché avant de créer. */
+/** Fiche de poste de la future offre (facultative) : affichée avant de créer. */
 const rattachement = computed(() => {
   switch (mode.value) {
     case 'fiche': return ficheChoisie.value ? `${fiche(ficheChoisie.value)?.intitule} (${ficheChoisie.value})` : 'choisissez une fiche'
-    case 'manuel': return manuel.value.intitule ? `une nouvelle fiche « ${manuel.value.intitule} » (à compléter dans le référentiel)` : 'une nouvelle fiche créée à partir de votre saisie'
-    case 'duplication': return ficheDuplication.value ? `${fiche(ficheDuplication.value)?.intitule} (${ficheDuplication.value})` : 'choisissez une offre'
+    case 'manuel': return 'aucune (vous pourrez en rattacher une plus tard)'
+    case 'duplication':
+      if (!offreSource.value) {
+        return 'choisissez une offre'
+      }
+      return ficheDuplication.value ? `${fiche(ficheDuplication.value)?.intitule} (${ficheDuplication.value})` : 'aucune'
     default: return ''
   }
 })
@@ -74,26 +79,20 @@ function creer() {
       return
     }
   }
-  else if (mode.value === 'manuel') {
-    if (!manuel.value.intitule.trim()) {
-      erreur.value = 'Indiquez au moins l\'intitulé du poste : il sert à créer la fiche de référence.'
-      return
-    }
-    f = nouvelleFiche({ ...manuel.value }, 'ats', 'Fiche créée à partir d\'une saisie manuelle d\'offre')
-  }
   else if (mode.value === 'duplication') {
     source = offreSource.value ? db.offres.find(o => o.id === offreSource.value) : undefined
     f = ficheDuplication.value ? fiche(ficheDuplication.value) : undefined
-    if (!source || !f) {
+    if (!source) {
       erreur.value = 'Choisissez l\'offre à reprendre.'
       return
     }
   }
-  if (!f || !mode.value) {
+  if (!mode.value) {
     return
   }
-  const o = nouvelleOffre(f, mode.value, source)
-  notifier(`Offre ${o.id} créée et rattachée à la fiche ${f.id}.`)
+  const saisie = mode.value === 'manuel' ? { titre: manuel.value.intitule.trim(), lieu: manuel.value.localisation.trim(), categorie: manuel.value.categorie } : undefined
+  const o = nouvelleOffre(f, mode.value, source, saisie)
+  notifier(f ? `Offre ${o.id} créée et rattachée à la fiche ${f.id}.` : `Offre ${o.id} créée, sans fiche de poste.`)
   aller({ nom: 'formulaire', id: o.id })
 }
 </script>
@@ -102,7 +101,7 @@ function creer() {
   <PageAts
     actif="offres"
     titre="Lancer un recrutement"
-    sous-titre="Créez l'offre à partir de la source la plus adaptée. Elle reste toujours rattachée à une fiche de poste."
+    sous-titre="Créez l'offre à partir de la source la plus adaptée."
     :fil="[{ label: 'Offres d\'emploi', to: '/offres' }, { label: 'Lancer un recrutement' }]"
     :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
   >
@@ -169,28 +168,24 @@ function creer() {
 
     <Panel
       v-else-if="mode === 'manuel'"
-      titre="L'essentiel du poste"
-      description="Ces informations créent la fiche de poste de référence ; vous compléterez ensuite la page de l'offre."
+      titre="Pour démarrer (facultatif)"
+      description="Vous compléterez tout le reste sur la page de l'offre. Aucune fiche de poste n'est créée."
     >
       <FieldRow :cols="3">
         <CspInput
           v-model="manuel.intitule"
-          label="Intitulé du poste"
-        />
-        <CspInput
-          v-model="manuel.service"
-          label="Service"
+          label="Intitulé de l'offre"
         />
         <CspInput
           v-model="manuel.localisation"
-          label="Localisation"
+          label="Lieu"
+        />
+        <CspSelect
+          v-model="categorieManuelle"
+          label="Catégorie"
+          :options="OPTIONS_CATEGORIE"
         />
       </FieldRow>
-      <CspCheckboxGroup
-        v-model="manuel.categories"
-        label="Catégorie(s)"
-        :options="CATEGORIES"
-      />
     </Panel>
 
     <Panel
@@ -216,18 +211,18 @@ function creer() {
           >
           <span class="choix__corps">
             <strong>{{ o.titre }}</strong>
-            <small>{{ o.id }} · publiée {{ le(o.publieeLe) }} · fiche {{ o.ficheId }}</small>
+            <small>{{ o.id }} · publiée {{ le(o.publieeLe) }} · {{ o.ficheId ? `fiche ${o.ficheId}` : 'sans fiche de poste' }}</small>
           </span>
           <EtatBadge :etat="o.etat" />
         </label>
       </fieldset>
       <CspSelect
         v-if="offreSource"
-        :model-value="ficheDuplication ?? undefined"
-        label="Fiche de poste de rattachement"
-        hint="Par défaut celle de l'offre reprise. Vérifiez qu'elle correspond toujours au poste."
+        :model-value="ficheDuplication ?? 'aucune'"
+        label="Fiche de poste (facultatif)"
+        hint="Par défaut celle de l'offre reprise, s'il y en a une."
         :options="optionsFiches"
-        @update:model-value="v => (ficheDuplication = v ?? null)"
+        @update:model-value="v => (ficheDuplication = !v || v === 'aucune' ? null : v)"
       />
     </Panel>
 
@@ -241,7 +236,7 @@ function creer() {
             name="ri:link"
             :size="14"
           />
-          L'offre sera rattachée à : <strong>{{ rattachement }}</strong>
+          Fiche de poste : <strong>{{ rattachement }}</strong>
         </p>
       </div>
       <div class="final__actions">

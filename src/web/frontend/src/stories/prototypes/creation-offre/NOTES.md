@@ -711,3 +711,13 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Dans la liste, son action à faire est **« Valider ou refuser »**. Sur la page : lecture seule (offre d'un collègue), boutons Valider / Refuser sur la ligne « Pôle juridique » de l'encart.
 - **À chaque rechargement du proto**, cette offre redevient « à valider par Camille » (les autres offres gardent leur état pendant la session).
 - Story 6 bis : « Offre à valider par Camille — Juriste marchés publics ».
+
+## Itération 21 — Alignement sur le brief « création manuelle des offres »
+
+- **Fiche de poste facultative** : le formulaire vide ne crée plus de fiche ; une offre reprise garde la fiche de l'offre d'origine s'il y en a une (sinon « Aucune fiche de poste », modifiable). La page de l'offre l'indique (« Annonce saisie directement, sans fiche de poste »), le résumé affiche « Aucune ».
+- **Données de contexte jamais recopiées** (fiche ou duplication) : date de vacance, motif, agent remplacé, motif de départ, code poste, nombre de postes, dates, commentaires de validation.
+- **Nouveaux champs** — Annonce : versant (prérempli), nature de l'emploi (ex-« cible »), nature du contrat, corps, grade, management, rémunération des fonctionnaires / des contractuels, niveau d'expérience, niveau d'études, langues, informations complémentaires. Suivi interne : référence France Travail. Nombre de postes facultatif.
+- **Contact retiré** (paramétré dans l'ATS).
+- **Droit « Autoriser »** pour les agents (avec Créer et Publier) ; seuls ces agents sont proposés comme valideurs.
+- **Valideur** : ne modifie pas l'offre, il **propose** (partie concernée + texte) et peut saisir le **commentaire de l'équipe RH**. La personne qui rédige voit un bandeau « N propositions à traiter », va à la partie concernée, applique puis « Marquer comme traitée ». Exemple : proposition de Claire Morel sur « Chargé·e de recrutement ».
+- Inchangé (choix d'Alice) : page unique, liste à statut unique, accueil actuel, aperçu candidat et multi-diffusion.
