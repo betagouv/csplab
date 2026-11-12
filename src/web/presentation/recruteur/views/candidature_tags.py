@@ -27,6 +27,7 @@ from domain.recruteur.errors.tag_errors import (
     TagCategoryMismatch,
     TagNotFound,
     TagNotOnCandidature,
+    TagOrganismeMismatch,
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
@@ -56,6 +57,7 @@ class CandidatureTagBaseView(SessionApiMixin, APIView):
                 RecrutementCandidatureInexistante,
                 TagNotFound,
                 TagNotOnCandidature,
+                TagOrganismeMismatch,
             ),
         ):
             return Response(

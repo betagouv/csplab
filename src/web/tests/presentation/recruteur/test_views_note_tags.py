@@ -180,7 +180,7 @@ class TestCandidatureNoteTagsView:
         )
         note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
         tag = TagDjangoFactory(organisme=organisme, category=TagCategory.NOTE)
-        erreur = TagOrganismeMismatch(tag.id)
+        erreur = TagOrganismeMismatch(tag.id, "note")
 
         # unreachable through the service, forced on the queryset
         with patch.object(NoteTagQuerySet, "poser", side_effect=erreur):
