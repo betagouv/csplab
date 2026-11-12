@@ -741,24 +741,31 @@ const FREQ = [
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--csp-space-1) var(--csp-space-5);
+  gap: var(--csp-space-2) var(--csp-space-5);
+  margin: var(--csp-space-5) 0 var(--csp-space-1);
   font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
+
+  > span {
+    margin-right: var(--csp-space-1);
+  }
 }
 
 .raccourci {
-  padding: 0;
+  padding: 2px var(--csp-space-3);
   border: 0;
-  background: none;
+  border-radius: 1rem;
+  background: var(--background-action-low-blue-france);
   font: inherit;
   color: var(--text-action-high-blue-france);
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 3px;
   cursor: pointer;
 
   &:hover {
-    text-decoration-color: currentColor;
+    background: var(--background-action-low-blue-france-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color);
+    outline-offset: 2px;
   }
 }
 

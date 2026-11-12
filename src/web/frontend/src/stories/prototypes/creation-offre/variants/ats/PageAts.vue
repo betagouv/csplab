@@ -114,6 +114,7 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 
 // Sans onglets (page d'une offre, d'une fiche…), pas de filet sous l'en-tête.
 .ats--sans-onglets :deep(.csp-page-header__main-row) {
+  padding-bottom: 0;
   border-bottom: 0;
 }
 

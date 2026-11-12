@@ -51,7 +51,7 @@ const courante = computed(() => etapes.value.find(e => e.etat === 'courant'))
 .cycle {
   display: flex;
   gap: 3px;
-  padding: var(--csp-space-4);
+  padding: var(--csp-space-3) var(--csp-space-4);
   border: 1px solid var(--border-default-grey);
   cursor: default;
   user-select: none;
