@@ -213,8 +213,9 @@ function forcer() {
 
 .simu {
   margin-top: var(--csp-space-2);
-  padding-top: var(--csp-space-3);
-  border-top: 1px dashed var(--border-default-grey);
+  padding: var(--csp-space-3);
+  border: 1px dashed var(--border-plain-purple-glycine, #a558a0);
+  background: var(--background-alt-purple-glycine, #fbf5fa);
 }
 
 .simu__lien {
@@ -226,11 +227,12 @@ function forcer() {
   background: none;
   font: inherit;
   font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-label-purple-glycine, #6e445a);
   cursor: pointer;
 
   &:hover {
-    color: var(--text-action-high-blue-france);
+    text-decoration: underline;
   }
 }
 
@@ -239,9 +241,6 @@ function forcer() {
   flex-direction: column;
   gap: var(--csp-space-3);
   margin-top: var(--csp-space-3);
-  padding: var(--csp-space-3);
-  border: 1px dashed var(--border-plain-purple-glycine, #a558a0);
-  background: var(--background-alt-purple-glycine, #fbf5fa);
 }
 
 .simu__explication {
