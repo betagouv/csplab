@@ -144,7 +144,7 @@ describe('etapesRecrutementList', () => {
     await chooseAction('Entretien', 'Monter')
 
     expect(await screen.findByText('Le déplacement de l\'étape a échoué')).toBeInTheDocument()
-    expect(updateEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'].map(uuid => expect.objectContaining({ uuid })))
+    expect(updateEtapesOffre).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, ['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'].map(uuid => expect.objectContaining({ uuid })))
     expect(displayedNoms()).toEqual(ETAPES.map(etape => etape.nom))
   })
 
