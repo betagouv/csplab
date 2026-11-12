@@ -10,11 +10,12 @@ import { NAV } from './nav'
 import OffreEspace from './OffreEspace.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
-import { db, retraitsAutomatiques } from './store'
+import { db, retraitsAutomatiques, session } from './store'
 import TableauDeBord from './TableauDeBord.vue'
 
 // Racine de la variante « ATS — fiches et offres ». Le menu latéral change la route ; la racine la suit.
-const props = withDefaults(defineProps<{ depart?: Ecran, validation?: boolean }>(), { depart: () => ({ nom: 'accueil' }), validation: undefined })
+const props = withDefaults(defineProps<{ depart?: Ecran, validation?: boolean, role?: 'demandeur' | 'valideur' }>(), { depart: () => ({ nom: 'accueil' }), validation: undefined, role: 'demandeur' })
+session.role = props.role
 
 // Démonstration : une story peut activer ou non le circuit de validation de l'organisme.
 if (props.validation !== undefined) {

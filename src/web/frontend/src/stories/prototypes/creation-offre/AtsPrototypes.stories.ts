@@ -22,11 +22,11 @@ const meta = {
 export default meta
 type Story = StoryObj
 
-function story(depart: Record<string, unknown>, validation?: boolean): Story['render'] {
+function story(depart: Record<string, unknown>, validation?: boolean, role?: 'demandeur' | 'valideur'): Story['render'] {
   return () => ({
     components: { AtsApp },
-    setup: () => ({ depart, validation }),
-    template: '<AtsApp :depart="depart" :validation="validation" />',
+    setup: () => ({ depart, validation, role }),
+    template: '<AtsApp :depart="depart" :validation="validation" :role="role" />',
   })
 }
 
@@ -36,6 +36,7 @@ export const FichePaie: Story = { name: '3. Fiche « Gestionnaire de paie » →
 export const Lancer: Story = { name: '4. Lancer un recrutement — 3 sources', render: story({ nom: 'creation' }) }
 export const Brouillon: Story = { name: '5. Offre en brouillon — page unique, demander la validation à tout moment', render: story({ nom: 'offre', id: 'OFF-2026-0151' }, true) }
 export const EnValidation: Story = { name: '6. Validation en cours — « Chargé·e de recrutement »', render: story({ nom: 'offre', id: 'OFF-2026-0148' }, true) }
+export const VueValideur: Story = { name: '6 bis. Vue du valideur (Claire Morel) — lecture seule, Valider ou Refuser', render: story({ nom: 'offre', id: 'OFF-2026-0148' }, true, 'valideur') }
 export const APublier: Story = { name: '7. Validée et complète, prête à être publiée — « Chef·fe de projet numérique »', render: story({ nom: 'offre', id: 'OFF-2026-0145' }, true) }
 export const Publier: Story = { name: '7 bis. Publier — affichage candidat, dates et diffusion', render: story({ nom: 'apercu', id: 'OFF-2026-0145', publier: true }, true) }
 export const Suivi: Story = { name: '8. Offre en ligne qui se termine bientôt — prolonger ou retirer', render: story({ nom: 'offre', id: 'OFF-2026-0118' }) }

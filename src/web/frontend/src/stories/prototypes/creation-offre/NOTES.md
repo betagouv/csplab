@@ -697,3 +697,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Barre « Accéder à » en pastilles, **fixe au défilement** ; la pastille de la section visible passe en bleu plein.
 - Badges sans icône dans tout le prototype ; boutons d'en-tête et de barre d'outils en taille S.
 - Le résumé pour la validation n'apparaît plus une fois l'offre publiée.
+
+## Itération 19 — Section « Validation pour publication » et vue du valideur
+
+- Le résumé pour la validation devient une **section repliable « Validation pour publication »**, entre l'Annonce et le Formulaire de candidature, présente seulement si l'organisme fait valider ses offres (et tant que l'offre n'est pas publiée).
+- La zone au-dessus des sections ne résume plus que l'**étape en cours** (brouillon, validation en cours, prête à publier, en ligne…).
+- Simulation des réponses des valideurs : regroupée dans un seul encadré violet replié « Simuler la réponse des valideurs (proto) ».
+- **Vue du valideur** (story 6 bis, Claire Morel) : toute l'offre en lecture seule (champs verrouillés, sections et fiche de poste consultables), résumé sans saisie, vrais boutons Valider / Refuser sur sa ligne dans l'encart « Validation en cours ».

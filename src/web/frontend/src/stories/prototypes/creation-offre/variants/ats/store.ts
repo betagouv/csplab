@@ -636,6 +636,10 @@ function initial(): Base {
 
 export const db = reactive(lire() ?? initial())
 
+/** Qui regarde l'offre (démonstration) : la personne qui la suit, ou un valideur (lecture seule). */
+export const session = reactive({ role: 'demandeur' as 'demandeur' | 'valideur' })
+export const VALIDEUR_DEMO = 'Claire Morel'
+
 export function sauvegarder() {
   try {
     sessionStorage.setItem(CLE, JSON.stringify(db))

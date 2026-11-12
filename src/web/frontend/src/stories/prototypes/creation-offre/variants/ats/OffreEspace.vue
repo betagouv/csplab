@@ -26,7 +26,7 @@ import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
-import { archiverOffre, arreterSupport, aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
+import { archiverOffre, arreterSupport, aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, session, signalerModification, UTILISATEUR, validationManquante, VALIDEUR_DEMO } from './store'
 
 // Page unique de l'offre : on y arrive en créant l'offre et on y revient pour la suivre.
 // En haut : résumé pour la validation et encart de l'étape en cours (demander la validation, publier…).
@@ -38,18 +38,19 @@ const { aller, notifier } = useNav()
 
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
 const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId)!)
-const modifiable = computed(() => o.value.etat === 'brouillon' || o.value.etat === 'publiee')
+const valideur = computed(() => session.role === 'valideur')
+const modifiable = computed(() => !valideur.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
 const manques = computed(() => manquesPublication(o.value))
 const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 
 // --- Sections et raccourcis « Accéder à » ---
-const ouverts = reactive<Record<string, boolean>>({ annonce: true, candidature: true, parametres: true, publication: true, journal: false })
+const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, candidature: true, parametres: true, publication: true, journal: false })
 // Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
 const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
 const RACCOURCIS = computed(() => [
-  ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
   { id: 'annonce', label: 'Annonce' },
+  ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
   { id: 'candidature', label: 'Formulaire de candidature' },
   { id: 'parametres', label: 'Paramètres' },
   { id: 'publication', label: 'Publication' },
@@ -294,16 +295,8 @@ const FREQ = [
     </p>
 
     <div
-      class="tete"
-      :class="{ 'tete--seule': !avecValidation }"
+      class="tete tete--seule"
     >
-      <ResumeValidation
-        v-if="avecValidation"
-        id="validation"
-        :offre="o"
-        :fiche="f"
-        :editable="modifiable"
-      />
       <div class="tete__etat">
         <!-- Encart de l'étape en cours -->
         <template v-if="o.etat === 'brouillon'">
@@ -336,7 +329,10 @@ const FREQ = [
             description="Complétez l'offre puis redemandez la validation. Les accords déjà donnés restent acquis."
           >
             <BlocValidation :offre="o" />
-            <div class="actions">
+            <div
+              v-if="!valideur"
+              class="actions"
+            >
               <DemandeValidation
                 :offre="o"
                 variant="primary"
@@ -348,11 +344,12 @@ const FREQ = [
             v-else-if="o.validationEtat === 'en_attente'"
             class="encart"
             titre="Validation en cours"
-            :description="`Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
+            :description="valideur ? `Demandée ${le(o.validationDemandeeLe)} par ${UTILISATEUR}. Consultez l'offre et le résumé pour la validation, puis donnez votre réponse.` : `Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
           >
             <BlocValidation
               :offre="o"
               simulation
+              :moi="valideur ? VALIDEUR_DEMO : undefined"
             />
           </Panel>
 
@@ -378,6 +375,7 @@ const FREQ = [
               >
                 {{ m.label }}
                 <button
+                  v-if="!valideur"
                   type="button"
                   class="lien"
                   @click="allerA(m.etape)"
@@ -386,7 +384,10 @@ const FREQ = [
                 </button>
               </li>
             </ul>
-            <div class="actions">
+            <div
+              v-if="!valideur"
+              class="actions"
+            >
               <DemandeValidation
                 :offre="o"
                 variant="primary"
@@ -528,18 +529,12 @@ const FREQ = [
       </div>
     </div>
 
-    <fieldset
-      class="sections"
-      :disabled="!modifiable"
-    >
-      <legend class="sr-only">
-        Contenu de l'offre
-      </legend>
+    <div class="sections">
       <SectionOffre
         id="annonce"
         v-model:ouvert="ouverts.annonce"
         titre="Annonce"
-        :description="o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
+        :description="valideur ? 'Lecture seule : seule la personne qui suit l\'offre peut la modifier.' : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
       >
         <template #intro>
           <p class="source">
@@ -557,9 +552,34 @@ const FREQ = [
             />
           </p>
         </template>
-        <FormAnnonce
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
+        >
+          <FormAnnonce
+            :offre="o"
+            :fiche="f"
+          />
+        </fieldset>
+      </SectionOffre>
+
+      <SectionOffre
+        v-if="avecValidation"
+        id="validation"
+        v-model:ouvert="ouverts.validation"
+        titre="Validation pour publication"
+        :description="valideur ? 'Lecture seule : ce résumé est repris de l\'annonce. Donnez votre réponse en haut de la page.' : undefined"
+      >
+        <template #intro>
+          <p class="source">
+            Ce que voient les valideurs. Repris automatiquement de l'annonce, jamais publié tel quel.
+          </p>
+        </template>
+        <ResumeValidation
           :offre="o"
           :fiche="f"
+          :editable="modifiable"
+          integre
         />
       </SectionOffre>
 
@@ -568,10 +588,15 @@ const FREQ = [
         v-model:ouvert="ouverts.candidature"
         titre="Formulaire de candidature"
       >
-        <FormCandidature
-          :offre="o"
-          :verrouille="o.etat !== 'brouillon'"
-        />
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
+        >
+          <FormCandidature
+            :offre="o"
+            :verrouille="o.etat !== 'brouillon'"
+          />
+        </fieldset>
       </SectionOffre>
 
       <SectionOffre
@@ -579,47 +604,52 @@ const FREQ = [
         v-model:ouvert="ouverts.parametres"
         titre="Paramètres de l'offre"
       >
-        <div class="parametres">
-          <CspSelect
-            v-model="responsable"
-            label="Responsable du recrutement"
-            :options="OPTIONS_AGENTS"
-          />
-          <CspInput
-            v-model="o.contact"
-            label="Contact (facultatif)"
-            hint="Visible sur l'offre, pour les questions des candidats."
-          />
-          <div class="fiche">
-            <div>
-              <p class="mention">
-                Fiche de poste rattachée
-              </p>
-              <strong>{{ f.intitule }}</strong>
-              <p class="mention">
-                {{ f.id }} · {{ f.service }}
-              </p>
-            </div>
-            <OrigineBadge
-              :origine="f.origine"
-              court
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
+        >
+          <div class="parametres">
+            <CspSelect
+              v-model="responsable"
+              label="Responsable du recrutement"
+              :options="OPTIONS_AGENTS"
             />
-            <CspButton
-              label="Ouvrir la fiche"
-              variant="tertiary-no-outline"
+            <CspInput
+              v-model="o.contact"
+              label="Contact (facultatif)"
+              hint="Visible sur l'offre, pour les questions des candidats."
+            />
+            <div class="fiche">
+              <div>
+                <p class="mention">
+                  Fiche de poste rattachée
+                </p>
+                <strong>{{ f.intitule }}</strong>
+                <p class="mention">
+                  {{ f.id }} · {{ f.service }}
+                </p>
+              </div>
+              <OrigineBadge
+                :origine="f.origine"
+                court
+              />
+              <CspButton
+                label="Ouvrir la fiche"
+                variant="tertiary-no-outline"
+                size="sm"
+                @click="aller({ nom: 'fiche', id: f.id })"
+              />
+            </div>
+            <CspRadioGroup
+              v-if="o.etat === 'publiee'"
+              v-model="o.notifications"
+              label="Mes notifications : courriel pour les nouvelles candidatures"
+              :options="FREQ"
               size="sm"
-              @click="aller({ nom: 'fiche', id: f.id })"
+              @update:model-value="sauvegarder"
             />
           </div>
-          <CspRadioGroup
-            v-if="o.etat === 'publiee'"
-            v-model="o.notifications"
-            label="Mes notifications : courriel pour les nouvelles candidatures"
-            :options="FREQ"
-            size="sm"
-            @update:model-value="sauvegarder"
-          />
-        </div>
+        </fieldset>
       </SectionOffre>
 
       <SectionOffre
@@ -628,14 +658,19 @@ const FREQ = [
         titre="Publication"
         :description="o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
       >
-        <div class="publication">
-          <ChampsPublication
-            :offre="o"
-            :disabled="o.etat !== 'brouillon'"
-          />
-        </div>
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
+        >
+          <div class="publication">
+            <ChampsPublication
+              :offre="o"
+              :disabled="o.etat !== 'brouillon'"
+            />
+          </div>
+        </fieldset>
       </SectionOffre>
-    </fieldset>
+    </div>
 
     <SectionOffre
       id="journal"
@@ -872,6 +907,12 @@ const FREQ = [
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
+  min-width: 0;
+}
+
+// Lecture seule (valideur, offre retirée ou archivée) : seuls les champs sont verrouillés,
+// pas l'ouverture des sections ni la consultation de la fiche.
+.verrou {
   min-width: 0;
   margin: 0;
   padding: 0;

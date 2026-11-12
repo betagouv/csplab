@@ -8,7 +8,7 @@ import { dateLongue } from './store'
 // Cadre « Résumé pour la validation » : présent seulement quand l'organisme fait valider ses offres.
 // Il reprend automatiquement les informations utiles aux valideurs (saisies dans l'annonce) ;
 // seul le commentaire pour les valideurs se saisit ici. Rien de ce cadre n'est publié tel quel.
-const props = defineProps<{ offre: Offre, fiche: Fiche, editable?: boolean, compact?: boolean }>()
+const props = defineProps<{ offre: Offre, fiche: Fiche, editable?: boolean, compact?: boolean, integre?: boolean }>()
 const o = computed(() => props.offre)
 
 const motif = computed(() => {
@@ -41,10 +41,10 @@ function joindre(e: Event) {
 <template>
   <section
     class="resume"
-    :class="{ 'resume--compact': compact }"
-    aria-labelledby="resume-titre"
+    :class="{ 'resume--compact': compact, 'resume--integre': integre }"
+    :aria-labelledby="integre ? undefined : 'resume-titre'"
   >
-    <header>
+    <header v-if="!integre">
       <h3
         id="resume-titre"
         class="resume__titre"
@@ -144,6 +144,12 @@ function joindre(e: Event) {
     margin: 0;
     font-size: var(--csp-font-size-sm);
   }
+}
+
+.resume--integre {
+  max-width: 48rem;
+  padding: 0;
+  border: 0;
 }
 
 .resume--compact .resume__dl > div {
