@@ -44,10 +44,8 @@ export function actionAFaire(o: Offre): ActionAFaire | null {
   }
   switch (statutListe(o)) {
     case 'brouillon':
-      if (validationManquante(o) && o.validationEtat === 'non_demandee') {
-        return { label: 'Demander la validation', ecran: offre }
-      }
-      return { label: 'Compléter l\'offre', ecran: { nom: 'formulaire', id: o.id, etape: manquesPublication(o)[0]?.etape } }
+      // Annonce en cours de rédaction : pas d'action à mettre en avant, le statut suffit.
+      return null
     case 'validation_attente':
       // Rien à faire pour le demandeur : le statut suffit, le détail des réponses est sur la page de l'offre.
       return null
