@@ -45,7 +45,8 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
 
 // --- Sections et raccourcis « Accéder à » ---
 const ouverts = reactive<Record<string, boolean>>({ annonce: true, candidature: true, parametres: true, publication: true, journal: false })
-const avecValidation = computed(() => db.organisme.validationActive || o.value.validationEtat !== 'non_demandee')
+// Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
+const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
 const RACCOURCIS = computed(() => [
   ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
   { id: 'annonce', label: 'Annonce' },
