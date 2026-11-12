@@ -48,10 +48,9 @@ export function actionAFaire(o: Offre): ActionAFaire | null {
         return { label: 'Demander la validation', ecran: offre }
       }
       return { label: 'Compléter l\'offre', ecran: { nom: 'formulaire', id: o.id, etape: manquesPublication(o)[0]?.etape } }
-    case 'validation_attente': {
-      const attente = (o.validations ?? []).filter(v => v.decision === 'attente').map(v => v.nom)
-      return { label: attente.length ? `Attendre : ${attente.join(', ')}` : 'Attendre les valideurs' }
-    }
+    case 'validation_attente':
+      // Rien à faire pour le demandeur : le statut suffit, le détail des réponses est sur la page de l'offre.
+      return null
     case 'validation_refusee':
       return { label: 'Corriger l\'offre', ecran: offre }
     case 'prete':
