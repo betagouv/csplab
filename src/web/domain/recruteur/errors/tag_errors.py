@@ -19,14 +19,14 @@ class TagNotFound(TagError):
 
 
 class TagCategoryMismatch(TagError):
-    def __init__(self, tag_id: UUID):
-        super().__init__(f"L'étiquette {tag_id} n'est pas une étiquette de note")
+    def __init__(self, tag_id: UUID, cible: str):
+        super().__init__(f"L'étiquette {tag_id} n'est pas une étiquette de {cible}")
 
 
 class TagOrganismeMismatch(TagError):
-    def __init__(self, tag_id: UUID):
+    def __init__(self, tag_id: UUID, cible: str):
         super().__init__(
-            f"L'étiquette {tag_id} n'appartient pas à l'organisme de la note"
+            f"L'étiquette {tag_id} n'appartient pas à l'organisme de la {cible}"
         )
 
 
@@ -38,3 +38,8 @@ class TagAlreadyOnNote(TagError):
 class TagNotOnNote(TagError):
     def __init__(self, tag_id: UUID):
         super().__init__(f"L'étiquette {tag_id} n'est pas posée sur cette note")
+
+
+class TagAlreadyOnCandidature(TagError):
+    def __init__(self, tag_id: UUID):
+        super().__init__(f"L'étiquette {tag_id} est déjà posée sur cette candidature")

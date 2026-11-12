@@ -1,10 +1,11 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.db import IntegrityError, models
 from django.db.models import Case, Count, OuterRef, Subquery, Value, When
 from django.db.models.functions import Coalesce, Lower, Trim
 
 from domain.recruteur.errors.tag_errors import (
+    TagAlreadyOnCandidature,
     TagAlreadyOnNote,
     TagCategoryMismatch,
     TagOrganismeMismatch,
@@ -138,6 +139,22 @@ class TagModel(BaseDatedModel):
         return self.name
 
 
+class CandidatureTagQuerySet(models.QuerySet):
+    def poser(self, *, candidature_id: UUID, tag: TagModel) -> "CandidatureTagModel":
+        if tag.category != TagCategory.CANDIDATURE:
+            raise TagCategoryMismatch(tag.pk, "candidature")
+        candidature_dans_organisme = CandidatureModel.objects.filter(
+            pk=candidature_id,
+            etape__recrutement__organisme_id=tag.organisme_id,
+        ).exists()
+        if not candidature_dans_organisme:
+            raise TagOrganismeMismatch(tag.pk, "candidature")
+        try:
+            return self.create(id=uuid4(), candidature_id=candidature_id, tag=tag)
+        except IntegrityError as error:
+            raise TagAlreadyOnCandidature(tag.pk) from error
+
+
 class CandidatureTagModel(BaseDatedModel):
     tag = models.ForeignKey(
         TagModel, on_delete=models.CASCADE, related_name="candidatures_liaisons"
@@ -148,6 +165,8 @@ class CandidatureTagModel(BaseDatedModel):
         db_column="candidature_id",
         related_name="tags_liaisons",
     )
+
+    objects = CandidatureTagQuerySet.as_manager()
 
     class Meta:
         db_table = "candidature_tag"
@@ -194,13 +213,13 @@ class NoteTagQuerySet(models.QuerySet):
 
     def poser(self, *, note: NoteModel, tag: TagModel) -> "NoteTagModel":
         if tag.category != TagCategory.NOTE:
-            raise TagCategoryMismatch(tag.pk)
+            raise TagCategoryMismatch(tag.pk, "note")
         note_dans_organisme = NoteModel.objects.filter(
             pk=note.pk,
             candidature__etape__recrutement__organisme_id=tag.organisme_id,
         ).exists()
         if not note_dans_organisme:
-            raise TagOrganismeMismatch(tag.pk)
+            raise TagOrganismeMismatch(tag.pk, "note")
         try:
             return self.create(id=uuid4(), note=note, tag=tag)
         except IntegrityError as error:
