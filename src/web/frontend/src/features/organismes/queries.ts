@@ -3,12 +3,7 @@ import type { OrganismesPageParams } from './types'
 import type { OrganismeParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
 import { organismeKeys } from '@/api/queryKeys'
-import { getOrganismeAgents, getOrganismeDetail, getOrganismesList, getOrganismesPage, searchOrganismes } from './api'
-
-export const organismesListQuery = defineQueryOptions({
-  key: organismeKeys.list(),
-  query: getOrganismesList,
-})
+import { getOrganismeAgents, getOrganismeDetail, getOrganismesPage, searchOrganismes } from './api'
 
 export const organismesPageQuery = defineQueryOptions((params: OrganismesPageParams) => {
   return {

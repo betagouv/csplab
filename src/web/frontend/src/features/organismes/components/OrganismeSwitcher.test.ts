@@ -11,7 +11,6 @@ import { getOrganismeDetail, searchOrganismes } from '../api'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismeDetail: vi.fn(),
   searchOrganismes: vi.fn(),
 }))

@@ -10,7 +10,6 @@ import { useOrganismeDetail } from './useOrganismeDetail'
 const mockGetOrganismeDetail = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismeDetail: (...args: unknown[]) => mockGetOrganismeDetail(...args),
 }))
 
