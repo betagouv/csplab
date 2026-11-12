@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EtapeFormulaire } from './aide'
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
@@ -62,7 +62,27 @@ async function allerA(id: string) {
   await nextTick()
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
-onMounted(() => props.section && allerA(props.section))
+// Barre « Accéder à » fixe au défilement : la section visible est mise en avant.
+const active = ref('')
+let observateur: IntersectionObserver | undefined
+onMounted(() => {
+  if (props.section) {
+    allerA(props.section)
+  }
+  observateur = new IntersectionObserver((entrees) => {
+    const visibles = entrees.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+    if (visibles[0]) {
+      active.value = visibles[0].target.id
+    }
+  }, { root: document.querySelector('.ats__main'), rootMargin: '-80px 0px -60% 0px' })
+  for (const r of RACCOURCIS.value) {
+    const el = document.getElementById(r.id)
+    if (el) {
+      observateur.observe(el)
+    }
+  }
+})
+onBeforeUnmount(() => observateur?.disconnect())
 const panneau = ref<'apercu' | 'fiche' | null>(null)
 
 // --- Enregistrement automatique ; une modification après validation est signalée, sans relancer le circuit ---
@@ -231,6 +251,8 @@ const FREQ = [
         :key="r.id"
         type="button"
         class="raccourci"
+        :class="{ 'raccourci--actif': active === r.id }"
+        :aria-current="active === r.id ? 'location' : undefined"
         @click="allerA(r.id)"
       >
         {{ r.label }}
@@ -738,11 +760,17 @@ const FREQ = [
 }
 
 .raccourcis {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--csp-space-2) var(--csp-space-5);
-  margin: var(--csp-space-5) 0 var(--csp-space-1);
+  margin: var(--csp-space-2) calc(-1 * var(--csp-space-2)) calc(-1 * var(--csp-space-2));
+  padding: var(--csp-space-3) var(--csp-space-2);
+  background: var(--background-default-grey);
+  box-shadow: 0 1px 0 var(--border-default-grey);
   font-size: var(--csp-font-size-sm);
 
   > span {
@@ -767,6 +795,12 @@ const FREQ = [
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
+
+  &--actif,
+  &--actif:hover {
+    background: var(--background-action-high-blue-france);
+    color: var(--text-inverted-blue-france);
+  }
 }
 
 .bandeau {
@@ -790,7 +824,7 @@ const FREQ = [
   }
 
   > #validation {
-    scroll-margin-top: var(--csp-space-6);
+    scroll-margin-top: 4.5rem;
   }
 }
 

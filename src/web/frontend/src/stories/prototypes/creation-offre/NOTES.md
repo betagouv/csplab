@@ -690,3 +690,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Infos de l'offre en pastilles grises (création, lieu, organisme, catégorie, postes).
 - Indicateur d'étape : barre segmentée dans un cadre ; segments et libellés en bleu jusqu'à l'étape en cours (en gras), en gris ensuite ; détail après « • » (ex. « Publiée • jusqu'au 16/11/2026 »).
 - Aperçu candidat : bouton secondaire taille S avec l'œil et le libellé, même taille que le menu « … ».
+
+## Itération 18 — Finitions de la page de l'offre
+
+- Espacements de l'en-tête repris de la maquette d'Alice (pastilles → étapes 24 px, étapes → raccourcis 40 px, raccourcis → contenu 24 px) ; plus de filet sous l'en-tête des pages sans onglets.
+- Barre « Accéder à » en pastilles, **fixe au défilement** ; la pastille de la section visible passe en bleu plein.
+- Badges sans icône dans tout le prototype ; boutons d'en-tête et de barre d'outils en taille S.
+- Le résumé pour la validation n'apparaît plus une fois l'offre publiée.

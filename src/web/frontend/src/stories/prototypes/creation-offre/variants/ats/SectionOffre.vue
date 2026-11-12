@@ -53,7 +53,7 @@ const ouvert = defineModel<boolean>('ouvert', { default: true })
 
 <style scoped lang="scss">
 .section {
-  scroll-margin-top: var(--csp-space-6);
+  scroll-margin-top: 4.5rem;
   padding: var(--csp-space-6) var(--csp-space-8);
   border: 1px solid var(--border-default-grey);
   background: var(--background-default-grey);
