@@ -1,14 +1,20 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from domain.recruteur.errors.tag_errors import TagOrganismeMismatch
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
-from infrastructure.django_apps.tag.models import CandidatureTagModel, TagCategory
+from infrastructure.django_apps.tag.models import (
+    CandidatureTagModel,
+    CandidatureTagQuerySet,
+    TagCategory,
+)
 from infrastructure.factories.candidate.candidature_django_factory import (
     create_recrutement_and_candidature_for_agent,
     create_recrutement_with_candidature,
@@ -164,6 +170,26 @@ class TestCandidatureTagsView:
             CandidatureTagModel.objects.filter(candidature=candidature, tag=tag).count()
             == 1
         )
+
+    def test_tag_outside_the_candidature_organisme_is_not_found(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        tag = TagDjangoFactory(organisme=organisme, category=TagCategory.CANDIDATURE)
+        erreur = TagOrganismeMismatch(tag.id, "candidature")
+
+        # unreachable through the service, forced on the queryset
+        with patch.object(CandidatureTagQuerySet, "poser", side_effect=erreur):
+            response = authenticated_client.post(
+                _candidature_tags_url(organisme.id, recrutement.pk, candidature.id),
+                data={"tag_uuid": str(tag.id)},
+                format="json",
+            )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": str(erreur)}
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role"),
