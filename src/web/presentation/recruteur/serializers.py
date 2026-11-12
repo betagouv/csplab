@@ -163,7 +163,7 @@ class EtapeOrganismeSerializer(EtapeRecrutementSerializer):
 
 
 class MotifRefusSerializer(serializers.Serializer):
-    value = serializers.CharField()
+    value = serializers.ChoiceField(choices=MotifRefus.choices)
     label = serializers.CharField()
 
 
