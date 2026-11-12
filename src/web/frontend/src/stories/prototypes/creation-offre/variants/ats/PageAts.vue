@@ -39,7 +39,10 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 
 <template>
   <CspSidebarProvider :default-expanded="true">
-    <div class="ats">
+    <div
+      class="ats"
+      :class="{ 'ats--sans-onglets': !onglets }"
+    >
       <AtsSidebar :actif="actif" />
       <div class="ats__main">
         <CspPageHeader
@@ -107,6 +110,11 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 // Badges sans icône dans tout le prototype (demande d'Alice) : le libellé et la couleur suffisent.
 .ats :deep(.badge > span:has(> .badge__icon)) {
   display: none;
+}
+
+// Sans onglets (page d'une offre, d'une fiche…), pas de filet sous l'en-tête.
+.ats--sans-onglets :deep(.csp-page-header__main-row) {
+  border-bottom: 0;
 }
 
 .ats {
