@@ -104,6 +104,11 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 </template>
 
 <style scoped lang="scss">
+// Badges sans icône dans tout le prototype (demande d'Alice) : le libellé et la couleur suffisent.
+.ats :deep(.badge > span:has(> .badge__icon)) {
+  display: none;
+}
+
 .ats {
   display: flex;
   height: 100vh;
