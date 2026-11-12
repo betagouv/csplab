@@ -689,4 +689,4 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Plus de badges de statut dans l'en-tête : l'étape est donnée par l'indicateur juste dessous.
 - Infos de l'offre en pastilles grises (création, lieu, organisme, catégorie, postes).
 - Indicateur d'étape : barre segmentée dans un cadre ; segments et libellés en bleu jusqu'à l'étape en cours (en gras), en gris ensuite ; détail après « • » (ex. « Publiée • jusqu'au 16/11/2026 »).
-- Aperçu candidat : bouton icône (œil) avec infobulle, même taille que le menu « … ».
+- Aperçu candidat : bouton secondaire taille S avec l'œil et le libellé, même taille que le menu « … ».

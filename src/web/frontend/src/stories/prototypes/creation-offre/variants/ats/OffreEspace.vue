@@ -195,10 +195,11 @@ const FREQ = [
         <template v-else>Enregistrement automatique</template>
       </span>
       <CspButton
+        label="Aperçu candidat"
         icon="ri:eye-line"
-        variant="tertiary"
-        aria-label="Aperçu candidat"
-        title="Aperçu candidat"
+        is-icon-left
+        variant="secondary"
+        size="sm"
         @click="panneau = 'apercu'"
       />
       <CspDropdownMenu
@@ -210,6 +211,7 @@ const FREQ = [
           <CspButton
             icon="ri:more-fill"
             variant="tertiary"
+            size="sm"
             aria-label="Actions sur l’offre"
           />
         </template>
