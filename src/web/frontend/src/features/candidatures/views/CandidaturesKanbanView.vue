@@ -7,6 +7,8 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { markKanbanCardMoved } from '@/composables/dnd/useKanbanDnd'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
+import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
@@ -31,6 +33,9 @@ const candidatureKanban = computed(() => liste.data.value ? groupCandidaturesByE
 
 const recrutementEtapes = computed(() => liste.data.value?.etapes ?? [])
 
+const { recrutementDetail, pending: pendingDetail } = useRecrutementDetail(() => props)
+const canChangeEtape = computed(() => can(recrutementDetail.value?.authorized_actions, 'change_etape_candidatures'))
+
 const { changeEtape } = useEtapeChangeMutation(() => props)
 
 const filters = useCandidaturesFilters()
@@ -54,7 +59,7 @@ provideCandidatureSequence(candidatureUuid =>
 
 useCandidatureLinkFocus()
 
-const showSkeleton = useMinimumPending(liste.isPending)
+const showSkeleton = useMinimumPending(computed(() => liste.isPending.value || pendingDetail.value))
 
 const {
   selectedCandidatures,
@@ -68,12 +73,15 @@ const {
 
 const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
-const drawerInitialEtapeUuid = ref<string | null>(null)
 const refus = useRefusCandidature(() => props.organismeUuid, recrutementEtapes)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
 })
+
+const canRefuseSelection = computed(() =>
+  refusEtapeUuid.value !== null && currentEtapeUuid.value !== refusEtapeUuid.value,
+)
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value) {
@@ -110,13 +118,13 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
 }
 
 function handleOpenChangerEtape(): void {
-  drawerInitialEtapeUuid.value = null
   isDrawerOpen.value = true
 }
 
 function handleRefuser(): void {
-  drawerInitialEtapeUuid.value = refusEtapeUuid.value
-  isDrawerOpen.value = true
+  if (refusEtapeUuid.value) {
+    handleConfirmBatchMove(refusEtapeUuid.value)
+  }
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
@@ -151,10 +159,12 @@ publishCandidaturesToolbar(() => ({
   pending: showSkeleton.value,
   selectionCount: selectedCount.value,
   selectionLabel: selectionLabel.value,
-  selectionActions: [
-    { label: 'Changer d\'étape', icon: 'ri:arrow-left-right-line', onClick: handleOpenChangerEtape },
-    { label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser },
-  ],
+  selectionActions: canChangeEtape.value
+    ? [
+        { label: 'Changer d\'étape', icon: 'ri:arrow-left-right-line', onClick: handleOpenChangerEtape },
+        ...(canRefuseSelection.value ? [{ label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser }] : []),
+      ]
+    : [],
 }))
 </script>
 
@@ -174,6 +184,7 @@ publishCandidaturesToolbar(() => ({
       :etapes="filteredEtapes"
       :board-id="boardId"
       :is-column-selected="isColumnSelected"
+      :can-change-etape="canChangeEtape"
       @move="handleMove"
       @toggle-column-selection="toggleColumnSelection"
     />
@@ -183,7 +194,6 @@ publishCandidaturesToolbar(() => ({
       :source-etape="sourceEtape"
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
-      :initial-etape-uuid="drawerInitialEtapeUuid"
       @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
       @toggle-candidature="toggleCandidatureSelection"

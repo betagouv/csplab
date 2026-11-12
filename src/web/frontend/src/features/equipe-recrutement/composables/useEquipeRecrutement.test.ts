@@ -81,7 +81,7 @@ describe('useEquipeRecrutement', () => {
 
     await result.revoke(MEMBRES[0])
 
-    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       agent_id: MEMBRES[0].uuid,
       recrutement_role: MEMBRES[0].recrutement_role,
       date_revocation_recrutement: expect.any(String),
@@ -120,7 +120,7 @@ describe('useEquipeRecrutement', () => {
 
     await result.changeRole({ membre: MEMBRES[0], role: 'contributeur' })
 
-    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       agent_id: MEMBRES[0].uuid,
       recrutement_role: 'contributeur',
     })

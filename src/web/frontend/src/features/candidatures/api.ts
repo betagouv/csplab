@@ -35,8 +35,7 @@ export interface EtapeChange {
 }
 
 export async function patchEtapeCandidatures(
-  organismeUuid: string,
-  recrutementUuid: string,
+  { organismeUuid, recrutementUuid }: RecrutementParams,
   { etapeCibleUuid, candidatureUuids, motifRefus }: EtapeChange,
 ): Promise<ChangerEtapeResultat> {
   const { data } = await api.PATCH(

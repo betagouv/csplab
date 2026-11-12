@@ -98,7 +98,7 @@ describe('recrutementsView', () => {
     await user.type(drawer.getByRole('searchbox', { name: /Responsable/ }), `${AGENT_RECHERCHE.email}{Enter}`)
     await user.click(await drawer.findByRole('button', { name: 'Assigner un responsable' }))
 
-    expect(setRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(setRecrutementsResponsable).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       recrutement_ids: [SECOND_RECRUTEMENT.uuid],
       agent_id: AGENT_RECHERCHE.uuid,
     })

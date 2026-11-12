@@ -51,8 +51,10 @@ def list_notes(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    return NoteModel.objects.by_candidature(candidature_id).visibles_par(
-        utilisateur.username
+    return (
+        NoteModel.objects.by_candidature(candidature_id)
+        .visibles_par(utilisateur.username)
+        .with_tags()
     )
 
 

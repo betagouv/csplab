@@ -18,8 +18,7 @@ export async function getEquipeRecrutement({ organismeUuid, recrutementUuid }: R
 }
 
 export async function addMembreEquipe(
-  organismeUuid: string,
-  recrutementUuid: string,
+  { organismeUuid, recrutementUuid }: RecrutementParams,
   payload: MembreEquipePayload,
 ): Promise<MembreEquipe> {
   const { data } = await api.POST(
@@ -38,8 +37,7 @@ export async function addMembreEquipe(
 }
 
 export async function updateMembreEquipe(
-  organismeUuid: string,
-  recrutementUuid: string,
+  { organismeUuid, recrutementUuid }: RecrutementParams,
   payload: MembreEquipePayload,
 ): Promise<void> {
   await api.PUT(

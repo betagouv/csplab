@@ -10,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['label', 'color', 'size', 'bordered', 'clickable'],
+      include: ['label', 'color', 'size', 'bordered', 'clickable', 'dismissLabel'],
     },
     docs: {
       description: {
@@ -45,6 +45,11 @@ const meta = {
       control: { type: 'boolean' },
       description: 'Affiche l\'étiquette comme un bouton, avec ses états de survol, d\'appui et de focus. Quand le libellé seul ne décrit pas l\'action, on donne le nom accessible par `aria-label`.',
       table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    dismissLabel: {
+      control: { type: 'text' },
+      description: 'Ajoute une croix après le libellé, qui émet `dismiss`. La valeur est le nom accessible de la croix.',
+      table: { type: { summary: 'string' } },
     },
   },
   args: {
@@ -81,4 +86,12 @@ export const Palette: Story = {
     `,
   }),
   parameters: { controls: { disable: true } },
+}
+
+export const Dismissible: Story = {
+  name: 'Avec une croix',
+  args: {
+    clickable: true,
+    dismissLabel: 'Retirer Libellé',
+  },
 }

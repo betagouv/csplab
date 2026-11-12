@@ -3,9 +3,6 @@ from ddd.entity import Entity
 from dependency_injector import containers, providers
 from referentiel.types import IUpsertResult
 
-from application.commons.usecases.calculate_daily_stats import (
-    CalculateDailyStatsUsecase,
-)
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.usecases.archive_offer_by_reference import (
     ArchiveOfferByReferenceUsecase,
@@ -17,7 +14,6 @@ from application.ingestion.usecases.get_offer_by_reference import (
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
 )
-from application.ingestion.usecases.list_metiers import ListMetiersUsecase
 from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
@@ -162,12 +158,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         offers_repository=offers_repository,
     )
 
-    list_metiers_usecase = providers.Factory(
-        ListMetiersUsecase,
-        metiers_repository=metiers_repository,
-        logger=logger_service,
-    )
-
     archive_offer_by_reference_usecase = providers.Factory(
         ArchiveOfferByReferenceUsecase,
         offers_repository=offers_repository,
@@ -200,10 +190,4 @@ class IngestionContainer(containers.DeclarativeContainer):
         offers_repository=offers_repository,
         user_source_repository=user_source_repository,
         utilisateur_repository=utilisateur_repository,
-    )
-
-    calculate_daily_stats_usecase = providers.Factory(
-        CalculateDailyStatsUsecase,
-        offer_stats_query_service=shared_container.offer_stats_query_service,
-        stat_snapshot_writer=shared_container.stat_snapshot_writer,
     )

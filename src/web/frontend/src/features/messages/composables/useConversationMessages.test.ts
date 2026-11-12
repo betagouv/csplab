@@ -1,16 +1,17 @@
 import type { QueryCache } from '@pinia/colada'
-import type { ConversationMessage, PaginatedConversationMessageList } from '../types'
+import type { Conversation, ConversationMessage, PaginatedConversationList, PaginatedConversationMessageList } from '../types'
 import type { ConversationParams } from '@/api/params'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
-import { candidatureKeys } from '@/api/queryKeys'
-import { replyToConversation } from '../api'
-import { useReplyConversation } from './useConversationMessages'
+import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
+import { getConversationMessages, replyToConversation } from '../api'
+import { useConversationMessages, useReplyConversation } from './useConversationMessages'
 
 vi.mock('../api', () => ({
+  getConversationMessages: vi.fn(),
   replyToConversation: vi.fn(),
 }))
 
@@ -48,6 +49,54 @@ function mountReplyConversation(conversationUuid: string) {
 
   return { context, params, queryCache }
 }
+
+function unreadConversation(uuid: string): Conversation {
+  return {
+    uuid,
+    objet: 'Convocation',
+    creator: 'Camille Durand',
+    created_at: '2026-10-01T09:00:00Z',
+    last_message_content: 'Bonjour',
+    last_message_author: 'Alice Dupont',
+    last_message_created_at: '2026-10-01T10:00:00Z',
+    is_unread: true,
+  }
+}
+
+function mountConversationMessages(conversations: Conversation[]) {
+  let queryCache!: QueryCache
+
+  mount(defineComponent({
+    setup() {
+      queryCache = useQueryCache()
+      queryCache.setQueryData(candidatureKeys.conversations(CANDIDATURE), { count: conversations.length, results: conversations })
+      vi.spyOn(queryCache, 'invalidateQueries')
+      useConversationMessages({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
+      return () => h('div')
+    },
+  }), {
+    global: { plugins: [createPinia(), PiniaColada] },
+  })
+
+  return { queryCache }
+}
+
+describe('useConversationMessages', () => {
+  it('marks the loaded conversation as read, since loading it marks it as read on the server', async () => {
+    vi.mocked(getConversationMessages).mockResolvedValue(EMPTY_THREAD)
+    const { queryCache } = mountConversationMessages([unreadConversation(CONVERSATION_A), unreadConversation(CONVERSATION_B)])
+    expect(queryCache.invalidateQueries).not.toHaveBeenCalled()
+
+    await flushPromises()
+
+    const list = queryCache.getQueryData<PaginatedConversationList>(candidatureKeys.conversations(CANDIDATURE))
+    expect(list?.results.map(({ uuid, is_unread }) => [uuid, is_unread])).toEqual([[CONVERSATION_A, false], [CONVERSATION_B, true]])
+    expect(vi.mocked(queryCache.invalidateQueries).mock.calls.map(([filters]) => filters?.key)).toEqual([
+      recrutementKeys.liste(CANDIDATURE),
+      organismeKeys.recrutementsActifs(CANDIDATURE),
+    ])
+  })
+})
 
 describe('useReplyConversation', () => {
   it('appends the reply to the conversation it was sent from, even after switching conversation', async () => {

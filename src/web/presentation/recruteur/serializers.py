@@ -651,6 +651,7 @@ class NoteSerializer(serializers.ModelSerializer):
     publie_le = serializers.DateTimeField(source="created_at")
     est_privee = serializers.BooleanField()
     authorized_actions = authorized_actions_field()
+    tags = NoteTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = NoteModel
@@ -664,6 +665,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_le",
             "est_privee",
             "authorized_actions",
+            "tags",
         ]
 
 

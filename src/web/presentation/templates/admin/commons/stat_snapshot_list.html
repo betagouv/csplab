@@ -4,9 +4,9 @@
         <label for="metric_name">Metric name</label>
         <select name="metric_name" id="metric_name" onchange="this.form.submit()">
             <option value="">All</option>
-            {% for metric_name in metric_names %}
-                <option value="{{ metric_name }}"
-                        {% if metric_name == selected_metric_name %}selected{% endif %}>{{ metric_name }}</option>
+            {% for value, label in metrics %}
+                <option value="{{ value }}"
+                        {% if value == selected_metric_name %}selected{% endif %}>{{ label }} ({{ value }})</option>
             {% endfor %}
         </select>
     </form>
@@ -19,10 +19,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for snapshot in page_obj %}
+            {% for snapshot, label in rows %}
                 <tr>
                     <td>{{ snapshot.date }}</td>
-                    <td>{{ snapshot.metric_name }}</td>
+                    <td>{{ label }} ({{ snapshot.metric_name }})</td>
                     <td>{{ snapshot.metric_value }}</td>
                 </tr>
             {% empty %}

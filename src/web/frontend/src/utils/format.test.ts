@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getInitials, pluralize } from './format'
+import { getInitials, pluralize, quote } from './format'
 
 describe('pluralize', () => {
   it('returns singular form for 0 and 1', () => {
@@ -42,5 +42,11 @@ describe('getInitials', () => {
     expect(getInitials('Jean Dupont')).toBe('JD')
     expect(getInitials('Marie-Claire Martin')).toBe('MM')
     expect(getInitials('Jean Pierre Dupont')).toBe('JD')
+  })
+})
+
+describe('quote', () => {
+  it('keeps the guillemets on the line of the text', () => {
+    expect(quote('Vivier')).toBe('«\u00A0Vivier\u00A0»')
   })
 })

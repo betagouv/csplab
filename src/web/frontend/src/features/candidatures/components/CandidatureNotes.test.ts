@@ -27,6 +27,7 @@ function note(overrides: Partial<Note>): Note {
     publie_le: '2025-06-10T09:15:00',
     est_privee: false,
     authorized_actions: ['update_note', 'delete_note'],
+    tags: [],
     ...overrides,
   }
 }
@@ -96,6 +97,18 @@ describe('candidatureNotes', () => {
     await renderNotes()
 
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
+  })
+
+  it('offers no action on a note the user cannot change', async () => {
+    const results = [
+      note({}),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', authorized_actions: [] }),
+    ]
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    await renderNotes()
+
+    expect(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Actions sur la note de Paul Bernard' })).not.toBeInTheDocument()
   })
 
   it('edits the note picked from its menu and keeps it private', async () => {

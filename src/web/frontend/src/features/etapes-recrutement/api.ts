@@ -10,7 +10,7 @@ export async function getEtapesRecrutement({ organismeUuid }: OrganismeParams): 
 }
 
 export async function updateEtapesRecrutement(
-  organismeUuid: string,
+  { organismeUuid }: OrganismeParams,
   etapes: UpdateEtapeRecrutement[],
 ): Promise<EtapeRecrutement[]> {
   const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
@@ -20,7 +20,7 @@ export async function updateEtapesRecrutement(
   return data!
 }
 
-export async function initEtapesRecrutement(organismeUuid: string): Promise<EtapeRecrutement[]> {
+export async function initEtapesRecrutement({ organismeUuid }: OrganismeParams): Promise<EtapeRecrutement[]> {
   const { data } = await api.POST('/recruteur/organismes/{organisme_uuid}/parametres/etapes/init', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
@@ -43,8 +43,7 @@ export async function getEtapesOffre({ organismeUuid, recrutementUuid }: Recrute
 }
 
 export async function updateEtapesOffre(
-  organismeUuid: string,
-  recrutementUuid: string,
+  { organismeUuid, recrutementUuid }: RecrutementParams,
   etapes: UpdateEtapeRecrutement[],
 ): Promise<EtapeRecrutement[]> {
   const { data } = await api.PATCH(
@@ -62,10 +61,7 @@ export async function updateEtapesOffre(
   return data!
 }
 
-export async function initEtapesOffre(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<EtapeRecrutement[]> {
+export async function initEtapesOffre({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<EtapeRecrutement[]> {
   const { data } = await api.POST(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init',
     {

@@ -114,6 +114,20 @@ describe('candidaturePanelView', () => {
     expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
   })
 
+  it('offers neither the stage change nor the motif edit without the right to change stages', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+      authorized_actions: [],
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    expect(await panel.findByRole('region', { name: 'Motif de refus' })).toBeInTheDocument()
+    expect(panel.queryByRole('button', { name: 'Changer d\'étape' })).not.toBeInTheDocument()
+    expect(panel.queryByRole('button', { name: 'Actions sur le motif de refus' })).not.toBeInTheDocument()
+  })
+
   it('changes the motif of a refused candidature without moving it', async () => {
     const user = setupUser()
     const refusee = {
@@ -132,7 +146,7 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureDetail).mockResolvedValue({ ...refusee, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })
     await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
 
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'disponibilite',
@@ -208,7 +222,7 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
@@ -252,7 +266,7 @@ describe('candidaturePanelView', () => {
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'experience_insuffisante',
@@ -464,6 +478,7 @@ describe('candidaturePanelView', () => {
         publie_le: '2025-06-10T09:15:00',
         est_privee: false,
         authorized_actions: ['update_note', 'delete_note'],
+        tags: [],
       }],
     })
     const user = setupUser()

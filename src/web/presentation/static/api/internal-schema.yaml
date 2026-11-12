@@ -6403,6 +6403,11 @@ components:
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
           readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoteTag'
+          readOnly: true
       required:
       - authorized_actions
       - candidature_id
@@ -6412,6 +6417,7 @@ components:
       - publie_par_id
       - publie_par_nom
       - publie_par_prenom
+      - tags
       - uuid
     NoteDetail:
       type: object

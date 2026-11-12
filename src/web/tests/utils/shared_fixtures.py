@@ -28,9 +28,6 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
-from application.commons.usecases.calculate_daily_stats import (
-    CalculateDailyStatsUsecase,
-)
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
@@ -44,10 +41,6 @@ from config.app_config import AppConfig
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
 )
-from domain.commons.services.offer_stats_query_service_interface import (
-    IOfferStatsQueryService,
-)
-from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -454,20 +447,4 @@ def get_opportunity_details_usecase():
         offers_repository=offers_repository,
         concours_repository=concours_repository,
         metiers_repository=metiers_repository,
-    )
-
-
-@pytest.fixture
-def calculate_daily_stats_usecase():
-    offer_stats_query_service = cast(
-        IOfferStatsQueryService,
-        create_interface_aware_mock(IOfferStatsQueryService),
-    )
-    stat_snapshot_writer = cast(
-        IStatSnapshotWriter,
-        create_interface_aware_mock(IStatSnapshotWriter),
-    )
-    return CalculateDailyStatsUsecase(
-        offer_stats_query_service=offer_stats_query_service,
-        stat_snapshot_writer=stat_snapshot_writer,
     )

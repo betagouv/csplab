@@ -82,7 +82,7 @@ describe('organismeAgentsSection', () => {
     await user.click(await screen.findByRole('button', { name: 'Révoquer les accès' }))
 
     expect(await screen.findByText('Utilisateur révoqué')).toBeInTheDocument()
-    expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, expect.objectContaining({
+    expect(updateAgentRole).toHaveBeenCalledWith({ organismeUuid: MTE_UUID }, expect.objectContaining({
       agent_id: AGENT_ORGANISME.uuid,
       date_revocation: expect.any(String),
     }))
@@ -102,6 +102,6 @@ describe('organismeAgentsSection', () => {
     await user.click(save)
 
     expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
-    expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, { agent_id: AGENT_ORGANISME.uuid, role: 'superviseur' })
+    expect(updateAgentRole).toHaveBeenCalledWith({ organismeUuid: MTE_UUID }, { agent_id: AGENT_ORGANISME.uuid, role: 'superviseur' })
   })
 })
