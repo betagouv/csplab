@@ -5,6 +5,9 @@ export const organismeKeys = {
   list: () => {
     return [...organismeKeys.all, 'list'] as const
   },
+  listPage: (params: { page: number, filter?: string }) => {
+    return [...organismeKeys.list(), params.page, params.filter ?? null] as const
+  },
   search: (nom: string) => {
     return [...organismeKeys.all, 'recherche', nom] as const
   },
