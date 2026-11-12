@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{c as t,ht as n,y as r}from"./iframe-CqFRSKqN.js";import{i,r as a}from"./useId-Bp4OrPIs.js";function o(e){let t=i({dir:n(`ltr`)});return r(()=>e?.value||t.dir?.value||`ltr`)}function s(){return(s=e((()=>{a(),t()})))()}export{o as n,s as t};
