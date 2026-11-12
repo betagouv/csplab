@@ -121,6 +121,10 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
   }
 }
 
+.csp-card.candidature-kanban-card {
+  --csp-card-radius: var(--csp-raised-radius);
+}
+
 .candidature-kanban-card:hover {
   --csp-card-bg: var(--csp-raised-background-hover);
   --candidature-kanban-card-shadow: var(--csp-raised-shadow-hover);

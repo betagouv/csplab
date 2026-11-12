@@ -147,6 +147,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
   padding: 0;
   list-style: none;
   border: 1px solid var(--csp-surface-border-color);
+  border-radius: var(--csp-surface-radius);
 }
 
 .candidature-documents__item {

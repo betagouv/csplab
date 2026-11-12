@@ -53,10 +53,12 @@
   /* Region: an area that groups cards, such as a kanban column */
   --csp-region-background: var(--background-alt-grey);
   --csp-region-border-color: var(--border-default-grey);
+  --csp-region-radius: 0;
 
   /* Surface: a framed block, such as a card, a table or the frame of a list */
   --csp-surface-background: var(--background-default-grey);
   --csp-surface-border-color: var(--border-default-grey);
+  --csp-surface-radius: 0;
 
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
@@ -68,11 +70,14 @@
   --csp-raised-opacity-drag: 0.5;
   --csp-raised-background: var(--background-default-grey);
   --csp-raised-border-color: var(--border-default-grey);
+  --csp-raised-radius: 0.25rem;
   --csp-raised-background-hover: var(--background-default-grey);
   /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
   --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
+  --csp-overlap-radius: 0.25rem;
   --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
+  --csp-lifted-radius: 0.25rem;
 
   /* Motion by role, with the keyframes of motion.css. The outline of a dropped card shows where it landed, so it
      plays under reduced motion. The other roles take the durations and curves of La Suite numérique in the media query
@@ -130,6 +135,7 @@
   --csp-menu-padding: var(--csp-space-1);
   --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
   --csp-menu-item-gap: var(--csp-space-2);
+  --csp-menu-item-radius: 0;
 
   /* Form fields. Field: a form field or a search field, such as an input, a textarea or the trigger of a select */
   --csp-field-label-gap: var(--csp-space-2);
@@ -145,6 +151,9 @@
   /* Controls. Control: a tertiary button or a segmented control */
   --csp-control-border-color: var(--border-default-grey);
 
+  /* Action: a button, a pagination link or a sidebar button */
+  --csp-action-radius: 0;
+
   /* Kanban board and columns, mirrored by the kanban skeleton */
   --csp-kanban-gap: var(--csp-space-3);
   --csp-kanban-padding-bottom: var(--csp-space-2);
@@ -153,6 +162,7 @@
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
   --csp-kanban-column-accent-color: var(--border-default-grey);
+  --csp-kanban-column-accent-radius: 0;
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
 
   @variant xxl {

@@ -81,6 +81,7 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--csp-surface-border-color);
+  border-radius: var(--csp-surface-radius);
   background: var(--csp-surface-background);
   font-size: var(--csp-font-size-base);
 
