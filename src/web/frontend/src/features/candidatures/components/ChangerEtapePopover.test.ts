@@ -22,7 +22,7 @@ describe('changerEtapePopover', () => {
     await user.click(screen.getByRole('button', { name: 'Changer d\'étape' }))
     const validate = await screen.findByRole('button', { name: 'Valider' })
     expect(validate).toBeDisabled()
-    expect(screen.getByRole('radio', { name: 'Réception des candidatures (étape actuelle)' })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /^Réception des candidatures\s*Étape actuelle$/ })).toBeDisabled()
 
     await user.click(screen.getByRole('radio', { name: 'Entretien' }))
     await user.click(validate)

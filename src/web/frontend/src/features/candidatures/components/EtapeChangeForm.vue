@@ -3,6 +3,7 @@ import type { EtapeRecrutement } from '../types'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import { etapeOptions } from '../format'
 
 const props = defineProps<{
   etapes: EtapeRecrutement[]
@@ -15,14 +16,7 @@ const emit = defineEmits<{
 
 const selectedEtapeUuid = ref('')
 
-const options = computed(() => props.etapes.map((etape) => {
-  const isCurrent = etape.uuid === props.currentEtapeUuid
-  return {
-    value: etape.uuid,
-    label: isCurrent ? `${etape.nom} (étape actuelle)` : etape.nom,
-    disabled: isCurrent,
-  }
-}))
+const options = computed(() => etapeOptions(props.etapes, props.currentEtapeUuid))
 
 function handleConfirm(): void {
   if (selectedEtapeUuid.value) {

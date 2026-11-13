@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { EtapeRecrutement, KanbanColumn } from '../types'
-import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { pluralize } from '@/utils/format'
-import { formatCandidatName } from '../format'
+import { etapeOptions, formatCandidatName } from '../format'
 
 const props = defineProps<{
   open: boolean
@@ -34,6 +34,8 @@ watch(() => props.open, (isOpen) => {
 const selectedCount = computed(() => props.selectedCandidatureUuids.size)
 const selectedCountLabel = computed(() =>
   `${selectedCount.value} ${pluralize(selectedCount.value, 'candidature sélectionnée', 'candidatures sélectionnées')}`)
+
+const options = computed(() => etapeOptions(props.etapes, props.sourceEtape?.uuid ?? ''))
 
 const canConfirm = computed(() => {
   return selectedCount.value > 0 && selectedEtapeUuid.value !== '' && props.sourceEtape && selectedEtapeUuid.value !== props.sourceEtape.uuid
@@ -119,43 +121,11 @@ const selectedUuidsModel = computed({
 
       <CspSeparator />
 
-      <section class="changer-etape-drawer__etapes">
-        <p class="changer-etape-drawer__etapes-label">
-          Sélectionner l'étape où déplacer les candidatures
-        </p>
-
-        <RadioGroupRoot
-          v-model="selectedEtapeUuid"
-          class="changer-etape-drawer__radio-group"
-          orientation="vertical"
-        >
-          <label
-            v-for="etape in etapes"
-            :key="etape.uuid"
-            class="changer-etape-drawer__radio"
-            :class="{
-              'changer-etape-drawer__radio--current': etape.uuid === sourceEtape.uuid,
-            }"
-          >
-            <RadioGroupItem
-              class="changer-etape-drawer__radio-control"
-              :value="etape.uuid"
-              :disabled="etape.uuid === sourceEtape.uuid"
-            >
-              <RadioGroupIndicator class="changer-etape-drawer__radio-indicator" />
-            </RadioGroupItem>
-            <span class="changer-etape-drawer__radio-content">
-              <span class="changer-etape-drawer__radio-label">{{ etape.nom }}</span>
-              <span
-                v-if="etape.uuid === sourceEtape.uuid"
-                class="changer-etape-drawer__radio-hint"
-              >
-                Étape actuelle
-              </span>
-            </span>
-          </label>
-        </RadioGroupRoot>
-      </section>
+      <CspRadioGroup
+        v-model="selectedEtapeUuid"
+        label="Sélectionner l'étape où déplacer les candidatures"
+        :options="options"
+      />
     </div>
 
     <template #footer>
@@ -203,106 +173,5 @@ const selectedUuidsModel = computed({
   :deep(.csp-btn) {
     width: 100%;
   }
-}
-
-.changer-etape-drawer__etapes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-4);
-}
-
-.changer-etape-drawer__etapes-label {
-  margin: 0;
-  font-size: var(--csp-font-size-base);
-  font-weight: 600;
-  color: var(--text-default-grey);
-}
-
-.changer-etape-drawer__radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-3);
-}
-
-.changer-etape-drawer__radio {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--csp-space-3);
-  cursor: pointer;
-}
-
-.changer-etape-drawer__radio--current {
-  cursor: not-allowed;
-
-  .changer-etape-drawer__radio-label {
-    color: var(--text-mention-grey);
-  }
-}
-
-.changer-etape-drawer__radio-control {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex: 0 0 auto;
-  margin-top: 0.0625rem;
-  border-radius: 50%;
-  border: 1px solid var(--border-action-high-blue-france);
-  background: transparent;
-  padding: 0;
-  cursor: inherit;
-
-  &[data-state='checked'] {
-    border-color: var(--border-active-blue-france);
-  }
-
-  &[data-disabled] {
-    border-color: var(--border-disabled-grey);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
-}
-
-.changer-etape-drawer__radio:not(.changer-etape-drawer__radio--current) {
-  &:hover .changer-etape-drawer__radio-control {
-    background: var(--background-default-grey-hover);
-  }
-
-  &:active .changer-etape-drawer__radio-control {
-    background: var(--background-default-grey-active);
-  }
-}
-
-.changer-etape-drawer__radio-indicator {
-  display: block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--background-active-blue-france);
-
-  &[data-disabled] {
-    background: var(--background-disabled-grey);
-  }
-}
-
-.changer-etape-drawer__radio-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-1);
-}
-
-.changer-etape-drawer__radio-label {
-  font-size: 0.9375rem;
-  line-height: 1.3;
-  color: var(--text-default-grey);
-}
-
-.changer-etape-drawer__radio-hint {
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
 }
 </style>
