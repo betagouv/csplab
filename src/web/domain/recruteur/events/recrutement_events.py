@@ -5,12 +5,6 @@ from uuid import UUID
 from ddd.domain_event import DomainEvent
 
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
-from domain.recruteur.value_objects.etape_data import EtapeData
-
-
-@dataclass(frozen=True)
-class RecrutementEtapesMisesAJour(DomainEvent):
-    etapes_data: List[EtapeData]
 
 
 @dataclass(frozen=True)
