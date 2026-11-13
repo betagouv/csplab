@@ -91,6 +91,8 @@ export interface Offre {
   sourceOffreId?: string
   /** Personne qui a créé l'offre (par défaut, le compte connecté). */
   creePar?: string
+  /** Service qui recrute, quand l'offre n'a pas de fiche de poste qui le précise. */
+  service?: string
   /** Responsables du recrutement, une fois l'offre publiée (écran « Mes recrutements »). */
   responsables?: string[]
 
@@ -813,7 +815,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v17'
+const CLE = 'csplab-proto-ats-v18'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -862,15 +864,18 @@ function avecRecrutements(offres: Offre[]): Offre[] {
   if (!modele) {
     return offres
   }
-  const autres: [string, string, number, number, string[]][] = [
-    ['OFF-2026-0139', 'Instructeur·rice des autorisations d\'urbanisme', -2, 28, ['Camille Farce', 'Samuel Loars']],
-    ['OFF-2026-0136', 'Responsable d\'unité biodiversité', -2, 40, ['Samir Marlot']],
-    ['OFF-2026-0127', 'Chargé·e d\'études risques naturels', -22, 9, []],
+  const autres: [string, string, number, number, string[], string, string][] = [
+    ['OFF-2026-0139', 'Instructeur·rice des autorisations d\'urbanisme', -2, 28, ['Camille Farce', 'Samuel Loars'], 'Service Aménagement', 'Montpellier (34)'],
+    ['OFF-2026-0136', 'Responsable d\'unité biodiversité', -2, 40, ['Samir Marlot'], 'Service Biodiversité', 'Toulouse (31)'],
+    ['OFF-2026-0127', 'Chargé·e d\'études risques naturels', -22, 9, [], 'Service Risques naturels', 'Nîmes (30)'],
   ]
-  const copies = autres.map(([id, titre, debut, fin, responsables]) => ({
+  const copies = autres.map(([id, titre, debut, fin, responsables, service, lieu]) => ({
     ...structuredClone(modele),
     id,
     titre,
+    ficheId: '',
+    service,
+    lieu,
     responsables,
     dateDebut: J(debut),
     dateFin: J(fin),

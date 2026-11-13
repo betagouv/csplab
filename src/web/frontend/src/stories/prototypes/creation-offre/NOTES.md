@@ -830,3 +830,13 @@ La validation se demande à tout moment : une offre validée n'est pas forcémen
 « Validée » (badge, puce, carte, indicateur d'étape, encart), qu'elle soit complète ou non ; l'action suit :
 « Publier » si l'annonce est complète, sinon « Compléter l'offre ». « Prête à publier » ne reste que pour les
 organismes sans circuit de validation (annonce complète). Tableau de bord : compteur « Validées ».
+
+## Itération 31 — Retour au tableau pour « Mes offres », candidature dans l'ATS seulement
+
+- **Mes offres d'emploi** redevient un tableau (offres en préparation et en ligne), filtré par les puces de statut
+  (Toutes, À valider par vous, À corriger, Validée, En rédaction, En attente de validation, En ligne). Colonnes :
+  Intitulé (avec service · lieu · référence dessous), Statut (badge + « depuis N jours »), Prochaine étape (lien ou
+  texte, jamais vide), Responsable, Mise en ligne, Dépublication (en rouge à moins de 7 jours), Candidatures (lien vers
+  le recrutement), menu « … ».
+- **Formulaire de candidature** : plus de choix « par courriel » ni « sur un site externe » ; les candidats
+  postulent toujours dans l'ATS.
