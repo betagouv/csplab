@@ -2,7 +2,7 @@ import type { MaybeRefOrGetter } from 'vue'
 import { useQuery } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { isHttpStatus } from '@/api/errors'
-import { organismeDetailQuery } from '../queries'
+import { organismeDetailQuery } from '@/stores/organismeDetail'
 
 export function useOrganismeDetail(organismeUuid: MaybeRefOrGetter<string>) {
   const query = useQuery(() => organismeDetailQuery({ organismeUuid: toValue(organismeUuid) }))

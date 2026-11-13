@@ -1,7 +1,9 @@
 import type { AuthorizedAction } from '@/utils/authorizedActions'
+import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrentUser } from '@/stores/currentUser'
+import { organismeDetailQuery } from '@/stores/organismeDetail'
 import { can } from '@/utils/authorizedActions'
 
 export function useRouteOrganisme() {
@@ -26,12 +28,25 @@ export function useRouteOrganisme() {
     organismes.value.find(o => o.organisme_uuid === organismeUuid.value) ?? null,
   )
 
-  const organismeActions = computed(() =>
+  const memberActions = computed(() =>
     user.value?.organismes.find(o => o.uuid === organismeUuid.value)?.authorized_actions,
   )
 
+  const readsNonMemberActions = computed(() =>
+    can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !memberActions.value,
+  )
+
+  const nonMemberOrganisme = useQuery(() => ({
+    ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
+    enabled: readsNonMemberActions.value,
+  }))
+
+  const organismeActions = computed(() => memberActions.value ?? nonMemberOrganisme.data.value?.authorized_actions)
+
+  const actionsPending = computed(() => readsNonMemberActions.value && nonMemberOrganisme.isPending.value)
+
   function canOnOrganisme(action: AuthorizedAction): boolean {
-    return isStaff.value || can(organismeActions.value, action)
+    return can(organismeActions.value, action)
   }
 
   return {
@@ -39,6 +54,7 @@ export function useRouteOrganisme() {
     routeOrganismeUuid,
     organismeUuid,
     organisme,
+    actionsPending,
     canOnOrganisme,
   }
 }
