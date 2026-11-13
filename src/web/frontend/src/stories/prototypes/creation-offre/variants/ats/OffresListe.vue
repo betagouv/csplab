@@ -72,7 +72,7 @@ const groupes = computed<Groupe[]>(() => {
     {
       id: 'prete',
       badge: 'success',
-      titre: 'Prêtes à publier',
+      titre: 'À publier',
       aide: 'Complètes et validées : il ne reste qu\'à publier. La publication ouvre le recrutement.',
       offres: autres.filter(o => statutListe(o) === 'prete'),
       action: o => ({ label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true }, principal: true }),
