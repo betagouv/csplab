@@ -12,6 +12,8 @@ export const SIRET_LENGTH = 14
 export const SEARCH_MIN_LENGTH = 3
 export const SEARCH_DEBOUNCE_MS = 300
 
+export const ORGANISMES_PAGE_SIZE = 200
+
 export const ESPACE_ADMINISTRATEUR_LABEL = 'Espace administrateur'
 export const ORGANISME_LABEL = 'Organisme'
 

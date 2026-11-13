@@ -1,10 +1,10 @@
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ValidationError } from '@/api/errors'
-import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { ORGANISME } from '@/test/fixtures/organismes'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createOrganisme, getOrganismesPage } from '../api'
+import { ORGANISMES_PAGE_SIZE } from '../constants/organisme'
 import OrganismesSection from './OrganismesSection.vue'
 
 vi.mock('../api', () => ({
@@ -14,7 +14,7 @@ vi.mock('../api', () => ({
 }))
 
 const SIRET = '11004601800021'
-const ORGANISMES_COUNT = 42
+const ORGANISMES_COUNT = 250
 
 const REJECTED_SIRET_MESSAGE = 'Ce SIRET est déjà utilisé ou n\'est pas valide.'
 
@@ -47,13 +47,13 @@ describe('organismesSection', () => {
   it('shows the total count sent by the back and requests the next page', async () => {
     vi.mocked(getOrganismesPage).mockResolvedValue({
       count: ORGANISMES_COUNT,
-      results: Array.from({ length: TABLE_PAGE_SIZE }, (_, index) => ({ ...ORGANISME, uuid: `organisme-${index}` })),
+      results: Array.from({ length: ORGANISMES_PAGE_SIZE }, (_, index) => ({ ...ORGANISME, uuid: `organisme-${index}` })),
     })
     const user = setupUser()
     await renderWithApp(OrganismesSection)
 
     expect(await screen.findByText(`${ORGANISMES_COUNT} organismes`)).toBeInTheDocument()
-    expect(screen.getByText(`Affichage de 1 à ${TABLE_PAGE_SIZE} sur ${ORGANISMES_COUNT}`)).toBeInTheDocument()
+    expect(screen.getByText(`Affichage de 1 à ${ORGANISMES_PAGE_SIZE} sur ${ORGANISMES_COUNT}`)).toBeInTheDocument()
 
     await user.click(within(screen.getByRole('navigation', { name: 'Pagination' })).getByRole('button', { name: 'Page suivante' }))
 
