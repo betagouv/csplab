@@ -37,8 +37,8 @@ const ONGLETS = [
 const onglet = ref<Onglet>(props.ongletDepart ?? 'en_cours')
 
 const COLONNES: CspColumnDef<Offre>[] = [
-  { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre, cellComponent: TitreCell, width: '12rem' },
-  { id: 'reference', header: 'Référence CSP', wrapHeader: true, accessor: o => referenceCsp(o), width: '7rem' },
+  { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre, cellComponent: TitreCell, width: '13.5rem' },
+  { id: 'reference', header: 'Référence CSP', wrapHeader: true, accessor: o => referenceCsp(o), width: '6rem' },
   { id: 'publication', header: 'Publication', sortable: true, accessor: o => o.dateDebut, cellComponent: FinCell, width: '8rem' },
   { id: 'responsable', header: 'Responsable', accessor: o => o.responsables?.join(' ; ') ?? '', cellComponent: ResponsableCell },
   { id: 'modifie', header: 'Dernière activité', wrapHeader: true, sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ActiviteCell, width: '7.5rem' },
@@ -240,7 +240,7 @@ function confirmerRetrait() {
 // Une seule ligne par recrutement : intitulé tronqué (complet au survol), cellules sans retour à la ligne.
 :deep(.titre-cell) {
   display: block;
-  max-width: 12rem;
+  max-width: 13.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -248,6 +248,11 @@ function confirmerRetrait() {
 
 :deep(td) {
   white-space: nowrap;
+}
+
+// La référence peut passer sur deux lignes (« CSP- / 20260118 ») : ça laisse plus de place aux intitulés.
+:deep(td:nth-child(3)) {
+  white-space: normal;
 }
 
 .texte {
