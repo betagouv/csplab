@@ -15,7 +15,8 @@ import { db, MOTIFS_DEPART, MOTIFS_RECRUTEMENT } from './store'
 // Section « Informations internes » (retour PO) : séparée de l'annonce pour qu'on voie d'un coup d'œil
 // ce que le candidat ne verra jamais. Ces informations alimentent le résumé pour les valideurs.
 // Jamais publiées, jamais reprises d'une fiche ni d'une offre dupliquée.
-const props = defineProps<{ offre: Offre }>()
+// lectureSeule : pas d'ajout, de modification ni de suppression du commentaire (valideur, offre non modifiable).
+const props = defineProps<{ offre: Offre, lectureSeule?: boolean }>()
 const o = computed(() => props.offre)
 
 function modele(cle: 'motifRecrutement' | 'motifDepart' | 'groupeRifseep') {
@@ -162,7 +163,10 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
             :size="14"
           /> {{ o.ficheJointe }}
         </p>
-        <div class="commentaire__actions">
+        <div
+          v-if="!lectureSeule"
+          class="commentaire__actions"
+        >
           <CspButton
             label="Modifier"
             size="sm"
@@ -181,7 +185,7 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
           />
         </div>
       </div>
-      <div v-else>
+      <div v-else-if="!lectureSeule">
         <CspButton
           label="Ajouter un commentaire"
           size="sm"

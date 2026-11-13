@@ -586,6 +586,7 @@ function archiver() {
             <FormAnnonce
               :offre="enEdition('annonce') ? edition!.copie : o"
               :fiche="f"
+              :lecture-seule="!modifiable"
             />
           </fieldset>
           <div
@@ -620,7 +621,10 @@ function archiver() {
             class="verrou"
             :disabled="!modifiable"
           >
-            <FormInterne :offre="o" />
+            <FormInterne
+              :offre="o"
+              :lecture-seule="!modifiable"
+            />
           </fieldset>
         </SectionOffre>
 

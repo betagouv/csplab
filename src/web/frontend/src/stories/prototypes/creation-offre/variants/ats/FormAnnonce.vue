@@ -18,7 +18,8 @@ import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEM
 // publiées) sont dans leur propre section (FormInterne). Le résumé pour la validation est en haut de la page.
 // Seuls les champs obligatoires portent une mention (« Champ obligatoire », aide grise DSFR) ; ils ne sont
 // contrôlés qu'au moment de publier. Les aides vont sous le champ (message d'information) ou en exemple dans le champ.
-const props = defineProps<{ offre: Offre, fiche?: Fiche }>()
+// lectureSeule : la note sur les champs obligatoires ne concerne que la personne qui rédige.
+const props = defineProps<{ offre: Offre, fiche?: Fiche, lectureSeule?: boolean }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
@@ -89,7 +90,10 @@ function formater() {
 
 <template>
   <div class="annonce">
-    <p class="note">
+    <p
+      v-if="!lectureSeule"
+      class="note"
+    >
       Les champs obligatoires ne sont contrôlés qu'au moment de publier : vous pouvez enregistrer une annonce incomplète.
     </p>
     <div class="groupe">
