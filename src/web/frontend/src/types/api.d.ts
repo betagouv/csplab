@@ -966,12 +966,6 @@ export interface components {
             nom: string;
             siret: string;
         };
-        OrganismeRole: {
-            /** Format: uuid */
-            organisme_uuid: string;
-            nom: string;
-            role: components["schemas"]["RoleEnum"];
-        };
         OrganismesList: {
             /** Format: uuid */
             uuid: string;
@@ -1312,8 +1306,6 @@ export interface components {
             email: string;
             prenom: string;
             nom: string;
-            is_staff: boolean;
-            organisme_roles: components["schemas"]["OrganismeRole"][];
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             organismes: components["schemas"]["UtilisateurOrganisme"][];
         };
