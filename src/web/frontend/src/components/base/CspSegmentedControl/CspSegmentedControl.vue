@@ -117,7 +117,7 @@ const groupName = props.name ?? useId()
 .csp-segmented__elements {
   display: flex;
   border-radius: 0.25rem;
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-control-border-color);
 }
 
 .csp-segmented__element {

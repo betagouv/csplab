@@ -102,13 +102,19 @@
   --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
   --csp-menu-item-gap: var(--csp-space-2);
 
-  /* Form fields */
+  /* Form fields. Field: a form field or a search field, such as an input, a textarea or the trigger of a select */
   --csp-field-label-gap: var(--csp-space-2);
   --csp-field-hint-gap: var(--csp-space-1);
   --csp-field-legend-gap: var(--csp-space-4);
   --csp-field-messages-gap: var(--csp-space-4);
   --csp-field-error-bar-width: 2px;
   --csp-field-error-padding-start: var(--csp-space-3);
+  --csp-field-background: var(--background-default-grey);
+  --csp-field-border-color: var(--border-default-grey);
+  --csp-field-radius: 0.25rem;
+
+  /* Controls. Control: a tertiary button or a segmented control */
+  --csp-control-border-color: var(--border-default-grey);
 
   /* Kanban board and columns, mirrored by the kanban skeleton */
   --csp-kanban-gap: var(--csp-space-3);

@@ -85,7 +85,7 @@ const attrs = useAttrs()
   appearance: none;
 
   padding: var(--csp-textarea-padding-y) var(--csp-textarea-padding-x);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   background-color: var(--csp-textarea-bg);
   color: var(--csp-textarea-text);
   font-family: inherit;
@@ -101,9 +101,9 @@ const attrs = useAttrs()
 
   --csp-textarea-padding-y: 0.625em;
   --csp-textarea-padding-x: 0.875em;
-  --csp-textarea-bg: var(--background-default-grey);
+  --csp-textarea-bg: var(--csp-field-background);
   --csp-textarea-text: var(--text-default-grey);
-  --csp-textarea-border: var(--border-default-grey);
+  --csp-textarea-border: var(--csp-field-border-color);
   --csp-textarea-resize: vertical;
 
   &::placeholder {
