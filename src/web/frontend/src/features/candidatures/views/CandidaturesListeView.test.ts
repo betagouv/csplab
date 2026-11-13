@@ -16,7 +16,7 @@ import {
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
-  roleOnOrganisme,
+  USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
@@ -85,7 +85,7 @@ function sequenceNavigation() {
 describe('candidaturesListeView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))

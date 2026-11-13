@@ -4,7 +4,7 @@ import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { searchAgentByEmail } from '@/features/agents/api'
-import { ORGANISME_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
+import { ORGANISME_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
@@ -30,8 +30,8 @@ const TWO_PAGES_OF_RECRUTEMENTS = Array.from({ length: TABLE_PAGE_SIZE + 1 }, (_
   intitule: `Recrutement ${index}`,
 }))
 
-const RESPONSABLE_ASSIGNABLE = makeUser([roleOnOrganisme('superviseur')], false, [
-  { uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', authorized_actions: ['set_recrutements_responsable'] },
+const RESPONSABLE_ASSIGNABLE = makeUser([
+  { ...USER_ORGANISME, authorized_actions: ['set_recrutements_responsable'] },
 ])
 
 async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
@@ -105,7 +105,7 @@ describe('recrutementsView', () => {
   })
 
   it('hides the responsable assignment without the right to assign one', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     vi.mocked(getRecrutementsActifs).mockResolvedValue({
       count: RECRUTEMENTS_ACTIFS.length,
       results: RECRUTEMENTS_ACTIFS.map(row => ({ ...row, responsables: [] })),
