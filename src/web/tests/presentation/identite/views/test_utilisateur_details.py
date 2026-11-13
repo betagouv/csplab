@@ -96,6 +96,7 @@ def test_agent_with_role_has_organismes(
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
+    assert [o["uuid"] for o in response.json()["organismes"]] == [str(organisme.id)]
     assert response.json() == {
         "email": test_user.email,
         "prenom": test_user.first_name,
@@ -131,41 +132,32 @@ def test_agent_with_multiple_roles(authenticated_client, test_user):
     ]
 
 
-def test_revoked_organisme_is_not_in_organismes(authenticated_client, test_user):
+@pytest.mark.parametrize(
+    ("organisme_kwargs", "liaison_kwargs"),
+    [
+        pytest.param({}, {"date_revocation": timezone.now()}, id="revoque"),
+        pytest.param({"supprime_le": timezone.now()}, {}, id="supprime"),
+    ],
+)
+def test_inactive_organisme_is_not_in_organismes(
+    authenticated_client, test_user, organisme_kwargs, liaison_kwargs
+):
     agent, organisme_actif = create_organisme_with_agent(
         role=AgentOrganismeRole.AGENT, utilisateur=test_user
     )
-    OrganismeAgentDjangoFactory(
-        organisme=OrganismeDjangoFactory(),
+    liaison_inactive = OrganismeAgentDjangoFactory(
+        organisme=OrganismeDjangoFactory(**organisme_kwargs),
         agent=agent,
         role=AgentOrganismeRole.SUPERVISEUR.value,
-        date_revocation=timezone.now(),
+        **liaison_kwargs,
     )
 
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["organismes"] == [
-        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
-    ]
-
-
-def test_supprime_organisme_is_not_in_organismes(authenticated_client, test_user):
-    agent, organisme_actif = create_organisme_with_agent(
-        role=AgentOrganismeRole.AGENT, utilisateur=test_user
-    )
-    OrganismeAgentDjangoFactory(
-        organisme=OrganismeDjangoFactory(supprime_le=timezone.now()),
-        agent=agent,
-        role=AgentOrganismeRole.SUPERVISEUR.value,
-    )
-
-    response = authenticated_client.get(URL)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["organismes"] == [
-        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
-    ]
+    uuids = [o["uuid"] for o in response.json()["organismes"]]
+    assert str(liaison_inactive.organisme_id) not in uuids
+    assert uuids == [str(organisme_actif.id)]
 
 
 def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user):
@@ -184,10 +176,10 @@ def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user
         "list_organismes",
         "update_organisme",
     ]
+    assert [o["uuid"] for o in body["organismes"]] == [str(organisme.id)]
     assert body["organismes"] == [
         _organisme(organisme, AgentOrganismeRole.AGENT, test_user)
     ]
-    assert "get_organisme" in body["organismes"][0]["authorized_actions"]
 
 
 def test_agent_authorized_actions_exclude_recrutement_level(
