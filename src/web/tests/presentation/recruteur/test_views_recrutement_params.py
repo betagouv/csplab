@@ -1,5 +1,4 @@
 from functools import partial
-from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 import pytest
@@ -9,7 +8,6 @@ from faker import Faker
 from rest_framework import status
 
 from application.recruteur.errors.application_errors_recruteur import (
-    OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -39,9 +37,6 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
-)
-from infrastructure.factories.recruteur.etapes_recrutement_factory import (
-    EtapeRecrutementFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
@@ -82,16 +77,6 @@ def _etapes_payload(etapes) -> list[dict]:
     ]
 
 
-@pytest.fixture
-def container():
-    with patch(
-        "presentation.recruteur.views.recrutement_params.recruteur_container"
-    ) as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
-
-
 class TestRecrutementEtapeView:
     def test_anonymous_access_is_unauthorized_on_get(self, api_client):
         response = api_client.get(RECRUTEMENT_ETAPES_URL)
@@ -108,111 +93,6 @@ class TestRecrutementEtapeView:
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_returns_201_with_updated_pipeline(self, container, authenticated_client):
-        etapes = EtapeRecrutementFactory.create_entity_batch()
-        usecase = container.update_recrutement_etapes_usecase.return_value.execute
-        usecase.return_value = etapes
-
-        response = authenticated_client.patch(
-            RECRUTEMENT_ETAPES_URL,
-            data=_etapes_payload(etapes),
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert len(data) == len(etapes)
-        assert data[-1]["uuid"] == str(etapes[-1].entity_id)
-        assert data[-1]["nom"] == "Recrutement"
-        assert data[-1]["categorie"] == "ACCEPTE"
-        (command,), _ = usecase.call_args
-        assert [e.etape_uuid for e in command.etapes_data] == [
-            e.entity_id for e in etapes
-        ]
-
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeRecrutementIncoherents(
-                    UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
-                ),
-                status.HTTP_400_BAD_REQUEST,
-                {
-                    "error": OrganismeRecrutementIncoherents(
-                        UUID(ORGANISME_UUID), UUID(RECRUTEMENT_UUID)
-                    ).message
-                },
-            ),
-            (
-                RecrutementEtapeIncoherents(
-                    recrutement_id=UUID(ORGANISME_UUID), etape_id=UUID(ETAPE_UUID)
-                ),
-                status.HTTP_400_BAD_REQUEST,
-                {
-                    "error": f"L'étape {ETAPE_UUID} ne correspond pas au recrutement"
-                    f" {ORGANISME_UUID}"
-                },
-            ),
-            (
-                ConfigurationEtapesInvalide(
-                    "La première étape doit être de catégorie ENTREE"
-                ),
-                status.HTTP_400_BAD_REQUEST,
-                {
-                    "error": ConfigurationEtapesInvalide(
-                        "La première étape doit être de catégorie ENTREE"
-                    ).message
-                },
-            ),
-            (
-                SupressionEtapeImpossible(UUID(ETAPE_UUID), 1),
-                status.HTTP_400_BAD_REQUEST,
-                {"error": SupressionEtapeImpossible(UUID(ETAPE_UUID), 1).message},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
-                status.HTTP_403_FORBIDDEN,
-                {"error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message},
-            ),
-            (
-                OrganismeNexistePas(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
-            ),
-            (
-                RecrutementInexistant(UUID(RECRUTEMENT_UUID)),
-                status.HTTP_404_NOT_FOUND,
-                {"error": RecrutementInexistant(UUID(RECRUTEMENT_UUID)).message},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_patch_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        container.update_recrutement_etapes_usecase.return_value.execute.side_effect = (
-            exception
-        )
-        etapes = EtapeRecrutementFactory.create_entity_batch()
-        response = authenticated_client.patch(
-            RECRUTEMENT_ETAPES_URL,
-            data=_etapes_payload(etapes),
-            format="json",
-        )
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
 
 
 def _etapes_url(organisme_id, recrutement_id):
@@ -642,6 +522,47 @@ def _recrutement_of_another_organisme(test_user):
     return organisme.id, recrutement.pk, RecrutementInexistant(recrutement.pk)
 
 
+FORBIDDEN_ARRANGES = [
+    pytest.param(
+        partial(_agent_with_recrutement_role, AgentRecrutementRole.RECRUTEUR),
+        id="recruteur",
+    ),
+    pytest.param(
+        partial(_agent_with_recrutement_role, AgentRecrutementRole.CONTRIBUTEUR),
+        id="contributeur",
+    ),
+    pytest.param(_agent_without_recrutement_role, id="agent_without_recrutement_role"),
+    pytest.param(_agent_on_unknown_recrutement, id="agent_on_unknown_recrutement"),
+    pytest.param(_agent_on_another_organisme, id="agent_on_another_organisme"),
+    pytest.param(
+        _superviseur_of_another_organisme,
+        id="superviseur_of_another_organisme",
+    ),
+    pytest.param(_non_member, id="non_member"),
+    pytest.param(
+        _non_member_on_another_organisme,
+        id="non_member_on_another_organisme",
+    ),
+]
+
+NOT_FOUND_ARRANGES = [
+    pytest.param(_unknown_organisme, id="unknown_organisme"),
+    pytest.param(_unknown_recrutement, id="unknown_recrutement"),
+    pytest.param(
+        _recrutement_of_supprime_organisme,
+        id="recrutement_of_supprime_organisme",
+    ),
+    pytest.param(
+        _recrutement_of_another_supprime_organisme,
+        id="recrutement_of_another_supprime_organisme",
+    ),
+    pytest.param(
+        _recrutement_of_another_organisme,
+        id="recrutement_of_another_organisme",
+    ),
+]
+
+
 class TestInitRecrutementEtapeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.post(RECRUTEMENT_ETAPES_INIT_URL)
@@ -679,37 +600,7 @@ class TestInitRecrutementEtapeView:
         ).exists()
         assert recrutement.updated_at > updated_at_avant
 
-    @pytest.mark.parametrize(
-        "arrange",
-        [
-            pytest.param(
-                partial(_agent_with_recrutement_role, AgentRecrutementRole.RECRUTEUR),
-                id="recruteur",
-            ),
-            pytest.param(
-                partial(
-                    _agent_with_recrutement_role, AgentRecrutementRole.CONTRIBUTEUR
-                ),
-                id="contributeur",
-            ),
-            pytest.param(
-                _agent_without_recrutement_role, id="agent_without_recrutement_role"
-            ),
-            pytest.param(
-                _agent_on_unknown_recrutement, id="agent_on_unknown_recrutement"
-            ),
-            pytest.param(_agent_on_another_organisme, id="agent_on_another_organisme"),
-            pytest.param(
-                _superviseur_of_another_organisme,
-                id="superviseur_of_another_organisme",
-            ),
-            pytest.param(_non_member, id="non_member"),
-            pytest.param(
-                _non_member_on_another_organisme,
-                id="non_member_on_another_organisme",
-            ),
-        ],
-    )
+    @pytest.mark.parametrize("arrange", FORBIDDEN_ARRANGES)
     def test_is_forbidden(self, authenticated_client, test_user, arrange):
         organisme_id, recrutement_id, erreur = arrange(test_user)
 
@@ -718,25 +609,7 @@ class TestInitRecrutementEtapeView:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {"error": erreur.message}
 
-    @pytest.mark.parametrize(
-        "arrange",
-        [
-            pytest.param(_unknown_organisme, id="unknown_organisme"),
-            pytest.param(_unknown_recrutement, id="unknown_recrutement"),
-            pytest.param(
-                _recrutement_of_supprime_organisme,
-                id="recrutement_of_supprime_organisme",
-            ),
-            pytest.param(
-                _recrutement_of_another_supprime_organisme,
-                id="recrutement_of_another_supprime_organisme",
-            ),
-            pytest.param(
-                _recrutement_of_another_organisme,
-                id="recrutement_of_another_organisme",
-            ),
-        ],
-    )
+    @pytest.mark.parametrize("arrange", NOT_FOUND_ARRANGES)
     def test_returns_404(self, authenticated_client, test_user, arrange):
         organisme_id, recrutement_id, erreur = arrange(test_user)
 
@@ -872,3 +745,283 @@ class TestInitRecrutementEtapeView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert not AuditLogModel.objects.exists()
+
+
+def _item(etape, **surcharges):
+    categories = {"entree": "ENTREE", "en_cours": "EN_COURS", "refus": "REFUS"}
+    return {
+        "uuid": str(etape.id),
+        "nom": etape.nom,
+        "categorie": categories[etape.categorie],
+        **surcharges,
+    }
+
+
+def _accepte(nom="Recrutement"):
+    return {"nom": nom, "categorie": "ACCEPTE"}
+
+
+def _payload_neuf():
+    return [
+        {"nom": "Réception", "categorie": "ENTREE"},
+        {"nom": "Entretien", "categorie": "EN_COURS"},
+        {"nom": "Refus", "categorie": "REFUS"},
+        _accepte(),
+    ]
+
+
+def _avec_second_entretien(recrutement, reception, entretien, refus, **kwargs):
+    second = EtapeDjangoFactory(
+        recrutement=recrutement, nom="Second", categorie="en_cours", **kwargs
+    )
+    recrutement.ordre_etapes = [
+        str(e.id) for e in (reception, entretien, second, refus)
+    ]
+    recrutement.save(update_fields=["ordre_etapes"])
+    return second
+
+
+class TestUpdateRecrutementEtapesView:
+    @pytest.mark.parametrize(
+        "arrange",
+        [
+            pytest.param(_superviseur, id="superviseur"),
+            pytest.param(_agent_responsable, id="agent_responsable"),
+            pytest.param(_staff_without_liaison, id="staff_without_liaison"),
+        ],
+    )
+    def test_adds_an_etape_and_keeps_the_existing_ones(
+        self, authenticated_client, test_user, arrange
+    ):
+        organisme, recrutement, (reception, entretien, refus) = arrange(test_user)
+        payload = [_item(reception), _item(entretien), _item(refus), _accepte()]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()[:3] == [
+            {"uuid": str(e.id), "nom": e.nom, "categorie": c}
+            for e, c in (
+                (reception, "ENTREE"),
+                (entretien, "EN_COURS"),
+                (refus, "REFUS"),
+            )
+        ]
+        nouvelle = response.json()[3]
+        assert nouvelle["nom"] == "Recrutement"
+        assert nouvelle["categorie"] == "ACCEPTE"
+        recrutement.refresh_from_db()
+        assert recrutement.ordre_etapes == [e["uuid"] for e in response.json()]
+        assert EtapeModel.objects.get(id=nouvelle["uuid"]).categorie == "accepte"
+
+    def test_renames_and_reorders_etapes_and_logs_them(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        payload = [
+            _item(reception),
+            _item(second),
+            _item(entretien, nom="Entretien RH"),
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        recrutement.refresh_from_db()
+        assert recrutement.ordre_etapes[:4] == [
+            str(e.id) for e in (reception, second, entretien, refus)
+        ]
+        assert EtapeModel.objects.get(id=entretien.id).nom == "Entretien RH"
+        nouvelle_id = UUID(response.json()[-1]["uuid"])
+        entries = AuditLogModel.objects.values_list(
+            "ressource_kind", "ressource_id", "event_name", "utilisateur_id"
+        )
+        expected = [
+            ("EtapeRecrutement", second.id, "EtapeReordonnee", test_user.username),
+            ("EtapeRecrutement", entretien.id, "EtapeReordonnee", test_user.username),
+            ("EtapeRecrutement", entretien.id, "EtapeRenommee", test_user.username),
+            ("EtapeRecrutement", nouvelle_id, "EtapeAjoutee", test_user.username),
+            (
+                "Recrutement",
+                recrutement.pk,
+                "RecrutementEtapesMisesAJour",
+                test_user.username,
+            ),
+        ]
+        assert sorted(entries, key=str) == sorted(expected, key=str)
+
+    def test_deletes_an_etape_without_candidatures(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        payload = [_item(reception), _item(entretien), _item(refus), _accepte()]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert not EtapeModel.objects.filter(id=second.id).exists()
+        assert AuditLogModel.objects.filter(
+            ressource_id=second.id, event_name="EtapeSupprimee"
+        ).exists()
+
+    def test_etape_with_candidatures_cannot_be_deleted(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        CandidatureDjangoFactory(etape=second)
+        ordre_avant = recrutement.ordre_etapes
+        payload = [_item(reception), _item(entretien), _item(refus), _accepte()]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": SupressionEtapeImpossible(second.id, 1).message
+        }
+        recrutement.refresh_from_db()
+        assert recrutement.ordre_etapes == ordre_avant
+        assert EtapeModel.objects.filter(id=second.id).exists()
+        assert not EtapeModel.objects.filter(nom="Recrutement").exists()
+        assert not AuditLogModel.objects.exists()
+
+    def test_unknown_etape_is_a_bad_request(self, authenticated_client, test_user):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        inconnue = uuid4()
+        payload = [
+            _item(reception),
+            {"uuid": str(inconnue), "nom": "Fantôme", "categorie": "EN_COURS"},
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": RecrutementEtapeIncoherents(
+                recrutement_id=recrutement.pk, etape_id=inconnue
+            ).message
+        }
+        assert not AuditLogModel.objects.exists()
+
+    def test_changing_the_categorie_of_an_existing_etape_is_a_bad_request(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        ordre_avant = recrutement.ordre_etapes
+        payload = [
+            _item(reception),
+            _item(entretien),
+            {"nom": "Nouveau refus", "categorie": "REFUS"},
+            _item(refus, categorie="ACCEPTE"),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": ConfigurationEtapesInvalide(
+                "La catégorie d'une étape existante ne peut pas changer"
+            ).message
+        }
+        recrutement.refresh_from_db()
+        assert recrutement.ordre_etapes == ordre_avant
+        assert EtapeModel.objects.get(id=refus.id).categorie == "refus"
+        assert not AuditLogModel.objects.exists()
+
+    def test_the_same_etape_twice_is_a_bad_request(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        payload = [
+            _item(reception),
+            _item(entretien),
+            _item(entretien, nom="Autre entretien"),
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": ConfigurationEtapesInvalide(
+                "Chaque étape existante ne peut figurer qu'une fois"
+            ).message
+        }
+        assert not AuditLogModel.objects.exists()
+
+    def test_invalid_sequence_is_a_bad_request(self, authenticated_client, test_user):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        payload = [_item(reception), _item(entretien), _item(refus)]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": ConfigurationEtapesInvalide(
+                "La dernière étape doit être de catégorie ACCEPTE"
+            ).message
+        }
+
+    @pytest.mark.parametrize("arrange", FORBIDDEN_ARRANGES)
+    def test_is_forbidden(self, authenticated_client, test_user, arrange):
+        organisme_id, recrutement_id, erreur = arrange(test_user)
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme_id, recrutement_id),
+            data=_payload_neuf(),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": erreur.message}
+        assert not AuditLogModel.objects.exists()
+
+    @pytest.mark.parametrize("arrange", NOT_FOUND_ARRANGES)
+    def test_returns_404(self, authenticated_client, test_user, arrange):
+        organisme_id, recrutement_id, erreur = arrange(test_user)
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme_id, recrutement_id),
+            data=_payload_neuf(),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": erreur.message}

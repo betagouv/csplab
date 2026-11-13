@@ -1,4 +1,4 @@
-from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
+from ddd.mapper_interface import IToDomainMapper
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
@@ -10,7 +10,7 @@ from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 
 
-class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
+class RecrutementMapper(IToDomainMapper):
     def to_domain(self, model: RecrutementModel) -> Recrutement:
         etapes = []
         candidatures = []
@@ -41,6 +41,3 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
             status=StatutRecrutement.ACTIF,
             derniere_activite_le=model.updated_at,
         )
-
-    def from_domain(self, etapes: tuple[EtapeRecrutement, ...]) -> list[str]:
-        return [str(etape.entity_id) for etape in etapes]
