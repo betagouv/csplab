@@ -66,6 +66,17 @@ describe('useEtapesRecrutement', () => {
     const { etapes } = await mountEtapes()
 
     expect(mockGetEtapesRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
+    expect(mockInitEtapesRecrutement).not.toHaveBeenCalled()
+    expect(etapes.value).toEqual(DEFAULT_ETAPES)
+  })
+
+  it('initializes the default etapes of an organisme that has none', async () => {
+    mockGetEtapesRecrutement.mockResolvedValue([])
+    mockInitEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
+
+    const { etapes } = await mountEtapes()
+
+    expect(mockInitEtapesRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
