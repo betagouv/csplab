@@ -642,7 +642,6 @@ function archiver() {
         <ResumeValidation
           :offre="o"
           :fiche="f"
-          :editable="modifiable"
           integre
         />
         <Propositions

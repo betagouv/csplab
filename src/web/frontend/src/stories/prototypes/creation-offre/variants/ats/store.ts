@@ -105,6 +105,8 @@ export interface Offre {
   groupeRifseep: string
   cycleTravail: string
   commentaireValideurs: string
+  /** Services validateurs à qui s'adresse le commentaire ; vide = tous. */
+  commentairePour?: string[]
   /** Saisi par l'équipe RH (valideurs) pendant la validation. */
   commentaireRH?: string
   referenceFranceTravail?: string

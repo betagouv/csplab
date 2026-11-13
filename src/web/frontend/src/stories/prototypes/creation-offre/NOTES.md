@@ -795,3 +795,7 @@ intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton
   (Alice partagée, faute de contexte sur l'usage de ces informations).
 - **Compétences** sur deux colonnes : métier RMFP+ à gauche, ses compétences à cocher à droite. Plus d'ajout manuel ;
   changer de métier remplace les compétences par celles du nouveau métier.
+- **Validation dans « Informations internes »** : qui va valider l'offre (services et valideurs du circuit),
+  commentaire facultatif pour les valideurs, adressé à tous les services ou à certains seulement (cases à cocher
+  dès qu'un commentaire est saisi), document joint facultatif. Saisis une seule fois ici ; le résumé pour la
+  validation les reprend en lecture.

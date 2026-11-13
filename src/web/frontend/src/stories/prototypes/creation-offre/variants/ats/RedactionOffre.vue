@@ -139,12 +139,11 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
           <Panel
             v-if="avecValidation"
             titre="Résumé pour la validation"
-            description="Ce que verront les valideurs, repris de l'annonce et des informations internes. Jamais publié."
+            description="Ce que verront les valideurs, repris de l'annonce et des informations internes (dont votre commentaire). Jamais publié."
           >
             <ResumeValidation
               :offre="o"
               :fiche="f"
-              editable
               integre
             />
           </Panel>

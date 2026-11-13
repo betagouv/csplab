@@ -89,7 +89,7 @@ function joindre(e: Event) {
     </template>
     <div v-else-if="o.commentaireValideurs">
       <p class="resume__label">
-        Commentaire pour les valideurs
+        Commentaire pour les valideurs{{ o.commentairePour?.length ? ` (pour : ${o.commentairePour.join(', ')})` : '' }}
       </p>
       <p class="resume__texte">
         {{ o.commentaireValideurs }}
