@@ -12,7 +12,7 @@ import { useNav } from './nav'
 // Cadre commun d'une page, calqué sur les pages de l'application : menu latéral, en-tête du design system
 // (fil d'Ariane, retour, titre, sous-titre ou métadonnées, actions), onglets avec icônes, notification.
 const props = withDefaults(defineProps<{
-  actif: 'accueil' | 'fiches' | 'offres' | 'parametres'
+  actif: 'accueil' | 'fiches' | 'offres' | 'recrutements' | 'parametres'
   titre: string
   sousTitre?: string
   /** Fil d'Ariane après « Accueil » ; `to` est un chemin du menu (/fiches, /offres…). */

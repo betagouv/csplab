@@ -49,7 +49,7 @@ const aTraiter = computed(() => db.offres.filter(o => o.etat === 'brouillon' || 
         :key="c.filtre"
         type="button"
         class="tdb__compteur"
-        @click="aller({ nom: 'offres', filtre: c.filtre })"
+        @click="aller(c.filtre === 'bientot' ? { nom: 'recrutements' } : { nom: 'offres', filtre: c.filtre })"
       >
         <span class="tdb__nb">{{ c.n }}</span>
         <span class="tdb__lib">{{ c.lib }}</span>

@@ -91,6 +91,8 @@ export interface Offre {
   sourceOffreId?: string
   /** Personne qui a créé l'offre (par défaut, le compte connecté). */
   creePar?: string
+  /** Responsables du recrutement, une fois l'offre publiée (écran « Mes recrutements »). */
+  responsables?: string[]
 
   // Suivi interne — jamais publié, saisi dans l'annonce (encadrés gris). Les données de contexte ne sont jamais recopiées.
   referenceInterne: string
@@ -809,7 +811,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v16'
+const CLE = 'csplab-proto-ats-v17'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -849,7 +851,41 @@ function organismeInitial(): Organisme {
 
 function initial(): Base {
   const fiches = fichesInitiales()
-  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial(), role: 'recruteur' }
+  return { fiches, offres: avecRecrutements(offresInitiales(fiches)), organisme: organismeInitial(), role: 'recruteur' }
+}
+
+// Quelques recrutements en cours de plus (offres déjà publiées), pour que « Mes recrutements » ressemble à l'outil actuel.
+function avecRecrutements(offres: Offre[]): Offre[] {
+  const modele = offres.find(o => o.id === 'OFF-2026-0131')
+  if (!modele) {
+    return offres
+  }
+  const autres: [string, string, number, number, string[]][] = [
+    ['OFF-2026-0139', 'Instructeur·rice des autorisations d\'urbanisme', -2, 28, ['Camille Farce', 'Samuel Loars']],
+    ['OFF-2026-0136', 'Responsable d\'unité biodiversité', -2, 40, ['Samir Marlot']],
+    ['OFF-2026-0127', 'Chargé·e d\'études risques naturels', -22, 9, []],
+  ]
+  const copies = autres.map(([id, titre, debut, fin, responsables]) => ({
+    ...structuredClone(modele),
+    id,
+    titre,
+    responsables,
+    dateDebut: J(debut),
+    dateFin: J(fin),
+    publieeLe: dateLongue(J(debut)),
+    modifieLe: dateLongue(J(Math.max(debut, -3))),
+    publications: { csp: { etat: 'publiee' as const, debut: dateLongue(J(debut)), fin: J(fin) } },
+    historique: [{ date: dateLongue(J(debut)), texte: 'Offre publiée sur Choisir le Service Public' }],
+  }))
+  for (const o of offres) {
+    if (o.id === 'OFF-2026-0131') {
+      o.responsables = ['Camille Moreau']
+    }
+    if (o.id === 'OFF-2026-0118') {
+      o.responsables = ['Camille Moreau', 'Julien Lefèvre']
+    }
+  }
+  return [...offres, ...copies]
 }
 
 export const db = reactive(lire() ?? initial())

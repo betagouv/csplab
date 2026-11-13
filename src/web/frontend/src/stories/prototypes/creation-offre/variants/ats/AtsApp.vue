@@ -10,6 +10,7 @@ import { NAV } from './nav'
 import OffreEspace from './OffreEspace.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
+import RecrutementsListe from './RecrutementsListe.vue'
 import { db, retraitsAutomatiques } from './store'
 import TableauDeBord from './TableauDeBord.vue'
 
@@ -28,7 +29,7 @@ let timer: ReturnType<typeof setTimeout> | undefined
 
 const router = useRouter()
 const route = useRoute()
-const LISTES: Record<string, Ecran> = { '/accueil': { nom: 'accueil' }, '/fiches': { nom: 'fiches' }, '/offres': { nom: 'offres' }, '/parametres': { nom: 'parametres' } }
+const LISTES: Record<string, Ecran> = { '/accueil': { nom: 'accueil' }, '/fiches': { nom: 'fiches' }, '/offres': { nom: 'offres' }, '/recrutements': { nom: 'recrutements' }, '/parametres': { nom: 'parametres' } }
 
 // Chaque écran a son chemin : le menu, le fil d'Ariane et les boutons retour passent par la route.
 function chemin(e: Ecran): string {
@@ -87,6 +88,10 @@ provide(NAV, { ecran, aller, notifier, flash })
     :mode="ecran.mode"
     :fiche-id="ecran.ficheId"
     :offre-id="ecran.offreId"
+  />
+  <RecrutementsListe
+    v-else-if="ecran.nom === 'recrutements'"
+    :onglet-depart="ecran.onglet"
   />
   <Parametres v-else-if="ecran.nom === 'parametres'" />
   <OffreEspace

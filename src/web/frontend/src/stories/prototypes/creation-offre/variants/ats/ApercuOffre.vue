@@ -25,7 +25,7 @@ function publier() {
     return
   }
   publierOffre(o.value, o.value.diffusion ?? 'simple', o.value.canaux.filter(c => c !== SUPPORT_MAITRE.id))
-  notifier('Offre publiée (simulation : rien n\'est envoyé).')
+  notifier('Offre publiée : le recrutement est ouvert, retrouvez-le dans Mes recrutements (simulation).')
   aller({ nom: 'offre', id: o.value.id })
 }
 </script>

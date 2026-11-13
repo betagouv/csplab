@@ -752,3 +752,22 @@ Huit cas, visibles dans « Mes offres d'emploi » et chacun avec sa story :
 | Validation en attente, pas par Camille | Chargé·e de recrutement (0148) | 6 |
 
 - L'encart « Prête à être publiée » affiche désormais les réponses des valideurs quand l'une d'elles contient un commentaire.
+
+## Itération 25 — Offre ≠ recrutement (retours PO)
+
+Dans l'outil, une offre publiée devient un **recrutement** (écran « Mes recrutements » existant). La PO trouvait
+la liste des offres trop proche visuellement de celle des recrutements, ce qui brouillait la distinction.
+
+- **Mes offres d'emploi** ne montre plus que les offres en préparation (pas encore publiées), sans tableau :
+  groupes par action à faire (À valider par vous, À corriger, Prêtes à publier, En cours de rédaction,
+  En attente de validation), une ligne par offre avec son bouton. En bas, un relais « Offres publiées : elles sont
+  devenues des recrutements → Voir mes recrutements ».
+- **Mes recrutements** (nouveau, reprise de l'écran actuel) : en cours / clos. Ajouts : colonne « Fin de diffusion »
+  (mise en avant sous 7 jours) et, dans le menu « … », **Prolonger la publication** et **Retirer l'offre**.
+  Une offre retirée reste un recrutement en cours (candidatures à traiter) ; « Clore le recrutement » l'archive.
+- **Page d'une offre publiée** : rangée sous « Recrutements » (menu, fil d'Ariane) ; l'encart devient
+  « Publiée · le recrutement est ouvert » avec « Voir le recrutement ». Prolonger et retirer n'y sont plus.
+- La notification de publication annonce l'ouverture du recrutement.
+- Données : trois recrutements en cours de plus, responsables renseignés ; candidatures fictives.
+
+Question ouverte : garder ou non le relais « Offres publiées » sur la page des offres (pas d'avis tranché).

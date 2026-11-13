@@ -5,8 +5,8 @@ import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
-// Navigation principale : tableau de bord, fiches de poste, offres d'emploi. La racine suit la route.
-defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'parametres' }>()
+// Navigation principale : tableau de bord, fiches de poste, offres d'emploi (avant publication), recrutements (après). La racine suit la route.
+defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'recrutements' | 'parametres' }>()
 </script>
 
 <template>
@@ -33,6 +33,12 @@ defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'parametres' }>()
           label="Offres d'emploi"
           :to="{ path: '/offres' }"
           :is-active="actif === 'offres'"
+        />
+        <CspSidebarItem
+          icon="ri:briefcase-line"
+          label="Recrutements"
+          :to="{ path: '/recrutements' }"
+          :is-active="actif === 'recrutements'"
         />
       </CspSidebarGroup>
       <CspSidebarGroup>

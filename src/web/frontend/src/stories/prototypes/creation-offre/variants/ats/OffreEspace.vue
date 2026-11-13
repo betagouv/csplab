@@ -3,12 +3,9 @@ import type { EtapeFormulaire } from './aide'
 import type { Offre, Proposition } from './store'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
-import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
@@ -29,7 +26,7 @@ import PageAts from './PageAts.vue'
 import Propositions from './Propositions.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
-import { archiverOffre, arreterSupport, aujourdhui, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, differences, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
+import { archiverOffre, arreterSupport, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, differences, heure, joursRestants, le, maintenant, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
 
 // Page unique de l'offre : on y arrive en créant l'offre et on y revient pour la suivre.
 // En haut : résumé pour la validation et encart de l'étape en cours (demander la validation, publier…).
@@ -220,35 +217,9 @@ const menu = computed(() => [{
   ],
 }])
 
-// --- Publication en cours : prolonger, retirer, arrêter un site ---
+// --- Publication en cours : arrêter un site. Prolonger et retirer se font dans « Mes recrutements ». ---
 const restants = computed(() => (o.value.dateFin ? joursRestants(o.value.dateFin) : 0))
 const publies = computed(() => CANAUX_DIFFUSION.filter(c => o.value.publications[c.id]))
-const prolongation = ref(false)
-const nouvelleFin = ref('')
-function ouvrirProlongation() {
-  nouvelleFin.value = plusJours(o.value.dateFin, 15)
-  prolongation.value = true
-}
-function confirmerProlongation() {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(nouvelleFin.value) || nouvelleFin.value <= o.value.dateFin) {
-    return
-  }
-  prolonger(o.value, nouvelleFin.value)
-  prolongation.value = false
-  notifier(`Publication prolongée jusqu'au ${dateLongue(nouvelleFin.value)}, sans nouvelle validation.`)
-}
-// Retirer avant un mois de publication : seulement en cas d'urgence.
-const retrait = ref(false)
-const urgence = ref(false)
-const avantUnMois = computed(() => Boolean(o.value.dateDebut) && plusUnMois(o.value.dateDebut) > aujourdhui())
-function confirmerRetrait() {
-  if (avantUnMois.value && !urgence.value) {
-    return
-  }
-  retirer(o.value, avantUnMois.value ? 'urgence' : 'manuel')
-  retrait.value = false
-  notifier('Offre retirée. Les candidatures reçues restent à traiter.')
-}
 function arreter(id: string) {
   arreterSupport(o.value, id)
   notifier('Publication arrêtée sur ce site (simulation).')
@@ -268,10 +239,10 @@ const FREQ = [
 
 <template>
   <PageAts
-    actif="offres"
+    :actif="o.etat === 'brouillon' ? 'offres' : 'recrutements'"
     largeur="full"
     :titre="o.titre || 'Offre sans titre'"
-    :fil="[{ label: 'Offres d\'emploi', to: '/offres' }, { label: o.titre || o.id }]"
+    :fil="[o.etat === 'brouillon' ? { label: 'Offres d\'emploi', to: '/offres' } : { label: 'Mes recrutements', to: '/recrutements' }, { label: o.titre || o.id }]"
     :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
   >
     <template #meta>
@@ -484,8 +455,8 @@ const FREQ = [
         <Panel
           v-else-if="o.etat === 'publiee'"
           class="encart encart--action"
-          titre="En ligne"
-          :description="`Du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}, date limite de candidature. Retrait automatique ce jour-là.`"
+          titre="Publiée · le recrutement est ouvert"
+          :description="`En ligne du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}. Les candidatures, la prolongation et le retrait se gèrent désormais dans Mes recrutements.`"
         >
           <p
             v-if="restants <= 7"
@@ -535,45 +506,12 @@ const FREQ = [
               </tr>
             </tbody>
           </table>
-          <div
-            v-if="prolongation"
-            class="prolonger"
-          >
-            <CspInput
-              v-model="nouvelleFin"
-              label="Nouvelle date limite"
-              placeholder="AAAA-MM-JJ"
-              :hint="dateLongue(nouvelleFin)"
-            />
+          <div class="actions">
             <CspButton
-              label="Prolonger"
-              @click="confirmerProlongation"
-            />
-            <CspButton
-              label="Annuler"
-              variant="tertiary-no-outline"
-              @click="prolongation = false"
-            />
-          </div>
-          <div
-            v-else
-            class="actions"
-          >
-            <CspButton
-              label="Prolonger"
-              variant="secondary"
+              label="Voir le recrutement"
               size="sm"
-              icon="ri:calendar-line"
-              is-icon-left
-              @click="ouvrirProlongation"
-            />
-            <CspButton
-              label="Retirer l'offre"
-              variant="tertiary"
-              size="sm"
-              icon="ri:stop-circle-line"
-              is-icon-left
-              @click="retrait = true"
+              icon="ri:arrow-right-line"
+              @click="aller({ nom: 'recrutements' })"
             />
           </div>
         </Panel>
@@ -898,33 +836,6 @@ const FREQ = [
         </li>
       </ol>
     </SectionOffre>
-
-    <CspDialog
-      v-model:open="retrait"
-      title="Retirer l'offre ?"
-      size="sm"
-    >
-      <p class="texte">
-        L'offre ne sera plus visible des candidats. Les candidatures déjà reçues restent à traiter.
-      </p>
-      <CspCheckbox
-        v-if="avantUnMois"
-        v-model="urgence"
-        label="L'offre est en ligne depuis moins d'un mois : je confirme qu'il s'agit d'une urgence"
-      />
-      <template #footer>
-        <CspButton
-          label="Annuler"
-          variant="secondary"
-          @click="retrait = false"
-        />
-        <CspButton
-          label="Retirer l'offre"
-          :disabled="avantUnMois && !urgence"
-          @click="confirmerRetrait"
-        />
-      </template>
-    </CspDialog>
 
     <CspDrawer
       :open="panneau === 'apercu'"

@@ -9,6 +9,7 @@ export type Ecran
     | { nom: 'fiches' }
     | { nom: 'fiche', id: string, edition?: boolean }
     | { nom: 'offres', filtre?: string }
+    | { nom: 'recrutements', onglet?: 'en_cours' | 'clos' }
     | { nom: 'creation', mode?: 'fiche' | 'manuel' | 'duplication', ficheId?: string, offreId?: string }
     | { nom: 'offre', id: string }
     | { nom: 'formulaire', id: string, etape?: EtapeFormulaire }
