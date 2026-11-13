@@ -59,4 +59,22 @@ describe('organismesSection', () => {
 
     expect(getOrganismesPage).toHaveBeenLastCalledWith({ page: 2, filter: undefined })
   })
+
+  it('keeps the search available when a search fails', async () => {
+    vi.mocked(getOrganismesPage)
+      .mockResolvedValueOnce({ count: 0, results: [] })
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValue({ count: 1, results: [ORGANISME] })
+    const user = setupUser()
+    await renderWithApp(OrganismesSection)
+    const searchbox = await screen.findByRole('searchbox', { name: 'Rechercher un organisme, un siret' })
+
+    await user.type(searchbox, 'mai')
+    expect(await screen.findByText('Impossible de charger les organismes')).toBeInTheDocument()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un organisme, un siret' }), 'rie')
+
+    expect(await screen.findByText('1 organisme')).toBeInTheDocument()
+    expect(screen.queryByText('Impossible de charger les organismes')).not.toBeInTheDocument()
+  })
 })
