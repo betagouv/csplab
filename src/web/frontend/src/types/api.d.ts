@@ -1450,6 +1450,8 @@ export interface operations {
     recruteur_organismes_list: {
         parameters: {
             query?: {
+                /** @description Recherche (3 caractères minimum, sinon ignorée) : SIRET si le terme ne contient que des chiffres et des espaces, sinon nom (insensible à la casse et aux accents). */
+                filter?: string;
                 /** @description Numéro de la page. */
                 page?: number;
                 /** @description Nombre d'éléments par page. */
