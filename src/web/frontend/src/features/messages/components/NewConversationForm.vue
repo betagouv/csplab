@@ -187,7 +187,7 @@ async function send(): Promise<void> {
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--csp-surface-border-color);
 }
 
 .new-conversation__header {

@@ -95,7 +95,7 @@ const sidebarTemplate = `
       </aside>
 
       <div style="flex: 1; min-width: 0;">
-        <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-default-grey);">
+        <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--csp-chrome-border-color);">
           <CspSidebarTrigger />
         </header>
 
@@ -219,7 +219,7 @@ export const WithRouterLinks: Story = {
           </aside>
 
           <div style="flex: 1; min-width: 0;">
-            <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-default-grey);">
+            <header style="display: flex; padding: 0.75rem 1rem; border-bottom: 1px solid var(--csp-chrome-border-color);">
               <CspSidebarTrigger />
             </header>
 

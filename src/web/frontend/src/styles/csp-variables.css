@@ -41,6 +41,23 @@
   /* Neutral: the grey background of a badge, a tag or an avatar, and of a skeleton placed on a grey background */
   --csp-neutral-background: var(--background-contrast-grey);
 
+  /* Chrome: the page header, and the top bar on a phone */
+  --csp-chrome-background: var(--background-default-grey);
+  --csp-chrome-border-color: var(--border-default-grey);
+
+  /* Nav: the sidebar, its items and its buttons */
+  --csp-nav-background: var(--background-alt-grey);
+  --csp-nav-background-hover: var(--background-alt-grey-hover);
+  --csp-nav-background-active: var(--background-alt-grey-active);
+
+  /* Region: an area that groups cards, such as a kanban column */
+  --csp-region-background: var(--background-alt-grey);
+  --csp-region-border-color: var(--border-default-grey);
+
+  /* Surface: a framed block, such as a card, a table or the frame of a list */
+  --csp-surface-background: var(--background-default-grey);
+  --csp-surface-border-color: var(--border-default-grey);
+
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a
@@ -49,6 +66,8 @@
   --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
   --csp-raised-shadow-drag: 0 0 #0000;
   --csp-raised-opacity-drag: 0.5;
+  --csp-raised-background: var(--background-default-grey);
+  --csp-raised-border-color: var(--border-default-grey);
   --csp-raised-background-hover: var(--background-default-grey);
   /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
@@ -124,6 +143,7 @@
   --csp-kanban-column-padding: var(--csp-space-3);
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
+  --csp-kanban-column-accent-color: var(--border-default-grey);
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
 
   @variant xxl {
