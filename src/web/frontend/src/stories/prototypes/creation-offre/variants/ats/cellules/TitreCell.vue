@@ -14,6 +14,7 @@ defineProps<{
   <button
     type="button"
     class="titre-cell"
+    :title="String(value ?? '')"
     @click="activate?.()"
   >
     {{ value }}

@@ -12,19 +12,20 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useTableSelection } from '@/composables/data/useTableSelection'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import ActionsRecrutementCell from './cellules/ActionsRecrutementCell.vue'
+import ActiviteCell from './cellules/ActiviteCell.vue'
 import FinCell from './cellules/FinCell.vue'
-import ModifieCell from './cellules/ModifieCell.vue'
 import NouvellesCell from './cellules/NouvellesCell.vue'
 import ResponsableCell from './cellules/ResponsableCell.vue'
 import TitreCell from './cellules/TitreCell.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { aProlonger, aRetirer, candidatures, ilYa } from './recrutement'
+import { aProlonger, aRetirer, candidatures } from './recrutement'
 import { aujourdhui, dateLongue, dateTri, db, plusJours, plusUnMois, prolonger, retirer, sauvegarder } from './store'
 import { referenceCsp } from './suivi'
 
 // « Mes recrutements », reprise de l'écran actuel de l'outil : une offre publiée devient un recrutement.
-// Ajout : la fin de publication, et dans le menu « … » la prolongation et le retrait de l'offre.
+// Mêmes colonnes et intitulés (validés en test utilisateur). Ajouts : l'alerte de fin sous la date de publication,
+// et dans le menu « … » la prolongation et le retrait de l'offre. Une ligne par recrutement (intitulés tronqués).
 const props = defineProps<{ ongletDepart?: 'en_cours' | 'clos' }>()
 const { aller, notifier } = useNav()
 
@@ -36,13 +37,12 @@ const ONGLETS = [
 const onglet = ref<Onglet>(props.ongletDepart ?? 'en_cours')
 
 const COLONNES: CspColumnDef<Offre>[] = [
-  { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre, cellComponent: TitreCell, width: '16rem' },
+  { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre, cellComponent: TitreCell, width: '12rem' },
   { id: 'reference', header: 'Référence CSP', wrapHeader: true, accessor: o => referenceCsp(o), width: '7rem' },
-  { id: 'publication', header: 'Publication', accessor: o => ilYa(o.dateDebut), width: '7rem' },
-  { id: 'fin', header: 'Fin de diffusion', wrapHeader: true, sortable: true, accessor: o => o.dateFin, cellComponent: FinCell, width: '7.5rem' },
+  { id: 'publication', header: 'Publication', sortable: true, accessor: o => o.dateDebut, cellComponent: FinCell, width: '8rem' },
   { id: 'responsable', header: 'Responsable', accessor: o => o.responsables?.join(' ; ') ?? '', cellComponent: ResponsableCell },
-  { id: 'modifie', header: 'Dernière activité', wrapHeader: true, sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ModifieCell, width: '7.5rem' },
-  { id: 'total', header: 'Nbr total de candidature', wrapHeader: true, accessor: o => candidatures(o).total, align: 'end', width: '6.5rem' },
+  { id: 'modifie', header: 'Dernière activité', wrapHeader: true, sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ActiviteCell, width: '7.5rem' },
+  { id: 'total', header: 'Nbr total de candidature', wrapHeader: true, accessor: o => candidatures(o).total, width: '7rem' },
   { id: 'nouvelles', header: 'Nouvelle candidature', wrapHeader: true, accessor: o => candidatures(o).nouvelles, cellComponent: NouvellesCell, width: '6rem' },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsRecrutementCell },
 ]
@@ -235,6 +235,19 @@ function confirmerRetrait() {
 
 .recherche {
   min-width: 20rem;
+}
+
+// Une seule ligne par recrutement : intitulé tronqué (complet au survol), cellules sans retour à la ligne.
+:deep(.titre-cell) {
+  display: block;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:deep(td) {
+  white-space: nowrap;
 }
 
 .texte {

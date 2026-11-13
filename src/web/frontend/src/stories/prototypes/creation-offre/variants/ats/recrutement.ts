@@ -3,7 +3,7 @@
 
 import type { Offre } from './store'
 import { ref } from 'vue'
-import { joursRestants } from './store'
+import { dateTri, joursRestants } from './store'
 
 export function candidatures(o: Offre): { total: number, nouvelles: number } {
   const n = [...o.id].reduce((s, c) => s + c.charCodeAt(0), 0)
@@ -21,3 +21,15 @@ export function ilYa(date: string): string {
 /** Demandes ouvertes depuis le menu « … » d'une ligne, traitées par la page (boîtes de dialogue). */
 export const aProlonger = ref<Offre | null>(null)
 export const aRetirer = ref<Offre | null>(null)
+
+/** « Dernière activité » en relatif, comme dans l'outil : « Aujourd'hui », « Hier », « Il y a 3 jours ». */
+export function activite(modifieLe: string): string {
+  const t = dateTri(modifieLe)
+  if (t.startsWith('9-')) {
+    return 'Aujourd\'hui'
+  }
+  if (t.startsWith('8-')) {
+    return 'Hier'
+  }
+  return /^\d{4}-\d{2}-\d{2}$/.test(t) ? ilYa(t) : modifieLe
+}

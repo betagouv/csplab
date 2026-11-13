@@ -9,7 +9,10 @@ const { notifier } = useNav()
 </script>
 
 <template>
-  <span v-if="row.responsables?.length">{{ row.responsables.join(' ; ') }}</span>
+  <span
+    v-if="row.responsables?.length"
+    class="noms"
+  >{{ row.responsables.join(' ; ') }}</span>
   <CspButton
     v-else
     label="Assigner un responsable"
@@ -18,3 +21,9 @@ const { notifier } = useNav()
     @click.stop="notifier('Simulation : assignation d\'un responsable non prototypée.')"
   />
 </template>
+
+<style scoped lang="scss">
+.noms {
+  white-space: normal;
+}
+</style>
