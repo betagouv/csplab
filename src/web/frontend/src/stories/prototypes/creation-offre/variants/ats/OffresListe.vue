@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type { Ecran } from './nav'
 import type { Offre } from './store'
-import { computed, nextTick, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
+import CspTag from '@/components/base/CspTag/CspTag.vue'
+import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { manquesPublication } from './aide'
 import { useNav } from './nav'
@@ -11,7 +14,8 @@ import PageAts from './PageAts.vue'
 import { aValiderParMoi, db, fiche, joursRestants } from './store'
 import { statutListe } from './suivi'
 
-// « Mes offres d'emploi » : uniquement les offres qui ne sont pas encore publiées, rangées par ce qu'il y a à faire.
+// « Mes offres d'emploi » : uniquement les offres qui ne sont pas encore publiées, en cartes (même modèle que
+// « Mes offres sauvegardées » côté candidat), filtrées par puces selon ce qu'il y a à faire.
 // Volontairement différent du tableau « Mes recrutements » : une offre publiée devient un recrutement et quitte cette page.
 const props = defineProps<{ filtre?: string }>()
 const { aller } = useNav()
@@ -27,6 +31,7 @@ interface Groupe {
   /** Bouton de la ligne ; absent quand il n'y a rien à faire (on attend). */
   action?: (o: Offre) => { label: string, ecran: Ecran, principal?: boolean }
   detail: (o: Offre) => string
+  icone: string
 }
 
 const offre = (o: Offre): Ecran => ({ nom: 'offre', id: o.id })
@@ -44,6 +49,7 @@ const groupes = computed<Groupe[]>(() => {
   return [
     {
       id: 'a_valider',
+      icone: 'ri:checkbox-circle-line',
       titre: 'À valider par vous',
       aide: 'On vous demande votre avis avant publication.',
       offres: moi,
@@ -52,6 +58,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'validation_refusee',
+      icone: 'ri:error-warning-line',
       titre: 'À corriger',
       aide: 'La validation a été refusée : corrigez puis redemandez-la.',
       offres: autres.filter(o => statutListe(o) === 'validation_refusee'),
@@ -63,6 +70,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'prete',
+      icone: 'ri:send-plane-line',
       titre: 'Prêtes à publier',
       aide: 'Complètes et validées : il ne reste qu\'à publier. La publication ouvre le recrutement.',
       offres: autres.filter(o => statutListe(o) === 'prete'),
@@ -71,7 +79,8 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'brouillon',
-      titre: 'En cours de rédaction',
+      icone: 'ri:edit-line',
+      titre: 'En rédaction',
       aide: 'Brouillons à terminer.',
       offres: autres.filter(o => statutListe(o) === 'brouillon'),
       action: o => ({ label: 'Reprendre', ecran: offre(o) }),
@@ -82,6 +91,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'en_attente',
+      icone: 'ri:time-line',
       titre: 'En attente de validation',
       aide: 'Rien à faire pour l\'instant : vous serez prévenu·e des réponses.',
       offres: autres.filter(o => statutListe(o) === 'validation_attente'),
@@ -92,18 +102,21 @@ const groupes = computed<Groupe[]>(() => {
 const visibles = computed(() => groupes.value.filter(g => g.offres.length))
 const total = computed(() => trouvees.value.length)
 
-// Relais vers les recrutements : les offres publiées ces 30 derniers jours.
-const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publiee' && o.dateDebut && joursRestants(o.dateDebut) >= -30))
-
-// Accès direct depuis le tableau de bord : on descend jusqu'au groupe demandé.
-const ANCRES: Record<string, string> = { a_publier: 'prete', en_attente: 'en_attente', brouillon: 'brouillon', validation_refusee: 'validation_refusee' }
-onMounted(async () => {
-  const id = props.filtre && ANCRES[props.filtre]
-  if (id) {
-    await nextTick()
-    document.getElementById(`groupe-${id}`)?.scrollIntoView({ block: 'start' })
+// Puces : « Toutes » puis un filtre par chose à faire. « Toutes » garde l'ordre d'urgence (l'attente en dernier).
+const DEPUIS_ACCUEIL: Record<string, string> = { a_publier: 'prete', en_attente: 'en_attente', brouillon: 'brouillon', validation_refusee: 'validation_refusee' }
+const puce = ref<string | undefined>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'toutes')
+// Recliquer la puce active la désélectionne : on revient à « Toutes ».
+watch(puce, (v) => {
+  if (!v) {
+    puce.value = 'toutes'
   }
 })
+const cartes = computed(() => visibles.value
+  .filter(g => !puce.value || puce.value === 'toutes' || g.id === puce.value)
+  .flatMap(g => g.offres.map(o => ({ o, g }))))
+
+// Relais vers les recrutements : les offres publiées ces 30 derniers jours.
+const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publiee' && o.dateDebut && joursRestants(o.dateDebut) >= -30))
 </script>
 
 <template>
@@ -137,63 +150,80 @@ onMounted(async () => {
       />
     </div>
 
+    <CspTagGroup
+      v-model="puce"
+      type="single"
+      size="sm"
+      aria-label="Filtrer les offres"
+    >
+      <CspTag
+        variant="selectable"
+        value="toutes"
+        :label="`Toutes (${total})`"
+      />
+      <CspTag
+        v-for="g in visibles"
+        :key="g.id"
+        variant="selectable"
+        :value="g.id"
+        :label="`${g.titre} (${g.offres.length})`"
+      />
+    </CspTagGroup>
+
     <p
-      v-if="!visibles.length"
+      v-if="!cartes.length"
       class="vide"
     >
       {{ search ? 'Aucune offre ne correspond à votre recherche.' : 'Aucune offre en préparation.' }}
     </p>
 
-    <section
-      v-for="g in visibles"
-      :id="`groupe-${g.id}`"
-      :key="g.id"
-      class="groupe"
-      :class="`groupe--${g.id}`"
-      :aria-labelledby="`titre-${g.id}`"
+    <ul
+      v-else
+      class="cartes"
     >
-      <header class="groupe__tete">
-        <h2
-          :id="`titre-${g.id}`"
-          class="groupe__titre"
-        >
-          {{ g.titre }} <span class="groupe__nb">{{ g.offres.length }}</span>
-        </h2>
-        <p class="groupe__aide">
-          {{ g.aide }}
-        </p>
-      </header>
-      <ul class="lignes">
-        <li
-          v-for="o in g.offres"
-          :key="o.id"
-          class="ligne"
-        >
-          <div class="ligne__texte">
+      <li
+        v-for="{ o, g } in cartes"
+        :key="o.id"
+        class="carte"
+        :class="`carte--${g.id}`"
+      >
+        <div class="carte__texte">
+          <h2 class="carte__titre">
             <button
               type="button"
-              class="ligne__titre"
+              class="carte__lien"
               @click="aller({ nom: 'offre', id: o.id })"
             >
               {{ o.titre || 'Sans titre' }}
             </button>
-            <p class="ligne__meta">
-              {{ o.id }} · {{ o.ficheId ? `fiche ${o.ficheId}` : 'sans fiche de poste' }} · modifiée {{ o.modifieLe.toLowerCase() }}
-            </p>
-            <p class="ligne__detail">
-              {{ g.detail(o) }}
-            </p>
-          </div>
-          <CspButton
-            v-if="g.action"
-            :label="g.action(o).label"
-            size="sm"
-            :variant="g.action(o).principal ? 'primary' : 'secondary'"
-            @click="aller(g.action(o).ecran)"
-          />
-        </li>
-      </ul>
-    </section>
+          </h2>
+          <p class="carte__sous">
+            {{ o.id }} · {{ o.ficheId ? `Fiche ${o.ficheId}` : 'Sans fiche de poste' }}
+          </p>
+          <p class="carte__etat">
+            <CspIcon
+              :name="g.icone"
+              :size="14"
+            />
+            <span><strong>{{ g.titre }}</strong> · {{ g.detail(o) }}</span>
+          </p>
+        </div>
+        <CspButton
+          v-if="g.action"
+          class="carte__action"
+          :label="g.action(o).label"
+          size="sm"
+          :variant="g.action(o).principal ? 'primary' : 'secondary'"
+          @click="aller(g.action(o).ecran)"
+        />
+        <CspIcon
+          v-else
+          class="carte__chevron"
+          name="ri:arrow-right-s-line"
+          :size="24"
+        />
+      </li>
+    </ul>
 
     <aside
       v-if="!search"
@@ -243,79 +273,46 @@ onMounted(async () => {
   color: var(--text-mention-grey);
 }
 
-.groupe {
+.cartes {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-3);
-  scroll-margin-top: var(--csp-space-4);
-}
-
-.groupe__titre {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-2);
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.3;
-}
-
-.groupe__nb {
-  display: inline-flex;
-  justify-content: center;
-  min-width: 1.75rem;
-  padding: 0 var(--csp-space-2);
-  border-radius: 1rem;
-  background: var(--background-contrast-grey);
-  font-size: var(--csp-font-size-sm);
-}
-
-.groupe__aide {
-  margin: var(--csp-space-1) 0 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
-
-.lignes {
+  gap: var(--csp-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--border-default-grey);
-  border-left: 4px solid var(--border-default-grey);
-  background: var(--background-default-grey);
-
-  .groupe--a_valider & {
-    border-left-color: var(--border-plain-blue-france);
-  }
-
-  .groupe--validation_refusee & {
-    border-left-color: var(--border-plain-error);
-  }
-
-  .groupe--prete & {
-    border-left-color: var(--border-plain-success);
-  }
 }
 
-.ligne {
+.carte {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--csp-space-4);
-  padding: var(--csp-space-4) var(--csp-space-5);
+  padding: var(--csp-space-5);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 4px;
+  background: var(--background-default-grey);
 
-  & + & {
-    border-top: 1px solid var(--border-default-grey);
+  &:hover {
+    background: var(--background-default-grey-hover);
   }
 }
 
-.ligne__texte {
+.carte__texte {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--csp-space-1);
   min-width: 0;
 }
 
-.ligne__titre {
+.carte__titre {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+// Toute la carte est cliquable (lien étendu) ; le bouton d'action reste au-dessus.
+.carte__lien {
   padding: 0;
   border: 0;
   background: none;
@@ -325,19 +322,65 @@ onMounted(async () => {
   text-align: left;
   cursor: pointer;
 
-  &:hover {
-    text-decoration: underline;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      outline: 2px solid var(--csp-focus-ring-color, #0a76f6);
+      outline-offset: 2px;
+    }
   }
 }
 
-.ligne__meta,
-.ligne__detail {
+.carte__sous {
   margin: 0;
-  font-size: var(--csp-font-size-sm);
 }
 
-.ligne__meta {
+.carte__etat {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--csp-space-1);
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
+
+  :deep(svg) {
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  strong {
+    font-weight: 500;
+  }
+
+  .carte--validation_refusee & strong {
+    color: var(--text-default-error);
+  }
+
+  .carte--prete & strong {
+    color: var(--text-default-success);
+  }
+
+  .carte--a_valider & strong {
+    color: var(--text-action-high-blue-france);
+  }
+}
+
+.carte__action {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.carte__chevron {
+  flex-shrink: 0;
+  color: var(--text-action-high-blue-france);
 }
 
 .relais {

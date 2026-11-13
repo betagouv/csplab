@@ -771,3 +771,11 @@ la liste des offres trop proche visuellement de celle des recrutements, ce qui b
 - Données : trois recrutements en cours de plus, responsables renseignés ; candidatures fictives.
 
 Question ouverte : garder ou non le relais « Offres publiées » sur la page des offres (pas d'avis tranché).
+
+## Itération 26 — « Mes offres » en cartes, comme côté candidat
+
+Même modèle que « Mes offres sauvegardées » (candidat) : puces de filtre avec compteurs (Toutes, À valider par vous,
+À corriger, Prêtes à publier, En rédaction, En attente de validation — seules les non vides), puis une carte par offre :
+intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton d'action (S) ou un chevron s'il n'y a rien
+à faire ; toute la carte est cliquable. « Toutes » garde l'ordre d'urgence. Pas de fond gris pour l'attente
+(le gris signifie « désactivée » côté candidat).
