@@ -173,26 +173,6 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
               {{ o.commentaireValideurs ? 'Modifier le commentaire pour les valideurs' : 'Ajouter un commentaire pour les valideurs' }}
             </button>
           </Panel>
-
-          <div class="recap__actions">
-            <DemandeValidation
-              v-if="avecValidation"
-              :offre="o"
-              variant="primary"
-              @demandee="aller({ nom: 'offre', id: o.id })"
-            />
-            <CspButton
-              v-else-if="pretePublier"
-              label="Publier"
-              icon="ri:arrow-right-line"
-              @click="aller({ nom: 'apercu', id: o.id, publier: true })"
-            />
-            <CspButton
-              label="Enregistrer le brouillon"
-              variant="secondary"
-              @click="aller({ nom: 'offre', id: o.id })"
-            />
-          </div>
         </aside>
       </div>
 
@@ -212,6 +192,25 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
           icon="ri:arrow-right-line"
           @click="allerEtape(etape + 1)"
         />
+        <template v-else>
+          <CspButton
+            label="Enregistrer le brouillon"
+            variant="secondary"
+            @click="aller({ nom: 'offre', id: o.id })"
+          />
+          <DemandeValidation
+            v-if="avecValidation"
+            :offre="o"
+            variant="primary"
+            @demandee="aller({ nom: 'offre', id: o.id })"
+          />
+          <CspButton
+            v-else-if="pretePublier"
+            label="Publier"
+            icon="ri:arrow-right-line"
+            @click="aller({ nom: 'apercu', id: o.id, publier: true })"
+          />
+        </template>
       </div>
     </div>
   </PageAts>
@@ -244,8 +243,8 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
   min-width: 0;
 }
 
-// Le panneau suit le défilement de l'annonce ; s'il est plus haut que l'écran, il défile de son côté
-// et ses boutons restent visibles en bas.
+// Le panneau suit le défilement de l'annonce ; s'il est plus haut que l'écran, il défile de son côté.
+// Les boutons d'envoi sont sur la ligne de « Précédent », ferrés à droite.
 .recap__panneau {
   position: sticky;
   top: var(--csp-space-4);
@@ -254,22 +253,6 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
   gap: var(--csp-space-4);
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
-}
-
-.recap__actions {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-2);
-  padding: var(--csp-space-3) 0 var(--csp-space-1);
-  background: var(--background-default-grey);
-  box-shadow: 0 -8px 8px -8px rgb(0 0 0 / 12%);
-
-  :deep(.csp-btn) {
-    justify-content: center;
-    width: 100%;
-  }
 }
 
 .lien--seul {
