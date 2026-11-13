@@ -26,6 +26,11 @@ defineProps<{ path?: string, cols?: 1 | 2 | 3 }>()
   }
 }
 
+// Les champs de l'annonce (ChampOffre) ont 4 px de moins entre libellé et champ que les champs du design system.
+.field-row:is(.field-row--cols-2, .field-row--cols-3) :deep(.champ__tete:not(:has(+ .champ__hint))) {
+  padding-bottom: 0.25rem;
+}
+
 // Sur une même ligne, un champ avec texte d'aide (« Facultatif ») et un champ sans : on réserve la place de l'aide
 // sous les libellés qui n'en ont pas, pour que les champs restent alignés.
 .field-row:is(.field-row--cols-2, .field-row--cols-3):has(

@@ -10,7 +10,6 @@ import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import ChampOffre from './ChampOffre.vue'
-import ChampSimple from './ChampSimple.vue'
 import { db, MOTIFS_DEPART, MOTIFS_RECRUTEMENT } from './store'
 
 // Section « Informations internes » (retour PO) : séparée de l'annonce pour qu'on voie d'un coup d'œil
@@ -69,32 +68,27 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
       <CspInput
         v-model="o.referenceInterne"
         label="Référence interne"
-        hint="Facultatif"
       />
       <CspInput
         v-model="o.referenceFranceTravail"
         label="Référence France Travail"
-        hint="Facultatif"
       />
     </FieldRow>
     <FieldRow :cols="2">
       <CspInput
         v-model="o.codePoste"
         label="Code poste"
-        hint="Facultatif"
       />
     </FieldRow>
     <FieldRow :cols="2">
       <CspSelect
         v-model="motif"
         label="Motif de recrutement"
-        hint="Facultatif"
         :options="optsInternes(MOTIFS_RECRUTEMENT)"
       />
       <CspSelect
         v-model="depart"
         label="Motif de départ"
-        hint="Facultatif"
         :options="optsInternes(MOTIFS_DEPART)"
       />
     </FieldRow>
@@ -102,20 +96,17 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
       v-if="avecAgent"
       v-model="o.agentRemplace"
       label="Agent remplacé ou renouvelé"
-      hint="Facultatif"
     />
     <FieldRow :cols="2">
       <CspSelect
         v-model="rifseep"
         label="Groupe RIFSEEP"
-        hint="Facultatif"
         :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
       />
       <ChampOffre
         :offre="o"
         champ="cycleTravail"
         label="Cycle de travail"
-        hint="Facultatif"
         for-id="a-cycle"
       >
         <CspInput
@@ -204,24 +195,19 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
       <CspDrawer
         v-model:open="tiroir"
         title="Commentaire pour les valideurs"
-        description="Facultatif. Visible des valideurs choisis, jamais publié."
+        description="Visible des valideurs choisis, jamais publié."
         size="md"
       >
         <div class="tiroir">
-          <ChampSimple
+          <CspTextarea
+            v-model="brouillon.texte"
             label="Commentaire"
-            hint="Contexte utile pour décider, par ex. « Remplacement à l'identique, poste budgété »."
-          >
-            <CspTextarea
-              v-model="brouillon.texte"
-              label="Commentaire"
-              :rows="5"
-            />
-          </ChampSimple>
+            placeholder="Ex. : Remplacement à l'identique, poste budgété."
+            :rows="5"
+          />
           <div>
             <p class="validation__label">
               Document
-              <span class="validation__hint">Facultatif</span>
             </p>
             <p
               v-if="brouillon.document"

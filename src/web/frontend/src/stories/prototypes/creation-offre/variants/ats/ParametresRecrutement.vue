@@ -37,15 +37,16 @@ const FREQ = [
 
 <template>
   <div class="parametres">
-    <CspSelect
-      v-model="responsable"
-      label="Responsable du recrutement"
-      hint="Reçoit les candidatures et suit le recrutement."
-      :options="OPTIONS_RESPONSABLE"
-    />
+    <ChampSimple info="Reçoit les candidatures et suit le recrutement.">
+      <CspSelect
+        v-model="responsable"
+        label="Responsable du recrutement"
+        :options="OPTIONS_RESPONSABLE"
+      />
+    </ChampSimple>
     <ChampSimple
       label="Équipe de recrutement"
-      hint="Facultatif. Ces personnes pourront consulter et évaluer les candidatures."
+      info="Ces personnes pourront consulter et évaluer les candidatures."
     >
       <CspCheckboxGroup
         v-model="recruteurs"

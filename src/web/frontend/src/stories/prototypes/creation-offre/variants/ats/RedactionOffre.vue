@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import Panel from '../../shared/Panel.vue'
 import { manquesPublication } from './aide'
+import ApercuCandidat from './ApercuCandidat.vue'
 import DemandeValidation from './DemandeValidation.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
@@ -23,9 +24,9 @@ const f = computed(() => fiche(o.value.ficheId))
 
 const ETAPES = [
   { titre: 'Annonce', aide: 'Ce que liront les candidats sur Choisir le Service Public.' },
-  { titre: 'Informations internes', aide: 'Jamais publiées. Elles servent au suivi et au résumé pour les valideurs. Toutes facultatives.' },
+  { titre: 'Informations internes', aide: 'Jamais publiées. Elles servent au suivi et au résumé pour les valideurs.' },
   { titre: 'Formulaire de candidature', aide: 'Comment les candidats postulent et quelles pièces ils fournissent.' },
-  { titre: 'Récapitulatif', aide: 'Vérifiez ce qui manque, puis demandez la validation ou enregistrez votre brouillon.' },
+  { titre: 'Récapitulatif', aide: 'Relisez l\'annonce telle que les candidats la verront. À droite, ce qui manque et ce que verront les valideurs.' },
 ]
 const etape = ref(Math.min(Math.max(props.etape ?? 1, 1), ETAPES.length))
 const courante = computed(() => ETAPES[etape.value - 1]!)
@@ -65,7 +66,10 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
       />
     </template>
 
-    <div class="redaction">
+    <div
+      class="redaction"
+      :class="{ 'redaction--recap': etape === ETAPES.length }"
+    >
       <!-- Indicateur d'étapes (modèle DSFR) -->
       <div class="stepper">
         <h2 class="stepper__titre">
@@ -94,7 +98,10 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
         {{ courante.aide }}
       </p>
 
-      <div class="corps">
+      <div
+        v-if="etape < ETAPES.length"
+        class="corps"
+      >
         <FormAnnonce
           v-if="etape === 1"
           :offre="o"
@@ -105,16 +112,27 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
           :offre="o"
         />
         <FormCandidature
-          v-else-if="etape === 3"
+          v-else
           :offre="o"
         />
-        <div
-          v-else
-          class="recap"
-        >
+      </div>
+
+      <!-- Récapitulatif : l'annonce vue par les candidats à gauche, ce qui sert à décider à droite. -->
+      <div
+        v-else
+        class="recap"
+      >
+        <div class="recap__apercu">
+          <ApercuCandidat
+            :offre="o"
+            :organisme="db.organisme.nom"
+          />
+        </div>
+
+        <aside class="recap__panneau">
           <Panel
             :titre="manques.length ? 'À compléter avant de publier' : 'L\'annonce est complète'"
-            :description="manques.length ? 'Vous pouvez demander la validation dès maintenant : ces éléments peuvent être complétés pendant la validation.' : 'Les dates et la diffusion se choisiront au moment de publier.'"
+            :description="manques.length ? (avecValidation ? 'Vous pouvez demander la validation dès maintenant et compléter pendant la validation.' : undefined) : 'Les dates et la diffusion se choisiront au moment de publier.'"
           >
             <ul
               v-if="manques.length"
@@ -139,15 +157,43 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
           <Panel
             v-if="avecValidation"
             titre="Résumé pour la validation"
-            description="Ce que verront les valideurs, repris de l'annonce et des informations internes (dont votre commentaire). Jamais publié."
+            description="Ce que verront les valideurs. Jamais publié."
           >
             <ResumeValidation
               :offre="o"
               :fiche="f"
               integre
+              compact
             />
+            <button
+              type="button"
+              class="lien lien--seul"
+              @click="allerEtape(2)"
+            >
+              {{ o.commentaireValideurs ? 'Modifier le commentaire pour les valideurs' : 'Ajouter un commentaire pour les valideurs' }}
+            </button>
           </Panel>
-        </div>
+
+          <div class="recap__actions">
+            <DemandeValidation
+              v-if="avecValidation"
+              :offre="o"
+              variant="primary"
+              @demandee="aller({ nom: 'offre', id: o.id })"
+            />
+            <CspButton
+              v-else-if="pretePublier"
+              label="Publier"
+              icon="ri:arrow-right-line"
+              @click="aller({ nom: 'apercu', id: o.id, publier: true })"
+            />
+            <CspButton
+              label="Enregistrer le brouillon"
+              variant="secondary"
+              @click="aller({ nom: 'offre', id: o.id })"
+            />
+          </div>
+        </aside>
       </div>
 
       <div class="nav">
@@ -166,25 +212,6 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
           icon="ri:arrow-right-line"
           @click="allerEtape(etape + 1)"
         />
-        <template v-else>
-          <CspButton
-            label="Enregistrer le brouillon"
-            variant="secondary"
-            @click="aller({ nom: 'offre', id: o.id })"
-          />
-          <DemandeValidation
-            v-if="avecValidation"
-            :offre="o"
-            variant="primary"
-            @demandee="aller({ nom: 'offre', id: o.id })"
-          />
-          <CspButton
-            v-else-if="pretePublier"
-            label="Publier"
-            icon="ri:arrow-right-line"
-            @click="aller({ nom: 'apercu', id: o.id, publier: true })"
-          />
-        </template>
       </div>
     </div>
   </PageAts>
@@ -196,6 +223,58 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
   flex-direction: column;
   gap: var(--csp-space-6);
   max-width: 52rem;
+
+  &--recap {
+    max-width: 80rem;
+  }
+}
+
+.recap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: var(--csp-space-6);
+  align-items: start;
+
+  @media (max-width: 75rem) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.recap__apercu {
+  min-width: 0;
+}
+
+// Le panneau suit le défilement de l'annonce ; s'il est plus haut que l'écran, il défile de son côté
+// et ses boutons restent visibles en bas.
+.recap__panneau {
+  position: sticky;
+  top: var(--csp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-4);
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
+}
+
+.recap__actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  padding: var(--csp-space-3) 0 var(--csp-space-1);
+  background: var(--background-default-grey);
+  box-shadow: 0 -8px 8px -8px rgb(0 0 0 / 12%);
+
+  :deep(.csp-btn) {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+.lien--seul {
+  margin: var(--csp-space-3) 0 0;
+  font-size: var(--csp-font-size-sm);
 }
 
 .enregistre {
@@ -252,12 +331,6 @@ const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }
   padding: var(--csp-space-6) var(--csp-space-8);
   border: 1px solid var(--border-default-grey);
   background: var(--background-default-grey);
-}
-
-.recap {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-5);
 }
 
 .manques {

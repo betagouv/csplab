@@ -12,7 +12,7 @@ const props = defineProps<{
   offre: Offre
   champ: Champ
   label?: string
-  /** Texte d'aide gris sous le libellé (DSFR), par ex. « Facultatif ». */
+  /** Texte d'aide gris sous le libellé (DSFR), par ex. « Champ obligatoire ». */
   hint?: string
   forId?: string
   repris?: boolean

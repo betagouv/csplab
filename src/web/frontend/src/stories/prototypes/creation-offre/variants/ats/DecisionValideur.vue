@@ -6,6 +6,7 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import BlocValidation from './BlocValidation.vue'
+import ChampSimple from './ChampSimple.vue'
 import { useNav } from './nav'
 import ResumeValidation from './ResumeValidation.vue'
 import { le, repondre, sauvegarder, UTILISATEUR } from './store'
@@ -89,13 +90,18 @@ function envoyer() {
         label="Décision"
         :options="CHOIX"
       />
-      <CspTextarea
+      <ChampSimple
         v-if="commentaireRequis"
-        v-model="commentaire"
-        :label="choix === 'refus' ? 'Commentaire (obligatoire) : ce qui manque ou le motif du refus' : 'Commentaire (obligatoire)'"
-        hint="Visible de la personne qui rédige l'offre et des autres valideurs ; jamais publié."
-        :rows="3"
-      />
+        :label="choix === 'refus' ? 'Commentaire : ce qui manque ou le motif du refus' : 'Commentaire'"
+        hint="Champ obligatoire"
+        info="Visible de la personne qui rédige l'offre et des autres valideurs ; jamais publié."
+      >
+        <CspTextarea
+          v-model="commentaire"
+          label="Commentaire"
+          :rows="3"
+        />
+      </ChampSimple>
 
       <div v-if="commentaireRequis">
         <CspDropdownMenu

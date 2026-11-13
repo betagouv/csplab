@@ -8,6 +8,7 @@ import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import { CATEGORIES } from '../../data/referentiels'
 import FieldRow from '../../shared/FieldRow.vue'
 import Panel from '../../shared/Panel.vue'
+import ChampSimple from './ChampSimple.vue'
 import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
@@ -175,17 +176,14 @@ function creer() {
         <CspInput
           v-model="manuel.intitule"
           label="Intitulé de l'offre"
-          hint="Facultatif"
         />
         <CspInput
           v-model="manuel.localisation"
           label="Lieu"
-          hint="Facultatif"
         />
         <CspSelect
           v-model="categorieManuelle"
           label="Catégorie"
-          hint="Facultatif"
           :options="OPTIONS_CATEGORIE"
         />
       </FieldRow>
@@ -219,14 +217,15 @@ function creer() {
           <EtatBadge :etat="o.etat" />
         </label>
       </fieldset>
-      <CspSelect
-        v-if="offreSource"
-        :model-value="ficheDuplication ?? 'aucune'"
-        label="Fiche de poste"
-        hint="Facultatif. Par défaut celle de l'offre reprise, s'il y en a une."
-        :options="optionsFiches"
-        @update:model-value="v => (ficheDuplication = !v || v === 'aucune' ? null : v)"
-      />
+      <ChampSimple info="Par défaut celle de l'offre reprise, s'il y en a une.">
+        <CspSelect
+          v-if="offreSource"
+          :model-value="ficheDuplication ?? 'aucune'"
+          label="Fiche de poste"
+          :options="optionsFiches"
+          @update:model-value="v => (ficheDuplication = !v || v === 'aucune' ? null : v)"
+        />
+      </ChampSimple>
     </Panel>
 
     <div

@@ -16,7 +16,8 @@ import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEM
 // Section « Annonce » de la page de l'offre : ce que lit le candidat sur Choisir le Service Public (D311-8).
 // Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Les informations internes (jamais
 // publiées) sont dans leur propre section (FormInterne). Le résumé pour la validation est en haut de la page.
-// Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
+// Seuls les champs obligatoires portent une mention (« Champ obligatoire », aide grise DSFR) ; ils ne sont
+// contrôlés qu'au moment de publier. Les aides vont sous le champ (message d'information) ou en exemple dans le champ.
 const props = defineProps<{ offre: Offre, fiche?: Fiche }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
@@ -88,6 +89,9 @@ function formater() {
 
 <template>
   <div class="annonce">
+    <p class="note">
+      Les champs obligatoires ne sont contrôlés qu'au moment de publier : vous pouvez enregistrer une annonce incomplète.
+    </p>
     <div class="groupe">
       <FieldRow :cols="2">
         <CspInput
@@ -105,6 +109,7 @@ function formater() {
         :offre="o"
         champ="titre"
         label="Titre de l'offre"
+        hint="Champ obligatoire"
         for-id="a-titre"
         :repris="repris('titre')"
         :modifie="modifie('titre')"
@@ -126,12 +131,12 @@ function formater() {
           v-model="o.nbPostes"
           type="number"
           label="Nombre de postes"
-          hint="Facultatif"
         />
         <ChampOffre
           :offre="o"
           champ="lieu"
           label="Lieu"
+          hint="Champ obligatoire"
           for-id="a-lieu"
           :repris="repris('lieu')"
         >
@@ -151,6 +156,7 @@ function formater() {
         <CspSelect
           v-model="categorie"
           label="Catégorie"
+          hint="Champ obligatoire"
           :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
         />
       </FieldRow>
@@ -161,12 +167,12 @@ function formater() {
         <CspSelect
           v-model="fondement"
           label="Fondement juridique"
+          hint="Champ obligatoire"
           :options="opts(FONDEMENTS, 'Choisir')"
         />
         <CspSelect
           v-model="natureContrat"
           label="Nature du contrat"
-          hint="Facultatif"
           :options="opts(CONTRATS, 'Non renseigné')"
         />
       </FieldRow>
@@ -174,11 +180,13 @@ function formater() {
         <CspSelect
           v-model="statutPoste"
           label="Statut du poste"
+          hint="Champ obligatoire"
           :options="opts(STATUTS_POSTE, 'Choisir')"
         />
         <CspInput
           v-model="o.dateVacance"
           label="Date de vacance"
+          hint="Champ obligatoire"
           placeholder="AAAA-MM-JJ"
         />
       </FieldRow>
@@ -186,31 +194,28 @@ function formater() {
         <CspInput
           v-model="o.corps"
           label="Corps"
-          hint="Facultatif"
           placeholder="Ex. : attachés d'administration de l'État"
         />
         <CspInput
           v-model="o.grade"
           label="Grade"
-          hint="Facultatif"
         />
       </FieldRow>
       <FieldRow :cols="3">
         <CspSelect
           v-model="temps"
           label="Temps de travail"
+          hint="Champ obligatoire"
           :options="OPTIONS_TEMPS"
         />
         <CspInput
           v-model="o.teletravail"
           label="Télétravail"
-          hint="Facultatif"
           placeholder="Ex. : 2 jours par semaine"
         />
         <CspSelect
           v-model="management"
           label="Management"
-          hint="Facultatif"
           :options="opts(MANAGEMENT, 'Non renseigné')"
         />
       </FieldRow>
@@ -219,7 +224,6 @@ function formater() {
           :offre="o"
           champ="remuneration"
           label="Rémunération des fonctionnaires"
-          hint="Facultatif"
           for-id="a-remu"
         >
           <CspInput
@@ -232,7 +236,6 @@ function formater() {
           v-if="contractuels"
           v-model="o.remunerationContractuels"
           label="Rémunération des contractuels"
-          hint="Facultatif"
           placeholder="Ex. : 2 600 à 3 200 € brut mensuel"
         />
       </FieldRow>
@@ -240,7 +243,6 @@ function formater() {
         :offre="o"
         champ="conditions"
         label="Conditions particulières d'exercice"
-        hint="Facultatif"
         for-id="a-conditions"
       >
         <CspTextarea
@@ -257,7 +259,6 @@ function formater() {
       </h3>
       <ChampSimple
         label="Description de l'employeur"
-        hint="Facultatif"
       >
         <CspTextarea
           v-model="o.descriptifEmployeur"
@@ -269,7 +270,6 @@ function formater() {
         :offre="o"
         champ="presentation"
         label="Descriptif du service"
-        hint="Facultatif"
         for-id="a-presentation"
         :repris="repris('presentation')"
         :modifie="modifie('presentation')"
@@ -291,6 +291,7 @@ function formater() {
         :offre="o"
         champ="missions"
         label="Missions"
+        hint="Champ obligatoire"
         for-id="a-missions"
         :repris="repris('missions')"
         :modifie="modifie('missions')"
@@ -326,6 +327,7 @@ function formater() {
           :offre="o"
           champ="metier"
           label="Métier (référentiel RMFP+)"
+          hint="Champ obligatoire"
           for-id="a-metier"
         >
           <CspSelect
@@ -340,7 +342,6 @@ function formater() {
           :offre="o"
           champ="competences"
           label="Compétences du métier"
-          hint="Facultatif"
         >
           <CspCheckboxGroup
             v-if="optionsCompetences.length"
@@ -361,6 +362,7 @@ function formater() {
         :offre="o"
         champ="profil"
         label="Expérience et diplômes attendus"
+        hint="Champ obligatoire"
         for-id="a-profil"
         :repris="repris('profil')"
         :modifie="modifie('profil')"
@@ -376,19 +378,16 @@ function formater() {
         <CspSelect
           v-model="experience"
           label="Niveau d'expérience"
-          hint="Facultatif"
           :options="opts(EXPERIENCES, 'Non renseigné')"
         />
         <CspSelect
           v-model="etudes"
           label="Niveau d'études"
-          hint="Facultatif"
           :options="opts(ETUDES, 'Non renseigné')"
         />
         <CspInput
           v-model="o.langues"
           label="Langues"
-          hint="Facultatif"
           placeholder="Ex. : anglais, niveau B2"
         />
       </FieldRow>
@@ -400,7 +399,6 @@ function formater() {
       </h3>
       <ChampSimple
         label="Informations complémentaires"
-        hint="Facultatif"
       >
         <CspTextarea
           v-model="o.infosComplementaires"
@@ -454,6 +452,12 @@ function formater() {
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
 }
 
 .metier {

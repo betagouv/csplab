@@ -48,12 +48,14 @@ const EXIGENCES = [
       v-if="o.modeCandidature === 'courriel'"
       v-model="o.courrielCandidature"
       label="Adresse de réception des candidatures"
+      hint="Champ obligatoire"
       placeholder="recrutement@exemple.gouv.fr"
     />
     <CspInput
       v-if="o.modeCandidature === 'externe'"
       v-model="o.urlCandidature"
       label="Lien du bouton « Postuler »"
+      hint="Champ obligatoire"
       placeholder="https://"
     />
   </div>
@@ -93,7 +95,7 @@ const EXIGENCES = [
       Questions aux candidats
     </h3>
     <p class="groupe__desc">
-      {{ o.modeCandidature === 'ats' ? 'Facultatif. Réponse en texte libre, au moment de la candidature.' : 'Disponible seulement si la candidature se fait dans l\'ATS.' }}
+      {{ o.modeCandidature === 'ats' ? 'Réponse en texte libre, au moment de la candidature.' : 'Disponible seulement si la candidature se fait dans l\'ATS.' }}
     </p>
     <ListEditor
       v-model="o.questions"

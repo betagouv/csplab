@@ -799,3 +799,16 @@ intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton
   bouton « Ajouter un commentaire » qui ouvre un tiroir : commentaire, document (facultatif), destinataire
   (tous les services ou un seul). Une fois enregistré, le commentaire s'affiche avec « Modifier » et « Supprimer ». Saisis une seule fois ici ; le résumé pour la
   validation les reprend en lecture.
+
+## Itération 28 — Champs au format DSFR, récapitulatif en deux colonnes
+
+- **Mentions de champ** : presque tout est facultatif, donc seuls les champs obligatoires sont marqués,
+  par « Champ obligatoire » en aide grise sous le libellé (structure DSFR : libellé, aide, champ, message
+  d'information). Une note en tête de l'annonce rappelle qu'ils ne sont contrôlés qu'à la publication.
+  Les aides qui ne sont pas des exemples passent sous le champ en message d'information (icône bleue) ;
+  les exemples vont dans le champ (texte indicatif). Les champs côte à côte restent alignés.
+- **Récapitulatif** (étape 4) : l'annonce telle que les candidats la verront à gauche ; à droite, un panneau qui
+  suit le défilement : ce qui manque (liens « Compléter »), résumé pour la validation, lien vers le commentaire
+  pour les valideurs, puis « Demander la validation » et « Enregistrer le brouillon », toujours visibles.
+- À signaler (Lucas) : CspTextarea, CspCheckboxGroup et CspRadioGroup n'ont ni aide ni message d'information ;
+  le proto passe par un petit composant (ChampSimple) sans toucher au design system.
