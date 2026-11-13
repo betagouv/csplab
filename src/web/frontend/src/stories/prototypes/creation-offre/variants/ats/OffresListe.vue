@@ -229,7 +229,7 @@ const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publi
     </ul>
 
     <aside
-      v-if="!search"
+      v-if="!search && puce === 'toutes'"
       class="relais"
     >
       <div>
