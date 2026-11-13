@@ -168,21 +168,24 @@ function creer() {
 
     <Panel
       v-else-if="mode === 'manuel'"
-      titre="Pour démarrer (facultatif)"
-      description="Vous compléterez tout le reste sur la page de l'offre. Aucune fiche de poste n'est créée."
+      titre="Pour démarrer"
+      description="Vous compléterez tout le reste dans les étapes suivantes. Aucune fiche de poste n'est créée."
     >
       <FieldRow :cols="3">
         <CspInput
           v-model="manuel.intitule"
           label="Intitulé de l'offre"
+          hint="Facultatif"
         />
         <CspInput
           v-model="manuel.localisation"
           label="Lieu"
+          hint="Facultatif"
         />
         <CspSelect
           v-model="categorieManuelle"
           label="Catégorie"
+          hint="Facultatif"
           :options="OPTIONS_CATEGORIE"
         />
       </FieldRow>
@@ -219,8 +222,8 @@ function creer() {
       <CspSelect
         v-if="offreSource"
         :model-value="ficheDuplication ?? 'aucune'"
-        label="Fiche de poste (facultatif)"
-        hint="Par défaut celle de l'offre reprise, s'il y en a une."
+        label="Fiche de poste"
+        hint="Facultatif. Par défaut celle de l'offre reprise, s'il y en a une."
         :options="optionsFiches"
         @update:model-value="v => (ficheDuplication = !v || v === 'aucune' ? null : v)"
       />

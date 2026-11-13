@@ -9,6 +9,7 @@ import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
+import ChampSimple from './ChampSimple.vue'
 import { useNav } from './nav'
 import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL, VERSANTS } from './store'
 
@@ -124,7 +125,8 @@ function formater() {
         <CspInput
           v-model="o.nbPostes"
           type="number"
-          label="Nombre de postes (facultatif)"
+          label="Nombre de postes"
+          hint="Facultatif"
         />
         <ChampOffre
           :offre="o"
@@ -163,7 +165,8 @@ function formater() {
         />
         <CspSelect
           v-model="natureContrat"
-          label="Nature du contrat (facultatif)"
+          label="Nature du contrat"
+          hint="Facultatif"
           :options="opts(CONTRATS, 'Non renseigné')"
         />
       </FieldRow>
@@ -182,12 +185,14 @@ function formater() {
       <FieldRow :cols="2">
         <CspInput
           v-model="o.corps"
-          label="Corps (facultatif)"
+          label="Corps"
+          hint="Facultatif"
           placeholder="Ex. : attachés d'administration de l'État"
         />
         <CspInput
           v-model="o.grade"
-          label="Grade (facultatif)"
+          label="Grade"
+          hint="Facultatif"
         />
       </FieldRow>
       <FieldRow :cols="3">
@@ -198,12 +203,14 @@ function formater() {
         />
         <CspInput
           v-model="o.teletravail"
-          label="Télétravail (facultatif)"
+          label="Télétravail"
+          hint="Facultatif"
           placeholder="Ex. : 2 jours par semaine"
         />
         <CspSelect
           v-model="management"
-          label="Management (facultatif)"
+          label="Management"
+          hint="Facultatif"
           :options="opts(MANAGEMENT, 'Non renseigné')"
         />
       </FieldRow>
@@ -211,7 +218,8 @@ function formater() {
         <ChampOffre
           :offre="o"
           champ="remuneration"
-          label="Rémunération des fonctionnaires (facultatif)"
+          label="Rémunération des fonctionnaires"
+          hint="Facultatif"
           for-id="a-remu"
         >
           <CspInput
@@ -223,14 +231,16 @@ function formater() {
         <CspInput
           v-if="contractuels"
           v-model="o.remunerationContractuels"
-          label="Rémunération des contractuels (facultatif)"
+          label="Rémunération des contractuels"
+          hint="Facultatif"
           placeholder="Ex. : 2 600 à 3 200 € brut mensuel"
         />
       </FieldRow>
       <ChampOffre
         :offre="o"
         champ="conditions"
-        label="Conditions particulières d'exercice (facultatif)"
+        label="Conditions particulières d'exercice"
+        hint="Facultatif"
         for-id="a-conditions"
       >
         <CspTextarea
@@ -245,15 +255,21 @@ function formater() {
       <h3 class="groupe__titre">
         L'organisme
       </h3>
-      <CspTextarea
-        v-model="o.descriptifEmployeur"
-        label="Description de l'employeur (facultatif)"
-        :rows="2"
-      />
+      <ChampSimple
+        label="Description de l'employeur"
+        hint="Facultatif"
+      >
+        <CspTextarea
+          v-model="o.descriptifEmployeur"
+          label="Description de l'employeur"
+          :rows="2"
+        />
+      </ChampSimple>
       <ChampOffre
         :offre="o"
         champ="presentation"
-        label="Descriptif du service (facultatif)"
+        label="Descriptif du service"
+        hint="Facultatif"
         for-id="a-presentation"
         :repris="repris('presentation')"
         :modifie="modifie('presentation')"
@@ -323,7 +339,8 @@ function formater() {
         <ChampOffre
           :offre="o"
           champ="competences"
-          label="Compétences du métier (facultatif)"
+          label="Compétences du métier"
+          hint="Facultatif"
         >
           <CspCheckboxGroup
             v-if="optionsCompetences.length"
@@ -358,17 +375,20 @@ function formater() {
       <FieldRow :cols="3">
         <CspSelect
           v-model="experience"
-          label="Niveau d'expérience (facultatif)"
+          label="Niveau d'expérience"
+          hint="Facultatif"
           :options="opts(EXPERIENCES, 'Non renseigné')"
         />
         <CspSelect
           v-model="etudes"
-          label="Niveau d'études (facultatif)"
+          label="Niveau d'études"
+          hint="Facultatif"
           :options="opts(ETUDES, 'Non renseigné')"
         />
         <CspInput
           v-model="o.langues"
-          label="Langues (facultatif)"
+          label="Langues"
+          hint="Facultatif"
           placeholder="Ex. : anglais, niveau B2"
         />
       </FieldRow>
@@ -378,12 +398,17 @@ function formater() {
       <h3 class="groupe__titre">
         Informations complémentaires
       </h3>
-      <CspTextarea
-        v-model="o.infosComplementaires"
-        label="Informations complémentaires (facultatif)"
-        hint="Ex. : accessibilité du poste aux personnes en situation de handicap, avantages sociaux."
-        :rows="2"
-      />
+      <ChampSimple
+        label="Informations complémentaires"
+        hint="Facultatif"
+      >
+        <CspTextarea
+          v-model="o.infosComplementaires"
+          label="Informations complémentaires"
+          placeholder="Ex. : accessibilité du poste aux personnes en situation de handicap, avantages sociaux."
+          :rows="2"
+        />
+      </ChampSimple>
     </div>
   </div>
 </template>

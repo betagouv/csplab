@@ -12,6 +12,8 @@ const props = defineProps<{
   offre: Offre
   champ: Champ
   label?: string
+  /** Texte d'aide gris sous le libellé (DSFR), par ex. « Facultatif ». */
+  hint?: string
   forId?: string
   repris?: boolean
   modifie?: boolean
@@ -77,6 +79,12 @@ const ouvert = ref(false)
         Reprendre le texte de la fiche
       </button>
     </div>
+    <p
+      v-if="label && hint"
+      class="champ__hint"
+    >
+      {{ hint }}
+    </p>
     <div
       v-if="ouvert"
       class="champ__exemple"
@@ -136,6 +144,12 @@ const ouvert = ref(false)
   justify-content: space-between;
   align-items: center;
   gap: var(--csp-space-3);
+}
+
+.champ__hint {
+  margin: var(--csp-space-1) 0 0;
+  font-size: 0.75rem;
+  color: var(--text-mention-grey);
 }
 
 .champ__label {

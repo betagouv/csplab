@@ -10,6 +10,7 @@ import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import ChampOffre from './ChampOffre.vue'
+import ChampSimple from './ChampSimple.vue'
 import { db, MOTIFS_DEPART, MOTIFS_RECRUTEMENT } from './store'
 
 // Section « Informations internes » (retour PO) : séparée de l'annonce pour qu'on voie d'un coup d'œil
@@ -67,46 +68,54 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
     <FieldRow :cols="2">
       <CspInput
         v-model="o.referenceInterne"
-        label="Référence interne (facultatif)"
+        label="Référence interne"
+        hint="Facultatif"
       />
       <CspInput
         v-model="o.referenceFranceTravail"
-        label="Référence France Travail (facultatif)"
+        label="Référence France Travail"
+        hint="Facultatif"
       />
     </FieldRow>
     <FieldRow :cols="2">
       <CspInput
         v-model="o.codePoste"
-        label="Code poste (facultatif)"
+        label="Code poste"
+        hint="Facultatif"
       />
     </FieldRow>
     <FieldRow :cols="2">
       <CspSelect
         v-model="motif"
-        label="Motif de recrutement (facultatif)"
+        label="Motif de recrutement"
+        hint="Facultatif"
         :options="optsInternes(MOTIFS_RECRUTEMENT)"
       />
       <CspSelect
         v-model="depart"
-        label="Motif de départ (facultatif)"
+        label="Motif de départ"
+        hint="Facultatif"
         :options="optsInternes(MOTIFS_DEPART)"
       />
     </FieldRow>
     <CspInput
       v-if="avecAgent"
       v-model="o.agentRemplace"
-      label="Agent remplacé ou renouvelé (facultatif)"
+      label="Agent remplacé ou renouvelé"
+      hint="Facultatif"
     />
     <FieldRow :cols="2">
       <CspSelect
         v-model="rifseep"
-        label="Groupe RIFSEEP (facultatif)"
+        label="Groupe RIFSEEP"
+        hint="Facultatif"
         :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
       />
       <ChampOffre
         :offre="o"
         champ="cycleTravail"
-        label="Cycle de travail (facultatif)"
+        label="Cycle de travail"
+        hint="Facultatif"
         for-id="a-cycle"
       >
         <CspInput
@@ -199,15 +208,20 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
         size="md"
       >
         <div class="tiroir">
-          <CspTextarea
-            v-model="brouillon.texte"
+          <ChampSimple
             label="Commentaire"
             hint="Contexte utile pour décider, par ex. « Remplacement à l'identique, poste budgété »."
-            :rows="5"
-          />
+          >
+            <CspTextarea
+              v-model="brouillon.texte"
+              label="Commentaire"
+              :rows="5"
+            />
+          </ChampSimple>
           <div>
             <p class="validation__label">
-              Document (facultatif)
+              Document
+              <span class="validation__hint">Facultatif</span>
             </p>
             <p
               v-if="brouillon.document"
@@ -290,6 +304,14 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
   margin: 0;
   padding-left: var(--csp-space-5);
   font-size: var(--csp-font-size-sm);
+}
+
+.validation__hint {
+  display: block;
+  margin-top: var(--csp-space-1);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-mention-grey);
 }
 
 .validation__aide {

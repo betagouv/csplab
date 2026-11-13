@@ -90,10 +90,10 @@ const EXIGENCES = [
 
   <div class="groupe">
     <h3 class="groupe__titre">
-      Questions aux candidats (facultatif)
+      Questions aux candidats
     </h3>
     <p class="groupe__desc">
-      {{ o.modeCandidature === 'ats' ? 'Réponse en texte libre, au moment de la candidature.' : 'Disponible seulement si la candidature se fait dans l\'ATS.' }}
+      {{ o.modeCandidature === 'ats' ? 'Facultatif. Réponse en texte libre, au moment de la candidature.' : 'Disponible seulement si la candidature se fait dans l\'ATS.' }}
     </p>
     <ListEditor
       v-model="o.questions"

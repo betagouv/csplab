@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
+import ChampSimple from './ChampSimple.vue'
 import { db, UTILISATEUR } from './store'
 
 // « Paramétrer le recrutement », 2e étape de la publication (retour PO) : responsable, équipe et notifications
@@ -42,13 +43,17 @@ const FREQ = [
       hint="Reçoit les candidatures et suit le recrutement."
       :options="OPTIONS_RESPONSABLE"
     />
-    <CspCheckboxGroup
-      v-model="recruteurs"
-      label="Équipe de recrutement (facultatif)"
-      hint="Ces personnes pourront consulter et évaluer les candidatures."
-      :options="OPTIONS_EQUIPE"
-      size="sm"
-    />
+    <ChampSimple
+      label="Équipe de recrutement"
+      hint="Facultatif. Ces personnes pourront consulter et évaluer les candidatures."
+    >
+      <CspCheckboxGroup
+        v-model="recruteurs"
+        label="Équipe de recrutement"
+        :options="OPTIONS_EQUIPE"
+        size="sm"
+      />
+    </ChampSimple>
     <CspRadioGroup
       v-model="o.notifications"
       label="Notifications par courriel pour les nouvelles candidatures"
