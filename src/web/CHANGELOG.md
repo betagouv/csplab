@@ -4,6 +4,59 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-13
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Signale les nouveaux messages des candidats ([#2165](https://github.com/betagouv/csplab/pull/2165))
+- N'affiche les actions d'une note qu'à son auteur ([#2343](https://github.com/betagouv/csplab/pull/2343))
+- Réserve le changement d'étape aux recruteurs ([#2345](https://github.com/betagouv/csplab/pull/2345))
+
+
+### Design-system
+
+#### <!-- 2 --> Modified
+
+- Ajoute la règle de nommage des variables CSS par rôle et son test ([#2409](https://github.com/betagouv/csplab/pull/2409))
+- Réunit dans table.ts la règle de valeur vide des cellules ([#2413](https://github.com/betagouv/csplab/pull/2413))
+- Ajoute un type générique aux valeurs de CspSelect et CspRadioGroup ([#2411](https://github.com/betagouv/csplab/pull/2411))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Signale les conversations non lues ([#2172](https://github.com/betagouv/csplab/pull/2172))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Supprime une étiquette depuis la croix de sa pastille ([#2399](https://github.com/betagouv/csplab/pull/2399))
+- Expose les étiquettes dans la liste des notes ([#2393](https://github.com/betagouv/csplab/pull/2393))
+- Filtre la liste des organismes par nom ou siret ([#2402](https://github.com/betagouv/csplab/pull/2402))
+- Liste les étiquettes des agents d'un recrutement ([#2398](https://github.com/betagouv/csplab/pull/2398))
+
+#### <!-- 2 --> Modified
+
+- Simplifie les actions sur les agents et membres ([#2378](https://github.com/betagouv/csplab/pull/2378))
+- Harmonise la signature des mutations API ([#2380](https://github.com/betagouv/csplab/pull/2380))
+- Porte les règles de pose d'étiquette au manager ([#2407](https://github.com/betagouv/csplab/pull/2407))
+- Réunit les formulaires de note et le nom d'une personne ([#2414](https://github.com/betagouv/csplab/pull/2414))
+- Remplace le choix d'étape recodé du kanban par CspRadioGroup ([#2412](https://github.com/betagouv/csplab/pull/2412))
+
+#### <!-- 3 --> Fixed
+
+- Ouvre directement le motif de refus après « Refuser » en lot ([#2400](https://github.com/betagouv/csplab/pull/2400))
+- Verrouille l'étiquette avant de la supprimer ([#2408](https://github.com/betagouv/csplab/pull/2408))
+- Corrige le type publié de la valeur d'un motif de refus ([#2410](https://github.com/betagouv/csplab/pull/2410))
+- Attend le droit d'accès avant d'afficher les étapes d'un recrutement ([#2415](https://github.com/betagouv/csplab/pull/2415))
+- Corrige l'affichage d'un échec d'enregistrement dans la liste des étapes ([#2416](https://github.com/betagouv/csplab/pull/2416))
+
+
 ## [0.6.0] - 2026-11-10
 
 ### Candidatures
