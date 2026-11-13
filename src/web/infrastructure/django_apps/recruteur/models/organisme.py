@@ -309,6 +309,15 @@ class OrganismeAgentQuerySet(models.QuerySet):
             agent_id=agent_id,
         )
 
+    def revoked_by_organisme_and_agent(
+        self, organisme_id, agent_id
+    ) -> "OrganismeAgentQuerySet":
+        return self.filter(
+            organisme_id=organisme_id,
+            agent_id=agent_id,
+            date_revocation__isnull=False,
+        )
+
 
 class OrganismeAgentModel(BaseDatedModel):
     organisme = models.ForeignKey(

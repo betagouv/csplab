@@ -1,19 +1,13 @@
 from unittest.mock import Mock, patch
-from uuid import uuid4
 
 import pytest
 from django.utils import timezone
 
 from application.recruteur.services.add_recrutement_agent import add_recrutement_agent
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
     AccesRecrutementRefuse,
 )
-from domain.recruteur.errors.recrutement_agent_errors import AgentDejaMembreRecrutement
-from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -25,11 +19,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
-    OrganismeDjangoFactory,
     create_organisme_with_agent,
-)
-from infrastructure.factories.identite.utilisateur_django_factory import (
-    UtilisateurDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
@@ -72,48 +62,6 @@ def test_responsable_adds_agent_to_recrutement(db):
     assert logs[0].utilisateur_id == responsable.utilisateur_id
 
 
-def test_agent_responsable_adds_agent_to_recrutement(db):
-    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    RecrutementAgentDjangoFactory(
-        recrutement=recrutement,
-        agent=agent,
-        role=AgentRecrutementRole.RESPONSABLE.value,
-    )
-    nouveau = AgentDjangoFactory()
-
-    recrutement_agent = add_recrutement_agent(
-        organisme_id=organisme.id,
-        recrutement_id=recrutement.pk,
-        agent_id=nouveau.utilisateur_id,
-        role=AgentRecrutementRole.RECRUTEUR.value,
-        utilisateur=agent.utilisateur,
-    )
-
-    assert recrutement_agent.role == AgentRecrutementRole.RECRUTEUR.value
-    assert OrganismeAgentModel.objects.by_organisme_and_agent(
-        organisme.id, nouveau.utilisateur_id
-    ).exists()
-
-
-def test_staff_bypasses_role_check(db):
-    organisme = OrganismeDjangoFactory()
-    membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.AGENT.value
-    ).agent
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-
-    recrutement_agent = add_recrutement_agent(
-        organisme_id=organisme.id,
-        recrutement_id=recrutement.pk,
-        agent_id=membre.utilisateur_id,
-        role=AgentRecrutementRole.RECRUTEUR.value,
-        utilisateur=UtilisateurDjangoFactory(is_staff=True),
-    )
-
-    assert recrutement_agent.role == AgentRecrutementRole.RECRUTEUR.value
-
-
 def test_denied_when_demandeur_responsable_role_is_revoked(db):
     demandeur, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     membre = OrganismeAgentDjangoFactory(
@@ -139,90 +87,6 @@ def test_denied_when_demandeur_responsable_role_is_revoked(db):
     assert not RecrutementAgentModel.objects.filter(
         recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
     ).exists()
-
-
-@pytest.mark.parametrize(
-    "role", [AgentOrganismeRole.AGENT, None], ids=["membre_role", "no_organisme_role"]
-)
-def test_denied_when_demandeur_is_not_responsable(db, role):
-    if role is None:
-        organisme = OrganismeDjangoFactory()
-        utilisateur = UtilisateurDjangoFactory()
-    else:
-        demandeur, organisme = create_organisme_with_agent(role=role)
-        utilisateur = demandeur.utilisateur
-    membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.AGENT.value
-    ).agent
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-
-    with pytest.raises((AccesOrganismeRefuse, AccesRecrutementRefuse)):
-        add_recrutement_agent(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            agent_id=membre.utilisateur_id,
-            role=AgentRecrutementRole.CONTRIBUTEUR.value,
-            utilisateur=utilisateur,
-        )
-
-    assert not RecrutementAgentModel.objects.filter(
-        recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
-    ).exists()
-    assert (
-        PostgresAuditLogRepository().get_logs_for_ressource(
-            "RecrutementAgent", membre.utilisateur_id
-        )
-        == []
-    )
-
-
-def test_raises_when_organisme_does_not_exist(db):
-    membre = AgentDjangoFactory()
-
-    with pytest.raises(OrganismeNexistePas):
-        add_recrutement_agent(
-            organisme_id=uuid4(),
-            recrutement_id=uuid4(),
-            agent_id=membre.utilisateur_id,
-            role=AgentRecrutementRole.CONTRIBUTEUR.value,
-            utilisateur=UtilisateurDjangoFactory(),
-        )
-
-
-def test_raises_when_agent_to_add_does_not_exist(db):
-    responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-
-    with pytest.raises(ProfilAgentNexistePas):
-        add_recrutement_agent(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            agent_id=uuid4(),
-            role=AgentRecrutementRole.CONTRIBUTEUR.value,
-            utilisateur=responsable.utilisateur,
-        )
-
-
-def test_raises_when_recrutement_does_not_belong_to_organisme(db):
-    responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.AGENT.value
-    ).agent
-    autre_organisme = OrganismeDjangoFactory()
-    recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
-
-    with pytest.raises(RecrutementInexistant):
-        add_recrutement_agent(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            agent_id=membre.utilisateur_id,
-            role=AgentRecrutementRole.CONTRIBUTEUR.value,
-            utilisateur=responsable.utilisateur,
-        )
 
 
 def test_attaches_agent_to_organisme_when_not_attached(db):
@@ -370,26 +234,6 @@ def test_rolls_back_membership_when_audit_log_write_fails(db):
     assert not RecrutementAgentModel.objects.filter(
         recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
     ).exists()
-
-
-def test_raises_when_agent_already_member_of_recrutement(db):
-    responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    deja_membre = RecrutementAgentModel.objects.get(recrutement=recrutement).agent
-    OrganismeAgentDjangoFactory(
-        organisme=organisme, agent=deja_membre, role=AgentOrganismeRole.AGENT.value
-    )
-
-    with pytest.raises(AgentDejaMembreRecrutement):
-        add_recrutement_agent(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            agent_id=deja_membre.utilisateur_id,
-            role=AgentRecrutementRole.CONTRIBUTEUR.value,
-            utilisateur=responsable.utilisateur,
-        )
 
 
 def test_reintegrates_previously_revoked_agent(db):

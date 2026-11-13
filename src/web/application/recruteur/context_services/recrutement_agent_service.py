@@ -1,6 +1,9 @@
 from uuid import UUID
 
-from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentNonRattache,
+    AgentOrganismeRevoque,
+)
 from domain.recruteur.errors.recrutement_agent_errors import (
     AgentDejaMembreRecrutement,
     AgentNonMembreRecrutement,
@@ -41,6 +44,12 @@ class RecrutementAgentService:
             self.organisme_id, agent_id
         ).exists():
             raise AgentNonRattache(self.organisme_id, agent_id)
+
+    def check_agent_not_revoked_from_organisme(self, agent_id: UUID) -> None:
+        if OrganismeAgentModel.objects.revoked_by_organisme_and_agent(
+            self.organisme_id, agent_id
+        ).exists():
+            raise AgentOrganismeRevoque(self.organisme_id, agent_id)
 
     def check_agent_not_active_member(self, agent_id: UUID) -> None:
         if RecrutementAgentModel.objects.by_recrutement_and_agent(

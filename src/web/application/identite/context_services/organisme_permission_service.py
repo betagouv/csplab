@@ -11,6 +11,9 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.errors.recrutement_agent_errors import (
+    RoleRecrutementNonAutorise,
+)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -132,6 +135,10 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.UPDATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.DELETE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
 }
+
+_ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR: frozenset[str] = frozenset(
+    {AgentRecrutementRole.RECRUTEUR.value, AgentRecrutementRole.CONTRIBUTEUR.value}
+)
 
 # -------------------------------------
 # Authorisations niveau Recrutement
@@ -282,6 +289,15 @@ def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
 
 
 class OrganismePermissionService:
+    def check_role_grantable(
+        self, *, demandeur_role: AgentOrganismeRole | None, role: str
+    ) -> None:
+        if (
+            demandeur_role != AgentOrganismeRole.SUPERVISEUR
+            and role not in _ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR
+        ):
+            raise RoleRecrutementNonAutorise(role)
+
     def can_execute(
         self,
         *,
