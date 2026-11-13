@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { Offre } from './store'
-import { computed } from 'vue'
-import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
+import { computed, ref } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
@@ -26,20 +28,37 @@ const motif = modele('motifRecrutement')
 const depart = modele('motifDepart')
 const rifseep = modele('groupeRifseep')
 const avecAgent = computed(() => ['Remplacement', 'Renouvellement'].includes(o.value.motifRecrutement))
-// Validation : qui va valider l'offre (circuit de l'organisme) et un commentaire facultatif,
-// adressé à tous les services validateurs ou seulement à certains.
+// Validation : qui va valider l'offre (circuit de l'organisme). Le commentaire pour les valideurs est facultatif :
+// « Ajouter un commentaire » ouvre un tiroir (commentaire, document, destinataire : tous ou un service).
 const avecValidation = computed(() => db.organisme.validationActive && db.organisme.groupes.length > 0)
-const OPTIONS_SERVICES = computed(() => db.organisme.groupes.map(g => ({ value: g.nom, label: g.nom })))
-const pour = computed({
-  get: () => o.value.commentairePour?.length ? o.value.commentairePour : db.organisme.groupes.map(g => g.nom),
-  set: (v: string[]) => (o.value.commentairePour = v.length === db.organisme.groupes.length ? [] : v),
-})
+const TOUS = 'tous'
+const OPTIONS_DESTINATAIRE = computed(() => [{ value: TOUS, label: 'Tous les services validateurs' }, ...db.organisme.groupes.map(g => ({ value: g.nom, label: g.nom }))])
+const destinataires = computed(() => o.value.commentairePour?.length ? o.value.commentairePour.join(', ') : 'tous les services validateurs')
+
+const tiroir = ref(false)
+const brouillon = ref({ texte: '', document: '', pour: TOUS })
+function ouvrir() {
+  brouillon.value = { texte: o.value.commentaireValideurs, document: o.value.ficheJointe ?? '', pour: o.value.commentairePour?.[0] ?? TOUS }
+  tiroir.value = true
+}
 function joindre(e: Event) {
   const f = (e.target as HTMLInputElement).files?.[0]
   if (f) {
-    o.value.ficheJointe = f.name
+    brouillon.value.document = f.name
   }
 }
+function enregistrer() {
+  o.value.commentaireValideurs = brouillon.value.texte.trim()
+  o.value.ficheJointe = brouillon.value.document || undefined
+  o.value.commentairePour = brouillon.value.pour === TOUS ? [] : [brouillon.value.pour]
+  tiroir.value = false
+}
+function supprimer() {
+  o.value.commentaireValideurs = ''
+  o.value.ficheJointe = undefined
+  o.value.commentairePour = []
+}
+const aCommentaire = computed(() => Boolean(o.value.commentaireValideurs || o.value.ficheJointe))
 const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné' }, ...l.map(v => ({ value: v, label: v }))]
 </script>
 
@@ -121,30 +140,122 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
           Circuit défini dans les paramètres de l'organisme. L'accord d'un seul valideur suffit pour chaque service.
         </p>
       </div>
-      <CspTextarea
-        v-model="o.commentaireValideurs"
-        label="Commentaire pour les valideurs (facultatif)"
-        hint="Contexte utile pour décider, par ex. « Remplacement à l'identique, poste budgété »."
-        :rows="3"
-      />
-      <CspCheckboxGroup
-        v-if="o.commentaireValideurs.trim() && OPTIONS_SERVICES.length > 1"
-        v-model="pour"
-        label="Commentaire adressé à"
-        :options="OPTIONS_SERVICES"
-        size="sm"
-      />
-      <label class="ajout">
-        <CspIcon
-          name="ri:attachment-2"
-          :size="14"
-        /> {{ o.ficheJointe ? `Document joint : ${o.ficheJointe} · remplacer` : 'Joindre un document pour les valideurs (facultatif)' }}
-        <input
-          type="file"
-          class="sr-only"
-          @change="joindre"
+      <div
+        v-if="aCommentaire"
+        class="commentaire"
+      >
+        <p class="validation__label">
+          Commentaire pour {{ destinataires }}
+        </p>
+        <p
+          v-if="o.commentaireValideurs"
+          class="commentaire__texte"
         >
-      </label>
+          {{ o.commentaireValideurs }}
+        </p>
+        <p
+          v-if="o.ficheJointe"
+          class="commentaire__doc"
+        >
+          <CspIcon
+            name="ri:attachment-2"
+            :size="14"
+          /> {{ o.ficheJointe }}
+        </p>
+        <div class="commentaire__actions">
+          <CspButton
+            label="Modifier"
+            size="sm"
+            variant="tertiary-no-outline"
+            icon="ri:edit-line"
+            is-icon-left
+            @click="ouvrir"
+          />
+          <CspButton
+            label="Supprimer"
+            size="sm"
+            variant="tertiary-no-outline"
+            icon="ri:delete-bin-line"
+            is-icon-left
+            @click="supprimer"
+          />
+        </div>
+      </div>
+      <div v-else>
+        <CspButton
+          label="Ajouter un commentaire"
+          size="sm"
+          variant="secondary"
+          icon="ri:chat-3-line"
+          is-icon-left
+          @click="ouvrir"
+        />
+      </div>
+
+      <CspDrawer
+        v-model:open="tiroir"
+        title="Commentaire pour les valideurs"
+        description="Facultatif. Visible des valideurs choisis, jamais publié."
+        size="md"
+      >
+        <div class="tiroir">
+          <CspTextarea
+            v-model="brouillon.texte"
+            label="Commentaire"
+            hint="Contexte utile pour décider, par ex. « Remplacement à l'identique, poste budgété »."
+            :rows="5"
+          />
+          <div>
+            <p class="validation__label">
+              Document (facultatif)
+            </p>
+            <p
+              v-if="brouillon.document"
+              class="commentaire__doc"
+            >
+              <CspIcon
+                name="ri:attachment-2"
+                :size="14"
+              /> {{ brouillon.document }}
+              <button
+                type="button"
+                class="lien"
+                @click="brouillon.document = ''"
+              >
+                Retirer
+              </button>
+            </p>
+            <label class="ajout">
+              <CspIcon
+                name="ri:upload-2-line"
+                :size="14"
+              /> {{ brouillon.document ? 'Remplacer le document' : 'Joindre un document' }}
+              <input
+                type="file"
+                class="sr-only"
+                @change="joindre"
+              >
+            </label>
+          </div>
+          <CspRadioGroup
+            v-model="brouillon.pour"
+            label="Destinataire"
+            :options="OPTIONS_DESTINATAIRE"
+          />
+        </div>
+        <template #footer>
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="tiroir = false"
+          />
+          <CspButton
+            label="Enregistrer le commentaire"
+            :disabled="!brouillon.texte.trim() && !brouillon.document"
+            @click="enregistrer"
+          />
+        </template>
+      </CspDrawer>
     </div>
   </div>
 </template>
@@ -187,7 +298,51 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
   color: var(--text-mention-grey);
 }
 
+.commentaire {
+  padding: var(--csp-space-4);
+  border-left: 3px solid var(--border-plain-blue-france);
+  background: var(--background-alt-grey);
+}
+
+.commentaire__texte {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  white-space: pre-line;
+}
+
+.commentaire__doc {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  margin: var(--csp-space-2) 0 0;
+  font-size: var(--csp-font-size-sm);
+}
+
+.commentaire__actions {
+  display: flex;
+  gap: var(--csp-space-2);
+  margin: var(--csp-space-2) 0 0 calc(-1 * var(--csp-space-2));
+}
+
+.tiroir {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-6);
+}
+
+.lien {
+  margin-left: var(--csp-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-action-high-blue-france);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .ajout {
+  margin-top: var(--csp-space-2);
   position: relative;
   display: inline-flex;
   align-items: center;
