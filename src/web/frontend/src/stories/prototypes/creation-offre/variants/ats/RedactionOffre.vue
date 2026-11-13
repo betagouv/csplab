@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import Panel from '../../shared/Panel.vue'
-import { manquesPublication } from './aide'
+import { manquesAnnonce } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import DemandeValidation from './DemandeValidation.vue'
 import FormAnnonce from './FormAnnonce.vue'
@@ -43,7 +43,7 @@ function allerEtape(n: number) {
   document.querySelector('.ats__main')?.scrollTo({ top: 0 })
 }
 
-const manques = computed(() => manquesPublication(o.value).filter(m => m.etape !== 'publication'))
+const manques = computed(() => manquesAnnonce(o.value))
 const avecValidation = computed(() => db.organisme.validationActive)
 const pretePublier = computed(() => !validationManquante(o.value) && !manques.value.length)
 const ETAPE_DU_MANQUE: Record<string, number> = { annonce: 1, candidature: 3 }

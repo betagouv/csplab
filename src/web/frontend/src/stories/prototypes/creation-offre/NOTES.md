@@ -812,3 +812,12 @@ intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton
   pour les valideurs, puis « Demander la validation » et « Enregistrer le brouillon », toujours visibles.
 - À signaler (Lucas) : CspTextarea, CspCheckboxGroup et CspRadioGroup n'ont ni aide ni message d'information ;
   le proto passe par un petit composant (ChampSimple) sans toucher au design system.
+
+## Itération 29 — Page offre allégée
+
+- Raccourcis « Accéder à » dans l'ordre de la page ; « Votre décision » en premier pour la personne qui valide.
+- Plus de section « Validation pour publication » pour la personne qui rédige : la validation n'apparaît que
+  pour qui doit valider. Les propositions des valideurs s'ouvrent dans un panneau latéral depuis le bandeau
+  « N propositions à traiter ».
+- Plus de section « Publication » : dates et diffusion se choisissent dans le parcours « Publier ». Une offre est
+  donc « prête à publier » sans dates ; les valideurs ne proposent plus de modification sur la publication.

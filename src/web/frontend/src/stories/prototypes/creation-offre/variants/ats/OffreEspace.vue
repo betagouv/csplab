@@ -8,10 +8,9 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import Panel from '../../shared/Panel.vue'
-import { manquesPublication } from './aide'
+import { manquesAnnonce } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import BlocValidation from './BlocValidation.vue'
-import ChampsPublication from './ChampsPublication.vue'
 import CycleOffre from './CycleOffre.vue'
 import DecisionValideur from './DecisionValideur.vue'
 import DemandeValidation from './DemandeValidation.vue'
@@ -22,7 +21,6 @@ import FormInterne from './FormInterne.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import Propositions from './Propositions.vue'
-import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
 import { archiverOffre, arreterSupport, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, differences, heure, joursRestants, le, maintenant, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
 
@@ -45,20 +43,19 @@ const aTraiter = computed(() => (o.value.propositions ?? []).reduce((n, p) => n 
 
 const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
 const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
-const manques = computed(() => manquesPublication(o.value))
+const manques = computed(() => manquesAnnonce(o.value))
 const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 
 // --- Sections et raccourcis « Accéder à » ---
-const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, interne: true, candidature: true, publication: true, journal: false })
-// Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
-const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
+const ouverts = reactive<Record<string, boolean>>({ annonce: true, interne: true, candidature: true, journal: false })
+// Dans l'ordre de la page. « Validation » seulement pour la personne qui doit valider (bloc en haut de page).
+// Plus de section « Publication » : dates et diffusion se choisissent dans le parcours « Publier ».
 const RACCOURCIS = computed(() => [
+  ...(valideur.value ? [{ id: 'validation', label: 'Votre décision' }] : []),
   { id: 'annonce', label: 'Annonce' },
   { id: 'interne', label: 'Informations internes' },
-  ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
   { id: 'candidature', label: 'Formulaire de candidature' },
-  { id: 'publication', label: 'Publication' },
   { id: 'journal', label: 'Journal d\'activité' },
 ])
 const active = ref('')
@@ -143,7 +140,7 @@ onMounted(() => {
   suivreSection()
 })
 onBeforeUnmount(() => defileur?.removeEventListener('scroll', suivreSection))
-const panneau = ref<'apercu' | 'fiche' | null>(null)
+const panneau = ref<'apercu' | 'fiche' | 'propositions' | null>(null)
 
 // --- Enregistrement automatique ; une modification après validation est signalée, sans relancer le circuit ---
 const sauvegarde = ref<'' | 'modif' | 'ok'>('')
@@ -313,7 +310,7 @@ function archiver() {
       <button
         type="button"
         class="lien"
-        @click="allerA('validation')"
+        @click="panneau = 'propositions'"
       >
         Voir {{ aTraiter > 1 ? 'les propositions' : 'la proposition' }}
       </button>
@@ -628,31 +625,6 @@ function archiver() {
       </SectionOffre>
 
       <SectionOffre
-        v-if="avecValidation && !valideur"
-        id="validation"
-        v-model:ouvert="ouverts.validation"
-        titre="Validation pour publication"
-        :description="lectureSeule ? 'Lecture seule.' : undefined"
-      >
-        <template #intro>
-          <p class="source">
-            Ce que voient les valideurs. Repris automatiquement de l'annonce, jamais publié tel quel.
-          </p>
-        </template>
-        <ResumeValidation
-          :offre="o"
-          :fiche="f"
-          integre
-        />
-        <Propositions
-          v-if="o.validationEtat !== 'non_demandee'"
-          :offre="o"
-          :redacteur="!lectureSeule"
-          @aller="allerA"
-        />
-      </SectionOffre>
-
-      <SectionOffre
         id="candidature"
         v-model:ouvert="ouverts.candidature"
         titre="Formulaire de candidature"
@@ -705,62 +677,6 @@ function archiver() {
           />
         </div>
       </SectionOffre>
-
-      <SectionOffre
-        id="publication"
-        v-model:ouvert="ouverts.publication"
-        titre="Publication"
-        :description="enEdition('publication') ? MODE_PROPOSITION : o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » dans Mes recrutements.'"
-      >
-        <template
-          v-if="valideur"
-          #actions
-        >
-          <template v-if="enEdition('publication')">
-            <CspButton
-              label="Annuler"
-              size="sm"
-              variant="tertiary-no-outline"
-              @click="edition = null"
-            />
-            <CspButton
-              label="Valider les modifications"
-              size="sm"
-              icon="ri:check-line"
-              is-icon-left
-              @click="ajouterProposition"
-            />
-          </template>
-        </template>
-        <fieldset
-          class="verrou"
-          :class="{ 'verrou--proposition': enEdition('publication') }"
-          :disabled="!modifiable && !enEdition('publication')"
-        >
-          <div class="publication">
-            <ChampsPublication
-              :offre="enEdition('publication') ? edition!.copie : o"
-              :disabled="o.etat !== 'brouillon'"
-            />
-          </div>
-        </fieldset>
-        <div
-          v-if="enEdition('publication')"
-          class="barre-proposition"
-        >
-          <CspButton
-            label="Annuler"
-            variant="tertiary-no-outline"
-            @click="edition = null"
-          />
-          <CspButton
-            label="Valider les modifications"
-            icon="ri:check-line"
-            is-icon-left
-            @click="ajouterProposition"
-          />
-        </div>
-      </SectionOffre>
     </div>
 
     <SectionOffre
@@ -790,6 +706,20 @@ function archiver() {
       <ApercuCandidat
         :offre="o"
         :organisme="db.organisme.nom"
+      />
+    </CspDrawer>
+
+    <CspDrawer
+      :open="panneau === 'propositions'"
+      title="Propositions des valideurs"
+      description="Acceptez ou ignorez chaque modification proposée."
+      size="lg"
+      @update:open="(v: boolean) => !v && (panneau = null)"
+    >
+      <Propositions
+        :offre="o"
+        :redacteur="!lectureSeule"
+        @aller="(id: string) => { panneau = null; allerA(id) }"
       />
     </CspDrawer>
 

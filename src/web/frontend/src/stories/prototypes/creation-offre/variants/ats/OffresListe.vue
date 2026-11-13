@@ -9,7 +9,7 @@ import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { useTextSearch } from '@/composables/data/useTextSearch'
-import { manquesPublication } from './aide'
+import { manquesAnnonce } from './aide'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { aValiderParMoi, db, fiche, joursRestants } from './store'
@@ -86,7 +86,7 @@ const groupes = computed<Groupe[]>(() => {
       offres: autres.filter(o => statutListe(o) === 'brouillon'),
       action: o => ({ label: 'Reprendre', ecran: offre(o) }),
       detail: (o) => {
-        const n = manquesPublication(o).length
+        const n = manquesAnnonce(o).length
         return n ? `${n} élément${n > 1 ? 's' : ''} à compléter` : 'Annonce complète, validation à demander'
       },
     },

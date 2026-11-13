@@ -134,6 +134,11 @@ export function manquesPublication(o: Offre): { etape: EtapeFormulaire, label: s
   ]
 }
 
+/** Ce qui manque à l'offre elle-même (annonce, candidature). Les dates se choisissent en publiant. */
+export function manquesAnnonce(o: Offre): { etape: EtapeFormulaire, label: string }[] {
+  return manquesPublication(o).filter(m => m.etape !== 'publication')
+}
+
 /** Date de fin au moins un mois après le début, sauf urgence (D311-2). */
 export function manquesDates(o: Offre): string[] {
   if (!o.dateDebut || !o.dateFin) {

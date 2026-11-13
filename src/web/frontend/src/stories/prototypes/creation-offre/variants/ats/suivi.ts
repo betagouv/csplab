@@ -3,7 +3,7 @@
 
 import type { Ecran } from './nav'
 import type { Offre } from './store'
-import { manquesPublication } from './aide'
+import { manquesAnnonce } from './aide'
 import { aValiderParMoi, joursRestants, termineBientot, validationManquante } from './store'
 
 export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
@@ -28,7 +28,7 @@ export function statutListe(o: Offre): StatutListe {
   if (o.validationEtat === 'refusee') {
     return 'validation_refusee'
   }
-  return !validationManquante(o) && !manquesPublication(o).length ? 'prete' : 'brouillon'
+  return !validationManquante(o) && !manquesAnnonce(o).length ? 'prete' : 'brouillon'
 }
 
 export interface ActionAFaire {

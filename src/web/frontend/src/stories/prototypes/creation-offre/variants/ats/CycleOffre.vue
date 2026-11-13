@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Offre } from './store'
 import { computed } from 'vue'
-import { manquesPublication } from './aide'
+import { manquesAnnonce } from './aide'
 import { db, validationManquante } from './store'
 
 // Où en est l'offre, d'après la maquette d'Alice : barre segmentée dans un cadre, purement informative.
@@ -16,7 +16,7 @@ const etapes = computed(() => {
   // Validation obtenue sur un brouillon : l'étape est terminée.
   const validee = o.etat === 'brouillon' && o.validationEtat === 'validee'
   // « Prête à publier » = il ne reste qu'à cliquer sur Publier : annonce complète et validation obtenue si elle est exigée.
-  const prete = o.etat === 'brouillon' && !validationManquante(o) && !manquesPublication(o).length
+  const prete = o.etat === 'brouillon' && !validationManquante(o) && !manquesAnnonce(o).length
   const validation = avecValidation
     ? [{ id: 'validation', label: 'Validation', detail: { non_demandee: 'à demander', en_attente: 'en attente', validee: 'obtenue', refusee: 'refusée' }[o.validationEtat], fait: rang > 0 || validee, courant: o.etat === 'brouillon' && o.validationEtat !== 'non_demandee' && !validee }]
     : []

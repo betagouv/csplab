@@ -33,10 +33,12 @@ const commentaire = ref('')
 const nbChamps = computed(() => props.propositions.reduce((n, p) => n + p.champs.length, 0))
 const commentaireRequis = computed(() => choix.value !== 'tel_quel')
 const pret = computed(() => !commentaireRequis.value || Boolean(commentaire.value.trim()))
+// Dates et diffusion se choisissent au moment de publier : pas de proposition sur la publication.
 const SECTIONS: Record<Proposition['section'], string> = { annonce: 'Annonce', candidature: 'Formulaire de candidature', publication: 'Publication' }
+const PROPOSABLES: Proposition['section'][] = ['annonce', 'candidature']
 // « Proposer des modifications » : on choisit la partie à modifier, l'écran défile jusqu'à elle en mode modification.
 const MENU = computed(() => [{
-  items: (Object.keys(SECTIONS) as Proposition['section'][]).map(id => ({
+  items: PROPOSABLES.map(id => ({
     label: props.propositions.some(p => p.section === id) ? `${SECTIONS[id]} (déjà modifiée)` : SECTIONS[id],
     onSelect: () => emit('proposer', id),
   })),
