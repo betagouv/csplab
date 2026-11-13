@@ -39,7 +39,7 @@ const drawerOpen = computed({
 
 const saving = computed(() => creating.value || updating.value)
 
-const countLabel = computed(() => `${count.value} ${pluralize(count.value, 'organisme')}`)
+const countLabel = computed(() => (error.value ? '' : `${count.value} ${pluralize(count.value, 'organisme')}`))
 
 const { addToast } = useToast()
 
@@ -75,6 +75,25 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
 
 <template>
   <section class="organismes-section">
+    <CspTableToolbar
+      :count="countLabel"
+      :pending="showSkeleton"
+      :bordered="false"
+    >
+      <CspSearchBar
+        v-model="search"
+        mode="live"
+        label="Rechercher un organisme, un siret"
+        hide-label
+        placeholder="Rechercher un organisme, un siret"
+      />
+      <CspButton
+        label="Ajouter un organisme"
+        icon="ri:add-line"
+        is-icon-left
+        @click="creationOpen = true"
+      />
+    </CspTableToolbar>
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
@@ -87,24 +106,6 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         />
       </template>
 
-      <CspTableToolbar
-        :count="countLabel"
-        :bordered="false"
-      >
-        <CspSearchBar
-          v-model="search"
-          mode="live"
-          label="Rechercher un organisme, un siret"
-          hide-label
-          placeholder="Rechercher un organisme, un siret"
-        />
-        <CspButton
-          label="Ajouter un organisme"
-          icon="ri:add-line"
-          is-icon-left
-          @click="creationOpen = true"
-        />
-      </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
         :rows="organismes"
