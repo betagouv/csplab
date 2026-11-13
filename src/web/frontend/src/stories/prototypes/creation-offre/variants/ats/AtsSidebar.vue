@@ -5,7 +5,8 @@ import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
-// Navigation principale : tableau de bord, fiches de poste, offres d'emploi (avant publication), recrutements (après). La racine suit la route.
+// Navigation principale : tableau de bord, offres d'emploi (avant publication), recrutements (après).
+// Pas de menu « Fiches de poste » dans cette première version (les écrans existent encore, hors menu). La racine suit la route.
 defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'recrutements' | 'parametres' }>()
 </script>
 
@@ -21,12 +22,6 @@ defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'recrutements' | 'paramet
           label="Tableau de bord"
           :to="{ path: '/accueil' }"
           :is-active="actif === 'accueil'"
-        />
-        <CspSidebarItem
-          icon="ri:file-text-line"
-          label="Fiches de poste"
-          :to="{ path: '/fiches' }"
-          :is-active="actif === 'fiches'"
         />
         <CspSidebarItem
           icon="ri:megaphone-line"
