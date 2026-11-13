@@ -28,12 +28,15 @@ def update_recrutement_agent(
     role: str,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    OrganismePermissionService().can_execute(
+    permissions = OrganismePermissionService()
+    demandeur_role = permissions.can_execute(
         action=OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
+
+    permissions.check_role_grantable(demandeur_role=demandeur_role, role=role)
 
     contexte = RecrutementAgentService(
         organisme_id=organisme_id, recrutement_id=recrutement_id
