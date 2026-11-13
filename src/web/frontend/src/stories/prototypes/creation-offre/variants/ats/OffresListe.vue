@@ -2,6 +2,7 @@
 import type { Ecran } from './nav'
 import type { Offre } from './store'
 import { computed, ref, watch } from 'vue'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
@@ -31,7 +32,7 @@ interface Groupe {
   /** Bouton de la ligne ; absent quand il n'y a rien à faire (on attend). */
   action?: (o: Offre) => { label: string, ecran: Ecran, principal?: boolean }
   detail: (o: Offre) => string
-  icone: string
+  badge: 'info' | 'new' | 'warning' | 'error' | 'success'
 }
 
 const offre = (o: Offre): Ecran => ({ nom: 'offre', id: o.id })
@@ -49,7 +50,7 @@ const groupes = computed<Groupe[]>(() => {
   return [
     {
       id: 'a_valider',
-      icone: 'ri:checkbox-circle-line',
+      badge: 'info',
       titre: 'À valider par vous',
       aide: 'On vous demande votre avis avant publication.',
       offres: moi,
@@ -58,7 +59,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'validation_refusee',
-      icone: 'ri:error-warning-line',
+      badge: 'error',
       titre: 'À corriger',
       aide: 'La validation a été refusée : corrigez puis redemandez-la.',
       offres: autres.filter(o => statutListe(o) === 'validation_refusee'),
@@ -70,7 +71,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'prete',
-      icone: 'ri:send-plane-line',
+      badge: 'success',
       titre: 'Prêtes à publier',
       aide: 'Complètes et validées : il ne reste qu\'à publier. La publication ouvre le recrutement.',
       offres: autres.filter(o => statutListe(o) === 'prete'),
@@ -79,7 +80,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'brouillon',
-      icone: 'ri:edit-line',
+      badge: 'new',
       titre: 'En rédaction',
       aide: 'Brouillons à terminer.',
       offres: autres.filter(o => statutListe(o) === 'brouillon'),
@@ -91,7 +92,7 @@ const groupes = computed<Groupe[]>(() => {
     },
     {
       id: 'en_attente',
-      icone: 'ri:time-line',
+      badge: 'warning',
       titre: 'En attente de validation',
       aide: 'Rien à faire pour l\'instant : vous serez prévenu·e des réponses.',
       offres: autres.filter(o => statutListe(o) === 'validation_attente'),
@@ -129,6 +130,7 @@ const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publi
     <template #actions>
       <CspButton
         label="Créer une offre"
+        variant="secondary"
         size="sm"
         icon="ri:add-line"
         is-icon-left
@@ -201,11 +203,12 @@ const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publi
             {{ o.id }} · {{ o.ficheId ? `Fiche ${o.ficheId}` : 'Sans fiche de poste' }}
           </p>
           <p class="carte__etat">
-            <CspIcon
-              :name="g.icone"
-              :size="14"
+            <CspBadge
+              :label="g.titre"
+              :type="g.badge"
+              size="sm"
             />
-            <span><strong>{{ g.titre }}</strong> · {{ g.detail(o) }}</span>
+            <span>{{ g.detail(o) }}</span>
           </p>
         </div>
         <CspButton
@@ -344,32 +347,12 @@ const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publi
 
 .carte__etat {
   display: flex;
-  align-items: flex-start;
-  gap: var(--csp-space-1);
-  margin: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--csp-space-2);
+  margin: var(--csp-space-1) 0 0;
   font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
-
-  :deep(svg) {
-    flex-shrink: 0;
-    margin-top: 3px;
-  }
-
-  strong {
-    font-weight: 500;
-  }
-
-  .carte--validation_refusee & strong {
-    color: var(--text-default-error);
-  }
-
-  .carte--prete & strong {
-    color: var(--text-default-success);
-  }
-
-  .carte--a_valider & strong {
-    color: var(--text-action-high-blue-france);
-  }
 }
 
 .carte__action {
