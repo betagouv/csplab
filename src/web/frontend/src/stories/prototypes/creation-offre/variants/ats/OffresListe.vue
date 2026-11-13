@@ -137,7 +137,7 @@ const publieesRecemment = computed(() => db.offres.filter(o => o.etat === 'publi
   <PageAts
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Retrouvez toutes vos offres d'emploi en préparation. Une fois publiée, une offre devient un recrutement et vous pourrez y gérer toutes vos candidatures."
+    sous-titre="Retrouvez toutes vos offres d'emploi en ligne et en préparation."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
   >
     <template #actions>
