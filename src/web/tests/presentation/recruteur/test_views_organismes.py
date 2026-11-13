@@ -180,7 +180,7 @@ class TestListOrganismes:
 
         assert response.json()["count"] == 0
 
-    @pytest.mark.parametrize("filtre", ["", "ab", " a ", "12"])
+    @pytest.mark.parametrize("filtre", ["", "ab", " a ", "12", "1 2", "a b"])
     def test_get_filter_under_three_chars_is_ignored(self, staff_client, filtre):
         total = 2
         OrganismeDjangoFactory.create_batch(total)

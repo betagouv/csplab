@@ -102,7 +102,7 @@ class OrganismeQuerySet(models.QuerySet):
 
     def search(self, term: str | None) -> "OrganismeQuerySet":
         term = (term or "").strip()
-        if len(term) < SEUIL_RECHERCHE:
+        if len("".join(term.split())) < SEUIL_RECHERCHE:
             return self
         if _SIRET_PARTIEL.fullmatch(term):
             return self.search_siret(term)
