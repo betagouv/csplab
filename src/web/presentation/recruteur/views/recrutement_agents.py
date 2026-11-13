@@ -29,10 +29,14 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
     OperationOrganismeRefusee,
 )
-from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentNonRattache,
+    AgentOrganismeRevoque,
+)
 from domain.recruteur.errors.recrutement_agent_errors import (
     AgentDejaMembreRecrutement,
     AgentNonMembreRecrutement,
+    RoleRecrutementNonAutorise,
 )
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.authentication import SessionApiMixin
@@ -150,6 +154,8 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
                 OperationOrganismeRefusee,
                 AccesRecrutementRefuse,
                 AccesRecrutementInconnu,
+                RoleRecrutementNonAutorise,
+                AgentOrganismeRevoque,
             ),
         ):
             return Response(
