@@ -28,7 +28,9 @@ const ETAPES = [
   { titre: 'Formulaire de candidature', aide: 'Comment les candidats postulent et quelles pièces ils fournissent.' },
   { titre: 'Récapitulatif', aide: 'Relisez l\'annonce telle que les candidats la verront. À droite, ce qui manque et ce que verront les valideurs.' },
 ]
-const etape = ref(Math.min(Math.max(props.etape ?? 1, 1), ETAPES.length))
+// L'étape peut aussi venir de l'adresse (?etape=3) : utile pour montrer ou capturer une étape précise.
+const etapeUrl = Number(new URLSearchParams(window.location.search).get('etape')) || undefined
+const etape = ref(Math.min(Math.max(props.etape ?? etapeUrl ?? 1, 1), ETAPES.length))
 const courante = computed(() => ETAPES[etape.value - 1]!)
 
 // Enregistrement automatique, comme sur la page de l'offre.
