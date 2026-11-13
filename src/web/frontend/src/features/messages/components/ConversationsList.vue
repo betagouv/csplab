@@ -95,7 +95,7 @@ function conversationLocation(conversationUuid: string) {
 }
 
 .conversations-list__row {
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .conversations-list__item {

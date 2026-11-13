@@ -189,7 +189,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   padding: var(--csp-sidebar-padding);
   padding-bottom: 0;
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {
@@ -261,7 +261,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   flex-shrink: 0;
   padding: var(--csp-sidebar-padding);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {

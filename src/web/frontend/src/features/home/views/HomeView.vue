@@ -146,7 +146,7 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
   align-items: start;
   row-gap: var(--csp-space-4);
   padding-block: var(--csp-space-5);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   @include bp.from(bp.$md) {
     align-items: center;
