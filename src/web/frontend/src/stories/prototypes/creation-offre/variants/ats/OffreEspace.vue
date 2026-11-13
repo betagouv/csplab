@@ -334,8 +334,8 @@ function archiver() {
             <Panel
               v-else-if="prete"
               class="encart encart--action"
-              titre="Prête à être publiée"
-              :description="db.organisme.validationActive ? `Validation obtenue ${le(o.validationObtenueLe)} et annonce complète. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
+              :titre="o.validationEtat === 'validee' ? 'Validée' : 'Prête à être publiée'"
+              :description="o.validationEtat === 'validee' ? `Validation obtenue ${le(o.validationObtenueLe)}. L'annonce est complète : vous pouvez la publier. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
             >
               <!-- Commentaires laissés par les valideurs avec leur accord -->
               <BlocValidation
@@ -392,7 +392,7 @@ function archiver() {
             <Panel
               v-else
               class="encart"
-              :titre="o.validationEtat === 'validee' ? 'Validée — à compléter avant publication' : 'Brouillon'"
+              :titre="o.validationEtat === 'validee' ? 'Validée · à compléter avant de publier' : 'Brouillon'"
               :description="validationManquante(o) ? 'Vous pouvez demander la validation à tout moment, même si l\'offre n\'est pas complète.' : 'Pour publier, l\'annonce doit être complète.'"
             >
               <p

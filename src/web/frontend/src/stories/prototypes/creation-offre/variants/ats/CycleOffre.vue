@@ -25,8 +25,8 @@ const etapes = computed(() => {
     ...validation,
     {
       id: 'publiee',
-      label: prete ? 'Prête à publier' : validee ? 'Publication' : 'Publiée',
-      detail: o.dateFin && o.etat === 'publiee' ? `jusqu'au ${o.dateFin.split('-').reverse().join('/')}` : validee && !prete ? 'annonce à compléter' : '',
+      label: validee ? 'Validée' : prete ? 'Prête à publier' : 'Publiée',
+      detail: o.dateFin && o.etat === 'publiee' ? `jusqu'au ${o.dateFin.split('-').reverse().join('/')}` : validee ? (prete ? 'à publier' : 'annonce à compléter') : '',
       fait: rang > 2,
       courant: rang === 2 || prete || validee,
     },

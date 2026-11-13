@@ -823,3 +823,10 @@ intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton
   donc « prête à publier » sans dates ; les valideurs ne proposent plus de modification sur la publication.
 - **Deux colonnes** : sections à gauche ; à droite, l'encart de l'étape en cours (ou la décision du valideur,
   avec un résumé compact), qui suit le défilement. Sous 75rem de large, l'encart repasse au-dessus.
+
+## Itération 30 — « Validée » plutôt que « Prête à publier »
+
+La validation se demande à tout moment : une offre validée n'est pas forcément complète. Le statut devient
+« Validée » (badge, puce, carte, indicateur d'étape, encart), qu'elle soit complète ou non ; l'action suit :
+« Publier » si l'annonce est complète, sinon « Compléter l'offre ». « Prête à publier » ne reste que pour les
+organismes sans circuit de validation (annonce complète). Tableau de bord : compteur « Validées ».

@@ -6,12 +6,15 @@ import type { Offre } from './store'
 import { manquesAnnonce } from './aide'
 import { aValiderParMoi, joursRestants, termineBientot, validationManquante } from './store'
 
-export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
+export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'validee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
 
 export const STATUTS: Record<StatutListe, { label: string, type: 'info' | 'new' | 'warning' | 'error' | 'success', contour?: boolean }> = {
   brouillon: { label: 'Brouillon', type: 'info' },
   validation_attente: { label: 'Validation en attente', type: 'warning' },
   validation_refusee: { label: 'Validation refusée', type: 'error' },
+  // « Validée » : la validation peut être demandée à tout moment, une offre validée n'est donc pas forcément complète.
+  validee: { label: 'Validée', type: 'success' },
+  // Organisme sans circuit de validation : annonce complète, il ne reste qu'à publier.
   prete: { label: 'Prête à publier', type: 'new' },
   publiee: { label: 'Publiée', type: 'success' },
   retiree: { label: 'Retirée', type: 'warning', contour: true },
@@ -27,6 +30,9 @@ export function statutListe(o: Offre): StatutListe {
   }
   if (o.validationEtat === 'refusee') {
     return 'validation_refusee'
+  }
+  if (o.validationEtat === 'validee') {
+    return 'validee'
   }
   return !validationManquante(o) && !manquesAnnonce(o).length ? 'prete' : 'brouillon'
 }
@@ -51,6 +57,8 @@ export function actionAFaire(o: Offre): ActionAFaire | null {
       return null
     case 'validation_refusee':
       return { label: 'Corriger l\'offre', ecran: offre }
+    case 'validee':
+      return manquesAnnonce(o).length ? { label: 'Compléter l\'offre', ecran: offre } : { label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true } }
     case 'prete':
       return { label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true } }
     case 'publiee': {

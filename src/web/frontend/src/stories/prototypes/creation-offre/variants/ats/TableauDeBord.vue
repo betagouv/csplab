@@ -15,7 +15,7 @@ const { aller } = useNav()
 const COMPTEURS = computed(() => [
   { filtre: 'brouillon', lib: 'Brouillons', aide: 'en cours de rédaction', n: db.offres.filter(o => statutListe(o) === 'brouillon').length },
   { filtre: 'en_attente', lib: 'À valider', aide: 'validation en attente', n: db.offres.filter(o => statutListe(o) === 'validation_attente').length },
-  { filtre: 'a_publier', lib: 'À publier', aide: 'validées et complètes', n: db.offres.filter(o => statutListe(o) === 'prete').length },
+  { filtre: 'a_publier', lib: 'Validées', aide: 'à publier ou à compléter', n: db.offres.filter(o => ['validee', 'prete'].includes(statutListe(o))).length },
   { filtre: 'bientot', lib: 'Se terminent sous 7 jours', aide: 'à prolonger ou laisser se retirer', n: db.offres.filter(termineBientot).length },
 ])
 function creerFiche() {

@@ -70,13 +70,26 @@ const groupes = computed<Groupe[]>(() => {
       },
     },
     {
-      id: 'prete',
+      id: 'validee',
       badge: 'success',
-      titre: 'À publier',
-      aide: 'Complètes et validées : il ne reste qu\'à publier. La publication ouvre le recrutement.',
+      titre: 'Validée',
+      aide: 'Validation obtenue. Une offre validée n\'est pas forcément complète : complétez-la si besoin, puis publiez.',
+      offres: autres.filter(o => statutListe(o) === 'validee'),
+      action: o => manquesAnnonce(o).length ? { label: 'Compléter l\'offre', ecran: offre(o) } : { label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true }, principal: true },
+      detail: (o) => {
+        const n = manquesAnnonce(o).length
+        const le = o.validationObtenueLe ? `Le ${o.validationObtenueLe}` : 'Validation obtenue'
+        return n ? `${le} · ${n} élément${n > 1 ? 's' : ''} à compléter avant de publier` : `${le} · annonce complète`
+      },
+    },
+    {
+      id: 'prete',
+      badge: 'new',
+      titre: 'Prête à publier',
+      aide: 'Annonce complète : il ne reste qu\'à publier. La publication ouvre le recrutement.',
       offres: autres.filter(o => statutListe(o) === 'prete'),
       action: o => ({ label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true }, principal: true }),
-      detail: o => o.validationEtat === 'validee' ? `Validée ${o.validationObtenueLe ? `le ${o.validationObtenueLe}` : ''}` : 'Sans validation requise',
+      detail: () => 'Annonce complète, sans validation requise',
     },
     {
       id: 'brouillon',
@@ -104,7 +117,7 @@ const visibles = computed(() => groupes.value.filter(g => g.offres.length))
 const total = computed(() => trouvees.value.length)
 
 // Puces : « Toutes » puis un filtre par chose à faire. « Toutes » garde l'ordre d'urgence (l'attente en dernier).
-const DEPUIS_ACCUEIL: Record<string, string> = { a_publier: 'prete', en_attente: 'en_attente', brouillon: 'brouillon', validation_refusee: 'validation_refusee' }
+const DEPUIS_ACCUEIL: Record<string, string> = { a_publier: 'validee', en_attente: 'en_attente', brouillon: 'brouillon', validation_refusee: 'validation_refusee' }
 const puce = ref<string | undefined>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'toutes')
 // Recliquer la puce active la désélectionne : on revient à « Toutes ».
 watch(puce, (v) => {
