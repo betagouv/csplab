@@ -27,6 +27,7 @@ const MEMBRES: MembreEquipe[] = [
     poste: 'Responsable recrutement',
     email: 'jeanne.dupont@example.gouv.fr',
     recrutement_role: 'responsable',
+    tags: [],
   },
 ]
 

@@ -30,4 +30,4 @@ def list_recrutement_agents(
     )
     contexte.check_recrutement_belongs_to_organisme()
 
-    return RecrutementAgentModel.objects.by_recrutement(recrutement_id)
+    return RecrutementAgentModel.objects.by_recrutement(recrutement_id).with_tags()

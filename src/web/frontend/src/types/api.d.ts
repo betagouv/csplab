@@ -894,7 +894,7 @@ export interface components {
             publie_le: string;
             est_privee: boolean;
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
-            readonly tags: components["schemas"]["NoteTag"][];
+            readonly tags: components["schemas"]["Tag"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -905,13 +905,7 @@ export interface components {
             /** Format: uuid */
             publie_par_id: string;
             est_privee: boolean;
-            readonly tags: components["schemas"]["NoteTag"][];
-        };
-        NoteTag: {
-            /** Format: uuid */
-            uuid: string;
-            name: string;
-            readonly color: components["schemas"]["ColorEnum"];
+            readonly tags: components["schemas"]["Tag"][];
         };
         NoteVisibilite: {
             est_privee: boolean;
@@ -1122,7 +1116,7 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["RecrutementsArchives"][];
         };
-        PaginatedTagList: {
+        PaginatedTagDetailList: {
             /** @example 123 */
             count: number;
             /**
@@ -1135,7 +1129,7 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["Tag"][];
+            results: components["schemas"]["TagDetail"][];
         };
         PatchedChangerEtapeCandidatures: {
             /** Format: uuid */
@@ -1156,6 +1150,7 @@ export interface components {
             /** Format: email */
             email: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+            readonly tags: components["schemas"]["Tag"][];
         };
         RecrutementAgentRole: {
             /** Format: uuid */
@@ -1262,8 +1257,14 @@ export interface components {
             /** Format: uuid */
             uuid: string;
             name: string;
+            readonly color: components["schemas"]["ColorEnum"];
+        };
+        TagDetail: {
+            /** Format: uuid */
+            uuid: string;
+            name: string;
             category: components["schemas"]["CategoryEnum"];
-            color?: components["schemas"]["ColorEnum"];
+            readonly color: components["schemas"]["ColorEnum"];
             /** @default 0 */
             readonly usage_count: number;
         };
@@ -2595,7 +2596,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedTagList"];
+                    "application/json": components["schemas"]["PaginatedTagDetailList"];
                 };
             };
             400: {
@@ -2696,7 +2697,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"];
+                    "application/json": components["schemas"]["TagDetail"];
                 };
             };
             400: {
@@ -2809,7 +2810,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"];
+                    "application/json": components["schemas"]["TagDetail"];
                 };
             };
             400: {
