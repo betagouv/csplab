@@ -98,15 +98,15 @@ function formater() {
     </p>
     <div class="groupe">
       <FieldRow :cols="2">
-        <CspInput
-          :model-value="db.organisme.nom"
-          label="Organisme"
-          disabled
-        />
         <CspSelect
           v-model="versant"
           label="Versant"
           :options="OPTIONS_VERSANT"
+        />
+        <CspInput
+          :model-value="db.organisme.nom"
+          label="Organisme"
+          disabled
         />
       </FieldRow>
       <ChampOffre
