@@ -316,383 +316,384 @@ function archiver() {
       </button>
     </p>
 
-    <div
-      class="tete tete--seule"
-    >
-      <div class="tete__etat">
-        <!-- Encart de l'étape en cours -->
-        <template v-if="o.etat === 'brouillon'">
-          <DecisionValideur
-            v-if="valideur"
-            :offre="o"
-            :fiche="f"
-            :propositions="propositionsEnCours"
-            @proposer="commencerProposition"
-            @retirer="retirerProposition"
-            @envoye="reponseEnvoyee"
-          />
-          <Panel
-            v-else-if="prete"
-            class="encart encart--action"
-            titre="Prête à être publiée"
-            :description="db.organisme.validationActive ? `Validation obtenue ${le(o.validationObtenueLe)} et annonce complète. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
-          >
-            <!-- Commentaires laissés par les valideurs avec leur accord -->
-            <BlocValidation
-              v-if="o.validations?.some(v => v.commentaire)"
+    <!-- Deux colonnes : les sections à gauche, l'encart de l'étape en cours (ou la décision du valideur) à droite. -->
+    <div class="colonnes">
+      <aside class="tete">
+        <div class="tete__etat">
+          <!-- Encart de l'étape en cours -->
+          <template v-if="o.etat === 'brouillon'">
+            <DecisionValideur
+              v-if="valideur"
               :offre="o"
+              :fiche="f"
+              :propositions="propositionsEnCours"
+              @proposer="commencerProposition"
+              @retirer="retirerProposition"
+              @envoye="reponseEnvoyee"
             />
-            <div v-if="peutPublier">
-              <CspButton
-                label="Publier"
-                icon="ri:send-plane-line"
-                is-icon-left
-                @click="aller({ nom: 'apercu', id: o.id, publier: true })"
-              />
-            </div>
-
-            <p
-              v-else
-              class="texte"
+            <Panel
+              v-else-if="prete"
+              class="encart encart--action"
+              titre="Prête à être publiée"
+              :description="db.organisme.validationActive ? `Validation obtenue ${le(o.validationObtenueLe)} et annonce complète. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
             >
-              Vous n'avez pas le droit « Publier » : une personne habilitée publiera l'offre.
-            </p>
-          </Panel>
-          <Panel
-            v-else-if="o.validationEtat === 'refusee'"
-            class="encart encart--attention"
-            titre="Validation refusée"
-            description="Complétez l'offre puis redemandez la validation. Les accords déjà donnés restent acquis."
-          >
-            <BlocValidation :offre="o" />
-            <div
-              v-if="!lectureSeule"
-              class="actions"
-            >
-              <DemandeValidation
+              <!-- Commentaires laissés par les valideurs avec leur accord -->
+              <BlocValidation
+                v-if="o.validations?.some(v => v.commentaire)"
                 :offre="o"
-                variant="primary"
+              />
+              <div v-if="peutPublier">
+                <CspButton
+                  label="Publier"
+                  icon="ri:send-plane-line"
+                  is-icon-left
+                  @click="aller({ nom: 'apercu', id: o.id, publier: true })"
+                />
+              </div>
+
+              <p
+                v-else
+                class="texte"
+              >
+                Vous n'avez pas le droit « Publier » : une personne habilitée publiera l'offre.
+              </p>
+            </Panel>
+            <Panel
+              v-else-if="o.validationEtat === 'refusee'"
+              class="encart encart--attention"
+              titre="Validation refusée"
+              description="Complétez l'offre puis redemandez la validation. Les accords déjà donnés restent acquis."
+            >
+              <BlocValidation :offre="o" />
+              <div
+                v-if="!lectureSeule"
+                class="actions"
+              >
+                <DemandeValidation
+                  :offre="o"
+                  variant="primary"
+                />
+              </div>
+            </Panel>
+
+            <Panel
+              v-else-if="o.validationEtat === 'en_attente'"
+              class="encart"
+              titre="Validation en cours"
+              :description="valideur ? `Demandée ${le(o.validationDemandeeLe)} par ${o.creePar}. Consultez l'offre et le résumé pour la validation, puis donnez votre réponse.` : `Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
+            >
+              <BlocValidation
+                :offre="o"
+                simulation
+                :moi="valideur ? UTILISATEUR : undefined"
+              />
+            </Panel>
+
+            <Panel
+              v-else
+              class="encart"
+              :titre="o.validationEtat === 'validee' ? 'Validée — à compléter avant publication' : 'Brouillon'"
+              :description="validationManquante(o) ? 'Vous pouvez demander la validation à tout moment, même si l\'offre n\'est pas complète.' : 'Pour publier, l\'annonce doit être complète.'"
+            >
+              <p
+                v-if="manques.length"
+                class="texte"
+              >
+                À compléter pour publier :
+              </p>
+              <ul
+                v-if="manques.length"
+                class="manques"
+              >
+                <li
+                  v-for="m in manques"
+                  :key="m.label"
+                >
+                  {{ m.label }}
+                  <button
+                    v-if="!lectureSeule"
+                    type="button"
+                    class="lien"
+                    @click="allerA(m.etape)"
+                  >
+                    Compléter
+                  </button>
+                </li>
+              </ul>
+              <div
+                v-if="!lectureSeule"
+                class="actions"
+              >
+                <DemandeValidation
+                  :offre="o"
+                  variant="primary"
+                />
+              </div>
+            </Panel>
+          </template>
+
+          <Panel
+            v-else-if="o.etat === 'publiee'"
+            class="encart encart--action"
+            titre="Publiée · le recrutement est ouvert"
+            :description="`En ligne du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}. Les candidatures, la prolongation et le retrait se gèrent désormais dans Mes recrutements.`"
+          >
+            <p
+              v-if="restants <= 7"
+              class="alerte"
+            >
+              Se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
+            </p>
+            <table class="supports">
+              <thead>
+                <tr>
+                  <th scope="col">
+                    Site
+                  </th>
+                  <th scope="col">
+                    État
+                  </th>
+                  <th scope="col">
+                    Depuis
+                  </th>
+                  <th scope="col">
+                    <span class="sr-only">Action</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="c in publies"
+                  :key="c.id"
+                >
+                  <td>{{ c.nom }}<small>{{ c.detail }}</small></td>
+                  <td>
+                    <span
+                      class="etat"
+                      :class="{ 'etat--on': o.publications[c.id]?.etat === 'publiee' }"
+                    >{{ o.publications[c.id]?.etat === 'publiee' ? 'En ligne' : 'Arrêtée' }}</span>
+                  </td>
+                  <td>{{ o.publications[c.id]?.debut }}</td>
+                  <td class="droite">
+                    <CspButton
+                      v-if="o.publications[c.id]?.etat === 'publiee' && c.id !== 'csp'"
+                      label="Arrêter"
+                      size="sm"
+                      variant="tertiary-no-outline"
+                      @click="arreter(c.id)"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="actions">
+              <CspButton
+                label="Voir le recrutement"
+                size="sm"
+                icon="ri:arrow-right-line"
+                @click="aller({ nom: 'recrutements' })"
               />
             </div>
           </Panel>
 
           <Panel
-            v-else-if="o.validationEtat === 'en_attente'"
+            v-else-if="o.etat === 'retiree'"
             class="encart"
-            titre="Validation en cours"
-            :description="valideur ? `Demandée ${le(o.validationDemandeeLe)} par ${o.creePar}. Consultez l'offre et le résumé pour la validation, puis donnez votre réponse.` : `Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
+            titre="Retirée"
+            :description="`Retirée ${le(o.retireeLe)}. Retirer l'offre ne clôt pas le recrutement : les candidatures restent à traiter.`"
           >
-            <BlocValidation
-              :offre="o"
-              simulation
-              :moi="valideur ? UTILISATEUR : undefined"
-            />
+            <div>
+              <CspButton
+                label="Archiver l'offre"
+                variant="secondary"
+                icon="ri:archive-line"
+                is-icon-left
+                @click="archiver"
+              />
+            </div>
           </Panel>
 
           <Panel
             v-else
             class="encart"
-            :titre="o.validationEtat === 'validee' ? 'Validée — à compléter avant publication' : 'Brouillon'"
-            :description="validationManquante(o) ? 'Vous pouvez demander la validation à tout moment, même si l\'offre n\'est pas complète.' : 'Pour publier, l\'annonce doit être complète.'"
+            titre="Offre archivée"
+            description="Elle n'est plus visible des candidats. Son contenu peut servir de base à un nouveau recrutement."
           >
-            <p
-              v-if="manques.length"
-              class="texte"
-            >
-              À compléter pour publier :
-            </p>
-            <ul
-              v-if="manques.length"
-              class="manques"
-            >
-              <li
-                v-for="m in manques"
-                :key="m.label"
-              >
-                {{ m.label }}
-                <button
-                  v-if="!lectureSeule"
-                  type="button"
-                  class="lien"
-                  @click="allerA(m.etape)"
-                >
-                  Compléter
-                </button>
-              </li>
-            </ul>
-            <div
-              v-if="!lectureSeule"
-              class="actions"
-            >
-              <DemandeValidation
-                :offre="o"
-                variant="primary"
+            <div>
+              <CspButton
+                label="Dupliquer cette offre"
+                variant="secondary"
+                icon="ri:file-copy-2-line"
+                is-icon-left
+                @click="aller({ nom: 'creation', mode: 'duplication', offreId: o.id })"
               />
             </div>
           </Panel>
-        </template>
+        </div>
+      </aside>
 
-        <Panel
-          v-else-if="o.etat === 'publiee'"
-          class="encart encart--action"
-          titre="Publiée · le recrutement est ouvert"
-          :description="`En ligne du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}. Les candidatures, la prolongation et le retrait se gèrent désormais dans Mes recrutements.`"
+      <div class="sections">
+        <SectionOffre
+          id="annonce"
+          v-model:ouvert="ouverts.annonce"
+          titre="Annonce"
+          :description="enEdition('annonce') ? MODE_PROPOSITION : lectureSeule ? `Lecture seule : seule la personne qui suit l'offre (${o.creePar}) peut la modifier.` : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
         >
-          <p
-            v-if="restants <= 7"
-            class="alerte"
+          <template
+            v-if="valideur"
+            #actions
           >
-            Se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
-          </p>
-          <table class="supports">
-            <thead>
-              <tr>
-                <th scope="col">
-                  Site
-                </th>
-                <th scope="col">
-                  État
-                </th>
-                <th scope="col">
-                  Depuis
-                </th>
-                <th scope="col">
-                  <span class="sr-only">Action</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="c in publies"
-                :key="c.id"
-              >
-                <td>{{ c.nom }}<small>{{ c.detail }}</small></td>
-                <td>
-                  <span
-                    class="etat"
-                    :class="{ 'etat--on': o.publications[c.id]?.etat === 'publiee' }"
-                  >{{ o.publications[c.id]?.etat === 'publiee' ? 'En ligne' : 'Arrêtée' }}</span>
-                </td>
-                <td>{{ o.publications[c.id]?.debut }}</td>
-                <td class="droite">
-                  <CspButton
-                    v-if="o.publications[c.id]?.etat === 'publiee' && c.id !== 'csp'"
-                    label="Arrêter"
-                    size="sm"
-                    variant="tertiary-no-outline"
-                    @click="arreter(c.id)"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="actions">
-            <CspButton
-              label="Voir le recrutement"
-              size="sm"
-              icon="ri:arrow-right-line"
-              @click="aller({ nom: 'recrutements' })"
+            <template v-if="enEdition('annonce')">
+              <CspButton
+                label="Annuler"
+                size="sm"
+                variant="tertiary-no-outline"
+                @click="edition = null"
+              />
+              <CspButton
+                label="Valider les modifications"
+                size="sm"
+                icon="ri:check-line"
+                is-icon-left
+                @click="ajouterProposition"
+              />
+            </template>
+          </template>
+          <template #intro>
+            <p class="source">
+              <span>
+                {{ origineAnnonce }}
+                <template v-if="f">
+                  <strong>{{ f.intitule }}</strong> ({{ f.id }})
+                </template>
+              </span>
+              <CspButton
+                v-if="f"
+                label="Voir la fiche de poste"
+                variant="tertiary-no-outline"
+                size="sm"
+                icon="ri:file-text-line"
+                is-icon-left
+                @click="panneau = 'fiche'"
+              />
+            </p>
+          </template>
+          <fieldset
+            class="verrou"
+            :class="{ 'verrou--proposition': enEdition('annonce') }"
+            :disabled="!modifiable && !enEdition('annonce')"
+          >
+            <FormAnnonce
+              :offre="enEdition('annonce') ? edition!.copie : o"
+              :fiche="f"
             />
-          </div>
-        </Panel>
-
-        <Panel
-          v-else-if="o.etat === 'retiree'"
-          class="encart"
-          titre="Retirée"
-          :description="`Retirée ${le(o.retireeLe)}. Retirer l'offre ne clôt pas le recrutement : les candidatures restent à traiter.`"
-        >
-          <div>
+          </fieldset>
+          <div
+            v-if="enEdition('annonce')"
+            class="barre-proposition"
+          >
             <CspButton
-              label="Archiver l'offre"
-              variant="secondary"
-              icon="ri:archive-line"
+              label="Annuler"
+              variant="tertiary-no-outline"
+              @click="edition = null"
+            />
+            <CspButton
+              label="Valider les modifications"
+              icon="ri:check-line"
               is-icon-left
-              @click="archiver"
+              @click="ajouterProposition"
             />
           </div>
-        </Panel>
+        </SectionOffre>
 
-        <Panel
-          v-else
-          class="encart"
-          titre="Offre archivée"
-          description="Elle n'est plus visible des candidats. Son contenu peut servir de base à un nouveau recrutement."
+        <SectionOffre
+          id="interne"
+          v-model:ouvert="ouverts.interne"
+          titre="Informations internes"
         >
-          <div>
+          <template #intro>
+            <p class="source">
+              Jamais publiées. Elles servent au suivi et au résumé pour les valideurs.
+            </p>
+          </template>
+          <fieldset
+            class="verrou"
+            :disabled="!modifiable"
+          >
+            <FormInterne :offre="o" />
+          </fieldset>
+        </SectionOffre>
+
+        <SectionOffre
+          id="candidature"
+          v-model:ouvert="ouverts.candidature"
+          titre="Formulaire de candidature"
+          :description="enEdition('candidature') ? MODE_PROPOSITION : undefined"
+        >
+          <template
+            v-if="valideur"
+            #actions
+          >
+            <template v-if="enEdition('candidature')">
+              <CspButton
+                label="Annuler"
+                size="sm"
+                variant="tertiary-no-outline"
+                @click="edition = null"
+              />
+              <CspButton
+                label="Valider les modifications"
+                size="sm"
+                icon="ri:check-line"
+                is-icon-left
+                @click="ajouterProposition"
+              />
+            </template>
+          </template>
+          <fieldset
+            class="verrou"
+            :class="{ 'verrou--proposition': enEdition('candidature') }"
+            :disabled="!modifiable && !enEdition('candidature')"
+          >
+            <FormCandidature
+              :offre="enEdition('candidature') ? edition!.copie : o"
+              :verrouille="o.etat !== 'brouillon'"
+            />
+          </fieldset>
+          <div
+            v-if="enEdition('candidature')"
+            class="barre-proposition"
+          >
             <CspButton
-              label="Dupliquer cette offre"
-              variant="secondary"
-              icon="ri:file-copy-2-line"
+              label="Annuler"
+              variant="tertiary-no-outline"
+              @click="edition = null"
+            />
+            <CspButton
+              label="Valider les modifications"
+              icon="ri:check-line"
               is-icon-left
-              @click="aller({ nom: 'creation', mode: 'duplication', offreId: o.id })"
+              @click="ajouterProposition"
             />
           </div>
-        </Panel>
+        </SectionOffre>
+
+        <SectionOffre
+          id="journal"
+          v-model:ouvert="ouverts.journal"
+          titre="Journal d'activité"
+        >
+          <ol class="histo">
+            <li
+              v-for="(h, i) in [...o.historique].reverse()"
+              :key="i"
+            >
+              <small>{{ h.date }}</small>{{ h.texte }}
+            </li>
+          </ol>
+        </SectionOffre>
       </div>
     </div>
-
-    <div class="sections">
-      <SectionOffre
-        id="annonce"
-        v-model:ouvert="ouverts.annonce"
-        titre="Annonce"
-        :description="enEdition('annonce') ? MODE_PROPOSITION : lectureSeule ? `Lecture seule : seule la personne qui suit l'offre (${o.creePar}) peut la modifier.` : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
-      >
-        <template
-          v-if="valideur"
-          #actions
-        >
-          <template v-if="enEdition('annonce')">
-            <CspButton
-              label="Annuler"
-              size="sm"
-              variant="tertiary-no-outline"
-              @click="edition = null"
-            />
-            <CspButton
-              label="Valider les modifications"
-              size="sm"
-              icon="ri:check-line"
-              is-icon-left
-              @click="ajouterProposition"
-            />
-          </template>
-        </template>
-        <template #intro>
-          <p class="source">
-            <span>
-              {{ origineAnnonce }}
-              <template v-if="f">
-                <strong>{{ f.intitule }}</strong> ({{ f.id }})
-              </template>
-            </span>
-            <CspButton
-              v-if="f"
-              label="Voir la fiche de poste"
-              variant="tertiary-no-outline"
-              size="sm"
-              icon="ri:file-text-line"
-              is-icon-left
-              @click="panneau = 'fiche'"
-            />
-          </p>
-        </template>
-        <fieldset
-          class="verrou"
-          :class="{ 'verrou--proposition': enEdition('annonce') }"
-          :disabled="!modifiable && !enEdition('annonce')"
-        >
-          <FormAnnonce
-            :offre="enEdition('annonce') ? edition!.copie : o"
-            :fiche="f"
-          />
-        </fieldset>
-        <div
-          v-if="enEdition('annonce')"
-          class="barre-proposition"
-        >
-          <CspButton
-            label="Annuler"
-            variant="tertiary-no-outline"
-            @click="edition = null"
-          />
-          <CspButton
-            label="Valider les modifications"
-            icon="ri:check-line"
-            is-icon-left
-            @click="ajouterProposition"
-          />
-        </div>
-      </SectionOffre>
-
-      <SectionOffre
-        id="interne"
-        v-model:ouvert="ouverts.interne"
-        titre="Informations internes"
-      >
-        <template #intro>
-          <p class="source">
-            Jamais publiées. Elles servent au suivi et au résumé pour les valideurs.
-          </p>
-        </template>
-        <fieldset
-          class="verrou"
-          :disabled="!modifiable"
-        >
-          <FormInterne :offre="o" />
-        </fieldset>
-      </SectionOffre>
-
-      <SectionOffre
-        id="candidature"
-        v-model:ouvert="ouverts.candidature"
-        titre="Formulaire de candidature"
-        :description="enEdition('candidature') ? MODE_PROPOSITION : undefined"
-      >
-        <template
-          v-if="valideur"
-          #actions
-        >
-          <template v-if="enEdition('candidature')">
-            <CspButton
-              label="Annuler"
-              size="sm"
-              variant="tertiary-no-outline"
-              @click="edition = null"
-            />
-            <CspButton
-              label="Valider les modifications"
-              size="sm"
-              icon="ri:check-line"
-              is-icon-left
-              @click="ajouterProposition"
-            />
-          </template>
-        </template>
-        <fieldset
-          class="verrou"
-          :class="{ 'verrou--proposition': enEdition('candidature') }"
-          :disabled="!modifiable && !enEdition('candidature')"
-        >
-          <FormCandidature
-            :offre="enEdition('candidature') ? edition!.copie : o"
-            :verrouille="o.etat !== 'brouillon'"
-          />
-        </fieldset>
-        <div
-          v-if="enEdition('candidature')"
-          class="barre-proposition"
-        >
-          <CspButton
-            label="Annuler"
-            variant="tertiary-no-outline"
-            @click="edition = null"
-          />
-          <CspButton
-            label="Valider les modifications"
-            icon="ri:check-line"
-            is-icon-left
-            @click="ajouterProposition"
-          />
-        </div>
-      </SectionOffre>
-    </div>
-
-    <SectionOffre
-      id="journal"
-      v-model:ouvert="ouverts.journal"
-      titre="Journal d'activité"
-    >
-      <ol class="histo">
-        <li
-          v-for="(h, i) in [...o.historique].reverse()"
-          :key="i"
-        >
-          <small>{{ h.date }}</small>{{ h.texte }}
-        </li>
-      </ol>
-    </SectionOffre>
 
     <CspDrawer
       :open="panneau === 'apercu'"
@@ -878,17 +879,33 @@ function archiver() {
   font-size: var(--csp-font-size-sm);
 }
 
-.tete {
+.colonnes {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--csp-space-5);
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) 26rem;
+  grid-template-areas: 'sections tete';
+  gap: var(--csp-space-6);
+  align-items: start;
 
-  &--seule {
+  @media (max-width: 75rem) {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'tete' 'sections';
+  }
+}
+
+// Colonne de droite : suit le défilement sous la barre « Accéder à » ; défile de son côté si elle est plus haute.
+.tete {
+  grid-area: tete;
+  position: sticky;
+  top: 4rem;
+  max-height: calc(100vh - 12rem);
+  overflow-y: auto;
+
+  @media (max-width: 75rem) {
+    position: static;
+    max-height: none;
   }
 
-  > #validation {
+  #validation {
     scroll-margin-top: 4.5rem;
   }
 }
@@ -905,6 +922,7 @@ function archiver() {
 }
 
 .sections {
+  grid-area: sections;
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);

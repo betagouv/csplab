@@ -821,3 +821,5 @@ intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton
   « N propositions à traiter ».
 - Plus de section « Publication » : dates et diffusion se choisissent dans le parcours « Publier ». Une offre est
   donc « prête à publier » sans dates ; les valideurs ne proposent plus de modification sur la publication.
+- **Deux colonnes** : sections à gauche ; à droite, l'encart de l'étape en cours (ou la décision du valideur,
+  avec un résumé compact), qui suit le défilement. Sous 75rem de large, l'encart repasse au-dessus.

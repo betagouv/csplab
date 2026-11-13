@@ -80,6 +80,7 @@ function envoyer() {
         :offre="o"
         :fiche="fiche"
         integre
+        compact
       />
     </div>
 
@@ -169,7 +170,7 @@ function envoyer() {
   flex-direction: column;
   gap: var(--csp-space-5);
   scroll-margin-top: 4.5rem;
-  padding: var(--csp-space-5) var(--csp-space-6);
+  padding: var(--csp-space-5);
   border: 1px solid var(--border-default-grey);
   border-top: 3px solid var(--border-plain-blue-france);
   background: var(--background-default-grey);
