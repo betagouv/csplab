@@ -7,7 +7,6 @@ import { renderWithApp } from '@/test/render'
 import { getOrganismeDetail } from '../api'
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   getOrganismeDetail: vi.fn(),
 }))
 

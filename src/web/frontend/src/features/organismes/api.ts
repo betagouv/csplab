@@ -1,23 +1,13 @@
-import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismeRead, OrganismeRecherche, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismeRead, OrganismeRecherche, OrganismesPageParams, PaginatedOrganismesListList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
 import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
+import { ORGANISMES_PAGE_SIZE } from './constants/organisme'
 
-const MAX_PAGE_SIZE = 1_000
-
-export async function getOrganismesList(): Promise<OrganismesList[]> {
-  async function fetchPage(page: number) {
-    const { data } = await api.GET('/recruteur/organismes', {
-      params: { query: { page, taille: MAX_PAGE_SIZE } },
-    })
-    return data!
-  }
-
-  const firstPage = await fetchPage(1)
-  const pageCount = Math.ceil(firstPage.count / MAX_PAGE_SIZE)
-  const otherPages = await Promise.all(
-    Array.from({ length: pageCount - 1 }, (_, index) => fetchPage(index + 2)),
-  )
-  return [firstPage, ...otherPages].flatMap(page => page.results)
+export async function getOrganismesPage({ page, filter }: OrganismesPageParams): Promise<PaginatedOrganismesListList> {
+  const { data } = await api.GET('/recruteur/organismes', {
+    params: { query: { page, taille: ORGANISMES_PAGE_SIZE, filter } },
+  })
+  return data!
 }
 
 export async function searchOrganismes(nom: string): Promise<OrganismeRecherche[]> {
