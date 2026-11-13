@@ -110,7 +110,7 @@ onMounted(async () => {
   <PageAts
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Les offres en préparation, jusqu'à leur publication. Une fois publiée, une offre devient un recrutement."
+    sous-titre="Retrouvez toutes vos offres d'emploi en préparation. Une fois publiée, une offre devient un recrutement et vous pourrez y gérer toutes vos candidatures."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
   >
     <template #actions>
