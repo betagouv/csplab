@@ -42,8 +42,8 @@ const COLONNES: CspColumnDef<Offre>[] = [
   { id: 'fin', header: 'Fin de diffusion', wrapHeader: true, sortable: true, accessor: o => o.dateFin, cellComponent: FinCell, width: '7.5rem' },
   { id: 'responsable', header: 'Responsable', accessor: o => o.responsables?.join(' ; ') ?? '', cellComponent: ResponsableCell },
   { id: 'modifie', header: 'Dernière activité', wrapHeader: true, sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ModifieCell, width: '7.5rem' },
-  { id: 'total', header: 'Candidatures', wrapHeader: true, accessor: o => candidatures(o).total, align: 'end', width: '6.5rem' },
-  { id: 'nouvelles', header: 'Nouvelles', wrapHeader: true, accessor: o => candidatures(o).nouvelles, cellComponent: NouvellesCell, width: '6rem' },
+  { id: 'total', header: 'Nbr total de candidature', wrapHeader: true, accessor: o => candidatures(o).total, align: 'end', width: '6.5rem' },
+  { id: 'nouvelles', header: 'Nouvelle candidature', wrapHeader: true, accessor: o => candidatures(o).nouvelles, cellComponent: NouvellesCell, width: '6rem' },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsRecrutementCell },
 ]
 
