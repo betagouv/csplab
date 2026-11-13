@@ -34,6 +34,7 @@ export const Accueil: Story = { name: '1. Tableau de bord', render: story({ nom:
 export const Fiches: Story = { name: '2. Fiches de poste', render: story({ nom: 'fiches' }) }
 export const FichePaie: Story = { name: '3. Fiche « Gestionnaire de paie » → lancer un recrutement', render: story({ nom: 'fiche', id: 'FP-SG-2026-007' }) }
 export const Lancer: Story = { name: '4. Lancer un recrutement — 3 sources', render: story({ nom: 'creation' }) }
+export const Rediger: Story = { name: '4 bis. Créer l\'offre — parcours en étapes (annonce, infos internes, candidature, récapitulatif)', render: story({ nom: 'rediger', id: 'OFF-2026-0151' }, true) }
 export const Brouillon: Story = { name: '5. Offre en brouillon — page unique, demander la validation à tout moment', render: story({ nom: 'offre', id: 'OFF-2026-0151' }, true) }
 export const OffresEnPreparation: Story = { name: '5 bis. Mes offres — en préparation, rangées par action à faire', render: story({ nom: 'offres' }, true) }
 export const EnValidation: Story = { name: '6. Validation en cours — « Chargé·e de recrutement »', render: story({ nom: 'offre', id: 'OFF-2026-0148' }, true) }

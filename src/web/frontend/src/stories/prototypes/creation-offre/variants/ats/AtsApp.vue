@@ -11,6 +11,7 @@ import OffreEspace from './OffreEspace.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
 import RecrutementsListe from './RecrutementsListe.vue'
+import RedactionOffre from './RedactionOffre.vue'
 import { db, retraitsAutomatiques } from './store'
 import TableauDeBord from './TableauDeBord.vue'
 
@@ -50,7 +51,7 @@ function aller(e: Ecran) {
   document.querySelector('.ats__main')?.scrollTo({ top: 0 })
 }
 
-const DETAILS = /^\/(offre|fiche|formulaire|apercu)\/(.+)$/
+const DETAILS = /^\/(offre|fiche|formulaire|apercu|rediger)\/(.+)$/
 watch(() => route.path, (p) => {
   const d = DETAILS.exec(p)
   const e = LISTES[p] ?? (d ? { nom: d[1], id: d[2] } as Ecran : undefined)
@@ -94,6 +95,12 @@ provide(NAV, { ecran, aller, notifier, flash })
     :onglet-depart="ecran.onglet"
   />
   <Parametres v-else-if="ecran.nom === 'parametres'" />
+  <RedactionOffre
+    v-else-if="ecran.nom === 'rediger'"
+    :id="ecran.id"
+    :key="`r-${ecran.id}`"
+    :etape="ecran.etape"
+  />
   <OffreEspace
     v-else-if="ecran.nom === 'offre'"
     :id="ecran.id"

@@ -93,7 +93,7 @@ function creer() {
   const saisie = mode.value === 'manuel' ? { titre: manuel.value.intitule.trim(), lieu: manuel.value.localisation.trim(), categorie: manuel.value.categorie } : undefined
   const o = nouvelleOffre(f, mode.value, source, saisie)
   notifier(f ? `Offre ${o.id} créée et rattachée à la fiche ${f.id}.` : `Offre ${o.id} créée, sans fiche de poste.`)
-  aller({ nom: 'formulaire', id: o.id })
+  aller({ nom: 'rediger', id: o.id })
 }
 </script>
 

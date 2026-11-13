@@ -7,8 +7,6 @@ import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
-import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import Panel from '../../shared/Panel.vue'
 import { manquesPublication } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
@@ -20,8 +18,8 @@ import DemandeValidation from './DemandeValidation.vue'
 import FicheSource from './FicheSource.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
+import FormInterne from './FormInterne.vue'
 import { useNav } from './nav'
-import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
 import Propositions from './Propositions.vue'
 import ResumeValidation from './ResumeValidation.vue'
@@ -52,14 +50,14 @@ const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.leng
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 
 // --- Sections et raccourcis « Accéder à » ---
-const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, candidature: true, parametres: true, publication: true, journal: false })
+const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, interne: true, candidature: true, publication: true, journal: false })
 // Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
 const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
 const RACCOURCIS = computed(() => [
   { id: 'annonce', label: 'Annonce' },
+  { id: 'interne', label: 'Informations internes' },
   ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
   { id: 'candidature', label: 'Formulaire de candidature' },
-  { id: 'parametres', label: 'Paramètres' },
   { id: 'publication', label: 'Publication' },
   { id: 'journal', label: 'Journal d\'activité' },
 ])
@@ -181,13 +179,6 @@ function enregistrerAuto() {
   heureOk.value = heure()
 }
 
-// --- Paramètres : responsable du recrutement ---
-const responsable = computed({
-  get: () => o.value.equipe.find(m => m.role === 'Responsable')?.nom ?? UTILISATEUR,
-  set: (nom: string) => {
-    o.value.equipe = [{ nom, role: 'Responsable' as const }, ...o.value.equipe.filter(m => m.role !== 'Responsable' && m.nom !== nom)]
-  },
-})
 // Phrase sous le titre « Annonce » : d'où vient le contenu, et la fiche de poste rattachée.
 const origineAnnonce = computed(() => {
   if (!f.value) {
@@ -200,7 +191,6 @@ const origineAnnonce = computed(() => {
     duplication: 'Annonce reprise d\'une offre existante, rattachée à la fiche de poste',
   }[o.value.origineContenu]
 })
-const OPTIONS_AGENTS = computed(() => db.organisme.agents.map(a => ({ value: a.nom, label: a.nom })))
 
 // Informations sous le titre, comme sur la page d'un recrutement de l'application.
 const meta = computed(() => [
@@ -228,13 +218,6 @@ function archiver() {
   archiverOffre(o.value)
   notifier('Offre archivée. Elle reste consultable et peut être dupliquée.')
 }
-
-const FREQ = [
-  { value: 'chaque', label: 'À chaque candidature' },
-  { value: 'cinq', label: 'Toutes les 5 candidatures' },
-  { value: 'quotidien', label: 'Un récapitulatif par jour' },
-  { value: 'aucune', label: 'Jamais' },
-]
 </script>
 
 <template>
@@ -627,6 +610,24 @@ const FREQ = [
       </SectionOffre>
 
       <SectionOffre
+        id="interne"
+        v-model:ouvert="ouverts.interne"
+        titre="Informations internes"
+      >
+        <template #intro>
+          <p class="source">
+            Jamais publiées. Elles servent au suivi et au résumé pour les valideurs.
+          </p>
+        </template>
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
+        >
+          <FormInterne :offre="o" />
+        </fieldset>
+      </SectionOffre>
+
+      <SectionOffre
         v-if="avecValidation && !valideur"
         id="validation"
         v-model:ouvert="ouverts.validation"
@@ -707,69 +708,10 @@ const FREQ = [
       </SectionOffre>
 
       <SectionOffre
-        id="parametres"
-        v-model:ouvert="ouverts.parametres"
-        titre="Paramètres de l'offre"
-      >
-        <fieldset
-          class="verrou"
-          :disabled="!modifiable"
-        >
-          <div class="parametres">
-            <CspSelect
-              v-model="responsable"
-              label="Responsable du recrutement"
-              :options="OPTIONS_AGENTS"
-            />
-            <div
-              v-if="f"
-              class="fiche"
-            >
-              <div>
-                <p class="mention">
-                  Fiche de poste rattachée
-                </p>
-                <strong>{{ f.intitule }}</strong>
-                <p class="mention">
-                  {{ f.id }} · {{ f.service }}
-                </p>
-              </div>
-              <OrigineBadge
-                :origine="f.origine"
-                court
-              />
-              <CspButton
-                label="Ouvrir la fiche"
-                variant="tertiary-no-outline"
-                size="sm"
-                @click="aller({ nom: 'fiche', id: f.id })"
-              />
-            </div>
-            <div v-else>
-              <p class="mention">
-                Fiche de poste rattachée
-              </p>
-              <p class="source">
-                Aucune fiche de poste
-              </p>
-            </div>
-            <CspRadioGroup
-              v-if="o.etat === 'publiee'"
-              v-model="o.notifications"
-              label="Mes notifications : courriel pour les nouvelles candidatures"
-              :options="FREQ"
-              size="sm"
-              @update:model-value="sauvegarder"
-            />
-          </div>
-        </fieldset>
-      </SectionOffre>
-
-      <SectionOffre
         id="publication"
         v-model:ouvert="ouverts.publication"
         titre="Publication"
-        :description="enEdition('publication') ? MODE_PROPOSITION : o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
+        :description="enEdition('publication') ? MODE_PROPOSITION : o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » dans Mes recrutements.'"
       >
         <template
           v-if="valideur"

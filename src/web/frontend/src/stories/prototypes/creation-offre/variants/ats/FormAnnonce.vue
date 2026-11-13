@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Fiche, Offre } from './store'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -10,12 +10,11 @@ import FieldRow from '../../shared/FieldRow.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
-import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, MOTIFS_DEPART, MOTIFS_RECRUTEMENT, STATUTS_POSTE, TEMPS_TRAVAIL, VERSANTS } from './store'
-import SuiviInterne from './SuiviInterne.vue'
+import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL, VERSANTS } from './store'
 
 // Section « Annonce » de la page de l'offre : ce que lit le candidat sur Choisir le Service Public (D311-8).
-// Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Le suivi interne (jamais publié)
-// est dans un encadré gris du bloc « Le poste ». Le résumé pour la validation est en haut de la page.
+// Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Les informations internes (jamais
+// publiées) sont dans leur propre section (FormInterne). Le résumé pour la validation est en haut de la page.
 // Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
 const props = defineProps<{ offre: Offre, fiche?: Fiche }>()
 const { notifier } = useNav()
@@ -31,11 +30,8 @@ function modele(cle: 'categorie' | 'statutPoste' | 'metier' | 'fondementJuridiqu
 const categorie = modele('categorie')
 const statutPoste = modele('statutPoste')
 const fondement = modele('fondementJuridique')
-const motif = modele('motifRecrutement')
-const depart = modele('motifDepart')
 const temps = computed({ get: () => o.value.tempsTravail || 'aucun', set: (v: string) => (o.value.tempsTravail = v === 'aucun' ? '' : v) })
 const OPTIONS_TEMPS = [{ value: 'aucun', label: 'Choisir' }, ...TEMPS_TRAVAIL]
-const rifseep = modele('groupeRifseep')
 // Champs facultatifs à liste : « aucun » = non renseigné.
 function choix(cle: 'versant' | 'natureContrat' | 'niveauExperience' | 'niveauEtudes' | 'management') {
   return computed({
@@ -54,30 +50,18 @@ const EXPERIENCES = ['Débutant accepté', 'Confirmé (2 à 5 ans)', 'Expert (pl
 const ETUDES = ['Sans diplôme', 'CAP, BEP', 'Baccalauréat', 'Bac + 2', 'Bac + 3', 'Bac + 5 et plus']
 const MANAGEMENT = ['Pas d\'encadrement', 'Encadrement d\'une équipe', 'Encadrement de plusieurs équipes']
 const contractuels = computed(() => o.value.ouvertA.includes('contractuel'))
-const avecAgent = computed(() => ['Remplacement', 'Renouvellement'].includes(o.value.motifRecrutement))
-const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné' }, ...l.map(v => ({ value: v, label: v }))]
 
-// Métier RMFP+ : ses compétences s'affichent déjà cochées ; on peut en retirer ou en ajouter.
+// Métier RMFP+ (à gauche) : ses compétences s'affichent à droite, déjà cochées ; on peut en décocher.
+// Pas d'ajout manuel : les compétences viennent du référentiel.
 const metierChoisi = computed({
   get: () => o.value.metier || 'aucun',
   set: (v: string) => {
     o.value.metier = v === 'aucun' ? '' : v
-    const m = metier(o.value.metier)
-    if (m) {
-      o.value.competences = [...new Set([...m.competences, ...o.value.competences.filter(c => !METIERS.some(x => x.competences.includes(c)))])]
-    }
+    o.value.competences = [...(metier(o.value.metier)?.competences ?? [])]
   },
 })
 const OPTIONS_METIER = [{ value: 'aucun', label: 'Choisir un métier' }, ...METIERS.map(m => ({ value: m.id, label: `${m.libelle} — ${m.domaine}` }))]
-const optionsCompetences = computed(() => [...new Set([...(metier(o.value.metier)?.competences ?? []), ...o.value.competences])].map(c => ({ value: c, label: c })))
-const nouvelle = ref('')
-function ajouterCompetence() {
-  const c = nouvelle.value.trim()
-  if (c && !o.value.competences.includes(c)) {
-    o.value.competences = [...o.value.competences, c]
-  }
-  nouvelle.value = ''
-}
+const optionsCompetences = computed(() => (metier(o.value.metier)?.competences ?? []).map(c => ({ value: c, label: c })))
 
 const OUVERT = [{ value: 'titulaire', label: 'Fonctionnaires' }, { value: 'contractuel', label: 'Contractuels' }]
 const FONDEMENTS = ['Article L332-2 (besoins permanents)', 'Article L332-8 (emplois de catégorie A)', 'Article L332-23 (accroissement temporaire)', 'Article L332-24 (contrat de projet)']
@@ -255,61 +239,6 @@ function formater() {
           :rows="2"
         />
       </ChampOffre>
-
-      <SuiviInterne>
-        <FieldRow :cols="2">
-          <CspInput
-            v-model="o.referenceInterne"
-            label="Référence interne (facultatif)"
-          />
-          <CspInput
-            v-model="o.referenceFranceTravail"
-            label="Référence France Travail (facultatif)"
-          />
-        </FieldRow>
-        <FieldRow :cols="2">
-          <CspInput
-            v-model="o.codePoste"
-            label="Code poste (facultatif)"
-          />
-        </FieldRow>
-        <FieldRow :cols="2">
-          <CspSelect
-            v-model="motif"
-            label="Motif de recrutement (facultatif)"
-            :options="optsInternes(MOTIFS_RECRUTEMENT)"
-          />
-          <CspSelect
-            v-model="depart"
-            label="Motif de départ (facultatif)"
-            :options="optsInternes(MOTIFS_DEPART)"
-          />
-        </FieldRow>
-        <CspInput
-          v-if="avecAgent"
-          v-model="o.agentRemplace"
-          label="Agent remplacé ou renouvelé (facultatif)"
-        />
-        <FieldRow :cols="2">
-          <CspSelect
-            v-model="rifseep"
-            label="Groupe RIFSEEP (facultatif)"
-            :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
-          />
-          <ChampOffre
-            :offre="o"
-            champ="cycleTravail"
-            label="Cycle de travail (facultatif)"
-            for-id="a-cycle"
-          >
-            <CspInput
-              id="a-cycle"
-              v-model="o.cycleTravail"
-              placeholder="Ex. : 38 h 30 sur 5 jours"
-            />
-          </ChampOffre>
-        </FieldRow>
-      </SuiviInterne>
     </div>
 
     <div class="groupe">
@@ -376,48 +305,40 @@ function formater() {
       <h3 class="groupe__titre">
         Profil recherché
       </h3>
-      <ChampOffre
-        :offre="o"
-        champ="metier"
-        label="Métier (référentiel RMFP+)"
-        for-id="a-metier"
-      >
-        <CspSelect
-          id="a-metier"
-          v-model="metierChoisi"
-          label="Métier"
-          class="sans-label"
-          :options="OPTIONS_METIER"
-        />
-      </ChampOffre>
-      <ChampOffre
-        v-if="optionsCompetences.length"
-        :offre="o"
-        champ="competences"
-        label="Compétences (facultatif)"
-      >
-        <CspCheckboxGroup
-          v-model="o.competences"
-          label="Compétences"
-          class="sans-label"
-          :options="optionsCompetences"
-        />
-      </ChampOffre>
-      <div class="ajout">
-        <CspInput
-          v-model="nouvelle"
-          label="Ajouter une compétence"
-          size="sm"
-          @keydown.enter.prevent="ajouterCompetence"
-        />
-        <CspButton
-          label="Ajouter"
-          size="sm"
-          variant="secondary"
-          icon="ri:add-line"
-          is-icon-left
-          @click="ajouterCompetence"
-        />
+      <div class="metier">
+        <ChampOffre
+          :offre="o"
+          champ="metier"
+          label="Métier (référentiel RMFP+)"
+          for-id="a-metier"
+        >
+          <CspSelect
+            id="a-metier"
+            v-model="metierChoisi"
+            label="Métier"
+            class="sans-label"
+            :options="OPTIONS_METIER"
+          />
+        </ChampOffre>
+        <ChampOffre
+          :offre="o"
+          champ="competences"
+          label="Compétences du métier (facultatif)"
+        >
+          <CspCheckboxGroup
+            v-if="optionsCompetences.length"
+            v-model="o.competences"
+            label="Compétences"
+            class="sans-label"
+            :options="optionsCompetences"
+          />
+          <p
+            v-else
+            class="metier__vide"
+          >
+            Choisissez un métier pour afficher ses compétences du RMFP+.
+          </p>
+        </ChampOffre>
       </div>
       <ChampOffre
         :offre="o"
@@ -510,11 +431,19 @@ function formater() {
   clip: rect(0 0 0 0);
 }
 
-.ajout {
+.metier {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--csp-space-3);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--csp-space-6);
+  align-items: start;
+}
+
+.metier__vide {
+  margin: 0;
+  padding: var(--csp-space-3) var(--csp-space-4);
+  background: var(--background-alt-grey);
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
 }
 
 .outil {

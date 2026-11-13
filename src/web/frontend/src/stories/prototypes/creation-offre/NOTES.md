@@ -779,3 +779,19 @@ Même modèle que « Mes offres sauvegardées » (candidat) : puces de filtre av
 intitulé, référence et fiche, ligne d'état avec icône. À droite, le bouton d'action (S) ou un chevron s'il n'y a rien
 à faire ; toute la carte est cliquable. « Toutes » garde l'ordre d'urgence. Pas de fond gris pour l'attente
 (le gris signifie « désactivée » côté candidat).
+
+## Itération 27 — Création ≠ page offre, paramétrage du recrutement à la publication (retours PO)
+
+- **Création en étapes** (nouvel écran, story 4 bis) : après le choix de la source, un parcours au modèle DSFR
+  « Étape n sur 4 » : Annonce → Informations internes → Formulaire de candidature → Récapitulatif (ce qui manque,
+  résumé pour les valideurs, « Demander la validation » ou « Enregistrer le brouillon » ; « Publier » si
+  l'organisme n'a pas de circuit et que tout est complet). Enregistrement automatique, « Enregistrer et quitter ».
+  La page de l'offre sert ensuite à consulter et modifier.
+- **Paramètres de l'offre retirés** de la page offre : responsable, équipe de recrutement et notifications sont des
+  éléments du recrutement. Ils sont demandés dans le parcours **Publier**, en 3 étapes à côté de l'aperçu candidat :
+  Dates et diffusion → Paramétrer le recrutement → « Le recrutement est ouvert ».
+- **Informations internes** sorties de l'annonce dans leur propre section (création et page offre) : références,
+  code poste, motifs, agent remplacé, RIFSEEP, cycle de travail. À confronter aux usages en test utilisateur
+  (Alice partagée, faute de contexte sur l'usage de ces informations).
+- **Compétences** sur deux colonnes : métier RMFP+ à gauche, ses compétences à cocher à droite. Plus d'ajout manuel ;
+  changer de métier remplace les compétences par celles du nouveau métier.
