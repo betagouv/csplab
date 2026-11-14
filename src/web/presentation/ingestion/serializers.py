@@ -856,10 +856,51 @@ class ListMetiersResponseSerializer(serializers.Serializer):
         "l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même "
         "code. Toujours renseigné.",
     )
+    actif = serializers.BooleanField(
+        source="is_active",
+        help_text="`true` si le métier est actif, `false` s'il est archivé.",
+    )
+    referentiel = serializers.CharField(
+        source="job_family_referential",
+        help_text="Référentiel du `code_emploi_csp` (`RMFPv2`), à renseigner dans "
+        "`profession.referentiel` de l'API d'ingestion d'offres.",
+    )
 
 
 class ListMetiersFiltersSerializer(serializers.Serializer):
-    domaine = serializers.CharField(default=None, max_length=3, source="domain")
+    domaine = _CommaSeparatedCodeField(
+        DOMAIN_NAMES,
+        "domaine",
+        lambda code: code,
+        help_text="Valeurs séparées par une virgule (ex. `JUS,CTL`).",
+        source="domains",
+    )
+    code_emploi_csp = serializers.CharField(
+        default=None,
+        help_text="Valeurs séparées par une virgule (ex. `ERJUS008,ERNUM001`).",
+        source="codes",
+    )
+    actif = serializers.BooleanField(
+        allow_null=True,
+        default=None,
+        help_text="`true` pour les seuls métiers actifs, `false` pour les seuls "
+        "métiers archivés. Absent, renvoie les deux.",
+        source="active",
+    )
+    versant = serializers.ChoiceField(
+        choices=[verse.value for verse in Verse],
+        default=None,
+        help_text="Métiers ouverts à ce versant de la fonction publique.",
+        error_messages={
+            "invalid_choice": "« {input} » n'est pas un versant valide. Une seule "
+            "valeur parmi : FPE, FPT, FPH."
+        },
+    )
+
+    def validate_code_emploi_csp(self, value: str | None) -> list[str] | None:
+        return [
+            code.strip() for code in (value or "").split(",") if code.strip()
+        ] or None
 
 
 _GUIDE_API_URL = "/pages/guide_api"
