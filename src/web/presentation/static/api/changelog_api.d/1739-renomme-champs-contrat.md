@@ -1,4 +1,5 @@
 ---
+titre: "Offres : champs du contrat renommés, `type_contrat` change de sens"
 type: non_retrocompatible
 date: 2026-10-06
 pr: 1739

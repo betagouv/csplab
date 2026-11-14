@@ -1,4 +1,5 @@
 ---
+titre: "Liste des offres : champs et filtres renommés en français"
 type: non_retrocompatible
 date: 2026-10-13
 pr: 1847

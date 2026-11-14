@@ -1,4 +1,5 @@
 ---
+titre: "Offres : au moins une catégorie obligatoire"
 type: non_retrocompatible
 date: 2026-10-29
 pr: 2143

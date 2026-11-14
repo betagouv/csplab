@@ -1,4 +1,5 @@
 ---
+titre: "Offres : champs et statuts de la réponse renommés en français"
 type: non_retrocompatible
 date: 2026-10-13
 pr: 1852

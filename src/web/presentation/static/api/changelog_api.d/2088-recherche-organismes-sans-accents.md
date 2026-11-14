@@ -1,4 +1,5 @@
 ---
+titre: "Organismes : recherche par nom insensible aux accents"
 type: modifie
 date: 2026-10-28
 pr: 2141

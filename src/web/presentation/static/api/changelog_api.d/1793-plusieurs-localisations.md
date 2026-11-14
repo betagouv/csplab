@@ -1,4 +1,5 @@
 ---
+titre: "Offres : tous les lieux envoyés sont enregistrés"
 type: corrige
 date: 2026-11-04
 pr: 2263

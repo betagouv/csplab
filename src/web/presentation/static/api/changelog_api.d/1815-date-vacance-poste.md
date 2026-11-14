@@ -1,4 +1,5 @@
 ---
+titre: "Offres : la date de vacance du poste est enregistrée"
 type: ajoute
 date: 2026-10-08
 pr: 1815

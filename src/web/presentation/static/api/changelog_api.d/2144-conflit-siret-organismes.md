@@ -1,4 +1,5 @@
 ---
+titre: "Organismes : un SIRET déjà porté par un autre référentiel est signalé"
 type: corrige
 date: 2026-10-29
 pr: 2144

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : le département doit appartenir à la région"
 type: non_retrocompatible
 date: 2026-10-26
 pr: 2076

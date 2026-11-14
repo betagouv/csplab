@@ -1,4 +1,5 @@
 ---
+titre: "Offres : conditions d'exercice, service et date limite de candidature"
 type: ajoute
 date: 2026-10-05
 pr: 1727
