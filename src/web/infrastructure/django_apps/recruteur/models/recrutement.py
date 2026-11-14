@@ -13,7 +13,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, JSONObject
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -48,6 +48,25 @@ def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subque
 class RecrutementQuerySet(models.QuerySet):
     def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
+
+    def with_list_version(self, utilisateur_id) -> "RecrutementQuerySet":
+        candidatures = "etapes__candidatures"
+        conversations = f"{candidatures}__conversations"
+        lectures = f"{conversations}__lectures"
+        return self.annotate(
+            list_version=JSONObject(
+                updated_at=F("updated_at"),
+                etapes=Count("etapes", distinct=True),
+                etapes_updated_at=Max("etapes__updated_at"),
+                candidatures=Count(candidatures, distinct=True),
+                candidatures_updated_at=Max(f"{candidatures}__updated_at"),
+                last_message_at=Max(f"{conversations}__messages__created_at"),
+                read_at=Max(
+                    f"{lectures}__read_at",
+                    filter=Q(**{f"{lectures}__utilisateur": utilisateur_id}),
+                ),
+            )
+        )
 
     def with_organisme(self) -> "RecrutementQuerySet":
         return self.select_related("organisme")
@@ -188,6 +207,8 @@ class RecrutementModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = RecrutementQuerySet.as_manager()
+
+    list_version: dict
 
     class Meta:
         db_table = "recrutement"
