@@ -39,6 +39,18 @@ def _candidature_tags_url(organisme_id, recrutement_id, candidature_id) -> str:
     )
 
 
+def _candidature_tag_url(organisme_id, recrutement_id, candidature_id, tag_id) -> str:
+    return reverse(
+        "recruteur:candidature_tag",
+        kwargs={
+            "organisme_uuid": str(organisme_id),
+            "recrutement_uuid": str(recrutement_id),
+            "candidature_uuid": str(candidature_id),
+            "tag_uuid": str(tag_id),
+        },
+    )
+
+
 class TestCandidatureTagsView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         url = _candidature_tags_url(uuid4(), uuid4(), uuid4())
@@ -227,3 +239,117 @@ class TestCandidatureTagsView:
                 "tag_id", flat=True
             )
         ) == [tag.id]
+
+
+class TestCandidatureTagDetailView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        url = _candidature_tag_url(uuid4(), uuid4(), uuid4(), uuid4())
+
+        response = api_client.delete(url, format="json")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_caller_without_organisme_role_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=None)
+        )
+        pose = CandidatureTagDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.delete(
+            _candidature_tag_url(
+                organisme.id, recrutement.pk, candidature.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_contributeur_is_forbidden(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(
+                role=AgentOrganismeRole.AGENT, utilisateur=test_user
+            )
+        )
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=agent,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        pose = CandidatureTagDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.delete(
+            _candidature_tag_url(
+                organisme.id, recrutement.pk, candidature.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_candidature_of_another_recrutement_is_not_found(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, _ = create_recrutement_and_candidature_for_agent(
+            utilisateur=test_user
+        )
+        _, autre_candidature = create_recrutement_with_candidature(organisme)
+        pose = CandidatureTagDjangoFactory(candidature=autre_candidature)
+
+        response = authenticated_client.delete(
+            _candidature_tag_url(
+                organisme.id, recrutement.pk, autre_candidature.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_tag_not_on_candidature_is_not_found(self, authenticated_client, test_user):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        tag = TagDjangoFactory(organisme=organisme, category=TagCategory.CANDIDATURE)
+
+        response = authenticated_client.delete(
+            _candidature_tag_url(organisme.id, recrutement.pk, candidature.id, tag.id),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "error": f"L'étiquette {tag.id} n'est pas posée sur cette candidature"
+        }
+
+    def test_removes_only_this_tag_from_this_candidature(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        pose = CandidatureTagDjangoFactory(candidature=candidature)
+        autre_etiquette = CandidatureTagDjangoFactory(
+            candidature=candidature,
+            tag=TagDjangoFactory(organisme=organisme, category=TagCategory.CANDIDATURE),
+        )
+        _, autre_candidature = create_recrutement_with_candidature(organisme)
+        autre_candidature_pose = CandidatureTagDjangoFactory(
+            candidature=autre_candidature, tag=pose.tag
+        )
+
+        response = authenticated_client.delete(
+            _candidature_tag_url(
+                organisme.id, recrutement.pk, candidature.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert set(CandidatureTagModel.objects.values_list("pk", flat=True)) == {
+            autre_etiquette.pk,
+            autre_candidature_pose.pk,
+        }

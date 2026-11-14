@@ -140,6 +140,11 @@ class TagModel(BaseDatedModel):
 
 
 class CandidatureTagQuerySet(models.QuerySet):
+    def by_candidature_and_tag(
+        self, candidature_id, tag_id
+    ) -> "CandidatureTagQuerySet":
+        return self.filter(candidature_id=candidature_id, tag_id=tag_id)
+
     def poser(self, *, candidature_id: UUID, tag: TagModel) -> "CandidatureTagModel":
         if tag.category != TagCategory.CANDIDATURE:
             raise TagCategoryMismatch(tag.pk, "candidature")
