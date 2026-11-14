@@ -10,6 +10,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     OrganismeRechercheSerializer,
     RechercheOrganismeQuerySerializer,
@@ -28,7 +29,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismesRechercheView(SessionApiMixin, APIView):
+class OrganismesRechercheView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(self, request: Request) -> Response:
         query = RechercheOrganismeQuerySerializer(data=request.query_params)
         if not query.is_valid():

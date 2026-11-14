@@ -14,6 +14,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     AgentRechercheSerializer,
     RechercheAgentQuerySerializer,
@@ -32,7 +33,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class AgentRechercheView(SessionApiMixin, APIView):
+class AgentRechercheView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         query = RechercheAgentQuerySerializer(data=request.query_params)
         if not query.is_valid():

@@ -31,6 +31,7 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.django_apps.messagerie.models import MessageModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import LatestMessagesCursorPagination
 from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
@@ -60,7 +61,9 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
+class CandidatureConversationDetailView(
+    ConditionalGetMixin, SessionApiMixin, ListAPIView
+):
     serializer_class = ConversationMessageSerializer
     pagination_class = LatestMessagesCursorPagination
     parser_classes = [MultiPartParser, FormParser]

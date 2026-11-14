@@ -38,6 +38,7 @@ from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     EtapeRecrutementModelSerializer,
@@ -79,7 +80,7 @@ def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dic
         },
     ),
 )
-class RecrutementEtapeView(SessionApiMixin, APIView):
+class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
@@ -171,7 +172,7 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class InitRecrutementEtapeView(SessionApiMixin, APIView):
+class InitRecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:

@@ -15,6 +15,7 @@ from domain.identite.errors.organisme_permission_errors import OrganismePermissi
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
@@ -22,7 +23,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class RecrutementsListView(SessionApiMixin, ListAPIView):
+class RecrutementsListView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     pagination_class = PageNumberLimitPagination
 
     def paginate_queryset(self, queryset: QuerySet[RecrutementModel]) -> list | None:
