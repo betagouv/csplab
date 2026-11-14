@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from datetime import date
+from pathlib import Path
 from textwrap import dedent
 from unittest.mock import patch
 
@@ -17,6 +18,7 @@ from presentation.api.changelog_api import (
     TYPE_LABELS,
     TYPES,
     Filters,
+    Fragment,
     FragmentError,
     assemble,
     check_added_fragment,
@@ -28,6 +30,7 @@ from presentation.api.changelog_api import (
     published_fragments,
     route_errors,
     set_date,
+    title_html,
 )
 from presentation.api.serializers import ChangelogEntrySerializer
 from presentation.api.views import ChangelogJsonView
@@ -297,6 +300,31 @@ class TestAssemble:
         markdown = assemble([], note="Changements filtrés : type ajouté.")
 
         assert "Changements filtrés : type ajouté.\n\nAucun changement" in markdown
+
+
+@pytest.mark.parametrize(
+    "titre, html",
+    [
+        ("fake-ts : `salaryRange` codé", "fake-ts : <code>salaryRange</code> codé"),
+        ("`<b>` <b>gras</b>", "<code>&lt;b&gt;</code> &lt;b&gt;gras&lt;/b&gt;"),
+        ("[lien](https://example.com)", "[lien](https://example.com)"),
+        ("![image](https://example.com/p.png)", "![image](https://example.com/p.png)"),
+        ('" onmouseover="x', "&quot; onmouseover=&quot;x"),
+    ],
+)
+def test_title_html_only_renders_code_spans(titre, html):
+    result = Fragment(
+        path=Path("f.md"),
+        titre=titre,
+        type="ajoute",
+        date=TODAY,
+        pr=1,
+        liens=(),
+        entry="Un changement.",
+        subsections=(),
+    )
+
+    assert title_html(result) == html
 
 
 def test_ordered_by_date_then_type_then_pr(tmp_path):

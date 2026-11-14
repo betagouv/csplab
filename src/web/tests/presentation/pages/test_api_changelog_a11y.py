@@ -6,7 +6,8 @@ from playwright.sync_api import Page
 
 @pytest.mark.accessibility
 class TestApiChangelogAccessibility:
-    def test_page_has_no_violations(self, page: Page, live_server) -> None:
-        page.goto(f"{live_server.url}{reverse('pages:api_changelog')}?type=retire")
+    @pytest.mark.parametrize("query", ["", "?type=retire"])
+    def test_page_has_no_violations(self, page: Page, live_server, query) -> None:
+        page.goto(f"{live_server.url}{reverse('pages:api_changelog')}{query}")
         results = Axe().run(page)
         assert results.violations_count == 0, results.generate_report()

@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 from http import HTTPStatus
 
 import pytest
@@ -6,6 +7,7 @@ from django.test import Client
 from django.urls import reverse
 from dsfr.models import DsfrConfig
 
+from presentation.api.changelog_api import published_fragments, title_html
 from presentation.pages.views import _render_guide
 
 
@@ -40,6 +42,32 @@ class TestApiChangelogView:
         day_ids = re.findall(r'<h2 id="(date-[^"]+)"', content)
         assert day_ids
         assert len(day_ids) == len(set(day_ids))
+
+    def test_titles_each_change_under_its_day(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"))
+
+        content = response.content.decode()
+        fragment = published_fragments()[0]
+        assert f'aria-labelledby="titre-{fragment.slug}"' in content
+        assert (
+            f'<h3 id="titre-{fragment.slug}" class="fr-h6 fr-mb-1w">'
+            f"{title_html(fragment)}</h3>"
+        ) in content
+
+    def test_summarizes_the_days_with_several_changes(self, db, client: Client):
+        days = Counter(fragment.date for fragment in published_fragments())
+        busy_day = next(day for day, count in days.items() if count > 1)
+        quiet_days = sum(1 for count in days.values() if count == 1)
+
+        response = client.get(reverse("pages:api_changelog"))
+
+        content = response.content.decode()
+        assert content.count(">En bref</p>") == len(days) - quiet_days
+        for fragment in published_fragments():
+            if fragment.date == busy_day:
+                assert (
+                    f'<a href="#{fragment.slug}">{title_html(fragment)}</a>'
+                ) in content
 
     def test_permalink_points_to_the_unfiltered_page(self, db, client: Client):
         response = client.get(reverse("pages:api_changelog"), {"type": "retire"})
