@@ -1,6 +1,8 @@
 from celery import Celery
+from celery.signals import setup_logging
 
 from api.config import settings
+from infrastructure.observability.log_config import configure_logging
 
 
 def create_celery_app() -> Celery:
@@ -18,3 +20,8 @@ def create_celery_app() -> Celery:
 
 
 celery_app = create_celery_app()
+
+
+@setup_logging.connect
+def _configure_worker_logging(**kwargs: object) -> None:
+    configure_logging(settings.log_level)
