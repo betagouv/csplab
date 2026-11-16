@@ -180,6 +180,7 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert NoteTagModel.objects.filter(note=note, tag=tag).count() == 1
+        assert _note_events(note.id) == []
 
     def test_tag_outside_the_note_organisme_is_not_found(
         self, authenticated_client, test_user
@@ -201,6 +202,7 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": str(erreur)}
+        assert _note_events(note.id) == []
 
     @pytest.mark.parametrize("est_privee", [False, True])
     def test_tags_my_note(self, authenticated_client, test_user, est_privee):
@@ -305,6 +307,7 @@ class TestCandidatureNoteTagDetailView:
         assert response.json() == {
             "error": f"L'étiquette {tag.id} n'est pas posée sur cette note"
         }
+        assert _note_events(note.id) == []
 
     def test_removes_only_this_tag_from_this_note(
         self, authenticated_client, test_user
