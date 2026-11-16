@@ -169,7 +169,7 @@ function submit() {
   @include search.input;
 
   .csp-search-bar--submit & {
-    border-radius: 0.25rem 0 0 0.25rem;
+    border-radius: var(--csp-field-radius) 0 0 var(--csp-field-radius);
     padding-left: 0.875em;
   }
 
@@ -190,7 +190,7 @@ function submit() {
 
 .csp-search-bar__button {
   flex-shrink: 0;
-  border-radius: 0 0.25rem 0.25rem 0;
+  border-radius: 0 var(--csp-field-radius) var(--csp-field-radius) 0;
 }
 
 .csp-search-bar__messages:not(:empty) {
