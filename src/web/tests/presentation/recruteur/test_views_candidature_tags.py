@@ -325,12 +325,27 @@ class TestCandidatureTagDetailView:
             "error": f"L'étiquette {tag.id} n'est pas posée sur cette candidature"
         }
 
+    @pytest.mark.parametrize(
+        ("organisme_role", "recrutement_role"),
+        [
+            (AgentOrganismeRole.SUPERVISEUR, None),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
+        ],
+        ids=["superviseur", "agent_responsable", "agent_recruteur"],
+    )
     def test_removes_only_this_tag_from_this_candidature(
-        self, authenticated_client, test_user
+        self, authenticated_client, test_user, organisme_role, recrutement_role
     ):
-        _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(
+                role=organisme_role, utilisateur=test_user
+            )
         )
+        if recrutement_role is not None:
+            RecrutementAgentDjangoFactory(
+                recrutement=recrutement, agent=agent, role=recrutement_role.value
+            )
         pose = CandidatureTagDjangoFactory(candidature=candidature)
         autre_etiquette = CandidatureTagDjangoFactory(
             candidature=candidature,
