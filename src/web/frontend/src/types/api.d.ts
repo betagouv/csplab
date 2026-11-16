@@ -589,7 +589,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AddNoteTag: {
+        AddTag: {
             /** Format: uuid */
             tag_uuid: string;
         };
@@ -4236,9 +4236,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AddNoteTag"];
-                "application/x-www-form-urlencoded": components["schemas"]["AddNoteTag"];
-                "multipart/form-data": components["schemas"]["AddNoteTag"];
+                "application/json": components["schemas"]["AddTag"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddTag"];
+                "multipart/form-data": components["schemas"]["AddTag"];
             };
         };
         responses: {
@@ -4544,9 +4544,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AddNoteTag"];
-                "application/x-www-form-urlencoded": components["schemas"]["AddNoteTag"];
-                "multipart/form-data": components["schemas"]["AddNoteTag"];
+                "application/json": components["schemas"]["AddTag"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddTag"];
+                "multipart/form-data": components["schemas"]["AddTag"];
             };
         };
         responses: {

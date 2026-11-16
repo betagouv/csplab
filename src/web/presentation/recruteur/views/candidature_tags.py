@@ -27,7 +27,7 @@ from domain.recruteur.errors.tag_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.serializers import AddNoteTagSerializer
+from presentation.recruteur.serializers import AddTagSerializer
 
 
 class CandidatureTagBaseView(SessionApiMixin, APIView):
@@ -80,7 +80,7 @@ class CandidatureTagBaseView(SessionApiMixin, APIView):
     post=extend_schema(
         summary="Poser une étiquette sur une candidature",
         tags=["recruteur"],
-        request=AddNoteTagSerializer,
+        request=AddTagSerializer,
         responses={
             **generic_response_format,
             201: None,
@@ -100,7 +100,7 @@ class CandidatureTagsView(CandidatureTagBaseView):
         recrutement_uuid: UUID,
         candidature_uuid: UUID,
     ) -> Response:
-        serializer = AddNoteTagSerializer(data=request.data)
+        serializer = AddTagSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

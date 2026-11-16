@@ -3697,13 +3697,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
         required: true
       security:
       - cookieAuth: []
@@ -4114,13 +4114,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
         required: true
       security:
       - cookieAuth: []
@@ -5822,7 +5822,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
-    AddNoteTag:
+    AddTag:
       type: object
       properties:
         tag_uuid:

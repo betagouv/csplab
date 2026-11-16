@@ -15,7 +15,7 @@ from domain.recruteur.errors.tag_errors import (
     TagOrganismeMismatch,
 )
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.serializers import AddNoteTagSerializer
+from presentation.recruteur.serializers import AddTagSerializer
 from presentation.recruteur.views.notes import NoteBaseView
 
 
@@ -42,7 +42,7 @@ class NoteTagBaseView(NoteBaseView):
     post=extend_schema(
         summary="Poser une étiquette sur une note d'une candidature",
         tags=["recruteur"],
-        request=AddNoteTagSerializer,
+        request=AddTagSerializer,
         responses={
             **generic_response_format,
             201: None,
@@ -63,7 +63,7 @@ class CandidatureNoteTagsView(NoteTagBaseView):
         candidature_uuid: UUID,
         note_uuid: UUID,
     ) -> Response:
-        serializer = AddNoteTagSerializer(data=request.data)
+        serializer = AddTagSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
