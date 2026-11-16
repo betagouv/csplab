@@ -5,6 +5,7 @@ import pytest
 from django.db import OperationalError, connections
 from django.db.models.sql.subqueries import DeleteQuery
 
+from application.recruteur.services.add_note_tag import add_note_tag
 from application.recruteur.services.create_tag import create_tag
 from application.recruteur.services.delete_tag import delete_tag
 from application.recruteur.services.remove_note_tag import remove_note_tag
@@ -95,6 +96,55 @@ def test_delete_rolls_back_when_audit_log_fails(superviseur):
 
     assert TagModel.objects.filter(pk=tag.pk).exists()
     assert CandidatureTagModel.objects.filter(tag=tag).exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_add_note_tag_rolls_back_when_audit_log_fails(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+    tag = TagDjangoFactory(organisme=organisme, category=TagCategory.NOTE)
+
+    with pytest.raises(RuntimeError):
+        add_note_tag(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            note_id=note.id,
+            tag_id=tag.id,
+            utilisateur=agent.utilisateur,
+        )
+
+    assert not NoteTagModel.objects.filter(note=note, tag=tag).exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_remove_note_tag_rolls_back_when_audit_log_fails(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    pose = NoteTagDjangoFactory(note__candidature=candidature, note__publie_par=agent)
+
+    with pytest.raises(RuntimeError):
+        remove_note_tag(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            note_id=pose.note_id,
+            tag_id=pose.tag_id,
+            utilisateur=agent.utilisateur,
+        )
+
+    assert NoteTagModel.objects.filter(pk=pose.pk).exists()
 
 
 # transactional_db : le fixture `db` ouvre une transaction autour du test, qui
