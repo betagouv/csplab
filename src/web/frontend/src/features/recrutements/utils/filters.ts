@@ -1,5 +1,8 @@
+import type { Ref, WritableComputedRef } from 'vue'
 import type { NatureOffre, RecrutementBase } from '../types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
+import { computed } from 'vue'
+import { labelOptions } from '@/utils/options'
 import { NATURE_OFFRE_LABELS } from '../format'
 
 export interface RecrutementsFilters extends Record<string, unknown> {
@@ -37,8 +40,17 @@ export function recrutementSearchableText(row: RecrutementBase): Array<string | 
 
 export const FILTER_ALL = 'all'
 
-export function withAllOption(label: string, options: CspSelectOption[]): CspSelectOption[] {
+export function withAllOption<T extends string>(label: string, options: CspSelectOption<T>[]): CspSelectOption<T | typeof FILTER_ALL>[] {
   return [{ value: FILTER_ALL, label }, ...options]
+}
+
+export function selectModel<T extends string>(model: Ref<T | null>): WritableComputedRef<T | typeof FILTER_ALL> {
+  return computed({
+    get: () => model.value ?? FILTER_ALL,
+    set: (value) => {
+      model.value = value === FILTER_ALL ? null : value
+    },
+  })
 }
 
 export function responsableOptions(rows: RecrutementBase[]): CspSelectOption[] {
@@ -48,6 +60,4 @@ export function responsableOptions(rows: RecrutementBase[]): CspSelectOption[] {
     .map(nom => ({ value: nom, label: nom }))
 }
 
-export const NATURE_OFFRE_OPTIONS: CspSelectOption[] = Object
-  .entries(NATURE_OFFRE_LABELS)
-  .map(([value, label]) => ({ value, label }))
+export const NATURE_OFFRE_OPTIONS: CspSelectOption<NatureOffre>[] = labelOptions(NATURE_OFFRE_LABELS)

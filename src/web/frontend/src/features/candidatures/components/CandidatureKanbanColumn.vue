@@ -193,7 +193,7 @@ function handleCheckboxChange(): void {
   gap: var(--csp-space-2);
   margin-top: auto;
   padding: var(--csp-space-3) var(--csp-space-1) 0;
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 }
 
 .candidature-kanban-column__hint-label {

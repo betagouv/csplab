@@ -6,6 +6,7 @@ import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import { labelOptions } from '@/utils/options'
 import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_COLOR_LABELS, TAG_COLOR_PALETTE, TAG_NAME_MAX_LENGTH } from '../constants/tag'
 
 const props = defineProps<{
@@ -24,11 +25,11 @@ const FORBIDDEN_CHARACTERS = /[<>\p{Extended_Pictographic}]/u
 
 const CATEGORY_OPTIONS = TAG_CATEGORY_OPTIONS_ORDER.map(value => ({ value, label: TAG_CATEGORY_TEXTS[value].option }))
 
-const COLOR_OPTIONS = Object.entries(TAG_COLOR_LABELS).map(([value, label]) => ({ value, label }))
+const COLOR_OPTIONS = labelOptions(TAG_COLOR_LABELS)
 
 const name = ref(props.tag?.name ?? '')
-const category = ref<string>(props.tag?.category ?? props.category)
-const color = ref<string>(props.tag?.color ?? DEFAULT_TAG_COLOR)
+const category = ref<TagCategory>(props.tag?.category ?? props.category)
+const color = ref<TagColor>(props.tag?.color ?? DEFAULT_TAG_COLOR)
 
 const trimmedName = computed(() => name.value.trim())
 
@@ -52,8 +53,8 @@ function handleSubmit(): void {
   }
   emit('save', {
     name: trimmedName.value,
-    category: category.value as TagCategory,
-    color: color.value as TagColor,
+    category: category.value,
+    color: color.value,
   })
 }
 
@@ -105,7 +106,7 @@ const formId = useId()
       <template #option="{ option }">
         <CspLabel
           :label="option.label"
-          :color="TAG_COLOR_PALETTE[option.value as TagColor]"
+          :color="TAG_COLOR_PALETTE[option.value]"
           size="md"
         />
       </template>
@@ -117,7 +118,7 @@ const formId = useId()
       </p>
       <CspLabel
         :label="trimmedName || 'Libellé'"
-        :color="TAG_COLOR_PALETTE[color as TagColor]"
+        :color="TAG_COLOR_PALETTE[color]"
       />
     </div>
   </form>

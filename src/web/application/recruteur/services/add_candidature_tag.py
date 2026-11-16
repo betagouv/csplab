@@ -26,7 +26,7 @@ def add_candidature_tag(
     utilisateur: UserModel,
 ) -> None:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.ADD_TAG_TO_APPLICATION,
+        action=OrganismeAction.MANAGE_TAG_ON_APPLICATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

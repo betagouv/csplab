@@ -9,6 +9,12 @@ export type CspTableSize = 'sm' | 'md' | 'lg'
 
 export type CspTableCellValue = string | number | null | undefined
 
+export const EMPTY_CELL_TEXT = '-'
+
+export function isEmptyCellValue(value: CspTableCellValue): boolean {
+  return value === null || value === undefined || value === ''
+}
+
 export interface CspTableSort {
   id: string
   desc: boolean

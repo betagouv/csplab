@@ -78,7 +78,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   padding: 0 var(--csp-kanban-column-header-padding-inline);
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-background);
   }
 }
 

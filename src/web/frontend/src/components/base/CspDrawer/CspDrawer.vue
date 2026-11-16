@@ -278,7 +278,7 @@ provideCspDrawerFooter(footerId)
   gap: var(--csp-space-4);
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .csp-drawer__start {
@@ -354,7 +354,7 @@ provideCspDrawerFooter(footerId)
 .csp-drawer__footer {
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;

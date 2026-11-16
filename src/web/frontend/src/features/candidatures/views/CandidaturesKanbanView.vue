@@ -75,12 +75,8 @@ const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
 const refus = useRefusCandidature(() => props.organismeUuid, recrutementEtapes)
 
-const refusEtapeUuid = computed(() => {
-  return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
-})
-
 const canRefuseSelection = computed(() =>
-  refusEtapeUuid.value !== null && currentEtapeUuid.value !== refusEtapeUuid.value,
+  refus.refusEtapeUuid.value !== null && currentEtapeUuid.value !== refus.refusEtapeUuid.value,
 )
 
 const sourceEtape = computed(() => {
@@ -122,8 +118,8 @@ function handleOpenChangerEtape(): void {
 }
 
 function handleRefuser(): void {
-  if (refusEtapeUuid.value) {
-    handleConfirmBatchMove(refusEtapeUuid.value)
+  if (refus.refusEtapeUuid.value) {
+    handleConfirmBatchMove(refus.refusEtapeUuid.value)
   }
 }
 

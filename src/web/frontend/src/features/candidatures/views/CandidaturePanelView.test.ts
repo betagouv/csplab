@@ -23,7 +23,7 @@ import {
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
-  roleOnOrganisme,
+  USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { setupUser } from '@/test/render'
@@ -76,7 +76,7 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
@@ -133,7 +133,7 @@ describe('candidaturePanelView', () => {
     const refusee = {
       ...candidatureDetail(CANDIDATURE_ALICE),
       etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
-      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+      motif_refus: { value: 'experience_insuffisante' as const, label: 'Expérience insuffisante' },
     }
     vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
@@ -217,7 +217,7 @@ describe('candidaturePanelView', () => {
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
-    expect(await screen.findByRole('radio', { name: 'Réception des candidatures (étape actuelle)' })).toBeDisabled()
+    expect(await screen.findByRole('radio', { name: /^Réception des candidatures\s*Étape actuelle$/ })).toBeDisabled()
     await user.click(screen.getByRole('radio', { name: 'Entretien' }))
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 

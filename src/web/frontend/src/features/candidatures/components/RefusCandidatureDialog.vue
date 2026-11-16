@@ -3,8 +3,8 @@ import type { Candidat, MotifRefus, MotifRefusOption } from '../types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import { formatCandidatName } from '../format'
+import MotifRefusSelect from './MotifRefusSelect.vue'
 
 const props = defineProps<{
   open: boolean
@@ -55,15 +55,11 @@ function handleConfirm(): void {
         {{ description }}
       </p>
 
-      <CspSelect
+      <MotifRefusSelect
         v-model="motifRefus"
-        label="Motif de refus"
         hint="Champ obligatoire pour valider l'action"
-        placeholder="Sélectionner un motif de refus"
-        required
-        :options="motifs"
-        :error="motifsUnavailable"
-        error-message="Les motifs de refus n'ont pas pu être chargés."
+        :motifs="motifs"
+        :motifs-unavailable="motifsUnavailable"
       />
     </div>
 

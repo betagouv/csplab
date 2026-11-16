@@ -1,47 +1,21 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/api/params'
-import { computed, ref, useId } from 'vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
-import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
-import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
-import { useToast } from '@/composables/ui/useToast'
-import { useCreateCandidatureNote } from '../composables/useCandidatureNotes'
+import type { NavigationPredicate } from '@/composables/navigation/useUnsavedChanges'
+import { useId } from 'vue'
+import { useSubmitNewNote } from '../composables/useSubmitNewNote'
+import CandidatureNoteEditor from './CandidatureNoteEditor.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
 }>()
 
-const { create, creating } = useCreateCandidatureNote(() => props.candidature)
-const { addToast } = useToast()
+const TITLE = 'Ajouter une note'
+
+const { submit, creating } = useSubmitNewNote(() => props.candidature)
 
 const titleId = useId()
-const message = ref('')
-const estPrivee = ref(false)
-const canSubmit = computed(() => message.value.trim().length > 0 && !creating.value)
 
-function reset(): void {
-  message.value = ''
-  estPrivee.value = false
-}
-
-useUnsavedChanges(() => message.value !== '', reset, {
-  isLeftBy: (to, from) => to.params.candidatureUuid !== from.params.candidatureUuid,
-})
-
-async function submit(): Promise<void> {
-  if (!canSubmit.value) {
-    return
-  }
-  try {
-    await create({ message: message.value.trim(), est_privee: estPrivee.value })
-    reset()
-    addToast({ variant: 'success', title: 'Note enregistrée' })
-  }
-  catch {
-    addToast({ variant: 'error', title: 'L\'enregistrement de la note a échoué' })
-  }
-}
+const leavesCandidature: NavigationPredicate = (to, from) => to.params.candidatureUuid !== from.params.candidatureUuid
 </script>
 
 <template>
@@ -53,34 +27,19 @@ async function submit(): Promise<void> {
       :id="titleId"
       class="candidature-note-form__title"
     >
-      Ajouter une note
+      {{ TITLE }}
     </h3>
-    <form
-      class="candidature-note-form__form"
-      @submit.prevent="submit"
-    >
-      <CspTextarea
-        v-model="message"
-        :rows="3"
-        placeholder="Écrivez votre note…"
-        :aria-labelledby="titleId"
-      />
-      <CspCheckbox
-        v-model="estPrivee"
-        label="Note privée"
-        hint="Visible par vous uniquement"
-        size="sm"
-        :disabled="creating"
-      />
-      <CspButton
-        type="submit"
-        variant="secondary"
-        size="sm"
-        label="Enregistrer la note"
-        :disabled="!canSubmit"
-        class="candidature-note-form__submit"
-      />
-    </form>
+    <CandidatureNoteEditor
+      :label="TITLE"
+      :submitting="creating"
+      :submit="submit"
+      :cancellable="false"
+      :autofocus="false"
+      :rows="3"
+      size="sm"
+      submit-variant="secondary"
+      :is-left-by="leavesCandidature"
+    />
   </section>
 </template>
 
@@ -90,15 +49,5 @@ async function submit(): Promise<void> {
   font-size: var(--csp-font-size-base);
   font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
-}
-
-.candidature-note-form__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-3);
-}
-
-.candidature-note-form__submit {
-  align-self: flex-end;
 }
 </style>

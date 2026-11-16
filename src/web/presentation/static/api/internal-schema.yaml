@@ -126,6 +126,14 @@ paths:
       operationId: recruteur_organismes_list
       summary: Lister les organismes
       parameters:
+      - in: query
+        name: filter
+        schema:
+          type: string
+          maxLength: 100
+        description: 'Recherche (3 caractères minimum, sinon ignorée) : SIRET si le
+          terme ne contient que des chiffres et des espaces, sinon nom (insensible
+          à la casse et aux accents).'
       - name: page
         required: false
         in: query
@@ -1585,7 +1593,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedTagList'
+                $ref: '#/components/schemas/PaginatedTagDetailList'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1709,7 +1717,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/TagDetail'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1853,7 +1861,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/TagDetail'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3689,13 +3697,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
         required: true
       security:
       - cookieAuth: []
@@ -4106,13 +4114,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AddNoteTag'
+              $ref: '#/components/schemas/AddTag'
         required: true
       security:
       - cookieAuth: []
@@ -5928,7 +5936,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
-    AddNoteTag:
+    AddTag:
       type: object
       properties:
         tag_uuid:
@@ -6083,7 +6091,7 @@ components:
       - create_tag
       - update_tag
       - delete_tag
-      - add_tag_to_application
+      - manage_tag_on_application
       type: string
       description: |-
         * `get_organisme` - get_organisme
@@ -6125,7 +6133,7 @@ components:
         * `create_tag` - create_tag
         * `update_tag` - update_tag
         * `delete_tag` - delete_tag
-        * `add_tag_to_application` - add_tag_to_application
+        * `manage_tag_on_application` - manage_tag_on_application
     Candidat:
       type: object
       properties:
@@ -6605,7 +6613,7 @@ components:
       type: object
       properties:
         value:
-          type: string
+          $ref: '#/components/schemas/MotifRefusEnum'
         label:
           type: string
       required:
@@ -6672,7 +6680,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/NoteTag'
+            $ref: '#/components/schemas/Tag'
           readOnly: true
       required:
       - authorized_actions
@@ -6704,7 +6712,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/NoteTag'
+            $ref: '#/components/schemas/Tag'
           readOnly: true
       required:
       - candidature_id
@@ -6712,23 +6720,6 @@ components:
       - message
       - publie_par_id
       - tags
-      - uuid
-    NoteTag:
-      type: object
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        name:
-          type: string
-          maxLength: 25
-        color:
-          allOf:
-          - $ref: '#/components/schemas/ColorEnum'
-          readOnly: true
-      required:
-      - color
-      - name
       - uuid
     NoteVisibilite:
       type: object
@@ -6888,20 +6879,6 @@ components:
       - nom
       - siret
       - uuid
-    OrganismeRole:
-      type: object
-      properties:
-        organisme_uuid:
-          type: string
-          format: uuid
-        nom:
-          type: string
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-      required:
-      - nom
-      - organisme_uuid
-      - role
     OrganismesList:
       type: object
       properties:
@@ -7154,7 +7131,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsArchives'
-    PaginatedTagList:
+    PaginatedTagDetailList:
       type: object
       required:
       - count
@@ -7176,7 +7153,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/schemas/TagDetail'
     PatchedChangerEtapeCandidatures:
       type: object
       properties:
@@ -7213,12 +7190,18 @@ components:
           format: email
         recrutement_role:
           $ref: '#/components/schemas/RecrutementRoleEnum'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
       required:
       - email
       - nom
       - poste
       - prenom
       - recrutement_role
+      - tags
       - uuid
     RecrutementAgentRole:
       type: object
@@ -7493,16 +7476,36 @@ components:
         name:
           type: string
           maxLength: 25
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
+      required:
+      - color
+      - name
+      - uuid
+    TagDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
         category:
           $ref: '#/components/schemas/CategoryEnum'
         color:
-          $ref: '#/components/schemas/ColorEnum'
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
         usage_count:
           type: integer
           readOnly: true
           default: 0
       required:
       - category
+      - color
       - name
       - usage_count
       - uuid
@@ -7607,12 +7610,6 @@ components:
           type: string
         nom:
           type: string
-        is_staff:
-          type: boolean
-        organisme_roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrganismeRole'
         authorized_actions:
           type: array
           items:
@@ -7625,9 +7622,7 @@ components:
       required:
       - authorized_actions
       - email
-      - is_staff
       - nom
-      - organisme_roles
       - organismes
       - prenom
     UtilisateurOrganisme:

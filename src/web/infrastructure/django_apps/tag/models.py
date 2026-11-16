@@ -154,6 +154,7 @@ class CandidatureTagQuerySet(models.QuerySet):
         ).exists()
         if not candidature_dans_organisme:
             raise TagOrganismeMismatch(tag.pk, "candidature")
+        # TODO : candidature supprimée après l'exists() : FK différée, 500 au commit
         try:
             return self.create(id=uuid4(), candidature_id=candidature_id, tag=tag)
         except IntegrityError as error:
@@ -225,6 +226,7 @@ class NoteTagQuerySet(models.QuerySet):
         ).exists()
         if not note_dans_organisme:
             raise TagOrganismeMismatch(tag.pk, "note")
+        # TODO : note supprimée hors verrou de l'appelant : FK différée, 500 au commit
         try:
             return self.create(id=uuid4(), note=note, tag=tag)
         except IntegrityError as error:

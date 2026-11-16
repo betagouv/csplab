@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CANDIDAT_ALICE, CANDIDAT_BRUNO } from '@/test/fixtures/candidatures'
-import { formatCandidatName, formatEtapeChangeTitle } from './format'
+import { etapeOptions, formatCandidatName, formatEtapeChangeTitle } from './format'
 
 describe('formatCandidatName', () => {
   it('joins prenom and nom', () => {
@@ -21,5 +21,17 @@ describe('formatEtapeChangeTitle', () => {
 
   it('counts the candidatures when several move', () => {
     expect(formatEtapeChangeTitle([CANDIDAT_ALICE, CANDIDAT_BRUNO], 'Entretien')).toBe('2 candidatures sont passées à l\'étape Entretien')
+  })
+})
+
+describe('etapeOptions', () => {
+  it('marks the current stage as disabled with a hint', () => {
+    expect(etapeOptions([
+      { uuid: 'reception', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+      { uuid: 'entretien', nom: 'Entretien', categorie: 'EN_COURS' },
+    ], 'reception')).toEqual([
+      { value: 'reception', label: 'Réception des candidatures', hint: 'Étape actuelle', disabled: true },
+      { value: 'entretien', label: 'Entretien', hint: undefined, disabled: false },
+    ])
   })
 })

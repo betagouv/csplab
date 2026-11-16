@@ -1,9 +1,14 @@
 import type { components } from '@/types/api'
 import { api, readCsrfCookie } from '@/api/client'
+import { can } from '@/utils/authorizedActions'
 
 export type Utilisateur = components['schemas']['Utilisateur']
 
-export type OrganismeRole = components['schemas']['OrganismeRole']
+export type UserOrganisme = Utilisateur['organismes'][number]
+
+export function canBrowseOrganismes(user: Utilisateur | null | undefined): boolean {
+  return can(user?.authorized_actions, 'list_organismes')
+}
 
 export async function getMe(): Promise<Utilisateur> {
   const { data } = await api.GET('/utilisateur/me')

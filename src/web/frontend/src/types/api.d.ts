@@ -606,7 +606,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AddNoteTag: {
+        AddTag: {
             /** Format: uuid */
             tag_uuid: string;
         };
@@ -695,10 +695,10 @@ export interface components {
          *     * `create_tag` - create_tag
          *     * `update_tag` - update_tag
          *     * `delete_tag` - delete_tag
-         *     * `add_tag_to_application` - add_tag_to_application
+         *     * `manage_tag_on_application` - manage_tag_on_application
          * @enum {string}
          */
-        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag" | "add_tag_to_application";
+        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag" | "manage_tag_on_application";
         Candidat: {
             /** Format: uuid */
             uuid: string;
@@ -893,7 +893,7 @@ export interface components {
             error: string;
         };
         MotifRefus: {
-            value: string;
+            value: components["schemas"]["MotifRefusEnum"];
             label: string;
         };
         /**
@@ -929,7 +929,7 @@ export interface components {
             publie_le: string;
             est_privee: boolean;
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
-            readonly tags: components["schemas"]["NoteTag"][];
+            readonly tags: components["schemas"]["Tag"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -940,13 +940,7 @@ export interface components {
             /** Format: uuid */
             publie_par_id: string;
             est_privee: boolean;
-            readonly tags: components["schemas"]["NoteTag"][];
-        };
-        NoteTag: {
-            /** Format: uuid */
-            uuid: string;
-            name: string;
-            readonly color: components["schemas"]["ColorEnum"];
+            readonly tags: components["schemas"]["Tag"][];
         };
         NoteVisibilite: {
             est_privee: boolean;
@@ -1000,12 +994,6 @@ export interface components {
             uuid: string;
             nom: string;
             siret: string;
-        };
-        OrganismeRole: {
-            /** Format: uuid */
-            organisme_uuid: string;
-            nom: string;
-            role: components["schemas"]["RoleEnum"];
         };
         OrganismesList: {
             /** Format: uuid */
@@ -1157,7 +1145,7 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["RecrutementsArchives"][];
         };
-        PaginatedTagList: {
+        PaginatedTagDetailList: {
             /** @example 123 */
             count: number;
             /**
@@ -1170,7 +1158,7 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["Tag"][];
+            results: components["schemas"]["TagDetail"][];
         };
         PatchedChangerEtapeCandidatures: {
             /** Format: uuid */
@@ -1191,6 +1179,7 @@ export interface components {
             /** Format: email */
             email: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+            readonly tags: components["schemas"]["Tag"][];
         };
         RecrutementAgentRole: {
             /** Format: uuid */
@@ -1297,8 +1286,14 @@ export interface components {
             /** Format: uuid */
             uuid: string;
             name: string;
+            readonly color: components["schemas"]["ColorEnum"];
+        };
+        TagDetail: {
+            /** Format: uuid */
+            uuid: string;
+            name: string;
             category: components["schemas"]["CategoryEnum"];
-            color?: components["schemas"]["ColorEnum"];
+            readonly color: components["schemas"]["ColorEnum"];
             /** @default 0 */
             readonly usage_count: number;
         };
@@ -1347,8 +1342,6 @@ export interface components {
             email: string;
             prenom: string;
             nom: string;
-            is_staff: boolean;
-            organisme_roles: components["schemas"]["OrganismeRole"][];
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             organismes: components["schemas"]["UtilisateurOrganisme"][];
         };
@@ -1485,6 +1478,8 @@ export interface operations {
     recruteur_organismes_list: {
         parameters: {
             query?: {
+                /** @description Recherche (3 caractères minimum, sinon ignorée) : SIRET si le terme ne contient que des chiffres et des espaces, sinon nom (insensible à la casse et aux accents). */
+                filter?: string;
                 /** @description Numéro de la page. */
                 page?: number;
                 /** @description Nombre d'éléments par page. */
@@ -2628,7 +2623,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedTagList"];
+                    "application/json": components["schemas"]["PaginatedTagDetailList"];
                 };
             };
             400: {
@@ -2729,7 +2724,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"];
+                    "application/json": components["schemas"]["TagDetail"];
                 };
             };
             400: {
@@ -2842,7 +2837,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"];
+                    "application/json": components["schemas"]["TagDetail"];
                 };
             };
             400: {
@@ -4250,9 +4245,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AddNoteTag"];
-                "application/x-www-form-urlencoded": components["schemas"]["AddNoteTag"];
-                "multipart/form-data": components["schemas"]["AddNoteTag"];
+                "application/json": components["schemas"]["AddTag"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddTag"];
+                "multipart/form-data": components["schemas"]["AddTag"];
             };
         };
         responses: {
@@ -4558,9 +4553,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AddNoteTag"];
-                "application/x-www-form-urlencoded": components["schemas"]["AddNoteTag"];
-                "multipart/form-data": components["schemas"]["AddNoteTag"];
+                "application/json": components["schemas"]["AddTag"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddTag"];
+                "multipart/form-data": components["schemas"]["AddTag"];
             };
         };
         responses: {

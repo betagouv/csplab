@@ -219,7 +219,7 @@ async function send(): Promise<void> {
   flex-direction: column;
   gap: var(--csp-space-3);
   padding: var(--csp-space-5) var(--csp-space-6);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 }
 
 .new-conversation__actions {

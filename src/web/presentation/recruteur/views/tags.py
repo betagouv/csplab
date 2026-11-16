@@ -23,8 +23,8 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
     CreateTagSerializer,
+    TagDetailSerializer,
     TagListQuerySerializer,
-    TagSerializer,
     UpdateTagSerializer,
 )
 
@@ -64,7 +64,7 @@ class TagBaseView(SessionApiMixin, APIView):
         parameters=[TagListQuerySerializer],
         responses={
             **generic_response_format,
-            200: TagSerializer(many=True),
+            200: TagDetailSerializer(many=True),
             400: GenericErrorSerializer,
         },
     ),
@@ -74,14 +74,14 @@ class TagBaseView(SessionApiMixin, APIView):
         request=CreateTagSerializer,
         responses={
             **generic_response_format,
-            201: TagSerializer,
+            201: TagDetailSerializer,
             400: GenericErrorSerializer,
             409: GenericErrorSerializer,
         },
     ),
 )
 class OrganismeTagsView(TagBaseView, ListAPIView):
-    serializer_class = TagSerializer
+    serializer_class = TagDetailSerializer
 
     def get_queryset(self):
         query = TagListQuerySerializer(data=self.request.query_params)
@@ -104,7 +104,7 @@ class OrganismeTagsView(TagBaseView, ListAPIView):
             category=serializer.validated_data["category"],
             color=serializer.validated_data["color"],
         )
-        return Response(TagSerializer(tag).data, status=status.HTTP_201_CREATED)
+        return Response(TagDetailSerializer(tag).data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -114,7 +114,7 @@ class OrganismeTagsView(TagBaseView, ListAPIView):
         request=UpdateTagSerializer,
         responses={
             **generic_response_format,
-            200: TagSerializer,
+            200: TagDetailSerializer,
             400: GenericErrorSerializer,
             409: GenericErrorSerializer,
         },
@@ -141,7 +141,7 @@ class OrganismeTagDetailView(TagBaseView):
             name=serializer.validated_data["name"],
             color=serializer.validated_data["color"],
         )
-        return Response(TagSerializer(tag).data)
+        return Response(TagDetailSerializer(tag).data)
 
     def delete(
         self, request: Request, organisme_uuid: UUID, tag_uuid: UUID

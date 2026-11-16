@@ -19,7 +19,7 @@ import {
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
-  roleOnOrganisme,
+  USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
@@ -82,7 +82,7 @@ async function refuseSelectedColumn(search?: string) {
 describe('candidaturesKanbanView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
@@ -242,6 +242,7 @@ describe('candidaturesKanbanView', () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
+    expect(drawer.getByRole('radio', { name: /^Réception des candidatures\s*Étape actuelle$/ })).toBeDisabled()
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
     await user.click(drawer.getByRole('button', { name: 'Valider le changement d\'étape' }))
 

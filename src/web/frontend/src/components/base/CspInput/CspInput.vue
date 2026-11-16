@@ -103,7 +103,6 @@ const inputAttrs = computed(() => {
   border: none;
   border-radius: 0.25rem;
 
-  font-size: var(--csp-input-font-size);
   line-height: 1.25;
   padding: var(--csp-input-padding-y) var(--csp-input-padding-x);
 

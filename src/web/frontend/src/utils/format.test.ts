@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getInitials, pluralize, quote } from './format'
+import { formatPersonName, getInitials, pluralize, quote } from './format'
 
 describe('pluralize', () => {
   it('returns singular form for 0 and 1', () => {
@@ -17,6 +17,18 @@ describe('pluralize', () => {
     expect(pluralize(2, 'sera', 'seront')).toBe('seront')
     expect(pluralize(1, 'sa', 'leur')).toBe('sa')
     expect(pluralize(3, 'sa', 'leur')).toBe('leur')
+  })
+})
+
+describe('formatPersonName', () => {
+  it('writes the first name then the last name', () => {
+    expect(formatPersonName({ prenom: 'Alice', nom: 'Dupont' })).toBe('Alice Dupont')
+  })
+
+  it('leaves no space around a missing first or last name', () => {
+    expect(formatPersonName({ prenom: '', nom: 'Dupont' })).toBe('Dupont')
+    expect(formatPersonName({ prenom: 'Alice', nom: '' })).toBe('Alice')
+    expect(formatPersonName({ prenom: '', nom: '' })).toBe('')
   })
 })
 

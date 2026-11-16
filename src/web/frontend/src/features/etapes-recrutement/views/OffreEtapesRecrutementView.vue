@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
@@ -18,7 +19,8 @@ const props = defineProps<{
   recrutementUuid: string
 }>()
 
-const { recrutementDetail, intitule, error } = useRecrutementDetail(() => props)
+const { recrutementDetail, intitule, pending, error } = useRecrutementDetail(() => props)
+const showTitleSkeleton = useMinimumPending(pending)
 
 const forbidden = computed(() =>
   isHttpStatus(error.value, 403)
@@ -49,8 +51,19 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
       :breadcrumb="breadcrumb"
       title="Personnaliser les étapes de ce recrutement"
       :back-link="{ to: candidaturesRoute, label: 'Retour au recrutement' }"
+      :show-title-skeleton="showTitleSkeleton"
     />
-    <CspPageContainer width="reading">
+    <span
+      v-if="pending"
+      class="sr-only"
+      role="status"
+    >
+      Chargement du recrutement
+    </span>
+    <CspPageContainer
+      v-else
+      width="reading"
+    >
       <EtapesRecrutementList
         :params="{ type: 'offre', organismeUuid, recrutementUuid }"
         :texts="ETAPES_TEXTS_OFFRE"
