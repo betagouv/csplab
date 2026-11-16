@@ -9,6 +9,9 @@ from infrastructure.django_apps.tag.models import (
     TagCategory,
     TagModel,
 )
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
@@ -104,3 +107,13 @@ def test_poser_rejects_a_tag_of_another_organisme(db):
         NoteTagModel.objects.poser(note=note, tag=tag)
 
     assert not NoteTagModel.objects.exists()
+
+
+def test_poser_rejects_a_tag_of_another_organisme_on_a_candidature(db):
+    candidature = CandidatureDjangoFactory()
+    tag = TagDjangoFactory(category=TagCategory.CANDIDATURE)
+
+    with pytest.raises(TagOrganismeMismatch):
+        CandidatureTagModel.objects.poser(candidature_id=candidature.pk, tag=tag)
+
+    assert not CandidatureTagModel.objects.exists()
