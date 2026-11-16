@@ -10,6 +10,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.tag.models import (
     CandidatureTagModel,
     CandidatureTagQuerySet,
@@ -48,6 +49,14 @@ def _candidature_tag_url(organisme_id, recrutement_id, candidature_id, tag_id) -
             "candidature_uuid": str(candidature_id),
             "tag_uuid": str(tag_id),
         },
+    )
+
+
+def _candidature_events(candidature_id) -> list[str]:
+    return list(
+        AuditLogModel.objects.filter(
+            ressource_kind="Candidature", ressource_id=candidature_id
+        ).values_list("event_name", flat=True)
     )
 
 
@@ -182,6 +191,7 @@ class TestCandidatureTagsView:
             CandidatureTagModel.objects.filter(candidature=candidature, tag=tag).count()
             == 1
         )
+        assert _candidature_events(candidature.id) == []
 
     def test_tag_outside_the_candidature_organisme_is_not_found(
         self, authenticated_client, test_user
@@ -202,6 +212,7 @@ class TestCandidatureTagsView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": str(erreur)}
+        assert _candidature_events(candidature.id) == []
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role"),
@@ -239,6 +250,7 @@ class TestCandidatureTagsView:
                 "tag_id", flat=True
             )
         ) == [tag.id]
+        assert _candidature_events(candidature.id) == ["EtiquettePosee"]
 
 
 class TestCandidatureTagDetailView:
@@ -324,6 +336,7 @@ class TestCandidatureTagDetailView:
         assert response.json() == {
             "error": f"L'étiquette {tag.id} n'est pas posée sur cette candidature"
         }
+        assert _candidature_events(candidature.id) == []
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role"),
@@ -368,3 +381,4 @@ class TestCandidatureTagDetailView:
             autre_etiquette.pk,
             autre_candidature_pose.pk,
         }
+        assert _candidature_events(candidature.id) == ["EtiquetteRetiree"]
