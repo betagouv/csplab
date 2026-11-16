@@ -12,17 +12,16 @@ import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import OrganismeSwitcher from '@/features/organismes/components/OrganismeSwitcher.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
-import { can } from '@/utils/authorizedActions'
 
 const LOADING_TITLE = document.title
 
 useHead({ titleTemplate: title => (title ? `${title} | CSPLab` : LOADING_TITLE) })
 
 const { user, error: userError, refetch: refetchUser } = useCurrentUser()
-const { organismeUuid, actionsPending, canOnOrganisme } = useRouteOrganisme()
+const { organismeUuid, actionsPending, canBrowseOrganismes, canOnOrganisme } = useRouteOrganisme()
 
 const navigation = computed(() => navigationFor({
-  canListOrganismes: can(user.value?.authorized_actions, 'list_organismes'),
+  canListOrganismes: canBrowseOrganismes.value,
   organismeUuid: organismeUuid.value,
   organismeActionsPending: actionsPending.value,
   canAccessOrganismeSettings: canOnOrganisme('get_organisme'),

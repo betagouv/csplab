@@ -1,31 +1,19 @@
 <script setup lang="ts">
 import type { CspSidebarSwitcherGroup } from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
-import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarSwitcher from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
 import { organismeHomeLocation, ORGANISMES_ROUTE_NAME } from '@/router/names'
-import { useCurrentUser } from '@/stores/currentUser'
-import { organismeDetailQuery } from '@/stores/organismeDetail'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
-import { can } from '@/utils/authorizedActions'
 import { useOrganismesSearch } from '../composables/useOrganismesSearch'
 import { ESPACE_ADMINISTRATEUR_LABEL, ORGANISME_LABEL } from '../constants/organisme'
 
 const ESPACE_ADMINISTRATEUR = 'espace-administrateur'
 
 const router = useRouter()
-const { user } = useCurrentUser()
-const { organismes, organisme, organismeUuid } = useRouteOrganisme()
+const { organismes, organisme, nonMemberOrganisme, organismeUuid, canBrowseOrganismes } = useRouteOrganisme()
 const { search, results, tooShort, searching } = useOrganismesSearch()
-
-const canBrowseOrganismes = computed(() => can(user.value?.authorized_actions, 'list_organismes'))
-
-const { data: organismeHorsAppartenance } = useQuery(() => ({
-  ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
-  enabled: canBrowseOrganismes.value && Boolean(organismeUuid.value) && !organisme.value,
-}))
 
 const title = computed(() => {
   if (!canBrowseOrganismes.value) {
@@ -35,7 +23,7 @@ const title = computed(() => {
     return ESPACE_ADMINISTRATEUR_LABEL
   }
   return organisme.value?.nom
-    ?? organismeHorsAppartenance.value?.nom
+    ?? nonMemberOrganisme.value?.nom
     ?? ORGANISME_LABEL
 })
 
@@ -50,9 +38,9 @@ const emptyLabel = computed(() => {
   return searching.value ? 'Recherche en cours…' : 'Aucun organisme trouvé'
 })
 
-const memberOptions = computed(() => organismes.value.map(role => ({
-  value: role.organisme_uuid,
-  label: role.nom,
+const memberOptions = computed(() => organismes.value.map(member => ({
+  value: member.uuid,
+  label: member.nom,
 })))
 
 const groups = computed<CspSidebarSwitcherGroup[]>(() => {
