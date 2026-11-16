@@ -51,12 +51,17 @@ export function isNavItemActive(item: NavItem, matchedRouteNames: string[]): boo
 export function navigationFor(options: {
   canListOrganismes: boolean
   organismeUuid: string | null
+  organismeActionsPending: boolean
   canAccessOrganismeSettings: boolean
 }): NavItem[] {
-  const { canListOrganismes, organismeUuid, canAccessOrganismeSettings } = options
+  const { canListOrganismes, organismeUuid, organismeActionsPending, canAccessOrganismeSettings } = options
 
   if (!organismeUuid) {
     return canListOrganismes ? [ORGANISMES_ITEM] : []
+  }
+
+  if (organismeActionsPending) {
+    return []
   }
 
   if (!canAccessOrganismeSettings) {

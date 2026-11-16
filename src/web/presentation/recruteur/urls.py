@@ -10,6 +10,7 @@ from presentation.recruteur.views.candidature_conversations import (
 )
 from presentation.recruteur.views.candidature_detail import CandidatureDetailView
 from presentation.recruteur.views.candidature_logs import CandidatureLogsView
+from presentation.recruteur.views.candidature_tags import CandidatureTagsView
 from presentation.recruteur.views.documents import (
     CandidatureDocumentsView,
     DocumentView,
@@ -192,6 +193,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tags/<uuid:tag_uuid>",
         CandidatureNoteTagDetailView.as_view(),
         name="candidature_note_tag",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/tags",
+        CandidatureTagsView.as_view(),
+        name="candidature_tags",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/documents",

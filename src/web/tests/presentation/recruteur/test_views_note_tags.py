@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from domain.recruteur.errors.tag_errors import TagOrganismeMismatch
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.tag.models import (
     NoteTagModel,
     NoteTagQuerySet,
@@ -44,6 +45,14 @@ def _note_tag_url(organisme_id, recrutement_id, candidature_id, note_id, tag_id)
             "note_uuid": str(note_id),
             "tag_uuid": str(tag_id),
         },
+    )
+
+
+def _note_events(note_id) -> list[str]:
+    return list(
+        AuditLogModel.objects.filter(
+            ressource_kind="Note", ressource_id=note_id
+        ).values_list("event_name", flat=True)
     )
 
 
@@ -171,6 +180,7 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert NoteTagModel.objects.filter(note=note, tag=tag).count() == 1
+        assert _note_events(note.id) == []
 
     def test_tag_outside_the_note_organisme_is_not_found(
         self, authenticated_client, test_user
@@ -180,7 +190,7 @@ class TestCandidatureNoteTagsView:
         )
         note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
         tag = TagDjangoFactory(organisme=organisme, category=TagCategory.NOTE)
-        erreur = TagOrganismeMismatch(tag.id)
+        erreur = TagOrganismeMismatch(tag.id, "note")
 
         # unreachable through the service, forced on the queryset
         with patch.object(NoteTagQuerySet, "poser", side_effect=erreur):
@@ -192,6 +202,7 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": str(erreur)}
+        assert _note_events(note.id) == []
 
     @pytest.mark.parametrize("est_privee", [False, True])
     def test_tags_my_note(self, authenticated_client, test_user, est_privee):
@@ -214,6 +225,7 @@ class TestCandidatureNoteTagsView:
         assert list(
             NoteTagModel.objects.filter(note=note).values_list("tag_id", flat=True)
         ) == [tag.id]
+        assert _note_events(note.id) == ["EtiquettePosee"]
 
 
 class TestCandidatureNoteTagDetailView:
@@ -295,6 +307,7 @@ class TestCandidatureNoteTagDetailView:
         assert response.json() == {
             "error": f"L'étiquette {tag.id} n'est pas posée sur cette note"
         }
+        assert _note_events(note.id) == []
 
     def test_removes_only_this_tag_from_this_note(
         self, authenticated_client, test_user
@@ -321,3 +334,4 @@ class TestCandidatureNoteTagDetailView:
             autre_etiquette.pk,
             autre_note.pk,
         }
+        assert _note_events(note.id) == ["EtiquetteRetiree"]

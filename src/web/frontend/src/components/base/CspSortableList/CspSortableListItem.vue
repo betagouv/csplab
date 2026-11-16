@@ -181,9 +181,9 @@ function setHandleRef(element: Element | null) {
   border-radius: 0.25rem;
   box-shadow:
     var(--sortable-list-item-shadow),
-    inset 0 0 0 1px var(--border-default-grey);
+    inset 0 0 0 1px var(--csp-raised-border-color);
   transition: box-shadow var(--csp-motion-duration-state);
-  background-color: var(--background-default-grey);
+  background-color: var(--csp-raised-background);
   color: var(--text-default-grey);
   font-weight: 500;
 }

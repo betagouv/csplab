@@ -1,5 +1,6 @@
+import type { OrganismeRead } from '@/api/organismes'
 import type { AgentRecherche } from '@/features/agents/types'
-import type { AgentOrganisme, OrganismeRead, OrganismesList } from '@/features/organismes/types'
+import type { AgentOrganisme, OrganismesList } from '@/features/organismes/types'
 
 export const AGENT_UUID = 'bbbbbbbb-0001-0001-0001-000000000001'
 

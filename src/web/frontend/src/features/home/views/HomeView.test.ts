@@ -1,9 +1,15 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
+import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
-import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_INCONNU_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
+import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_INCONNU_UUID, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
+
+vi.mock('@/api/organismes', () => ({
+  getOrganismeDetail: vi.fn(),
+}))
 
 function renderHome(organismeUuid: string) {
   return renderWithApp(RouterView, { route: `/organismes/${organismeUuid}/accueil` })
@@ -11,9 +17,9 @@ function renderHome(organismeUuid: string) {
 
 describe('homeView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON], false, [
-      { uuid: MTE_UUID, nom: ROLE_MTE.nom, authorized_actions: ['get_organisme', 'list_recrutements'] },
-      { uuid: BRIANCON_UUID, nom: ROLE_BRIANCON.nom, authorized_actions: ['list_recrutements'] },
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([
+      { ...ORGANISME_MTE, authorized_actions: ['get_organisme', 'list_recrutements'] },
+      { ...ORGANISME_BRIANCON, authorized_actions: ['list_recrutements'] },
     ]))
   })
 
@@ -33,10 +39,22 @@ describe('homeView', () => {
   })
 
   it('shows the superviseur version to a staff member outside their organismes', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
+    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: BRIANCON_UUID })
     await renderHome(BRIANCON_UUID)
 
     expect(await screen.findByRole('heading', { name: 'Prêt à démarrer les recrutements de votre organisme ?' })).toBeInTheDocument()
+  })
+
+  it('waits for the rights of a staff member outside their organismes before guiding them', async () => {
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
+    vi.mocked(getOrganismeDetail).mockReturnValue(new Promise(() => {}))
+    await renderHome(BRIANCON_UUID)
+
+    await screen.findByRole('heading', { level: 1, name: 'Bonjour Marie' })
+    await vi.waitFor(() => expect(getOrganismeDetail).toHaveBeenCalled())
+
+    expect(screen.queryByRole('heading', { name: 'Prêt à traiter vos premières candidatures ?' })).not.toBeInTheDocument()
   })
 
   it('guides an agent towards their recrutements, without links to the settings', async () => {

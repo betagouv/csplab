@@ -709,7 +709,7 @@ class NoteVisibiliteSerializer(serializers.Serializer):
     est_privee = serializers.BooleanField()
 
 
-class AddNoteTagSerializer(serializers.Serializer):
+class AddTagSerializer(serializers.Serializer):
     tag_uuid = serializers.UUIDField()
 
 

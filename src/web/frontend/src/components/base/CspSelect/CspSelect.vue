@@ -146,11 +146,11 @@ const model = defineModel<T>()
   justify-content: space-between;
   gap: 0.5rem;
   appearance: none;
-  background-color: var(--background-default-grey);
+  background-color: var(--csp-field-background);
   color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-field-border-color);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   line-height: 1.25;
   padding: var(--csp-select-padding-y) var(--csp-select-padding-x);
   cursor: pointer;

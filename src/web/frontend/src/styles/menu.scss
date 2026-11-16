@@ -21,6 +21,6 @@
 
 @mixin separator {
   height: 1px;
-  background-color: var(--border-default-grey);
+  background-color: var(--csp-divider-color);
   margin-block: var(--csp-menu-padding);
 }

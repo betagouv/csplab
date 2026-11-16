@@ -2,6 +2,7 @@
 import type { RouteLocationRaw } from 'vue-router'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import CspBreadcrumb from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
@@ -39,19 +40,16 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
           v-if="backLink"
           class="csp-page-header__back-link"
         >
-          <RouterLink
-            as-child
+          <CspButton
+            class="csp-page-header__back-button"
+            :as="RouterLink"
             :to="backLink.to"
             :aria-label="backLink.label"
-          >
-            <CspButton
-              class="csp-page-header__back-button"
-              variant="tertiary-no-outline"
-              is-icon-left
-              icon="ri:arrow-left-line"
-              size="sm"
-            />
-          </RouterLink>
+            variant="tertiary-no-outline"
+            is-icon-left
+            icon="ri:arrow-left-line"
+            size="sm"
+          />
         </div>
         <div
           class="csp-page-header__hgroup"
@@ -100,7 +98,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 @use '@/styles/breakpoints' as bp;
 
 .csp-page-header {
-  background: var(--background-default-grey);
+  background: var(--csp-chrome-background);
 
   --csp-page-header-back-link-size: 0;
   --csp-page-header-back-link-gap: 0;
@@ -127,7 +125,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding-bottom: var(--csp-page-header-padding-bottom);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-chrome-border-color);
   padding-inline: var(--csp-page-container-padding-inline);
 }
 

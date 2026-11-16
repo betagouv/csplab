@@ -21,10 +21,10 @@ const props = defineProps<{
 
 const breadcrumb: CspBreadcrumbItem[] = [{ label: HOME_BREADCRUMB_LABEL }]
 
-const { user, isStaff } = useCurrentUser()
-const { organisme, canOnOrganisme } = useRouteOrganisme()
+const { user } = useCurrentUser()
+const { organisme, actionsPending, canBrowseOrganismes, canOnOrganisme } = useRouteOrganisme()
 
-const forbidden = computed(() => !!props.organismeUuid && !!user.value && !isStaff.value && !organisme.value)
+const forbidden = computed(() => !!props.organismeUuid && !!user.value && !canBrowseOrganismes.value && !organisme.value)
 
 const canAccessOrganismeSettings = computed(() => canOnOrganisme('get_organisme'))
 
@@ -44,7 +44,7 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
     />
     <CspPageContainer>
       <CspCard
-        v-if="user && organismeUuid"
+        v-if="user && organismeUuid && !actionsPending"
         as="section"
         size="lg"
         title-as="h2"
@@ -146,7 +146,7 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
   align-items: start;
   row-gap: var(--csp-space-4);
   padding-block: var(--csp-space-5);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   @include bp.from(bp.$md) {
     align-items: center;
