@@ -155,7 +155,7 @@ function startConversation(): void {
 }
 
 .messages-section__conversations {
-  border-right: 1px solid var(--border-default-grey);
+  border-right: 1px solid var(--csp-divider-color);
 }
 
 .messages-section__thread {
@@ -196,7 +196,7 @@ function startConversation(): void {
 
   .messages-section__conversations {
     border-right: 0;
-    border-bottom: 1px solid var(--border-default-grey);
+    border-bottom: 1px solid var(--csp-divider-color);
   }
 }
 </style>
