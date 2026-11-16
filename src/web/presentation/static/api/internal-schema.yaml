@@ -5977,7 +5977,7 @@ components:
       - create_tag
       - update_tag
       - delete_tag
-      - add_tag_to_application
+      - manage_tag_on_application
       type: string
       description: |-
         * `get_organisme` - get_organisme
@@ -6019,7 +6019,7 @@ components:
         * `create_tag` - create_tag
         * `update_tag` - update_tag
         * `delete_tag` - delete_tag
-        * `add_tag_to_application` - add_tag_to_application
+        * `manage_tag_on_application` - manage_tag_on_application
     Candidat:
       type: object
       properties:
