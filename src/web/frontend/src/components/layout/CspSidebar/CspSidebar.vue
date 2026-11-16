@@ -143,7 +143,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-direction: column;
   width: var(--sidebar-width-collapsed);
   height: 100%;
-  background: var(--background-alt-grey);
+  background: var(--csp-nav-background);
   overflow: hidden;
 
   &--expanded {

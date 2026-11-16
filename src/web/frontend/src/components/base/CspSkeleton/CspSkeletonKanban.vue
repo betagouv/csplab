@@ -69,9 +69,9 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   gap: var(--csp-kanban-column-gap);
   min-width: var(--csp-kanban-column-width);
   padding: var(--csp-kanban-column-padding);
-  background-color: var(--background-alt-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
+  background-color: var(--csp-region-background);
+  box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
+  border-top: var(--csp-kanban-column-accent-width) solid var(--csp-kanban-column-accent-color);
 }
 
 .csp-skeleton-kanban__header {
