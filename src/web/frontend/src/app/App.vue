@@ -19,11 +19,12 @@ const LOADING_TITLE = document.title
 useHead({ titleTemplate: title => (title ? `${title} | CSPLab` : LOADING_TITLE) })
 
 const { user, error: userError, refetch: refetchUser } = useCurrentUser()
-const { organismeUuid, canOnOrganisme } = useRouteOrganisme()
+const { organismeUuid, actionsPending, canOnOrganisme } = useRouteOrganisme()
 
 const navigation = computed(() => navigationFor({
   canListOrganismes: can(user.value?.authorized_actions, 'list_organismes'),
   organismeUuid: organismeUuid.value,
+  organismeActionsPending: actionsPending.value,
   canAccessOrganismeSettings: canOnOrganisme('get_organisme'),
 }))
 

@@ -2,7 +2,7 @@ import type { QueryCache } from '@pinia/colada'
 import type { OrganismeParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
 import { organismeKeys } from '@/api/queryKeys'
-import { getOrganismeAgents, getOrganismeDetail, getOrganismesList, searchOrganismes } from './api'
+import { getOrganismeAgents, getOrganismesList, searchOrganismes } from './api'
 
 export const organismesListQuery = defineQueryOptions({
   key: organismeKeys.list(),
@@ -13,13 +13,6 @@ export const organismesSearchQuery = defineQueryOptions((nom: string) => {
   return {
     key: organismeKeys.search(nom),
     query: () => searchOrganismes(nom),
-  }
-})
-
-export const organismeDetailQuery = defineQueryOptions((params: OrganismeParams) => {
-  return {
-    key: organismeKeys.detail(params),
-    query: () => getOrganismeDetail(params),
   }
 })
 
