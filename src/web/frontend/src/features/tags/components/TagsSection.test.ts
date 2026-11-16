@@ -1,10 +1,10 @@
-import type { Tag } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { TAG_SUMMARY, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
 import TagsSection from './TagsSection.vue'
@@ -17,16 +17,6 @@ vi.mock('../api', () => ({
 }))
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
-
-const TO_RECALL: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000001', name: 'À rappeler', category: 'candidature', color: 'bleu', usage_count: 0 }
-
-const TAGS: Tag[] = [
-  TO_RECALL,
-  { uuid: 'aaaaaaaa-0001-0001-0001-000000000002', name: 'Profil senior', category: 'candidature', color: 'vert', usage_count: 0 },
-  { uuid: 'aaaaaaaa-0001-0001-0001-000000000003', name: 'Entretien', category: 'note', color: 'jaune', usage_count: 0 },
-]
-
-const CREATED_TAG: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000004', name: 'Synthèse', category: 'note', color: 'bleu', usage_count: 0 }
 
 const Host = defineComponent({
   setup: () => () => h(CspToaster, null, () => h(TagsSection, { organismeUuid: ORGANISME_UUID })),
@@ -74,9 +64,9 @@ describe('tagsSection', () => {
   })
 
   it('creates a tag in the category of the block', async () => {
-    vi.mocked(createTag).mockResolvedValue(CREATED_TAG)
+    vi.mocked(createTag).mockResolvedValue(TAG_SUMMARY)
     const user = await openDrawerFrom('Note')
-    vi.mocked(getTags).mockResolvedValue([...TAGS, CREATED_TAG])
+    vi.mocked(getTags).mockResolvedValue([...TAGS, TAG_SUMMARY])
 
     const save = screen.getByRole('button', { name: 'Enregistrer' })
     expect(screen.getByRole('radio', { name: 'Note' })).toBeChecked()
@@ -95,7 +85,7 @@ describe('tagsSection', () => {
   })
 
   it('edits the name and the color of a tag, and keeps its type', async () => {
-    vi.mocked(updateTag).mockResolvedValue({ ...TO_RECALL, name: 'À relancer', color: 'rouge' })
+    vi.mocked(updateTag).mockResolvedValue({ ...TAG_TO_RECALL, name: 'À relancer', color: 'rouge' })
     const user = await openEditDrawer('À rappeler')
 
     const drawer = screen.getByRole('dialog', { name: 'Modifier l\'étiquette' })
@@ -110,7 +100,7 @@ describe('tagsSection', () => {
     await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
     await user.click(within(drawer).getByRole('button', { name: 'Enregistrer' }))
 
-    expect(updateTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid }, { name: 'À relancer', color: 'rouge' })
+    expect(updateTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TAG_TO_RECALL.uuid }, { name: 'À relancer', color: 'rouge' })
     expect(await screen.findByText('Étiquette modifiée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -210,7 +200,7 @@ describe('tagsSection', () => {
   })
 
   it('deletes a tag once confirmed, after saying how many objects carry it', async () => {
-    vi.mocked(getTags).mockResolvedValue([{ ...TO_RECALL, usage_count: 3 }, ...TAGS.slice(1)])
+    vi.mocked(getTags).mockResolvedValue([{ ...TAG_TO_RECALL, usage_count: 3 }, ...TAGS.slice(1)])
     vi.mocked(deleteTag).mockResolvedValue()
     const user = setupUser()
     await renderWithApp(Host)
@@ -222,7 +212,7 @@ describe('tagsSection', () => {
     vi.mocked(getTags).mockResolvedValue(TAGS.slice(1))
     await user.click(within(dialog).getByRole('button', { name: 'Supprimer' }))
 
-    expect(deleteTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid })
+    expect(deleteTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TAG_TO_RECALL.uuid })
     expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await vi.waitFor(() => expect(screen.queryByRole('button', { name: 'Modifier l\'étiquette À rappeler' })).not.toBeInTheDocument())
