@@ -216,14 +216,16 @@ describe('candidatureNotes', () => {
     expect(await within(picker).findByRole('button', { name: 'L\'étiquette Synthèse est déjà ajoutée' })).toBeDisabled()
   })
 
-  it('filters the tags of the picker by name', async () => {
+  it('filters the tags of the picker by name, accents ignored', async () => {
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     const { user, picker } = await openTagPicker()
 
-    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synth')
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synthese')
 
-    const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
-    expect(rows.map(row => row.textContent?.trim())).toEqual(['SynthèseAjouter'])
+    await vi.waitFor(() => {
+      const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
+      expect(rows.map(row => row.textContent?.trim())).toEqual(['SynthèseAjouter'])
+    })
   })
 
   it('says when no tag matches the search', async () => {
@@ -232,7 +234,7 @@ describe('candidatureNotes', () => {
 
     await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'zzz')
 
-    expect(within(picker).getByText('Aucune étiquette ne correspond.')).toBeInTheDocument()
+    expect(await within(picker).findByText('Aucune étiquette ne correspond.')).toBeInTheDocument()
   })
 
   it('offers an empty search when the picker is opened again', async () => {

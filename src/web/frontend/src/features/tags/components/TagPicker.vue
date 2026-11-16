@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { TagCategory } from '../types'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useTags } from '../composables/useTags'
 import { tagPaletteColor } from '../format'
 
@@ -23,20 +24,13 @@ const emit = defineEmits<{
 const { tags, pending, error } = useTags(props.organismeUuid)
 const showSkeleton = useMinimumPending(pending)
 
-const search = ref('')
-
 const categoryTags = computed(() =>
   (tags.value ?? [])
     .filter(tag => tag.category === props.category)
     .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
 )
 
-const visibleTags = computed(() => {
-  const term = search.value.trim().toLocaleLowerCase('fr')
-  return term
-    ? categoryTags.value.filter(tag => tag.name.toLocaleLowerCase('fr').includes(term))
-    : categoryTags.value
-})
+const { search, filtered: visibleTags } = useTextSearch(categoryTags, tag => [tag.name])
 
 function isApplied(tagUuid: string): boolean {
   return props.appliedTagUuids.includes(tagUuid)
