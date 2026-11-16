@@ -8,6 +8,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.services.add_candidature_tag import add_candidature_tag
+from application.recruteur.services.remove_candidature_tag import (
+    remove_candidature_tag,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -23,6 +26,7 @@ from domain.recruteur.errors.tag_errors import (
     TagAlreadyOnCandidature,
     TagCategoryMismatch,
     TagNotFound,
+    TagNotOnCandidature,
     TagOrganismeMismatch,
 )
 from presentation.api.authentication import SessionApiMixin
@@ -52,6 +56,7 @@ class CandidatureTagBaseView(SessionApiMixin, APIView):
                 RecrutementInexistant,
                 RecrutementCandidatureInexistante,
                 TagNotFound,
+                TagNotOnCandidature,
                 TagOrganismeMismatch,
             ),
         ):
@@ -112,3 +117,32 @@ class CandidatureTagsView(CandidatureTagBaseView):
             utilisateur=request.user,
         )
         return Response(status=status.HTTP_201_CREATED)
+
+
+@extend_schema_view(
+    delete=extend_schema(
+        summary="Retirer une étiquette d'une candidature",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            204: None,
+        },
+    ),
+)
+class CandidatureTagDetailView(CandidatureTagBaseView):
+    def delete(
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+        tag_uuid: UUID,
+    ) -> Response:
+        remove_candidature_tag(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            candidature_id=candidature_uuid,
+            tag_id=tag_uuid,
+            utilisateur=request.user,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
