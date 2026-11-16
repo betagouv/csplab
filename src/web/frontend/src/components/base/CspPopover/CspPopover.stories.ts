@@ -15,7 +15,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Popover générique construit sur la primitive `reka-ui`. Affiche un contenu flottant ancré à un déclencheur via le slot `trigger`. Gère le focus, la touche Échap et le clic extérieur. Le slot par défaut reçoit le contenu libre.',
+        component: 'Popover générique construit sur la primitive `reka-ui`. Affiche un contenu flottant ancré au déclencheur du slot `trigger`, ou à l\'élément du slot `anchor`, que `v-model:open` ouvre. Gère le focus, la touche Échap et le clic extérieur. Le slot par défaut reçoit le contenu libre.',
       },
     },
     layout: 'centered',
@@ -56,6 +56,7 @@ const meta = {
       },
     },
     trigger: { control: false, table: { disable: true } },
+    anchor: { control: false, table: { disable: true } },
     default: { control: false, table: { disable: true } },
     class: { control: false, table: { disable: true } },
     style: { control: false, table: { disable: true } },
@@ -169,6 +170,29 @@ export const Alignments: Story = {
             <p class="text-sm">Contenu libre du popover</p>
           </CspPopover>
         </div>
+      </div>
+    `,
+  }),
+}
+
+export const Anchored: Story = {
+  name: 'Ancré à un élément',
+  render: (args: CspPopoverProps) => ({
+    components: { CspPopover, CspButton },
+    setup() {
+      const { open, handleUpdateOpen } = useStoryOpenState(args)
+
+      return { args, open, handleUpdateOpen }
+    },
+    template: `
+      <div class="flex gap-4 items-center">
+        <CspButton label="Ouvrir le popover" variant="secondary" @click="handleUpdateOpen(true)" />
+        <CspPopover v-bind="args" :open="open" @update:open="handleUpdateOpen">
+          <template #anchor>
+            <span class="text-sm">Élément d'ancrage</span>
+          </template>
+          <p class="text-sm">Contenu libre du popover.</p>
+        </CspPopover>
       </div>
     `,
   }),
