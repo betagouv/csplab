@@ -9,9 +9,9 @@ import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
-import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
+import CspPopover from '@/components/base/CspPopover/CspPopover.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
@@ -95,32 +95,49 @@ async function confirmDeletion(): Promise<void> {
   }
 }
 
-const { addTags, addingTags, removeTag } = useCandidatureNoteTags(() => props.candidature)
+const { addTag, removeTag } = useCandidatureNoteTags(() => props.candidature)
 
 const taggedNoteUuid = ref<string | null>(null)
-const taggedNote = computed(() => notes.value.find(({ uuid }) => uuid === taggedNoteUuid.value))
-const tagPickerOpen = ref(false)
+const addingTagUuid = ref<string | null>(null)
 
 function openTagPicker(note: Note): void {
   taggedNoteUuid.value = note.uuid
-  tagPickerOpen.value = true
 }
 
-async function confirmTags(tagUuids: string[]): Promise<void> {
-  if (!taggedNote.value) {
-    return
+function closeTagPicker(): void {
+  taggedNoteUuid.value = null
+}
+
+function keepFocusOnTagPicker(event: Event, note: Note): void {
+  if (taggedNoteUuid.value === note.uuid) {
+    event.preventDefault()
   }
+}
+
+function handleTagPickerOpen(open: boolean | undefined): void {
+  if (!open) {
+    closeTagPicker()
+  }
+}
+
+async function handleAddTag(note: Note, tagUuid: string): Promise<void> {
+  addingTagUuid.value = tagUuid
   try {
-    await addTags({ noteUuid: taggedNote.value.uuid, tagUuids })
-    tagPickerOpen.value = false
+    await addTag({ noteUuid: note.uuid, tagUuid })
   }
   catch (error) {
+    if (isHttpStatus(error, 409)) {
+      return
+    }
     if (isHttpStatus(error, 404)) {
       addToast({ variant: 'warning', title: 'L\'étiquette ou la note a été supprimée' })
-      tagPickerOpen.value = false
+      closeTagPicker()
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout de l\'étiquette a échoué' })
+  }
+  finally {
+    addingTagUuid.value = null
   }
 }
 
@@ -303,22 +320,41 @@ function deleteActions(note: Note) {
                   color="var(--text-label-purple-glycine)"
                   class="candidature-notes__badge"
                 />
-                <CspDropdownMenu
+                <CspPopover
                   v-if="note !== editedNote && noteActions(note).length > 0"
-                  :sections="noteActions(note)"
+                  :open="taggedNoteUuid === note.uuid"
+                  aria-label="Ajouter une étiquette"
                   side="bottom"
                   align="end"
+                  @update:open="handleTagPickerOpen"
                 >
-                  <template #trigger>
-                    <CspButton
-                      icon="ri:more-fill"
-                      variant="tertiary-no-outline"
-                      size="sm"
-                      class="candidature-notes__actions"
-                      :aria-label="`Actions sur la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
-                    />
+                  <template #anchor>
+                    <div class="candidature-notes__actions">
+                      <CspDropdownMenu
+                        :sections="noteActions(note)"
+                        side="bottom"
+                        align="end"
+                        @close-auto-focus="event => keepFocusOnTagPicker(event, note)"
+                      >
+                        <template #trigger>
+                          <CspButton
+                            icon="ri:more-fill"
+                            variant="tertiary-no-outline"
+                            size="sm"
+                            :aria-label="`Actions sur la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
+                          />
+                        </template>
+                      </CspDropdownMenu>
+                    </div>
                   </template>
-                </CspDropdownMenu>
+                  <TagPicker
+                    :organisme-uuid="candidature.organismeUuid"
+                    category="note"
+                    :applied-tag-uuids="note.tags.map(({ uuid }) => uuid)"
+                    :adding-tag-uuid="addingTagUuid"
+                    @add="tagUuid => handleAddTag(note, tagUuid)"
+                  />
+                </CspPopover>
               </div>
             </template>
             <TagList
@@ -343,22 +379,6 @@ function deleteActions(note: Note) {
         </ul>
       </template>
     </CspAsyncSection>
-
-    <CspDrawer
-      v-model:open="tagPickerOpen"
-      title="Ajouter une étiquette"
-      size="md"
-    >
-      <TagPicker
-        v-if="taggedNote"
-        :organisme-uuid="candidature.organismeUuid"
-        category="note"
-        :excluded-tag-uuids="taggedNote.tags.map(({ uuid }) => uuid)"
-        :saving="addingTags"
-        @confirm="confirmTags"
-        @cancel="tagPickerOpen = false"
-      />
-    </CspDrawer>
 
     <CspDialog
       v-model:open="deletionDialogOpen"

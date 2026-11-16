@@ -4,7 +4,7 @@ export const TAG_TO_RECALL: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000001'
 
 export const TAG_INTERVIEW: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000003', name: 'Entretien', category: 'note', color: 'jaune', usage_count: 0 }
 
-export const TAG_SUMMARY: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000004', name: 'Synthèse', category: 'note', color: 'bleu', usage_count: 0 }
+export const TAG_SYNTHESIS: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000004', name: 'Synthèse', category: 'note', color: 'bleu', usage_count: 0 }
 
 export const TAGS: Tag[] = [
   TAG_TO_RECALL,

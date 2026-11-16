@@ -4,7 +4,7 @@ import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
-import { TAG_SUMMARY, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
+import { TAG_SYNTHESIS, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
 import TagsSection from './TagsSection.vue'
@@ -64,9 +64,9 @@ describe('tagsSection', () => {
   })
 
   it('creates a tag in the category of the block', async () => {
-    vi.mocked(createTag).mockResolvedValue(TAG_SUMMARY)
+    vi.mocked(createTag).mockResolvedValue(TAG_SYNTHESIS)
     const user = await openDrawerFrom('Note')
-    vi.mocked(getTags).mockResolvedValue([...TAGS, TAG_SUMMARY])
+    vi.mocked(getTags).mockResolvedValue([...TAGS, TAG_SYNTHESIS])
 
     const save = screen.getByRole('button', { name: 'Enregistrer' })
     expect(screen.getByRole('radio', { name: 'Note' })).toBeChecked()

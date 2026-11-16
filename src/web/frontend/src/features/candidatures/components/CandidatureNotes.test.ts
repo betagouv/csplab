@@ -8,7 +8,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
-import { TAG_INTERVIEW, TAG_SUMMARY, TAG_TO_RECALL } from '@/test/fixtures/tags'
+import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import { addCandidatureNoteTag, deleteCandidatureNote, getCandidatureNotes, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
@@ -46,14 +46,14 @@ function note(overrides: Partial<Note>): Note {
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
 async function openTagPicker() {
-  vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW, TAG_SUMMARY, TAG_TO_RECALL])
+  vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL])
   const user = setupUser()
   await renderNotes()
   await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
   await user.click(await screen.findByRole('menuitem', { name: 'Ajouter une étiquette' }))
-  const drawer = await screen.findByRole('dialog', { name: 'Ajouter une étiquette' })
-  await within(drawer).findByRole('group', { name: 'Étiquettes' })
-  return { user, drawer }
+  const picker = await screen.findByRole('dialog', { name: 'Ajouter une étiquette' })
+  await within(picker).findByRole('list', { name: 'Étiquettes' })
+  return { user, picker }
 }
 
 const Host = defineComponent({
@@ -199,79 +199,98 @@ describe('candidatureNotes', () => {
     )
   })
 
-  it('tags the note picked from its menu with the note tags it does not carry yet', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+  it('adds a note tag from the picker of the note menu and keeps the picker open', async () => {
+    vi.mocked(getCandidatureNotes)
+      .mockResolvedValueOnce({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+      .mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW, TAG_SYNTHESIS] })] })
     vi.mocked(addCandidatureNoteTag).mockResolvedValue()
-    const { user, drawer } = await openTagPicker()
+    const { user, picker } = await openTagPicker()
 
-    const choices = within(within(drawer).getByRole('group', { name: 'Étiquettes' })).getAllByRole('button')
-    expect(choices.map(choice => choice.textContent?.trim())).toEqual(['Synthèse'])
+    const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
+    expect(rows.map(row => row.textContent?.trim())).toEqual(['EntretienDéjà ajoutée', 'SynthèseAjouter'])
+    expect(within(picker).getByRole('button', { name: 'L\'étiquette Entretien est déjà ajoutée' })).toBeDisabled()
 
-    await user.click(within(drawer).getByRole('button', { name: 'Synthèse' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Ajouter' }))
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
 
-    expect(addCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_SUMMARY.uuid })
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(addCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_SYNTHESIS.uuid })
+    expect(await within(picker).findByRole('button', { name: 'L\'étiquette Synthèse est déjà ajoutée' })).toBeDisabled()
   })
 
-  it('offers an empty selection when the tag picker is opened again', async () => {
+  it('filters the tags of the picker by name', async () => {
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
-    const { user, drawer } = await openTagPicker()
+    const { user, picker } = await openTagPicker()
 
-    await user.click(within(drawer).getByRole('button', { name: 'Synthèse' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Annuler' }))
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synth')
+
+    const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
+    expect(rows.map(row => row.textContent?.trim())).toEqual(['SynthèseAjouter'])
+  })
+
+  it('says when no tag matches the search', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user, picker } = await openTagPicker()
+
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'zzz')
+
+    expect(within(picker).getByText('Aucune étiquette ne correspond.')).toBeInTheDocument()
+  })
+
+  it('offers an empty search when the picker is opened again', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user, picker } = await openTagPicker()
+
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synth')
+    await user.keyboard('{Escape}')
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' })).toHaveFocus()
 
     await user.click(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Ajouter une étiquette' }))
     const reopened = await screen.findByRole('dialog', { name: 'Ajouter une étiquette' })
-    await within(reopened).findByRole('group', { name: 'Étiquettes' })
-    expect(within(reopened).getByRole('button', { name: 'Ajouter' })).toBeDisabled()
+    expect(within(reopened).getByRole('searchbox', { name: 'Rechercher une étiquette' })).toHaveValue('')
   })
 
-  it('keeps the tag picker open on the tags left to add when one of them fails', async () => {
-    vi.mocked(getCandidatureNotes)
-      .mockResolvedValueOnce({ count: 1, results: [note({})] })
-      .mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
-    vi.mocked(addCandidatureNoteTag).mockImplementation(async ({ tagUuid }) => {
-      if (tagUuid === TAG_SUMMARY.uuid) {
-        throw new HttpError(500, 'Internal Server Error', undefined)
-      }
-    })
-    const { user, drawer } = await openTagPicker()
+  it('leaves the focus on the element clicked outside the picker', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user } = await openTagPicker()
 
-    await user.click(within(drawer).getByRole('button', { name: 'Entretien' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Synthèse' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Ajouter' }))
+    await user.click(screen.getByText('Profil solide'))
+
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' })).not.toHaveFocus()
+  })
+
+  it('keeps the picker open when a tag cannot be added', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    const { user, picker } = await openTagPicker()
+
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
 
     expect(await screen.findByText('L\'ajout de l\'étiquette a échoué')).toBeInTheDocument()
-    await vi.waitFor(() => expect(within(drawer).queryByRole('button', { name: 'Entretien' })).not.toBeInTheDocument())
-    vi.mocked(addCandidatureNoteTag).mockClear()
-    await user.click(within(drawer).getByRole('button', { name: 'Ajouter' }))
-    expect(addCandidatureNoteTag).toHaveBeenCalledExactlyOnceWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_SUMMARY.uuid })
+    expect(picker).toBeInTheDocument()
   })
 
   it('treats a tag already on the note as added', async () => {
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(409, 'Conflict', undefined))
-    const { user, drawer } = await openTagPicker()
+    const { user, picker } = await openTagPicker()
 
-    await user.click(within(drawer).getByRole('button', { name: 'Synthèse' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Ajouter' }))
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
 
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await vi.waitFor(() => expect(addCandidatureNoteTag).toHaveBeenCalledOnce())
+    expect(screen.queryByText('L\'ajout de l\'étiquette a échoué')).not.toBeInTheDocument()
   })
 
-  it('warns when the tag or the note was deleted meanwhile', async () => {
+  it('warns and closes the picker when the tag or the note was deleted meanwhile', async () => {
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
-    const { user, drawer } = await openTagPicker()
+    const { user, picker } = await openTagPicker()
 
-    await user.click(within(drawer).getByRole('button', { name: 'Synthèse' }))
-    await user.click(within(drawer).getByRole('button', { name: 'Ajouter' }))
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
 
     expect(await screen.findByText('L\'étiquette ou la note a été supprimée')).toBeInTheDocument()
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
   })
 
   it('removes a tag from a note the user can change', async () => {

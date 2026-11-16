@@ -3,86 +3,130 @@ import type { TagCategory } from '../types'
 import { computed, ref } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
-import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTags } from '../composables/useTags'
 
 const props = defineProps<{
   organismeUuid: string
   category: TagCategory
-  excludedTagUuids: string[]
-  saving?: boolean
+  appliedTagUuids: string[]
+  addingTagUuid?: string | null
 }>()
 
 const emit = defineEmits<{
-  confirm: [tagUuids: string[]]
-  cancel: []
+  add: [tagUuid: string]
 }>()
 
 const { tags, pending, error } = useTags(props.organismeUuid)
 const showSkeleton = useMinimumPending(pending)
 
-const availableTags = computed(() =>
+const search = ref('')
+
+const categoryTags = computed(() =>
   (tags.value ?? [])
-    .filter(tag => tag.category === props.category && !props.excludedTagUuids.includes(tag.uuid))
+    .filter(tag => tag.category === props.category)
     .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
 )
 
-const selectedTagUuids = ref<string[]>([])
-const selectedAvailableTagUuids = computed(() =>
-  selectedTagUuids.value.filter(tagUuid => availableTags.value.some(({ uuid }) => uuid === tagUuid)),
-)
+const visibleTags = computed(() => {
+  const term = search.value.trim().toLocaleLowerCase('fr')
+  return term
+    ? categoryTags.value.filter(tag => tag.name.toLocaleLowerCase('fr').includes(term))
+    : categoryTags.value
+})
+
+function isApplied(tagUuid: string): boolean {
+  return props.appliedTagUuids.includes(tagUuid)
+}
 </script>
 
 <template>
-  <CspAsyncSection
-    :pending="showSkeleton"
-    :error="error"
-    loading-label="Chargement des étiquettes"
-    error-title="Impossible de charger les étiquettes"
-  >
-    <CspTagGroup
-      v-if="availableTags.length > 0"
-      v-model="selectedTagUuids"
-      type="multiple"
-      size="md"
-      aria-label="Étiquettes"
-    >
-      <CspTag
-        v-for="tag in availableTags"
-        :key="tag.uuid"
-        :value="tag.uuid"
-        :label="tag.name"
-        variant="selectable"
-      />
-    </CspTagGroup>
-    <p
-      v-else
-      class="tag-picker__empty"
-    >
-      Aucune étiquette à ajouter.
+  <div class="tag-picker">
+    <p class="tag-picker__title">
+      Ajouter une étiquette
     </p>
-  </CspAsyncSection>
-
-  <CspDrawerFooter>
-    <CspButton
-      variant="secondary"
-      label="Annuler"
-      @click="emit('cancel')"
+    <CspSearchBar
+      v-model="search"
+      mode="live"
+      label="Rechercher une étiquette"
+      hide-label
+      placeholder="Rechercher une étiquette"
     />
-    <CspButton
-      label="Ajouter"
-      :disabled="selectedAvailableTagUuids.length === 0 || saving"
-      @click="emit('confirm', selectedAvailableTagUuids)"
-    />
-  </CspDrawerFooter>
+    <CspAsyncSection
+      :pending="showSkeleton"
+      :error="error"
+      loading-label="Chargement des étiquettes"
+      error-title="Impossible de charger les étiquettes"
+    >
+      <ul
+        v-if="visibleTags.length > 0"
+        class="tag-picker__list"
+        aria-label="Étiquettes"
+      >
+        <li
+          v-for="tag in visibleTags"
+          :key="tag.uuid"
+          class="tag-picker__item"
+        >
+          <span class="tag-picker__name">{{ tag.name }}</span>
+          <CspButton
+            :label="isApplied(tag.uuid) ? 'Déjà ajoutée' : 'Ajouter'"
+            variant="tertiary-no-outline"
+            size="sm"
+            :aria-label="isApplied(tag.uuid) ? `L'étiquette ${tag.name} est déjà ajoutée` : `Ajouter l'étiquette ${tag.name}`"
+            :disabled="isApplied(tag.uuid) || addingTagUuid === tag.uuid"
+            @click="emit('add', tag.uuid)"
+          />
+        </li>
+      </ul>
+      <p
+        v-else
+        class="tag-picker__empty"
+      >
+        {{ categoryTags.length > 0 ? 'Aucune étiquette ne correspond.' : 'Aucune étiquette.' }}
+      </p>
+    </CspAsyncSection>
+  </div>
 </template>
 
 <style scoped lang="scss">
+.tag-picker {
+  display: flex;
+  width: var(--csp-popover-width);
+  max-width: 100%;
+  flex-direction: column;
+  gap: var(--csp-space-3);
+}
+
+.tag-picker__title {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-grey);
+}
+
+.tag-picker__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-picker__item {
+  display: flex;
+  gap: var(--csp-space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tag-picker__name {
+  color: var(--text-action-high-blue-france);
+}
+
 .tag-picker__empty {
   margin: 0;
+  font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
 }
 </style>

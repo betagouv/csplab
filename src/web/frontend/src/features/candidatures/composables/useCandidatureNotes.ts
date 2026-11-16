@@ -3,7 +3,6 @@ import type { CreateNotePayload, Note, NoteVisibilitePayload, UpdateNotePayload 
 import type { CandidatureParams, NoteParams, NoteTagParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
-import { isHttpStatus } from '@/api/errors'
 import { candidatureKeys } from '@/api/queryKeys'
 import { addCandidatureNoteTag, createCandidatureNote, deleteCandidatureNote, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import { candidatureNotesQuery } from '../queries'
@@ -92,19 +91,11 @@ export function useDeleteCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
 export function useCandidatureNoteTags(candidature: MaybeRefOrGetter<CandidatureParams>) {
   const queryCache = useQueryCache()
 
-  const invalidateNotes = () => {
-    queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
-    queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
-  }
+  const invalidateNotes = () => queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
 
   const addMutation = useMutation({
-    mutation: async ({ noteUuid, tagUuids }: Pick<NoteParams, 'noteUuid'> & { tagUuids: string[] }) => {
-      const results = await Promise.allSettled(tagUuids.map(tagUuid => addCandidatureNoteTag({ ...toValue(candidature), noteUuid, tagUuid })))
-      const failure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected' && !isHttpStatus(result.reason, 409))
-      if (failure) {
-        throw failure.reason
-      }
-    },
+    mutation: ({ noteUuid, tagUuid }: Pick<NoteTagParams, 'noteUuid' | 'tagUuid'>) =>
+      addCandidatureNoteTag({ ...toValue(candidature), noteUuid, tagUuid }),
     onSettled: invalidateNotes,
   })
 
@@ -115,8 +106,7 @@ export function useCandidatureNoteTags(candidature: MaybeRefOrGetter<Candidature
   })
 
   return {
-    addTags: addMutation.mutateAsync,
-    addingTags: addMutation.isLoading,
+    addTag: addMutation.mutateAsync,
     removeTag: removeMutation.mutateAsync,
   }
 }
