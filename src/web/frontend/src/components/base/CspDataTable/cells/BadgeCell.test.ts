@@ -8,4 +8,10 @@ describe('badgeCell', () => {
 
     expect(screen.getByText('0')).toBeInTheDocument()
   })
+
+  it.each([null, ''])('shows a dash for the empty value %j', (value) => {
+    render(BadgeCell, { props: { value } })
+
+    expect(screen.getByText('-')).toBeInTheDocument()
+  })
 })

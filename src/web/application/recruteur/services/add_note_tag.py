@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from ddd.entity import Entity
 from django.db import transaction
 
 from application.identite.context_services.organisme_permission_service import (
@@ -11,12 +12,16 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.tag_errors import TagNotFound
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.tag.models import NoteTagModel, TagModel
 from infrastructure.django_apps.users.models import UserModel
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
+)
 
 
 def add_note_tag(
@@ -61,3 +66,9 @@ def add_note_tag(
             raise TagNotFound(tag_id) from error
 
         NoteTagModel.objects.poser(note=note, tag=tag)
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=utilisateur.username,
+            entity=Entity(entity_id=note_id),
+            ressource_kind="Note",
+            event_name="EtiquettePosee",
+        )

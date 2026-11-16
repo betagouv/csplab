@@ -53,7 +53,7 @@ const LINE_HEIGHT_TOKENS = [
   { token: '--csp-line-height-relaxed', label: 'relaxed | 1.625' },
 ]
 
-const SHADOW_TOKENS = ['--csp-shadow-sm', '--csp-shadow-md', '--csp-shadow-lg']
+const SHADOW_TOKENS = ['--csp-raised-shadow', '--csp-raised-shadow-hover', '--csp-overlap-shadow', '--csp-lifted-shadow']
 
 export const Couleurs: Story = {
   render: () => ({
@@ -267,7 +267,7 @@ export const Ombres: Story = {
               class="text-center"
             >
               <div
-                class="w-40 h-25 bg-(--background-default-grey) rounded-(--csp-radius-md) mb-3"
+                class="w-40 h-25 bg-(--background-default-grey) mb-3"
                 :style="{ boxShadow: 'var(' + t + ')' }"
               />
               <code class="text-xs text-(--text-mention-grey)">{{ t }}</code>

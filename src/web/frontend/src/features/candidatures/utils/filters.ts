@@ -1,5 +1,6 @@
 import type { Candidat } from '../types'
 import { normalizeSearchText } from '@/utils/search'
+import { formatCandidatName } from '../format'
 
 export interface CandidaturesFilters extends Record<string, unknown> {
   etapes: string[]
@@ -23,7 +24,7 @@ export function matchesSearch(candidat: Candidat, search: string): boolean {
     return true
   }
   return [
-    `${candidat.prenom} ${candidat.nom}`,
+    formatCandidatName(candidat),
     `${candidat.nom} ${candidat.prenom}`,
   ].some(name => normalizeSearchText(name).includes(term))
 }

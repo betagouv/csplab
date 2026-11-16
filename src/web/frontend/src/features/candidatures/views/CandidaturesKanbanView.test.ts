@@ -242,6 +242,7 @@ describe('candidaturesKanbanView', () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
+    expect(drawer.getByRole('radio', { name: /^Réception des candidatures\s*Étape actuelle$/ })).toBeDisabled()
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
     await user.click(drawer.getByRole('button', { name: 'Valider le changement d\'étape' }))
 

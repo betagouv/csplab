@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, OrganismesList, UpdateOrganismePayload, Versant } from '../types'
+import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import { labelOptions } from '@/utils/options'
 import { SIRET_LENGTH, VERSANT_LABELS } from '../constants/organisme'
 import { isSiretValid } from '../siret'
 
@@ -24,7 +26,7 @@ const isEdition = computed(() => Boolean(props.organisme))
 
 const nom = ref(props.organisme?.nom ?? '')
 const siret = ref(props.organisme?.siret ?? '')
-const versant = ref<string>(props.organisme?.versant ?? '')
+const versant = ref<Versant | ''>(props.organisme?.versant ?? '')
 const gestionAts = ref<'oui' | 'non'>((props.organisme?.gestion_ats ?? true) ? 'oui' : 'non')
 const siretValidationError = ref<string | null>(null)
 
@@ -43,11 +45,9 @@ function handleSiretInput(value: string): void {
   siret.value = value.replace(/\D/g, '')
 }
 
-const VERSANT_OPTIONS = Object.entries(VERSANT_LABELS).map(
-  ([value, label]) => ({ value, label }),
-)
+const VERSANT_OPTIONS = labelOptions(VERSANT_LABELS)
 
-const GESTION_OPTIONS = [
+const GESTION_OPTIONS: CspRadioGroupOption<'oui' | 'non'>[] = [
   { value: 'oui', label: 'Oui' },
   { value: 'non', label: 'Non' },
 ]
@@ -59,12 +59,12 @@ const canSubmit = computed(() =>
 )
 
 function handleSubmit(): void {
-  if (!canSubmit.value || props.saving) {
+  if (!canSubmit.value || props.saving || versant.value === '') {
     return
   }
   const commonFields = {
     nom: nom.value.trim(),
-    versant: versant.value as Versant,
+    versant: versant.value,
     gestion_ats: gestionAts.value === 'oui',
   }
   if (isEdition.value) {

@@ -3,7 +3,7 @@ import type { RouteLocationNormalized } from 'vue-router'
 import { computed, inject, onMounted, onScopeDispose, onUnmounted, provide, shallowReactive, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 
-type NavigationPredicate = (to: RouteLocationNormalized, from: RouteLocationNormalized) => boolean
+export type NavigationPredicate = (to: RouteLocationNormalized, from: RouteLocationNormalized) => boolean
 
 interface UnsavedInput {
   isDirty: () => boolean

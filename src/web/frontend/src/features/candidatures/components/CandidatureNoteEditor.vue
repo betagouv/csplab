@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CreateNotePayload } from '../types'
+import type { NavigationPredicate } from '@/composables/navigation/useUnsavedChanges'
 import { computed, onMounted, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
@@ -14,11 +15,22 @@ const props = withDefaults(defineProps<{
   initialEstPrivee?: boolean
   cancelLabel?: string
   submitLabel?: string
+  cancellable?: boolean
+  autofocus?: boolean
+  rows?: number
+  size?: 'sm' | 'md'
+  submitVariant?: 'primary' | 'secondary'
+  isLeftBy?: NavigationPredicate
 }>(), {
   initialMessage: '',
   initialEstPrivee: false,
   cancelLabel: 'Annuler',
   submitLabel: 'Enregistrer la note',
+  cancellable: true,
+  autofocus: true,
+  rows: 8,
+  size: 'md',
+  submitVariant: 'primary',
 })
 
 const emit = defineEmits<{
@@ -30,7 +42,11 @@ const message = ref(props.initialMessage)
 const estPrivee = ref(props.initialEstPrivee)
 const messageId = useId()
 
-onMounted(() => document.getElementById(messageId)?.focus())
+onMounted(() => {
+  if (props.autofocus) {
+    document.getElementById(messageId)?.focus()
+  }
+})
 
 const isDirty = computed(() => message.value !== props.initialMessage || estPrivee.value !== props.initialEstPrivee)
 
@@ -39,7 +55,7 @@ function reset(): void {
   estPrivee.value = props.initialEstPrivee
 }
 
-useUnsavedChanges(() => isDirty.value, reset)
+useUnsavedChanges(() => isDirty.value, reset, { isLeftBy: props.isLeftBy })
 
 const canSubmit = computed(() => isDirty.value && message.value.trim() !== '' && !props.submitting)
 
@@ -66,7 +82,7 @@ async function save(): Promise<void> {
     <CspTextarea
       :id="messageId"
       v-model="message"
-      :rows="8"
+      :rows="rows"
       :readonly="submitting"
       placeholder="Écrivez votre note…"
       :aria-label="label"
@@ -75,16 +91,21 @@ async function save(): Promise<void> {
       v-model="estPrivee"
       label="Note privée"
       hint="Visible par vous uniquement"
+      :size="size"
       :disabled="submitting"
     />
     <div class="candidature-note-editor__actions">
       <CspButton
+        v-if="cancellable"
         variant="secondary"
+        :size="size"
         :label="cancelLabel"
         @click="emit('cancel')"
       />
       <CspButton
         type="submit"
+        :variant="submitVariant"
+        :size="size"
         :label="submitLabel"
         :disabled="!canSubmit"
       />

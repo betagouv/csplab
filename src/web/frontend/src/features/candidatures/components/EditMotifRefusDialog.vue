@@ -3,11 +3,11 @@ import type { MotifRefus, MotifRefusOption } from '../types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
+import MotifRefusSelect from './MotifRefusSelect.vue'
 
 const props = defineProps<{
   open: boolean
-  currentMotif: string
+  currentMotif: MotifRefus
   motifs: MotifRefusOption[]
   motifsUnavailable?: boolean
   saving?: boolean
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const selection = ref<string>()
+const selection = ref<MotifRefus>()
 
 watch(() => props.open, () => {
   selection.value = props.currentMotif
@@ -40,14 +40,10 @@ function handleConfirm(): void {
     title="Modifier le motif de refus"
     @update:open="(value) => { if (!value) { emit('cancel') } }"
   >
-    <CspSelect
+    <MotifRefusSelect
       v-model="selection"
-      label="Motif de refus"
-      placeholder="Sélectionner un motif de refus"
-      required
-      :options="motifs"
-      :error="motifsUnavailable"
-      error-message="Les motifs de refus n'ont pas pu être chargés."
+      :motifs="motifs"
+      :motifs-unavailable="motifsUnavailable"
     />
 
     <template #footer>

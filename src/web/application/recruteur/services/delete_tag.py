@@ -24,9 +24,11 @@ def delete_tag(*, organisme_id: UUID, tag_id: UUID, utilisateur: UserModel) -> N
     )
 
     with transaction.atomic():
-        deleted, _ = TagModel.objects.by_id(organisme_id, tag_id).delete()
-        if deleted == 0:
-            raise TagNotFound(tag_id)
+        try:
+            tag = TagModel.objects.by_id(organisme_id, tag_id).select_for_update().get()
+        except TagModel.DoesNotExist as exc:
+            raise TagNotFound(tag_id) from exc
+        tag.delete()
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
             utilisateur_id=utilisateur.username,
             entity=Entity(entity_id=tag_id),

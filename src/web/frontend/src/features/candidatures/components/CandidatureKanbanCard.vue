@@ -5,9 +5,9 @@ import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
+import { formatUnreadConversations } from '@/features/messages/format'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
-import { pluralize } from '@/utils/format'
 import { formatCandidatName } from '../format'
 
 const props = defineProps<{
@@ -35,11 +35,6 @@ const messagesLocation = computed(() => ({
   name: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.messages,
   params: { ...route.params, candidatureUuid: props.candidature.uuid },
 }))
-
-const unreadConversationsLabel = computed(() => {
-  const count = props.candidature.unread_conversations
-  return `${count} ${pluralize(count, 'conversation')} non ${pluralize(count, 'lue')}`
-})
 
 const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
 
@@ -99,7 +94,7 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
           name="ri:mail-unread-fill"
           :size="16"
         />
-        <span class="candidature-kanban-card__messages-label">{{ unreadConversationsLabel }}</span>
+        <span class="candidature-kanban-card__messages-label">{{ formatUnreadConversations(candidature.unread_conversations) }}</span>
         <CspIcon
           name="ri:arrow-right-line"
           :size="16"

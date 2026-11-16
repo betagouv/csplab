@@ -23,6 +23,7 @@ import { computed, watch } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspPagination from '@/components/base/CspPagination/CspPagination.vue'
+import { EMPTY_CELL_TEXT, isEmptyCellValue } from './table'
 
 const props = withDefaults(defineProps<{
   rows: TRow[]
@@ -252,8 +253,8 @@ function rowSelectionLabel(row: Row<TRow>): string {
 }
 
 function formatValue(value: CspTableCellValue): string {
-  if (value === null || value === undefined || value === '') {
-    return '-'
+  if (isEmptyCellValue(value)) {
+    return EMPTY_CELL_TEXT
   }
   return String(value)
 }
