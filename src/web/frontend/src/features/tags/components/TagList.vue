@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends TagSummary">
 import type { TagSummary } from '../types'
 import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
-import { DEFAULT_TAG_COLOR, TAG_COLOR_PALETTE } from '../constants/tag'
+import { tagPaletteColor } from '../format'
 
 const props = defineProps<{
   tags: T[]
@@ -23,7 +23,7 @@ const emit = defineEmits<{
     >
       <CspLabel
         :label="tag.name"
-        :color="TAG_COLOR_PALETTE[tag.color ?? DEFAULT_TAG_COLOR]"
+        :color="tagPaletteColor(tag)"
         :clickable="props.editLabel !== undefined"
         :aria-label="props.editLabel?.(tag)"
         :dismiss-label="props.dismissLabel?.(tag)"

@@ -3,9 +3,11 @@ import type { TagCategory } from '../types'
 import { computed, ref } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTags } from '../composables/useTags'
+import { tagPaletteColor } from '../format'
 
 const props = defineProps<{
   organismeUuid: string
@@ -69,7 +71,10 @@ function isApplied(tagUuid: string): boolean {
           :key="tag.uuid"
           class="tag-picker__item"
         >
-          <span class="tag-picker__name">{{ tag.name }}</span>
+          <CspLabel
+            :label="tag.name"
+            :color="tagPaletteColor(tag)"
+          />
           <CspButton
             :label="isApplied(tag.uuid) ? 'Déjà ajoutée' : 'Ajouter'"
             variant="tertiary-no-outline"
@@ -118,10 +123,6 @@ function isApplied(tagUuid: string): boolean {
   gap: var(--csp-space-2);
   align-items: center;
   justify-content: space-between;
-}
-
-.tag-picker__name {
-  color: var(--text-action-high-blue-france);
 }
 
 .tag-picker__empty {
