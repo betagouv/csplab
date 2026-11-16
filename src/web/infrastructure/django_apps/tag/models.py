@@ -141,7 +141,7 @@ class TagModel(BaseDatedModel):
 
 class CandidatureTagQuerySet(models.QuerySet):
     def by_candidature_and_tag(
-        self, candidature_id, tag_id
+        self, candidature_id: UUID, tag_id: UUID
     ) -> "CandidatureTagQuerySet":
         return self.filter(candidature_id=candidature_id, tag_id=tag_id)
 
