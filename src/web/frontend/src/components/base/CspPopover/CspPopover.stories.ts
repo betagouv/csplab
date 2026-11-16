@@ -11,11 +11,11 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['open', 'side', 'align', 'padding'],
+      include: ['open', 'side', 'align', 'padding', 'collisionPadding'],
     },
     docs: {
       description: {
-        component: 'Popover générique construit sur la primitive `reka-ui`. Affiche un contenu flottant ancré au déclencheur du slot `trigger`, ou à l\'élément du slot `anchor`, que `v-model:open` ouvre. Gère le focus, la touche Échap et le clic extérieur. Le slot par défaut reçoit le contenu libre.',
+        component: 'Popover générique construit sur la primitive `reka-ui`. Affiche un contenu flottant ancré au déclencheur du slot `trigger`. Avec le slot `anchor`, le popover s\'ancre à l\'élément du slot et s\'ouvre par `v-model:open`. Gère le focus, la touche Échap et le clic extérieur. Le slot par défaut reçoit le contenu libre.',
       },
     },
     layout: 'centered',
@@ -55,6 +55,14 @@ const meta = {
         defaultValue: { summary: 'default' },
       },
     },
+    collisionPadding: {
+      control: { type: 'number' },
+      description: 'Marge en pixels que le popover garde avec les bords de l\'écran.',
+      table: {
+        type: { summary: 'number' },
+        defaultValue: { summary: '16' },
+      },
+    },
     trigger: { control: false, table: { disable: true } },
     anchor: { control: false, table: { disable: true } },
     default: { control: false, table: { disable: true } },
@@ -69,6 +77,7 @@ const meta = {
     side: 'bottom',
     align: 'start',
     padding: 'default',
+    collisionPadding: 16,
   },
   render: (args: CspPopoverProps) => ({
     components: { CspPopover, CspButton },

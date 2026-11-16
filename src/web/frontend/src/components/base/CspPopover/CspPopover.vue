@@ -14,10 +14,12 @@ withDefaults(defineProps<{
   side?: 'top' | 'right' | 'bottom' | 'left'
   align?: 'start' | 'center' | 'end'
   padding?: 'default' | 'menu'
+  collisionPadding?: number
 }>(), {
   side: 'bottom',
   align: 'start',
   padding: 'default',
+  collisionPadding: 16,
 })
 
 const open = defineModel<boolean | undefined>('open')
@@ -76,7 +78,7 @@ function focusAnchor(event: Event): void {
         :side="side"
         :align="align"
         :side-offset="6"
-        :collision-padding="16"
+        :collision-padding="collisionPadding"
         @open-auto-focus="interactedOutside = false"
         @interact-outside="rememberOutsideInteraction"
         @close-auto-focus="focusAnchor"
