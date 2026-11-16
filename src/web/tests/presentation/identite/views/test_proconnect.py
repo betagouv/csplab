@@ -13,6 +13,7 @@ from infrastructure.authentication.proconnect_client import (
     END_SESSION_ENDPOINT,
     oauth,
 )
+from presentation.identite.views import UNKNOWN_ACCOUNT_SESSION_KEY
 
 
 class TestProconnectLoginView:
@@ -71,7 +72,7 @@ class TestProconnectCallbackView:
         messages = [str(m) for m in get_messages(response.wsgi_request)]
         assert any("Aucun compte ProConnect" in message for message in messages)
 
-    def test_callback_unknown_email_ends_proconnect_session_with_error_message(
+    def test_callback_unknown_email_ends_proconnect_session_and_flags_the_notice(
         self, db, client, monkeypatch
     ):
         monkeypatch.setattr(
@@ -94,8 +95,8 @@ class TestProconnectCallbackView:
             "post_logout_redirect_uri=http%3A%2F%2Ftestserver%2Futilisateur%2Fconnexion"
             in response.url
         )
-        messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("Aucun compte ProConnect" in message for message in messages)
+        assert client.session[UNKNOWN_ACCOUNT_SESSION_KEY] is True
+        assert list(get_messages(response.wsgi_request)) == []
 
     def test_callback_matching_user_logs_in_and_redirects(
         self, db, client, monkeypatch, test_user

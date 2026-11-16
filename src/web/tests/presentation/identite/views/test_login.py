@@ -3,6 +3,8 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
 from rest_framework import status
 
+from presentation.identite.views import UNKNOWN_ACCOUNT_SESSION_KEY
+
 
 class TestLoginView:
     def test_get_login_page_renders(self, db, client):
@@ -43,6 +45,20 @@ class TestLoginView:
 
         assertNotContains(response, "ProConnect")
         assertNotContains(response, reverse("identite:proconnect_login"))
+
+    def test_get_login_page_shows_unknown_account_notice_once(self, db, client):
+        session = client.session
+        session[UNKNOWN_ACCOUNT_SESSION_KEY] = True
+        session.save()
+
+        response = client.get(reverse("identite:login"))
+
+        assertContains(response, "Impossible d'accéder à l'ATS")
+        assertContains(
+            response, "Aucun compte n'est associé au courriel ProConnect utilisé."
+        )
+        assertContains(response, "Essayer avec un autre courriel")
+        assertNotContains(client.get(reverse("identite:login")), "Impossible d'accéder")
 
     def test_post_is_not_allowed(self, db, client):
         response = client.post(
