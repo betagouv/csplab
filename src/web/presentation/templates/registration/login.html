@@ -6,7 +6,7 @@
 {% block notice %}
     {{ block.super }}
     {% if unknown_account %}
-        {% include "partials/_notice_compte_inconnu.html" %}
+        {% include "partials/_notice_unknown_account.html" %}
     {% endif %}
 {% endblock notice %}
 {% block main %}
