@@ -1,10 +1,8 @@
 import { useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
 import { useDebounce } from '@/composables/async/useDebounce'
+import { SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '../constants/organisme'
 import { organismesSearchQuery } from '../queries'
-
-const SEARCH_DEBOUNCE_MS = 300
-const SEARCH_MIN_LENGTH = 3
 
 export function useOrganismesSearch() {
   const search = ref('')

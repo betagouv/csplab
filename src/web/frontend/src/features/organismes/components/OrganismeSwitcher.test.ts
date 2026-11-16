@@ -16,7 +16,6 @@ vi.mock('@/api/organismes', () => ({
 }))
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
   searchOrganismes: vi.fn(),
 }))
 
