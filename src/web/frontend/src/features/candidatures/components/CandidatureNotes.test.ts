@@ -1,11 +1,16 @@
 import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
+import CspToaster from '@/components/base/CspToast/CspToaster.vue'
+import { useToast } from '@/composables/ui/useToast'
+import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
-import { deleteCandidatureNote, getCandidatureNotes, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
+import { addCandidatureNoteTag, deleteCandidatureNote, getCandidatureNotes, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
 vi.mock('../api', async importOriginal => ({
@@ -14,6 +19,12 @@ vi.mock('../api', async importOriginal => ({
   updateCandidatureNote: vi.fn(),
   deleteCandidatureNote: vi.fn(),
   updateCandidatureNoteVisibilite: vi.fn(),
+  addCandidatureNoteTag: vi.fn(),
+  removeCandidatureNoteTag: vi.fn(),
+}))
+
+vi.mock('@/features/tags/api', () => ({
+  getTags: vi.fn(),
 }))
 
 function note(overrides: Partial<Note>): Note {
@@ -34,16 +45,30 @@ function note(overrides: Partial<Note>): Note {
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
+async function openTagPicker() {
+  vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL])
+  const user = setupUser()
+  await renderNotes()
+  await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
+  await user.click(await screen.findByRole('menuitem', { name: 'Ajouter une étiquette' }))
+  const picker = await screen.findByRole('dialog', { name: 'Ajouter une étiquette' })
+  await within(picker).findByRole('list', { name: 'Étiquettes' })
+  return { user, picker }
+}
+
+const Host = defineComponent({
+  setup: () => () => h(CspToaster, null, () => h(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })),
+})
+
 function renderNotes(route = NOTES_PATH) {
-  return renderWithApp(CandidatureNotes, {
-    route,
-    props: { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes },
-  })
+  return renderWithApp(Host, { route })
 }
 
 describe('candidatureNotes', () => {
   afterEach(() => {
     vi.clearAllMocks()
+    const { toasts, dismissToast } = useToast()
+    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the notes with their author and publication date', async () => {
@@ -172,5 +197,148 @@ describe('candidatureNotes', () => {
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
       { est_privee: false },
     )
+  })
+
+  it('adds a note tag from the picker of the note menu and keeps the picker open', async () => {
+    vi.mocked(getCandidatureNotes)
+      .mockResolvedValueOnce({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+      .mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW, TAG_SYNTHESIS] })] })
+    vi.mocked(addCandidatureNoteTag).mockResolvedValue()
+    const { user, picker } = await openTagPicker()
+
+    const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
+    expect(rows.map(row => row.textContent?.trim())).toEqual(['EntretienDéjà ajoutée', 'SynthèseAjouter'])
+    expect(within(picker).getByRole('button', { name: 'L\'étiquette Entretien est déjà ajoutée' })).toBeDisabled()
+
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
+
+    expect(addCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_SYNTHESIS.uuid })
+    expect(await within(picker).findByRole('button', { name: 'L\'étiquette Synthèse est déjà ajoutée' })).toBeDisabled()
+  })
+
+  it('filters the tags of the picker by name, accents ignored', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user, picker } = await openTagPicker()
+
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synthese')
+
+    await vi.waitFor(() => {
+      const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
+      expect(rows.map(row => row.textContent?.trim())).toEqual(['SynthèseAjouter'])
+    })
+  })
+
+  it('says when no tag matches the search', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user, picker } = await openTagPicker()
+
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'zzz')
+
+    expect(await within(picker).findByText('Aucune étiquette ne correspond.')).toBeInTheDocument()
+  })
+
+  it('offers an empty search when the picker is opened again', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user, picker } = await openTagPicker()
+
+    await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synth')
+    await user.keyboard('{Escape}')
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' })).toHaveFocus()
+
+    await user.click(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Ajouter une étiquette' }))
+    const reopened = await screen.findByRole('dialog', { name: 'Ajouter une étiquette' })
+    expect(within(reopened).getByRole('searchbox', { name: 'Rechercher une étiquette' })).toHaveValue('')
+  })
+
+  it('leaves the focus on the element clicked outside the picker', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    const { user } = await openTagPicker()
+
+    await user.click(screen.getByText('Profil solide'))
+
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Actions sur la note de Marie Dupont' })).not.toHaveFocus()
+  })
+
+  it('keeps the picker open when a tag cannot be added', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    const { user, picker } = await openTagPicker()
+
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
+
+    expect(await screen.findByText('L\'ajout de l\'étiquette a échoué')).toBeInTheDocument()
+    expect(picker).toBeInTheDocument()
+  })
+
+  it('treats a tag already on the note as added', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(409, 'Conflict', undefined))
+    const { user, picker } = await openTagPicker()
+
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
+
+    await vi.waitFor(() => expect(addCandidatureNoteTag).toHaveBeenCalledOnce())
+    expect(screen.queryByText('L\'ajout de l\'étiquette a échoué')).not.toBeInTheDocument()
+  })
+
+  it('warns and closes the picker when the tag or the note was deleted meanwhile', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
+    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
+    const { user, picker } = await openTagPicker()
+
+    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
+
+    expect(await screen.findByText('L\'étiquette ou la note a été supprimée')).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ajouter une étiquette' })).not.toBeInTheDocument())
+  })
+
+  it('removes a tag from a note the user can change', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+    vi.mocked(removeCandidatureNoteTag).mockResolvedValue()
+    const user = setupUser()
+    await renderNotes()
+
+    const tags = await screen.findByRole('list', { name: 'Étiquettes de la note de Marie Dupont' })
+    expect(within(tags).getByText('Entretien')).toBeInTheDocument()
+    await user.click(within(tags).getByRole('button', { name: 'Retirer l\'étiquette Entretien' }))
+
+    expect(removeCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_INTERVIEW.uuid })
+  })
+
+  it('refreshes the note without a message when its tag was removed meanwhile', async () => {
+    vi.mocked(getCandidatureNotes)
+      .mockResolvedValueOnce({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+      .mockResolvedValue({ count: 1, results: [note({})] })
+    vi.mocked(removeCandidatureNoteTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
+    const user = setupUser()
+    await renderNotes()
+
+    await user.click(await screen.findByRole('button', { name: 'Retirer l\'étiquette Entretien' }))
+
+    await vi.waitFor(() => expect(screen.queryByRole('list', { name: 'Étiquettes de la note de Marie Dupont' })).not.toBeInTheDocument())
+    expect(screen.queryByText('Le retrait de l\'étiquette a échoué')).not.toBeInTheDocument()
+  })
+
+  it('says when a tag cannot be removed', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
+    vi.mocked(removeCandidatureNoteTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    const user = setupUser()
+    await renderNotes()
+
+    await user.click(await screen.findByRole('button', { name: 'Retirer l\'étiquette Entretien' }))
+
+    expect(await screen.findByText('Le retrait de l\'étiquette a échoué')).toBeInTheDocument()
+  })
+
+  it('shows the tags of a note the user cannot change without a way to remove them', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW], authorized_actions: [] })] })
+    await renderNotes()
+
+    const tags = await screen.findByRole('list', { name: 'Étiquettes de la note de Marie Dupont' })
+    expect(within(tags).getByText('Entretien')).toBeInTheDocument()
+    expect(within(tags).queryByRole('button')).not.toBeInTheDocument()
   })
 })

@@ -26,6 +26,10 @@ export interface NoteParams extends CandidatureParams {
   noteUuid: string
 }
 
+export interface NoteTagParams extends NoteParams {
+  tagUuid: string
+}
+
 export interface ConversationParams extends CandidatureParams {
   conversationUuid: string
 }

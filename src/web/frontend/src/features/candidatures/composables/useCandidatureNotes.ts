@@ -1,10 +1,10 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { CreateNotePayload, Note, NoteVisibilitePayload, UpdateNotePayload } from '../types'
-import type { CandidatureParams, NoteParams } from '@/api/params'
+import type { CandidatureParams, NoteParams, NoteTagParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { candidatureKeys } from '@/api/queryKeys'
-import { createCandidatureNote, deleteCandidatureNote, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
+import { addCandidatureNoteTag, createCandidatureNote, deleteCandidatureNote, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import { candidatureNotesQuery } from '../queries'
 
 export function useCandidatureNotes(candidature: MaybeRefOrGetter<CandidatureParams>) {
@@ -85,5 +85,28 @@ export function useDeleteCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   return {
     remove: mutation.mutateAsync,
     removing: mutation.isLoading,
+  }
+}
+
+export function useCandidatureNoteTags(candidature: MaybeRefOrGetter<CandidatureParams>) {
+  const queryCache = useQueryCache()
+
+  const invalidateNotes = () => queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
+
+  const addMutation = useMutation({
+    mutation: ({ noteUuid, tagUuid }: Pick<NoteTagParams, 'noteUuid' | 'tagUuid'>) =>
+      addCandidatureNoteTag({ ...toValue(candidature), noteUuid, tagUuid }),
+    onSettled: invalidateNotes,
+  })
+
+  const removeMutation = useMutation({
+    mutation: ({ noteUuid, tagUuid }: Pick<NoteTagParams, 'noteUuid' | 'tagUuid'>) =>
+      removeCandidatureNoteTag({ ...toValue(candidature), noteUuid, tagUuid }),
+    onSettled: invalidateNotes,
+  })
+
+  return {
+    addTag: addMutation.mutateAsync,
+    removeTag: removeMutation.mutateAsync,
   }
 }
