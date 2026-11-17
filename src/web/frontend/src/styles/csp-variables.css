@@ -155,7 +155,7 @@
   /* Action: a button, a pagination link, a segment of a segmented control or a line of a skeleton */
   --csp-action-radius: 0;
 
-  /* Badge: a short label, such as a status badge or the label of an item */
+  /* Badge: a short label, such as a status badge, a tag or the label of an item */
   --csp-badge-radius: 0;
 
   /* Kanban board and columns, mirrored by the kanban skeleton */
