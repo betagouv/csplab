@@ -6,6 +6,7 @@ from django.db.models.functions import Coalesce, Lower, Trim
 
 from domain.recruteur.errors.tag_errors import (
     TagAlreadyOnCandidature,
+    TagAlreadyOnMember,
     TagAlreadyOnNote,
     TagCategoryMismatch,
     TagOrganismeMismatch,
@@ -188,6 +189,30 @@ class CandidatureTagModel(BaseDatedModel):
         return f"{self.candidature_id} - {self.tag_id}"
 
 
+class RecrutementAgentTagQuerySet(models.QuerySet):
+    def by_agent_and_tag(
+        self, recrutement_agent_id: UUID, tag_id: UUID
+    ) -> "RecrutementAgentTagQuerySet":
+        return self.filter(recrutement_agent_id=recrutement_agent_id, tag_id=tag_id)
+
+    def poser(
+        self, *, recrutement_agent: RecrutementAgentModel, tag: TagModel
+    ) -> "RecrutementAgentTagModel":
+        if tag.category != TagCategory.RECRUTEMENT_AGENT:
+            raise TagCategoryMismatch(tag.pk, "membre")
+        membre_dans_organisme = RecrutementAgentModel.objects.filter(
+            pk=recrutement_agent.pk,
+            recrutement__organisme_id=tag.organisme_id,
+        ).exists()
+        if not membre_dans_organisme:
+            raise TagOrganismeMismatch(tag.pk, "personne membre")
+        # TODO : membre supprimé hors verrou de l'appelant : FK différée, 500 au commit
+        try:
+            return self.create(id=uuid4(), recrutement_agent=recrutement_agent, tag=tag)
+        except IntegrityError as error:
+            raise TagAlreadyOnMember(tag.pk) from error
+
+
 class RecrutementAgentTagModel(BaseDatedModel):
     tag = models.ForeignKey(
         TagModel, on_delete=models.CASCADE, related_name="recrutement_agents_liaisons"
@@ -198,6 +223,8 @@ class RecrutementAgentTagModel(BaseDatedModel):
         db_column="recrutement_agent_id",
         related_name="tags_liaisons",
     )
+
+    objects = RecrutementAgentTagQuerySet.as_manager()
 
     class Meta:
         db_table = "recrutement_agent_tag"

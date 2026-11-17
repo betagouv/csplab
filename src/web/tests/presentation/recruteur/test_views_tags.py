@@ -184,15 +184,22 @@ class TestListTags:
         ]
 
     @pytest.mark.parametrize(
-        "link_factory",
-        [CandidatureTagDjangoFactory, RecrutementAgentTagDjangoFactory],
+        ("link_factory", "chemin_organisme"),
+        [
+            (CandidatureTagDjangoFactory, None),
+            (
+                RecrutementAgentTagDjangoFactory,
+                "recrutement_agent__recrutement__organisme",
+            ),
+        ],
         ids=["candidature", "recrutement_agent"],
     )
     def test_counts_tag_usages(
-        self, authenticated_client, agent_organisme, link_factory
+        self, authenticated_client, agent_organisme, link_factory, chemin_organisme
     ):
-        tag = link_factory(tag__organisme=agent_organisme).tag
-        link_factory(tag=tag)
+        rattachement = {chemin_organisme: agent_organisme} if chemin_organisme else {}
+        tag = link_factory(tag__organisme=agent_organisme, **rattachement).tag
+        link_factory(tag=tag, **rattachement)
 
         response = authenticated_client.get(_tags_url(agent_organisme.id))
 
@@ -227,9 +234,13 @@ class TestListTags:
         tag = TagDjangoFactory(
             organisme=agent_organisme, category=TagCategory.RECRUTEMENT_AGENT
         )
-        RecrutementAgentTagDjangoFactory(tag=tag)
         RecrutementAgentTagDjangoFactory(
-            tag=tag, recrutement_agent__date_revocation=datetime.now(UTC)
+            tag=tag, recrutement_agent__recrutement__organisme=agent_organisme
+        )
+        RecrutementAgentTagDjangoFactory(
+            tag=tag,
+            recrutement_agent__recrutement__organisme=agent_organisme,
+            recrutement_agent__date_revocation=datetime.now(UTC),
         )
 
         response = authenticated_client.get(_tags_url(agent_organisme.id))
