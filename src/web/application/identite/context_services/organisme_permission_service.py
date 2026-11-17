@@ -134,6 +134,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
 }
 
 # -------------------------------------
@@ -267,6 +270,7 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset({AgentRecrutementRole.RESPONSABLE}),
 }
 
 
