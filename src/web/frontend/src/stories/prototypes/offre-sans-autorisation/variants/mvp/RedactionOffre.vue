@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import ApercuCandidat from './ApercuCandidat.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
 import FormEquipe from './FormEquipe.vue'
@@ -31,6 +33,8 @@ const derniere = computed(() => etape.value === ETAPES.length)
 
 // Enregistrement automatique.
 const enregistre = ref(heure())
+// Aperçu candidat (œil) : l'annonce telle que la verront les candidats, à côté du formulaire.
+const apercu = ref(false)
 watch(o, () => {
   sauvegarder()
   enregistre.value = heure()
@@ -56,6 +60,14 @@ function enregistrer() {
   >
     <template #actions>
       <span class="enregistre">Enregistré automatiquement à {{ enregistre }}</span>
+      <CspButton
+        label="Aperçu candidat"
+        size="sm"
+        variant="secondary"
+        icon="ri:eye-line"
+        is-icon-left
+        @click="apercu = true"
+      />
       <CspButton
         label="Enregistrer et quitter"
         size="sm"
@@ -159,6 +171,21 @@ function enregistrer() {
         Vous n'avez pas le droit « Publier » : un agent qui l'a mettra l'offre en ligne.
       </p>
     </div>
+
+    <CspDrawer
+      :open="apercu"
+      title="Aperçu candidat"
+      description="Mise en page indicative ; elle suit votre saisie."
+      size="lg"
+      :modal="false"
+      :overlay="false"
+      @update:open="(v: boolean) => (apercu = v)"
+    >
+      <ApercuCandidat
+        :offre="o"
+        :organisme="db.organisme.nom"
+      />
+    </CspDrawer>
   </PageAts>
 </template>
 
