@@ -1000,13 +1000,13 @@ export function prolonger(o: Offre, nouvelleFin: string) {
 }
 
 /** Retirer ne clôt pas le recrutement : les candidatures restent à traiter. */
-export function retirer(o: Offre, mode: 'automatique' | 'manuel' | 'urgence') {
+export function retirer(o: Offre, mode: 'automatique' | 'manuel' | 'urgence' | 'pause') {
   for (const p of Object.values(o.publications)) {
     p.etat = 'arretee'
   }
   o.etat = 'retiree'
   o.retireeLe = maintenant()
-  journal(o, { automatique: 'Retrait automatique à la date limite', manuel: 'Offre retirée', urgence: 'Offre retirée en urgence (avant un mois)' }[mode])
+  journal(o, { automatique: 'Retrait automatique à la date limite', manuel: 'Offre retirée', urgence: 'Offre retirée en urgence (avant un mois)', pause: 'Offre mise en pause' }[mode])
 }
 
 export function arreterSupport(o: Offre, id: string) {
