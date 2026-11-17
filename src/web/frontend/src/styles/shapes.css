@@ -2,7 +2,6 @@
 :root[data-csp-shape='rounded'] {
   --csp-action-radius: 0.25rem;
   --csp-menu-item-radius: 0.25rem;
-  --csp-badge-radius: 0.25rem;
   --csp-surface-radius: 0.375rem;
   --csp-nav-radius: 0.375rem;
   --csp-raised-radius: 0.375rem;
