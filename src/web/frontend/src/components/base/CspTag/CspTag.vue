@@ -167,7 +167,7 @@ const root = computed(() => {
   font-weight: 500;
   line-height: 1.25;
   padding: var(--csp-tag-padding-y) var(--csp-tag-padding-x);
-  border-radius: var(--csp-badge-radius);
+  border-radius: 2rem;
   border: none;
   background-color: var(--csp-neutral-background);
   transition: background-color var(--csp-motion-duration-state);
