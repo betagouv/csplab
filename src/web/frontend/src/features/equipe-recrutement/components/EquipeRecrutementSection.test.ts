@@ -127,6 +127,27 @@ describe('equipeRecrutementSection', () => {
     expect(updateMembreEquipe).toHaveBeenCalledWith({ organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID }, expect.objectContaining({ recrutement_role: 'contributeur' }))
   })
 
+  it.each([
+    { droit: 'without', authorizedActions: [], offered: false },
+    { droit: 'with', authorizedActions: ['grant_recrutement_responsable' as const], offered: true },
+  ])('offers the responsable role $droit the right to grant it', async ({ authorizedActions, offered }) => {
+    const user = setupUser()
+    vi.mocked(getRecrutementDetail).mockResolvedValue({
+      ...RECRUTEMENT_DETAIL_EQUIPE_GERABLE,
+      authorized_actions: [...RECRUTEMENT_DETAIL_EQUIPE_GERABLE.authorized_actions, ...authorizedActions],
+    })
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    await user.type(
+      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
+      `${NOUVEL_AGENT.email}{Enter}`,
+    )
+    await screen.findByRole('radio', { name: /^Contributeur/ })
+
+    expect(Boolean(screen.queryByRole('radio', { name: /^Responsable/ }))).toBe(offered)
+  })
+
   it('only lists the team without the right to manage it', async () => {
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] }))
     await renderWithApp(Host, { route: EQUIPE_PATH })
