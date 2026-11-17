@@ -75,9 +75,9 @@
   /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
   --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
-  --csp-overlap-radius: 0.25rem;
+  --csp-overlap-radius: 0;
   --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
-  --csp-lifted-radius: 0.25rem;
+  --csp-lifted-radius: 0;
 
   /* Motion by role, with the keyframes of motion.css. The outline of a dropped card shows where it landed, so it
      plays under reduced motion. The other roles take the durations and curves of La Suite numérique in the media query
@@ -151,8 +151,11 @@
   /* Controls. Control: a tertiary button or a segmented control */
   --csp-control-border-color: var(--border-default-grey);
 
-  /* Action: a button, a pagination link or a sidebar button */
+  /* Action: a button, a pagination link, a sidebar button or a segment of a segmented control */
   --csp-action-radius: 0;
+
+  /* Badge: a short status label */
+  --csp-badge-radius: 0;
 
   /* Kanban board and columns, mirrored by the kanban skeleton */
   --csp-kanban-gap: var(--csp-space-3);
