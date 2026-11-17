@@ -326,6 +326,27 @@ class TestRecrutementDetailView:
             AgentOrganismeRole.SUPERVISEUR, None
         )
 
+    def test_only_superviseur_and_staff_can_grant_responsable(
+        self, api_client, authenticated_client, test_user
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=agent,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        url = _detail_url(organisme.id, recrutement.pk)
+
+        agent_responsable = authenticated_client.get(url).json()["authorized_actions"]
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        staff = api_client.get(url).json()["authorized_actions"]
+
+        assert "grant_recrutement_responsable" not in agent_responsable
+        assert "grant_recrutement_responsable" in staff
+
     def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user

@@ -137,6 +137,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR}
+    ),
 }
 
 _ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR: frozenset[str] = frozenset(
@@ -274,6 +277,7 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(),
 }
 
 
@@ -299,7 +303,8 @@ class OrganismePermissionService:
         self, *, demandeur_role: AgentOrganismeRole | None, role: str
     ) -> None:
         if (
-            demandeur_role != AgentOrganismeRole.SUPERVISEUR
+            demandeur_role
+            not in _ROLES_REQUIS[OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE]
             and role not in _ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR
         ):
             raise RoleRecrutementNonAutorise(role)

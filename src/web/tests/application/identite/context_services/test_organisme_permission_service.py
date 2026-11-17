@@ -20,6 +20,7 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.errors.recrutement_agent_errors import RoleRecrutementNonAutorise
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -102,6 +103,10 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
     OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 
+SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS = [
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
+]
+
 SUPERVISEUR_ACTIONS = (
     SUPERVISEUR_ET_STAFF_ACTIONS
     + SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS
@@ -109,6 +114,7 @@ SUPERVISEUR_ACTIONS = (
     + SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+    + SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS
 )
 
 SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT = (
@@ -176,6 +182,7 @@ class TestActionsIntegrity:
             SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS,
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS,
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS,
+            SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS,
         ]
         actions = [action for liste in cases for action in liste]
 
@@ -1031,6 +1038,7 @@ SUPERVISEUR_ACTIONS_RECRUTEMENT = [
     OrganismeAction.ADD_RECRUTEMENT_AGENT,
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
     OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
     OrganismeAction.READ_DOCUMENT,
     OrganismeAction.LIST_DOCUMENTS,
     OrganismeAction.LIST_NOTES,
@@ -1088,6 +1096,30 @@ class TestAuthorizedActionsRecrutement:
             )
             == expected
         )
+
+    @pytest.mark.parametrize(
+        "role", [AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT]
+    )
+    def test_grant_responsable_is_exposed_when_check_role_grantable_accepts_it(
+        self, role
+    ):
+        exposee = (
+            OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE
+            in OrganismePermissionService().authorized_actions_recrutement(
+                role, recrutement_role=AgentRecrutementRole.RESPONSABLE
+            )
+        )
+
+        try:
+            OrganismePermissionService().check_role_grantable(
+                demandeur_role=role, role=AgentRecrutementRole.RESPONSABLE.value
+            )
+            attribuable = True
+        except RoleRecrutementNonAutorise:
+            attribuable = False
+
+        assert exposee is attribuable
+        assert exposee is (role == AgentOrganismeRole.SUPERVISEUR)
 
     @pytest.mark.parametrize(
         "recrutement_role",
