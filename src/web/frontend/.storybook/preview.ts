@@ -31,7 +31,7 @@ function applyShape(shape: string) {
 const preview: Preview = {
   initialGlobals: {
     theme: 'light',
-    shape: 'rule',
+    shape: 'dsfr',
   },
   globalTypes: {
     theme: {
@@ -47,13 +47,13 @@ const preview: Preview = {
       },
     },
     shape: {
-      description: 'Rayons',
+      description: 'Thème de rayons',
       toolbar: {
-        title: 'Rayons',
+        title: 'Thème de rayons',
         icon: 'component',
         items: [
-          { value: 'rule', title: 'Règle' },
-          { value: 'rounded', title: 'Arrondi léger' },
+          { value: 'dsfr', title: 'DSFR strict' },
+          { value: 'rounded', title: 'Arrondi' },
         ],
         dynamicTitle: true,
       },
@@ -62,7 +62,7 @@ const preview: Preview = {
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
-      applyShape(context.globals.shape ?? 'rule')
+      applyShape(context.globals.shape ?? 'dsfr')
       return { components: { story }, template: '<story />' }
     },
   ],
