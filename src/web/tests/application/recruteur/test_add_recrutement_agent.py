@@ -8,6 +8,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
 )
+from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -19,6 +20,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
@@ -87,6 +89,26 @@ def test_denied_when_demandeur_responsable_role_is_revoked(db):
     assert not RecrutementAgentModel.objects.filter(
         recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
     ).exists()
+
+
+def test_raises_when_recrutement_does_not_belong_to_organisme(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    autre_organisme = OrganismeDjangoFactory()
+    recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
+
+    with pytest.raises(RecrutementInexistant):
+        add_recrutement_agent(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            agent_id=membre.utilisateur_id,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+            utilisateur=responsable.utilisateur,
+        )
 
 
 def test_attaches_agent_to_organisme_when_not_attached(db):
