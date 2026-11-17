@@ -344,9 +344,9 @@ ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
 
 # UI SHAPE
 # ---------------------------------------
-# Radii of the interface, set outside production only: "rounded" applies the
-# light rounding of frontend/src/styles/shapes.css.
-# Without it, the interface follows the radius rule of the kit.
+# Radius theme of the interface, set outside production only: "rounded" applies
+# the rounded theme of frontend/src/styles/shapes.css.
+# Without it, the interface keeps the strict DSFR radii.
 UI_SHAPE = env.str("UI_SHAPE")
 
 # FRET
