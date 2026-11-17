@@ -1,0 +1,96 @@
+<script setup lang="ts">
+import type { Offre } from './store'
+import { computed } from 'vue'
+import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
+import { manquesDates } from './aide'
+import { aujourdhui, dateLongue, plusUnMois, SUPPORT_MAITRE } from './store'
+
+// Publication (MVP) : immédiate, une seule date de fin qui vaut date limite de candidature (au moins un mois
+// après la publication, sauf urgence). La multidiffusion est hors périmètre : son emplacement est prévu.
+const props = defineProps<{ offre: Offre, tentative?: boolean }>()
+const o = computed(() => props.offre)
+if (!o.value.dateFin) {
+  o.value.dateFin = plusUnMois(aujourdhui())
+}
+const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : undefined))
+</script>
+
+<template>
+  <div class="champs">
+    <p class="mention mention--haut">
+      Publication immédiate sur {{ SUPPORT_MAITRE.nom }}, dès que vous cliquez sur « Publier ».
+    </p>
+    <CspInput
+      v-model="o.dateFin"
+      placeholder="AAAA-MM-JJ"
+      label="Date de fin"
+      hint="Champ obligatoire. C'est aussi la date limite de candidature."
+      :error="Boolean(erreur)"
+      :error-message="erreur"
+    />
+    <p
+      v-if="o.dateFin"
+      class="mention"
+    >
+      En ligne jusqu'au {{ dateLongue(o.dateFin) }} : l'offre sera retirée automatiquement ce jour-là. Vous pourrez la prolonger.
+    </p>
+    <CspCheckbox
+      v-model="o.urgence"
+      label="Recrutement urgent : publier moins d'un mois (article D311-2)"
+    />
+    <div class="multi">
+      <p class="multi__titre">
+        <CspIcon
+          name="ri:share-forward-line"
+          :size="16"
+        />
+        Multidiffusion
+      </p>
+      <p class="multi__texte">
+        Bientôt : diffuser aussi l'offre sur des sites partenaires (France Travail, APEC…).
+      </p>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.champs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-4);
+}
+
+.mention {
+  margin: calc(-1 * var(--csp-space-2)) 0 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+
+  &--haut {
+    margin: 0;
+    font-size: var(--csp-font-size-sm);
+  }
+}
+
+.multi {
+  padding: var(--csp-space-3) var(--csp-space-4);
+  border: 1px dashed var(--border-default-grey);
+}
+
+.multi__titre {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+}
+
+.multi__texte {
+  margin: var(--csp-space-1) 0 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+</style>
