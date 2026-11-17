@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..')
-const STYLES = 'styles/'
 const OWNER = 'styles/csp-variables.css'
 const SHAPES = 'styles/shapes.css'
 
@@ -35,7 +34,7 @@ describe('csp variables', () => {
   it('declares the variables of csp-variables.css in the stylesheets of styles/ only', () => {
     const redeclared = [...declarations]
       .filter(([, files]) => files.has(OWNER))
-      .flatMap(([name, files]) => [...files].filter(file => !file.startsWith(STYLES)).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
+      .flatMap(([name, files]) => [...files].filter(file => !file.startsWith('styles/')).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
     expect(redeclared).toEqual([])
   })
 
