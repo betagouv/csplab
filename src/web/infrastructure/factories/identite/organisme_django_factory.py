@@ -12,7 +12,6 @@ from infrastructure.django_apps.recruteur.models.organisme import (
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
-from infrastructure.mappers.organisme_recruteur_mapper import OrganismeRecruteurMapper
 
 _fake = Faker("fr_FR")
 
@@ -41,7 +40,14 @@ class OrganismeDjangoFactory(DjangoModelFactory):
     def etapes(self, create, extracted, **kwargs):
         if not create or extracted is None:
             return
-        self.etapes = OrganismeRecruteurMapper().from_domain(extracted)
+        self.etapes = [
+            {
+                "entity_id": str(etape.entity_id),
+                "categorie": etape.categorie.value,
+                "nom": etape.nom,
+            }
+            for etape in extracted
+        ]
         self.save(update_fields=["etapes"])
 
 
