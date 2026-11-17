@@ -39,7 +39,9 @@ const parCategorie = computed(() => {
   }
   return m
 })
-const puces = computed(() => CATEGORIES_OFFRE.filter(c => parCategorie.value.has(c.id)))
+// Ordre des puces (retour Alice) : Publiée d'abord, « Toutes » en dernier. L'ordre du tableau ne change pas.
+const ORDRE_PUCES: CategorieOffre[] = ['en_ligne', 'brouillon', 'depubliee']
+const puces = computed(() => ORDRE_PUCES.map(id => CATEGORIES_OFFRE.find(c => c.id === id)!).filter(c => parCategorie.value.has(c.id)))
 
 // Accès direct depuis le tableau de bord.
 const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'depubliee' }
@@ -98,16 +100,16 @@ const page = ref(1)
       aria-label="Filtrer les offres par statut"
     >
       <CspTag
-        variant="selectable"
-        value="toutes"
-        :label="`Toutes (${trouvees.length})`"
-      />
-      <CspTag
         v-for="c in puces"
         :key="c.id"
         variant="selectable"
         :value="c.id"
         :label="`${c.label} (${parCategorie.get(c.id)!.length})`"
+      />
+      <CspTag
+        variant="selectable"
+        value="toutes"
+        :label="`Toutes (${trouvees.length})`"
       />
     </CspTagGroup>
 
