@@ -34,7 +34,8 @@ const ETATS = {
   retiree: { label: 'Dépubliée', type: 'warning' as const },
   archivee: { label: 'Archivée', type: 'info' as const },
 }
-const etat = computed(() => ETATS[o.value.etat])
+const programmee = computed(() => o.value.etat === 'publiee' && o.value.dateDebut > aujourdhui())
+const etat = computed(() => (programmee.value ? { label: 'Programmée', type: 'info' as const } : ETATS[o.value.etat]))
 const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
 const modifiable = computed(() => o.value.etat !== 'archivee')
 const manques = computed(() => manquesAnnonce(o.value))
@@ -247,10 +248,12 @@ function confirmerRetrait() {
           v-else-if="o.etat === 'publiee' || o.etat === 'retiree'"
           class="encart"
           :class="o.etat === 'publiee' && restants <= 7 ? 'encart--attention' : 'encart--action'"
-          :titre="o.etat === 'publiee' ? 'En ligne' : 'Dépubliée'"
-          :description="o.etat === 'publiee'
-            ? `Publiée ${le(o.publieeLe)}, jusqu'au ${dateLongue(o.dateFin)} (date limite de candidature). Vous pouvez toujours modifier l'offre.`
-            : `Retirée ${le(o.retireeLe)}. Les candidatures reçues restent à traiter. Prolonger remet l'offre en ligne.`"
+          :titre="o.etat === 'publiee' ? (programmee ? 'Programmée' : 'En ligne') : 'Dépubliée'"
+          :description="programmee
+            ? `Mise en ligne prévue le ${dateLongue(o.dateDebut)}, jusqu'au ${dateLongue(o.dateFin)} (date limite de candidature). Vous pouvez toujours modifier l'offre.`
+            : o.etat === 'publiee'
+              ? `Publiée ${le(o.publieeLe)}, jusqu'au ${dateLongue(o.dateFin)} (date limite de candidature). Vous pouvez toujours modifier l'offre.`
+              : `Retirée ${le(o.retireeLe)}. Les candidatures reçues restent à traiter. Prolonger remet l'offre en ligne.`"
         >
           <p
             v-if="o.etat === 'publiee' && restants <= 7"

@@ -27,7 +27,8 @@ const dateFr = (iso: string) => (iso ? new Date(iso).toLocaleDateString('fr-FR',
 const pieces = computed(() => PIECES.filter(p => props.offre.pieces[p.id] !== 'non').map(p => `${p.label}${props.offre.pieces[p.id] === 'facultatif' ? ' (facultatif)' : ''}`))
 const etiquettes = computed(() => [
   Number(props.offre.nbPostes) > 1 ? `${props.offre.nbPostes} postes à pourvoir` : '',
-  props.offre.teletravail ? `Télétravail : ${props.offre.teletravail}` : '',
+  props.offre.teletravail === 'Non' ? 'Sans télétravail' : props.offre.teletravail ? 'Télétravail possible' : '',
+  props.offre.management === 'Oui' ? 'Poste de management' : '',
   props.offre.remuneration,
 ].filter(Boolean))
 </script>
@@ -110,8 +111,8 @@ const etiquettes = computed(() => [
       <p v-if="offre.profil">
         {{ offre.profil }}
       </p>
-      <p v-if="offre.niveauExperience || offre.niveauEtudes || offre.langues">
-        {{ [offre.niveauExperience, offre.niveauEtudes, offre.langues && `Langues : ${offre.langues}`].filter(Boolean).join(' · ') }}
+      <p v-if="offre.niveauExperience || offre.niveauEtudes || offre.diplomeEtat || offre.specialisation || offre.langues">
+        {{ [offre.niveauExperience, offre.niveauEtudes, offre.diplomeEtat && `Diplôme d'État requis : ${offre.diplomeEtat}`, offre.specialisation && `Spécialisation : ${offre.specialisation}`, offre.langues && `Langues : ${offre.langues}`].filter(Boolean).join(' · ') }}
       </p>
       <template v-if="offre.competences.length">
         <p class="apercu__sous">

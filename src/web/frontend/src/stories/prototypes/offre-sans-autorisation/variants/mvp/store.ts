@@ -145,6 +145,18 @@ export interface Offre {
   corps?: string
   grade?: string
   infosComplementaires?: string
+  /** Lien URL vers l'avis de vacance au Journal officiel. */
+  lienJO?: string
+  diplomeEtat?: string
+  specialisation?: string
+  /** Langues demandées, chacune avec son niveau (obligatoire si une langue est ajoutée). */
+  languesListe?: { langue: string, niveau: string }[]
+  /** Poste itinérant : « Pas de lieu fixe » à la place des villes. */
+  sansLieuFixe?: boolean
+  /** Géolocalisation : adresse du poste. */
+  adresse?: string
+  /** Lieu d'affectation (sans géolocalisation). */
+  lieuAffectation?: string
 
   // 3. Formulaire de candidature
   modeCandidature: 'ats' | 'courriel' | 'externe'
@@ -472,6 +484,7 @@ function socle() {
     remunerationContractuels: '',
     teletravail: '',
     contact: '',
+    adresse: '520 allée Henri II de Montmorency, 34000 Montpellier',
     modeCandidature: 'ats' as const,
     courrielCandidature: '',
     urlCandidature: '',
@@ -514,7 +527,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v2'
+const CLE = 'csplab-proto-offre-mvp-v3'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -968,8 +981,8 @@ export function validationManquante(o: Offre): boolean {
 // --- Publication (toujours décidée par une personne qui a le droit « Publier ») ---
 
 export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: string[]) {
-  // Publication immédiate (pas de programmation en MVP).
-  o.dateDebut = aujourdhui()
+  // Date de début choisie en publiant (aujourd'hui par défaut) : dans le futur, l'offre est programmée.
+  o.dateDebut = o.dateDebut && o.dateDebut > aujourdhui() ? o.dateDebut : aujourdhui()
   o.diffusion = diffusion
   o.canaux = [SUPPORT_MAITRE.id, ...(diffusion === 'multi' ? partenaires : [])]
   for (const id of o.canaux) {
@@ -978,7 +991,7 @@ export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: st
   o.etat = 'publiee'
   o.publieeLe = maintenant()
   const noms = CANAUX_DIFFUSION.filter(c => o.canaux.includes(c.id)).map(c => c.nom).join(', ')
-  journal(o, `Offre publiée du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)} sur ${noms}`)
+  journal(o, `Offre ${o.dateDebut > aujourdhui() ? 'programmée' : 'publiée'} du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)} sur ${noms}`)
 }
 
 /** Prolonger : nouvelle date limite, sans nouvelle validation. */

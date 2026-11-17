@@ -3,9 +3,12 @@
 
 import type { Offre } from './store'
 import { ref } from 'vue'
-import { dateTri, joursRestants } from './store'
+import { aujourdhui, dateTri, joursRestants } from './store'
 
 export function candidatures(o: Offre): { total: number, nouvelles: number } {
+  if (o.dateDebut > aujourdhui()) {
+    return { total: 0, nouvelles: 0 }
+  }
   const n = [...o.id].reduce((s, c) => s + c.charCodeAt(0), 0)
   const jours = Math.max(1, -joursRestants(o.dateDebut))
   const total = Math.min(40, 3 + (n % 7) + jours)

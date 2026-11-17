@@ -112,16 +112,21 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
  */
 export function manquesPublication(o: Offre): { etape: EtapeFormulaire, label: string }[] {
   const annonce: [boolean, string][] = [
+    [!o.versant, 'versant'],
     [!o.titre.trim(), 'intitulé'],
-    [!o.categorie, 'catégorie'],
-    [!o.statutPoste, 'statut du poste'],
+    [!o.nbPostes, 'nombre de postes'],
     [!o.metier, 'métier'],
-    [!o.missions.trim(), 'missions'],
-    [!o.profil.trim(), 'profil recherché'],
-    [!o.tempsTravail, 'temps de travail'],
-    [!o.lieu.trim(), 'lieu'],
+    [!o.missions.trim(), 'descriptif du poste'],
+    [!o.ouvertA.length, 'nature de l\'emploi'],
+    [!o.statutPoste, 'statut du poste'],
     [!o.dateVacance, 'date de vacance'],
+    [!o.categorie, 'catégorie'],
     [o.ouvertA.includes('contractuel') && !o.fondementJuridique, 'fondement juridique (emploi ouvert aux contractuels)'],
+    [Boolean(o.languesListe?.some(l => l.langue.trim() && !l.niveau)), 'niveau de langue'],
+    [!o.tempsTravail, 'temps de travail'],
+    [!o.descriptifEmployeur.trim(), 'descriptif de l\'employeur'],
+    [!o.sansLieuFixe && !o.lieu.trim(), 'lieu'],
+    [!o.sansLieuFixe && !o.adresse?.trim(), 'géolocalisation (adresse)'],
   ]
   const candidature: [boolean, string][] = [
     [o.modeCandidature === 'courriel' && !o.courrielCandidature.trim(), 'adresse de réception des candidatures'],
@@ -141,15 +146,18 @@ export function manquesAnnonce(o: Offre): { etape: EtapeFormulaire, label: strin
 
 /** Date de fin au moins un mois après le début, sauf urgence (D311-2). */
 export function manquesDates(o: Offre): string[] {
-  // Publication immédiate : le début, c'est aujourd'hui.
+  const debut = o.dateDebut || aujourdhui()
+  if (debut < aujourdhui()) {
+    return ['La date de début ne peut pas être passée.']
+  }
   if (!o.dateFin) {
-    return ['Indiquez la date de fin.']
+    return ['Indiquez la date de fin de publication.']
   }
-  if (o.dateFin <= aujourdhui()) {
-    return ['La date de fin doit être après aujourd\'hui.']
+  if (o.dateFin <= debut) {
+    return ['La date de fin doit être après la date de début.']
   }
-  if (!o.urgence && o.dateFin < plusUnMois(aujourdhui())) {
-    return ['Au moins un mois de publication, sauf recrutement urgent.']
+  if (!o.urgence && o.dateFin < plusUnMois(debut)) {
+    return ['Au moins un mois après la date de début, sauf recrutement urgent.']
   }
   return []
 }

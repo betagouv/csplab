@@ -28,7 +28,7 @@ const sections = computed(() => [{
     { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
     { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: props.row.id }) },
     ...(props.row.etat === 'publiee' && peutPublier.value
-      ? [{ label: 'Mettre l’offre en pause', icon: 'ri:pause-circle-line', onSelect: () => {
+      ? [{ label: 'Mettre l’offre en pause', icon: 'ri:stop-circle-line', onSelect: () => {
           pause.value = true
         } }]
       : []),
@@ -70,7 +70,7 @@ const sections = computed(() => [{
         />
         <CspButton
           label="Mettre en pause"
-          icon="ri:pause-circle-line"
+          icon="ri:stop-circle-line"
           is-icon-left
           @click="confirmerPause"
         />

@@ -40,7 +40,7 @@ const parCategorie = computed(() => {
   return m
 })
 // Ordre des puces (retour Alice) : Publiée d'abord, « Toutes » en dernier. L'ordre du tableau ne change pas.
-const ORDRE_PUCES: CategorieOffre[] = ['en_ligne', 'brouillon', 'depubliee']
+const ORDRE_PUCES: CategorieOffre[] = ['en_ligne', 'programmee', 'brouillon', 'depubliee']
 const puces = computed(() => ORDRE_PUCES.map(id => CATEGORIES_OFFRE.find(c => c.id === id)!).filter(c => parCategorie.value.has(c.id)))
 
 // Accès direct depuis le tableau de bord.

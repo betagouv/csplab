@@ -7,26 +7,37 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { manquesDates } from './aide'
 import { aujourdhui, dateLongue, plusUnMois, SUPPORT_MAITRE } from './store'
 
-// Publication (MVP) : immédiate, une seule date de fin qui vaut date limite de candidature (au moins un mois
-// après la publication, sauf urgence). La multidiffusion est hors périmètre : son emplacement est prévu.
+// Publication (doc PO) : date de début (aujourd'hui par défaut, plus tard = offre programmée) et date de fin de
+// publication, qui vaut date limite de candidature (au moins début + 1 mois, sauf urgence). Saisies au moment de
+// publier, pas dans le formulaire de l'offre. La multidiffusion est hors périmètre : son emplacement est prévu.
 const props = defineProps<{ offre: Offre, tentative?: boolean }>()
 const o = computed(() => props.offre)
-if (!o.value.dateFin) {
-  o.value.dateFin = plusUnMois(aujourdhui())
+if (!o.value.dateDebut || o.value.dateDebut < aujourdhui()) {
+  o.value.dateDebut = aujourdhui()
 }
+if (!o.value.dateFin) {
+  o.value.dateFin = plusUnMois(o.value.dateDebut)
+}
+const programmee = computed(() => o.value.dateDebut > aujourdhui())
 const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : undefined))
 </script>
 
 <template>
   <div class="champs">
     <p class="mention mention--haut">
-      Publication immédiate sur {{ SUPPORT_MAITRE.nom }}, dès que vous cliquez sur « Publier ».
+      Publication sur {{ SUPPORT_MAITRE.nom }}. Laissez la date du jour pour publier tout de suite, ou choisissez une date plus tard pour programmer l'offre.
     </p>
+    <CspInput
+      v-model="o.dateDebut"
+      placeholder="AAAA-MM-JJ"
+      label="Date de début de publication"
+      hint="Champ obligatoire"
+    />
     <CspInput
       v-model="o.dateFin"
       placeholder="AAAA-MM-JJ"
-      label="Date de fin"
-      hint="Champ obligatoire. C'est aussi la date limite de candidature."
+      label="Date de fin de publication"
+      hint="Champ obligatoire · au moins un mois après la date de début"
       :error="Boolean(erreur)"
       :error-message="erreur"
     />
@@ -34,7 +45,8 @@ const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : unde
       v-if="o.dateFin"
       class="mention"
     >
-      En ligne jusqu'au {{ dateLongue(o.dateFin) }} : l'offre sera retirée automatiquement ce jour-là. Vous pourrez la prolonger.
+      {{ programmee ? `En ligne du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}` : `En ligne jusqu'au ${dateLongue(o.dateFin)}` }}.
+      C'est aussi la date limite de candidature : l'offre sera retirée automatiquement ce jour-là. Vous pourrez la prolonger.
     </p>
     <CspCheckbox
       v-model="o.urgence"
@@ -43,7 +55,7 @@ const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : unde
     <div class="multi">
       <p class="multi__titre">
         <CspIcon
-          name="ri:share-forward-line"
+          name="ri:megaphone-line"
           :size="16"
         />
         Multidiffusion

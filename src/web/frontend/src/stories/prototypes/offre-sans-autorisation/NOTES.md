@@ -35,6 +35,21 @@ Ce dossier repart d'une copie des écrans du proto ATS, épurée de tout ce qui 
   n'apparaissent que si l'organisme a un circuit).
 - Dates saisies au format AAAA-MM-JJ : CspInput n'accepte pas `type="date"` (manque du design system, à voir avec Lucas).
 
+## Alignement sur le tableau des champs (PO, 17/11/2026)
+
+- Annonce réorganisée selon les catégories du tableau : métadonnées, Le poste, Cadre du recrutement, Profil
+  recherché, Conditions de travail, Employeur, Localisation. Mentions « Champ obligatoire » selon la colonne Modalité.
+- Ajouts : lien vers l'avis de vacance au JO, diplôme d'État requis, spécialisation, langues avec niveau
+  (niveau obligatoire si une langue est ajoutée), « Pas de lieu fixe », géolocalisation (adresse, pré-remplie avec
+  celle de l'organisme), lieu d'affectation. Télétravail et Management deviennent des listes oui / non.
+- Devenus facultatifs : descriptif du profil recherché. Devenus obligatoires : versant, nombre de postes (max 10),
+  nature de l'emploi, descriptif de l'employeur, adresse.
+- Publication : date de début (aujourd'hui par défaut) + date de fin (= date limite de candidature, ≥ début + 1 mois
+  sauf urgence). Une date de début future donne une offre **Programmée** (nouvelle puce et nouveau statut).
+- Champs « DAR » (motif, agent remplacé, code poste, RIFSEEP, cycle) : masqués sans circuit d'autorisation.
+- Action « Mettre l'offre en pause » (menu ⋮ du tableau) : dépublie l'offre (journal « Offre mise en pause »).
+  À trancher : statut « En pause » distinct de « Dépubliée » ?
+
 ## Manques design system (repris du proto ATS)
 
 - CspTextarea, CspCheckboxGroup, CspRadioGroup : pas d'aide (« hint ») ni de message d'information ; contourné
