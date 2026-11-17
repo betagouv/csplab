@@ -983,9 +983,18 @@ RECRUTEUR_ACTIONS_RECRUTEMENT = [
     OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 CONTRIBUTEUR_ACTIONS_RECRUTEMENT = [
-    action
-    for action in RECRUTEUR_ACTIONS_RECRUTEMENT
-    if action not in SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
 ]
 RESPONSABLE_ACTIONS_RECRUTEMENT = [
     OrganismeAction.GET_RECRUTEMENT,
@@ -998,7 +1007,41 @@ RESPONSABLE_ACTIONS_RECRUTEMENT = [
     OrganismeAction.ADD_RECRUTEMENT_AGENT,
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
     OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-    *RECRUTEUR_ACTIONS_RECRUTEMENT[3:],
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
+    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+]
+
+SUPERVISEUR_ACTIONS_RECRUTEMENT = [
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+    OrganismeAction.GET_RECRUTEMENT_ETAPES,
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
+    OrganismeAction.ADD_RECRUTEMENT_AGENT,
+    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
+    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
+    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 
 
@@ -1006,11 +1049,11 @@ class TestAuthorizedActionsRecrutement:
     @pytest.mark.parametrize(
         ("role", "recrutement_role", "expected"),
         [
-            (AgentOrganismeRole.SUPERVISEUR, None, RESPONSABLE_ACTIONS_RECRUTEMENT),
+            (AgentOrganismeRole.SUPERVISEUR, None, SUPERVISEUR_ACTIONS_RECRUTEMENT),
             (
                 AgentOrganismeRole.SUPERVISEUR,
                 AgentRecrutementRole.CONTRIBUTEUR,
-                RESPONSABLE_ACTIONS_RECRUTEMENT,
+                SUPERVISEUR_ACTIONS_RECRUTEMENT,
             ),
             (
                 AgentOrganismeRole.AGENT,
