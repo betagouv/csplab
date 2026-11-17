@@ -9,6 +9,4 @@
   --csp-overlap-radius: 0.375rem;
   --csp-region-radius: 0.5rem;
   --csp-lifted-radius: 0.5rem;
-  /* the accent keeps its width up to the rounded corners of a column */
-  --csp-kanban-column-accent-radius: var(--csp-kanban-column-accent-width);
 }

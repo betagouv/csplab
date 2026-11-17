@@ -400,8 +400,9 @@ We apply these name forms to the variables we add.
 - We declare in `styles/csp-variables.css` the role variables and the component variables that more than one component reads, such as `--csp-kanban-*`, read by the kanban column and its skeleton. A component declares a component variable that it alone reads.
 - A role variable takes its values from the stylesheets of `styles/`: `styles/csp-variables.css` declares it, dark theme and media queries included, and a component reads it.
 - The comment above the block of a role in `styles/csp-variables.css` defines that role.
+- The radii follow the strict DSFR theme by default. `styles/shapes.css` gives the radius variables the values of the rounded theme under `:root[data-csp-shape='rounded']`, which `WEB_UI_SHAPE` and the « Thème de rayons » choice of Storybook set outside production.
 - A parent sets a component variable of its child on its own selector, as `CandidaturePanelView.vue` sets `--csp-drawer-padding-inline` for `CspDrawer`. The variable is then the setting interface of the child component: the child reads it with a fallback value and does not declare it.
-- `styles/csp-variables.test.ts` fails when a `--csp-*` name written in a `.vue`, `.ts`, `.css` or `.scss` file of `src/` has no declaration, and when a file outside `styles/` declares a variable of `styles/csp-variables.css`. A name ending with a hyphen, such as `--csp-palette-`, counts as declared when a declared variable starts with it.
+- `styles/csp-variables.test.ts` fails when a `--csp-*` name written in a `.vue`, `.ts`, `.css` or `.scss` file of `src/` has no declaration, when a file outside `styles/` declares a variable of `styles/csp-variables.css`, and when `styles/shapes.css` sets a variable that `styles/csp-variables.css` does not declare. A name ending with a hyphen, such as `--csp-palette-`, counts as declared when a declared variable starts with it.
 
 ### SCSS Nesting
 
