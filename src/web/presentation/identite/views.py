@@ -28,6 +28,7 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.identite.serializers import UtilisateurSerializer
 
 LOGIN_NEXT_SESSION_KEY = "login_next"
+UNKNOWN_ACCOUNT_SESSION_KEY = "login_unknown_account"
 
 logger = logging.getLogger(LoggerName.IDENTITE.value)
 
@@ -48,6 +49,9 @@ class LoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["next"] = _safe_next_url(self.request, self.request.GET.get("next"))
+        context["unknown_account"] = self.request.session.pop(
+            UNKNOWN_ACCOUNT_SESSION_KEY, False
+        )
         return context
 
 
@@ -76,11 +80,11 @@ class ProconnectCallbackView(View):
             token = oauth.proconnect.authorize_access_token(request)
             claims = fetch_userinfo_claims(token)
         except OAuthError:
-            return self._login_failure(request)
+            return self._oauth_failure(request)
 
         user = authenticate(request, proconnect_claims=claims)
         if user is None:
-            return self._login_failure(request, token.get("id_token"))
+            return self._unknown_account(request, token.get("id_token"))
 
         login(
             request,
@@ -93,16 +97,20 @@ class ProconnectCallbackView(View):
         )
         return redirect(next_url or settings.LOGIN_REDIRECT_URL)
 
-    def _login_failure(
-        self, request: HttpRequest, id_token: str | None = None
+    def _unknown_account(
+        self, request: HttpRequest, id_token: str | None
     ) -> HttpResponseBase:
+        request.session[UNKNOWN_ACCOUNT_SESSION_KEY] = True
+        if id_token:
+            return redirect(build_proconnect_logout_url(request, id_token))
+        return redirect(settings.LOGIN_URL)
+
+    def _oauth_failure(self, request: HttpRequest) -> HttpResponseBase:
         messages.error(
             request,
             "Aucun compte ProConnect associé à cette adresse e-mail. "
             "Contactez votre administrateur.",
         )
-        if id_token:
-            return redirect(build_proconnect_logout_url(request, id_token))
         return redirect(settings.LOGIN_URL)
 
 
