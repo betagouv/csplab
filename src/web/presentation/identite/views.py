@@ -107,9 +107,7 @@ class ProconnectCallbackView(View):
 
     def _oauth_failure(self, request: HttpRequest) -> HttpResponseBase:
         messages.error(
-            request,
-            "Aucun compte ProConnect associé à cette adresse e-mail. "
-            "Contactez votre administrateur.",
+            request, "La connexion avec ProConnect a échoué. Veuillez réessayer."
         )
         return redirect(settings.LOGIN_URL)
 

@@ -70,7 +70,9 @@ class TestProconnectCallbackView:
         assert response.status_code == status.HTTP_302_FOUND
         assert response.url == "/utilisateur/connexion"
         messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("Aucun compte ProConnect" in message for message in messages)
+        assert any(
+            "La connexion avec ProConnect a échoué" in message for message in messages
+        )
 
     def test_callback_unknown_email_ends_proconnect_session_and_flags_the_notice(
         self, db, client, monkeypatch
