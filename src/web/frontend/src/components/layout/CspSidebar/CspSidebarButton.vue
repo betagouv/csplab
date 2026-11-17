@@ -54,7 +54,7 @@ const { showLabels } = useSidebar()
   min-width: 0;
   padding-block: var(--csp-space-2);
   padding-inline: var(--sidebar-item-padding-inline);
-  border-radius: var(--csp-action-radius);
+  border-radius: var(--csp-nav-radius);
   cursor: pointer;
   background-color: var(--csp-nav-background);
   transition: background-color var(--csp-motion-duration-state);
