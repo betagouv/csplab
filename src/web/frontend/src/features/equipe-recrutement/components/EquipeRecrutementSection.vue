@@ -214,6 +214,7 @@ const countLabel = computed(() => {
       size="md"
     >
       <AddTeamMemberForm
+        :options="RECRUTEMENT_ROLE_OPTIONS"
         :status="agentStatus"
         :agent="foundAgent"
         :searching="searching"
