@@ -166,7 +166,10 @@
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
   --csp-kanban-column-accent-color: var(--border-default-grey);
-  --csp-kanban-column-accent-radius: 0;
+  /* the top corners stay as high as the accent, so the accent keeps its width up to the rounded corners */
+  --csp-kanban-column-radius: var(--csp-region-radius) var(--csp-region-radius) var(--csp-region-radius)
+    var(--csp-region-radius) / var(--csp-kanban-column-accent-width) var(--csp-kanban-column-accent-width)
+    var(--csp-region-radius) var(--csp-region-radius);
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
 
   @variant xxl {
