@@ -172,6 +172,8 @@ _REGIONS = [
     "Mayotte",
 ]
 
+_FALLBACK_PAGES = ["normandie", "pays-de-la-loire"]
+
 _TERRITORIES = [
     ("Auvergne-Rhône-Alpes", "auvergne-rhone-alpes"),
     ("Bourgogne-Franche-Comté", "bourgogne-franche-comte"),
@@ -437,9 +439,11 @@ class HomeView(TemplateView):
             {
                 "name": name,
                 "image": f"{_IMG}territories/{slug}.png",
-                "page": slug if slug in _TERRITORY_PAGES else "",
+                "page": slug
+                if slug in _TERRITORY_PAGES
+                else _FALLBACK_PAGES[index % len(_FALLBACK_PAGES)],
             }
-            for name, slug in _TERRITORIES
+            for index, (name, slug) in enumerate(_TERRITORIES)
         ]
         return context
 

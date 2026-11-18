@@ -156,7 +156,7 @@
                         <div class="fr-tile__body">
                             <div class="fr-tile__content">
                                 <h3 class="fr-tile__title">
-                                    <a href="{% if territory.page %}{% url 'pages:territory' territory.page %}{% else %}{% url 'pages:offers' %}?lieu={{ territory.name|urlencode }}{% endif %}">{{ territory.name }}</a>
+                                    <a href="{% url 'pages:territory' territory.page %}">{{ territory.name }}</a>
                                 </h3>
                             </div>
                         </div>
