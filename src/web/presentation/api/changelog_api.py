@@ -54,6 +54,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 _FIELDS = {"titre", "type", "date", "pr", "liens"}
 TITLE_MAX_LENGTH = 80
 _TITLE_MARKUP = re.compile(r"[*\[\]<\n]")
+_TITLE_RESOURCE = re.compile(r"\A[^:`]+ : \S")
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
@@ -178,6 +179,8 @@ def _title_errors(titre: Any) -> list[str]:
     if not isinstance(titre, str) or not titre.strip():
         return ["`titre` est obligatoire, une phrase courte lisible sans le code"]
     errors = []
+    if not _TITLE_RESOURCE.match(titre.strip()):
+        errors.append("`titre` commence par la ressource concernée, suivie de ` : `")
     if len(titre.strip()) > TITLE_MAX_LENGTH:
         errors.append(
             f"`titre` dépasse {TITLE_MAX_LENGTH} caractères ({len(titre.strip())})"

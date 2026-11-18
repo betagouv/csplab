@@ -52,7 +52,8 @@ Renseignez dans `region` […]
   Markdown et dans Redoc. Une phrase courte en français, de 80 caractères au plus,
   qui dit ce qui change sans qu'il faille lire le corps :
   - elle commence par la ressource concernée, suivie de ` : ` (« Offres : »,
-    « Lecture des offres : », « Organismes : », « Métiers : », « fake-ts : ») ;
+    « Lecture des offres : », « Organismes : », « Métiers : », « fake-ts : »),
+    la CI vérifie ce préfixe ;
   - elle ne cite pas de route (la CI refuse `/api/`), le corps s'en charge ;
   - elle peut citer un nom de champ ou une valeur quand il est le sujet du
     changement, entre backticks (« fake-ts : `salaryRange` devient un objet codé ») :
