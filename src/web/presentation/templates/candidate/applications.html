@@ -23,7 +23,7 @@
                         {% for filter in filters %}
                             <li class="fr-sidemenu__item{% if filter.active %} fr-sidemenu__item--active{% endif %}">
                                 <a class="fr-sidemenu__link"
-                                   href="{% url 'candidate:applications' %}{% if filter.value %}?statut={{ filter.value }}{% endif %}"
+                                   href="{{ filter.url }}"
                                    {% if filter.active %}aria-current="page"{% endif %}>
                                     {{ filter.label }}
                                     <span class="fr-ml-auto">{{ filter.count }}</span>
@@ -34,7 +34,31 @@
                 </nav>
             </div>
             <div class="fr-col-12 fr-col-md-9">
-                <p class="fr-text--sm fr-mb-2w">{{ items|length }} opportunité{{ items|length|pluralize }}</p>
+                <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
+                    <p class="fr-col fr-text--sm fr-mb-0">{{ items|length }} opportunité{{ items|length|pluralize }}</p>
+                    <button type="button"
+                            class="fr-btn fr-btn--tertiary fr-btn--sm fr-icon-filter-line fr-btn--icon-left"
+                            aria-expanded="false"
+                            aria-controls="applications-filters">
+                        Filtres{% if active_filters %} ({{ active_filters }}){% endif %}
+                    </button>
+                </div>
+                <div class="fr-collapse fr-mb-2w" id="applications-filters">
+                    <form action="{% url 'candidate:applications' %}"
+                          method="get"
+                          class="fr-p-2w csplab-application">
+                        {% if current_status %}<input type="hidden" name="statut" value="{{ current_status }}">{% endif %}
+                        <div class="fr-checkbox-group fr-checkbox-group--sm">
+                            <input type="checkbox"
+                                   id="filter-unread"
+                                   name="non_lues"
+                                   value="1"
+                                   {% if only_unread %}checked{% endif %}>
+                            <label class="fr-label" for="filter-unread">Avec des conversations non lues</label>
+                        </div>
+                        <button type="submit" class="fr-btn fr-btn--sm fr-mt-2w">Appliquer</button>
+                    </form>
+                </div>
                 {% for item in items %}
                     {% if item.kind == "saved" and item.status == "archivee" %}
                         <div class="csplab-application fr-background-alt--grey fr-p-2w fr-mb-2w">
@@ -70,7 +94,7 @@
                                 <div class="fr-col">
                                     <p class="fr-text--sm fr-mb-0">{{ item.employer }}</p>
                                     <h3 class="fr-text--md fr-text--bold fr-mb-1w">
-                                        <a href="{% url 'candidate:application_detail' item.id %}">{{ item.title }}</a>
+                                        <a href="{% url 'candidate:application_detail' item.id %}{% if item.unread %}?conversations=1{% endif %}">{{ item.title }}</a>
                                     </h3>
                                     <p class="fr-badge fr-badge--sm fr-badge--info fr-badge--no-icon fr-mb-0">
                                         {% for key, status in statuses.items %}

@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -31,14 +33,14 @@ class CandidateHomeView(LoginRequiredRedirectMixin, BreadcrumbMixin, TemplateVie
         context = super().get_context_data(**kwargs)
         request = self.request
         applications_in_progress = sum(
-            a["status"] in ("envoyee", "en_cours") for a in _APPLICATIONS
+            a["status"] in ("envoyee", "en_cours") for a in _applications(request)
         )
         context.update(
             first_name=request.session["candidate_name"].split()[0],
             alert=get_alert(request),
             applications_in_progress=applications_in_progress,
             saved_offers_count=len(_saved_offers(request)),
-            unread_count=sum(a["unread"] for a in _APPLICATIONS),
+            unread_count=sum(a["unread"] for a in _applications(request)),
             suggestions=sorted(OFFERS, key=lambda o: o["since"], reverse=True)[:2],
             favorites=request.session.get("favorites", []),
         )
@@ -302,7 +304,9 @@ class CandidateApplicationsView(BreadcrumbMixin, TemplateView):
         saved_archived = [
             {**o, "kind": "saved"} for o in saved if o["status"] == "archivee"
         ]
-        applications = [{**a, "kind": "application"} for a in _APPLICATIONS]
+        applications = [
+            {**a, "kind": "application"} for a in _applications(self.request)
+        ]
         items = {
             "": saved_online + [a for a in applications if a["status"] != "archivee"],
             "sauvegardees": saved_online,
@@ -311,18 +315,31 @@ class CandidateApplicationsView(BreadcrumbMixin, TemplateView):
         }
         for key in ("envoyee", "en_cours", "finalisee"):
             items[key] = [a for a in applications if a["status"] == key]
+        only_unread = self.request.GET.get("non_lues") == "1"
+
+        def url(key: str) -> str:
+            params = {"statut": key} if key else {}
+            if only_unread:
+                params["non_lues"] = "1"
+            query = urlencode(params)
+            base = reverse("candidate:applications")
+            return f"{base}?{query}" if query else base
+
         context.update(
             first_name=_CANDIDATE_NAME.split(maxsplit=1)[0],
             filters=[
                 {
                     "label": label,
-                    "value": key,
+                    "url": url(key),
                     "count": len(items[key]),
                     "active": current == key,
                 }
                 for key, label in _APPLICATION_FILTERS.items()
             ],
-            items=items[current],
+            items=[i for i in items[current] if not only_unread or i.get("unread")],
+            only_unread=only_unread,
+            current_status=current,
+            active_filters=int(only_unread),
             statuses=_STATUSES,
         )
         return context
@@ -346,8 +363,15 @@ class CandidateAlertsView(BreadcrumbMixin, TemplateView):
         return context
 
 
-def _get_application(application_id: int) -> dict:
-    application = next((a for a in _APPLICATIONS if a["id"] == application_id), None)
+def _applications(request) -> list[dict]:
+    read = request.session.get("read_applications", [])
+    return [{**a, "unread": 0} if a["id"] in read else a for a in _APPLICATIONS]
+
+
+def _get_application(request, application_id: int) -> dict:
+    application = next(
+        (a for a in _applications(request) if a["id"] == application_id), None
+    )
     if application is None:
         raise Http404
     return application
@@ -441,7 +465,7 @@ class CandidateConversationsView(TemplateView):
         return ["candidate/components/_conversations_drawer.html"]
 
     def _selected(self, kwargs):
-        application = _get_application(kwargs["application_id"])
+        application = _get_application(self.request, kwargs["application_id"])
         conversations = _conversations(application)
         conversation_id = kwargs.get("conversation_id", 1)
         selected = next((c for c in conversations if c["id"] == conversation_id), None)
@@ -474,11 +498,20 @@ class CandidateConversationsView(TemplateView):
         )
 
 
+class CandidateConversationsReadView(View):
+    def post(self, request, application_id):
+        _get_application(request, application_id)
+        read = request.session.get("read_applications", [])
+        if application_id not in read:
+            request.session["read_applications"] = [*read, application_id]
+        return HttpResponse(status=204)
+
+
 class CandidateApplicationDetailView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/application_detail.html"
 
     def get_context_data(self, **kwargs):
-        application = _get_application(kwargs["application_id"])
+        application = _get_application(self.request, kwargs["application_id"])
         self.breadcrumb_links = [
             {"url": reverse("candidate:home"), "title": "Mon espace candidat"},
             {"url": reverse("candidate:applications"), "title": "Suivi candidature"},
@@ -487,6 +520,7 @@ class CandidateApplicationDetailView(BreadcrumbMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["candidate_name"] = _CANDIDATE_NAME
         context["application"] = application
+        context["open_conversations"] = "conversations" in self.request.GET
         context["submitted_on"] = "24 septembre 2026"
         context["status"] = _STATUSES[application["status"]]
         context["conversations"] = _conversations(application)
@@ -519,7 +553,9 @@ class CandidateDocumentView(TemplateView):
         document = _DOCUMENTS.get(kwargs["slug"])
         if document is None:
             raise Http404
-        context["application"] = _get_application(kwargs["application_id"])
+        context["application"] = _get_application(
+            self.request, kwargs["application_id"]
+        )
         context["document"] = document
         context["slug"] = kwargs["slug"]
         context["candidate_name"] = _CANDIDATE_NAME
@@ -530,7 +566,7 @@ class CandidateOfferView(TemplateView):
     template_name = "candidate/components/_application_offer_drawer.html"
 
     def get_offer(self, kwargs):
-        return _get_application(kwargs["application_id"])
+        return _get_application(self.request, kwargs["application_id"])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

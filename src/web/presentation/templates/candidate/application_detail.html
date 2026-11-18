@@ -38,11 +38,14 @@
         <h2 class="fr-h6">Conversations</h2>
         <ul class="fr-raw-list fr-mb-4w">
             {% for conversation in conversations %}
-                <li class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w {% if conversation.unread %}csplab-application--unread{% endif %}">
+                <li class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w {% if conversation.unread %}csplab-application--unread{% endif %}"
+                    {% if conversation.unread %}data-unread{% endif %}>
                     <div class="fr-grid-row fr-grid-row--middle">
                         <div class="fr-col">
                             <h3 class="fr-text--md fr-text--bold fr-mb-1v">
-                                <a href="{% url 'candidate:conversation' application.id conversation.id %}" data-drawer-open>{{ conversation.title }}</a>
+                                <a href="{% url 'candidate:conversation' application.id conversation.id %}"
+                                   data-drawer-open
+                                   {% if open_conversations and conversation.unread %}data-auto-open{% endif %}>{{ conversation.title }}</a>
                             </h3>
                             <p class="fr-text--sm fr-mb-1v">{{ conversation.preview }}</p>
                             <p class="fr-text--xs fr-mb-0">{{ conversation.sender }} • {{ conversation.when }}</p>
@@ -75,4 +78,5 @@
 {% endblock main %}
 {% block page_js %}
     <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+    {% if open_conversations %}<script src="{% static 'js/auto-open.js' %}" defer nonce="{{ csp_nonce }}"></script>{% endif %}
 {% endblock page_js %}

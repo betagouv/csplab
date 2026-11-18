@@ -49,16 +49,11 @@
             {% include "candidate/components/_alert_empty.html" %}
         {% endif %}
         </div>
-        <div class="fr-grid-row fr-mt-4w">
-            <div class="fr-col-12 fr-col-md-8">
-                <div class="fr-callout">
-                    <h2 class="fr-callout__title fr-text--md">Créer une nouvelle alerte</h2>
-                    <p class="fr-callout__text">Lancez une recherche pour en créer une.</p>
-                    <a class="fr-btn fr-mt-2w" href="{% url 'pages:offers' %}">Rechercher une offre</a>
-                </div>
-            </div>
+        <div id="alert-create">
+            {% if not alert %}
+                {% include "candidate/components/_alert_create.html" %}
+            {% endif %}
         </div>
-
     </div>
     <dialog id="alert-delete-modal"
             class="fr-modal"

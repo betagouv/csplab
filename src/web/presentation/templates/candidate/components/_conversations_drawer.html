@@ -1,5 +1,7 @@
 <dialog class="csplab-drawer csplab-drawer--wide"
         data-drawer
+        data-read-url="{% url 'candidate:conversations_read' application.id %}"
+        data-read-token="{{ csrf_token }}"
         aria-labelledby="conversations-title">
     <div class="csplab-drawer__panel">
         <div class="fr-modal__header">

@@ -20,6 +20,11 @@ class DrawerHandler {
     document.body.addEventListener('htmx:beforeRequest', (e) => this.handleBeforeRequest(e));
     document.body.addEventListener('htmx:afterSwap', (e) => this.handleAfterSwap(e));
     window.addEventListener('popstate', () => this.closeOpenDrawer());
+    window.addEventListener('pagehide', () => {
+      document
+        .querySelectorAll(`${DrawerHandler.DRAWER_SELECTOR}[open]`)
+        .forEach((dialog) => this.markRead(dialog));
+    });
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) this.closeOpenDrawer();
     });
@@ -99,7 +104,28 @@ class DrawerHandler {
   /**
    * @param {HTMLDialogElement} dialog
    */
+  markRead(dialog) {
+    const url = dialog.dataset.readUrl;
+    if (!url || dialog.dataset.readSent === 'true') return;
+    dialog.dataset.readSent = 'true';
+    const data = new FormData();
+    data.append('csrfmiddlewaretoken', dialog.dataset.readToken || '');
+    navigator.sendBeacon(url, data);
+  }
+
+  clearUnread() {
+    document.querySelectorAll('[data-unread]').forEach((el) => {
+      el.removeAttribute('data-unread');
+      el.classList.remove('csplab-application--unread');
+      el.querySelectorAll('.fr-badge--info').forEach((badge) => badge.remove());
+    });
+  }
+
   handleDialogClose(dialog) {
+    if (dialog.dataset.readUrl) {
+      this.markRead(dialog);
+      this.clearUnread();
+    }
     if (history.state?.[DrawerHandler.HISTORY_MARKER]) {
       history.replaceState(null, '', window.location.href);
     }

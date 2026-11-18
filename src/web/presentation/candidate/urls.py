@@ -13,6 +13,7 @@ from presentation.candidate.views.home import (
     CandidateAlertView,
     CandidateApplicationDetailView,
     CandidateApplicationsView,
+    CandidateConversationsReadView,
     CandidateConversationsView,
     CandidateDocumentView,
     CandidateFranceConnectView,
@@ -42,6 +43,11 @@ urlpatterns = [
         "mes-candidatures/<int:application_id>/conversations",
         CandidateConversationsView.as_view(),
         name="conversations",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/conversations/lues",
+        CandidateConversationsReadView.as_view(),
+        name="conversations_read",
     ),
     path(
         "mes-candidatures/<int:application_id>/conversations/<int:conversation_id>",

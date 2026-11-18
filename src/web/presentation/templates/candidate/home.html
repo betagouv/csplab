@@ -61,7 +61,7 @@
                     <div class="fr-tile__body">
                         <div class="fr-tile__content">
                             <h3 class="fr-tile__title">
-                                <a href="{% url 'candidate:applications' %}">
+                                <a href="{% url 'candidate:applications' %}?non_lues=1">
                                     {% if unread_count %}
                                         Nouveau{{ unread_count|pluralize:"x" }} message{{ unread_count|pluralize }}
                                     {% else %}
