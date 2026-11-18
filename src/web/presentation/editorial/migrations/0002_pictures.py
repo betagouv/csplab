@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         ("editorial", "0001_initial"),
         (
             "sites_conformes_customimages",
-            "0003_alter_customimage_id_alter_customrendition_id",
+            "0002_copy_wagtail_images",
         ),
     ]
 
