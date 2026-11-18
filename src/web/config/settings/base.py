@@ -95,7 +95,7 @@ X_FRAME_OPTIONS = "DENY"
 # Admin
 # ---------------------------------------
 # Require a verified TOTP device to log into the Django admin.
-ADMIN_OTP_REQUIRED = True
+ADMIN_OTP_REQUIRED = env.bool("ADMIN_OTP_REQUIRED", default=True)
 
 # Application definition
 
