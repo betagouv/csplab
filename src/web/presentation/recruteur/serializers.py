@@ -383,6 +383,15 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
         ]
 
 
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "color"]
+
+
 # Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute,
 # not SerializerMethodField, so drf-spectacular does not flag them `readOnly` and the
 # schema stays identical to the former plain Serializer (see OffreArchiveeField).
@@ -426,6 +435,7 @@ class CandidatureListeSerializer(serializers.ModelSerializer):
     candidat = CandidatureCandidatField()
     date_derniere_activite = DerniereActiviteField()
     etape = CandidatureEtapeField()
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = CandidatureModel
@@ -436,6 +446,7 @@ class CandidatureListeSerializer(serializers.ModelSerializer):
             "candidat",
             "date_derniere_activite",
             "etape",
+            "tags",
         ]
 
 
@@ -533,15 +544,6 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 # Serializers pour les étiquettes d'un organisme
 # ---------------------------------------------------------------------------
-
-
-class TagSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source="id")
-    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
-
-    class Meta:
-        model = TagModel
-        fields = ["uuid", "name", "color"]
 
 
 class TagDetailSerializer(TagSerializer):
