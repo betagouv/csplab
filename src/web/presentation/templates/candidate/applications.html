@@ -1,0 +1,228 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Mes candidatures
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <div class="fr-tabs">
+            <ul class="fr-tabs__list" role="tablist" aria-label="Espace candidat">
+                <li role="presentation">
+                    <button id="tab-candidatures"
+                            class="fr-tabs__tab fr-icon-briefcase-line fr-tabs__tab--icon-left"
+                            tabindex="{% if active_tab == 'candidatures' %}0{% else %}-1{% endif %}"
+                            role="tab"
+                            aria-selected="{% if active_tab == 'candidatures' %}true{% else %}false{% endif %}"
+                            aria-controls="tab-candidatures-panel">Mes candidatures</button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-offres"
+                            class="fr-tabs__tab fr-icon-thumb-up-line fr-tabs__tab--icon-left"
+                            tabindex="{% if active_tab == 'offres' %}0{% else %}-1{% endif %}"
+                            role="tab"
+                            aria-selected="{% if active_tab == 'offres' %}true{% else %}false{% endif %}"
+                            aria-controls="tab-offres-panel">Mes offres sauvegardées</button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-alerte"
+                            class="fr-tabs__tab fr-icon-notification-3-line fr-tabs__tab--icon-left"
+                            tabindex="{% if active_tab == 'alerte' %}0{% else %}-1{% endif %}"
+                            role="tab"
+                            aria-selected="{% if active_tab == 'alerte' %}true{% else %}false{% endif %}"
+                            aria-controls="tab-alerte-panel">Mon alerte emploi</button>
+                </li>
+            </ul>
+            <div id="tab-candidatures-panel"
+                 class="fr-tabs__panel{% if active_tab == 'candidatures' %} fr-tabs__panel--selected{% endif %}"
+                 role="tabpanel"
+                 aria-labelledby="tab-candidatures"
+                 tabindex="0">
+                <div class="fr-grid-row fr-grid-row--gutters">
+                    <div class="fr-col-12 fr-col-md-6">
+                        <ul class="fr-tags-group fr-mb-2w">
+                            {% for filter in filters %}
+                                <li>
+                                    <a class="fr-tag"
+                                       href="{% url 'candidate:applications' %}{% if filter.value %}?statut={{ filter.value }}{% endif %}"
+                                       {% if filter.active %}aria-pressed="true"{% endif %}>{{ filter.label }} ({{ filter.count }})</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% for application in applications %}
+                            <div class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w">
+                                <h2 class="fr-text--md fr-text--bold fr-mb-0">
+                                    <a href="{% url 'candidate:application_detail' application.id %}">{{ application.title }}</a>
+                                </h2>
+                                <p class="fr-text--sm fr-mb-0">{{ application.employer }}</p>
+                                {% if application.unread %}
+                                    <p class="fr-text--xs fr-icon-mail-fill fr-btn--icon-left fr-mb-0 fr-mt-1v">
+                                        {{ application.unread }} conversation non lue
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p>Aucune candidature dans cette catégorie.</p>
+                        {% endfor %}
+                    </div>
+                    <div class="fr-col-12 fr-col-md-6">
+                        <h2 class="fr-h6 fr-icon-mail-fill fr-btn--icon-left fr-mb-1w">
+                            Vous avez {{ unread_applications|length }} conversations non lues
+                        </h2>
+                        <p>Des recruteurs vous ont envoyé des messages concernant vos candidatures.</p>
+                        <ul class="fr-raw-list">
+                            {% for application in unread_applications %}
+                                <li class="fr-mb-2w">
+                                    <a href="{% url 'candidate:application_detail' application.id %}" class="fr-link">{{ application.title }}</a>
+                                    <p class="fr-text--sm fr-mb-0">{{ application.employer }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-offres-panel"
+                 class="fr-tabs__panel{% if active_tab == 'offres' %} fr-tabs__panel--selected{% endif %}"
+                 role="tabpanel"
+                 aria-labelledby="tab-offres"
+                 tabindex="0">
+                <h2 class="fr-h5 fr-mb-1v">Mes offres sauvegardées ({{ saved_offers_count }})</h2>
+                <p class="fr-text--sm fr-mb-3w">Retrouvez toutes vos offres préférées.</p>
+                <ul class="fr-tags-group fr-mb-2w">
+                    {% for filter in offer_filters %}
+                        <li>
+                            <a class="fr-tag"
+                               href="{% url 'candidate:applications' %}?tab=offres{% if filter.value %}&offres={{ filter.value }}{% endif %}"
+                               {% if filter.active %}aria-pressed="true"{% endif %}>{{ filter.label }} ({{ filter.count }})</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="fr-grid-row">
+                    <div class="fr-col-12 fr-col-md-6">
+                        {% for offer in saved_offers %}
+                            {% if offer.status == "archivee" %}
+                                <div class="csplab-application fr-background-alt--grey fr-p-2w fr-mb-2w">
+                                    <h3 class="fr-text--md fr-text--bold fr-mb-0">{{ offer.title }}</h3>
+                                    <p class="fr-text--sm fr-mb-0">{{ offer.employer }}</p>
+                                    <p class="fr-text--xs fr-icon-calendar-line fr-btn--icon-left fr-mb-0 fr-mt-1v">
+                                        Désactivée depuis le {{ offer.since }}
+                                    </p>
+                                </div>
+                            {% else %}
+                                <div class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w">
+                                    <h3 class="fr-text--md fr-text--bold fr-mb-0">
+                                        <a href="{% url 'candidate:saved_offer' offer.id %}" data-drawer-open>{{ offer.title }}</a>
+                                    </h3>
+                                    <p class="fr-text--sm fr-mb-0">{{ offer.employer }}</p>
+                                    <p class="fr-text--xs fr-icon-calendar-line fr-btn--icon-left fr-mb-0 fr-mt-1v">
+                                        En ligne depuis le {{ offer.since }}
+                                    </p>
+                                </div>
+                            {% endif %}
+                        {% empty %}
+                            <p>Aucune offre dans cette catégorie.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div id="tab-alerte-panel"
+                 class="fr-tabs__panel{% if active_tab == 'alerte' %} fr-tabs__panel--selected{% endif %}"
+                 role="tabpanel"
+                 aria-labelledby="tab-alerte"
+                 tabindex="0">
+                <h2 class="fr-h5 fr-mb-1v">Mon alerte emploi</h2>
+                <p class="fr-text--sm fr-mb-3w">
+                    Retrouvez votre recherche sauvegardée et recevez des alertes pour toutes nouvelles offres en ligne.
+                </p>
+                <div class="fr-grid-row">
+                    <div class="fr-col-12 fr-col-md-8" id="alert-card">
+                        <div class="csplab-application fr-p-2w">
+                            <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters">
+                                <div class="fr-col-12 fr-col-sm">
+                                    <h3 class="fr-text--md fr-text--bold fr-mb-1v">Instructeur en Nouvelle-Aquitaine</h3>
+                                    <div class="csplab-alert__row">
+                                        <span class="fr-text--xs">Mots clés</span>
+                                        <div class="csplab-alert__tags">
+                                            <p class="fr-tag fr-tag--sm">Instructeur</p>
+                                            <p class="fr-tag fr-tag--sm">Gestionnaire</p>
+                                        </div>
+                                    </div>
+                                    <p class="fr-text--sm fr-mb-0">Nouvelle-Aquitaine · Titulaire · Une fois par semaine</p>
+                                </div>
+                                <div class="fr-col-12 fr-col-sm-auto">
+                                    <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm">
+                                        <li>
+                                            <button type="button"
+                                                    class="fr-btn fr-btn--tertiary fr-icon-delete-line fr-btn--icon-left"
+                                                    data-fr-opened="false"
+                                                    aria-controls="alert-delete-modal">Supprimer</button>
+                                        </li>
+                                        <li>
+                                            <a class="fr-btn fr-btn--secondary fr-icon-edit-line fr-btn--icon-left"
+                                               href="{% url 'candidate:alert_edit' %}"
+                                               data-drawer-open>Modifier</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fr-grid-row fr-mt-4w">
+                    <div class="fr-col-12 fr-col-md-8">
+                        <div class="fr-callout">
+                            <h3 class="fr-callout__title fr-text--md">Créer une nouvelle alerte</h3>
+                            <p class="fr-callout__text">Lancez une recherche pour en créer une.</p>
+                            <a class="fr-btn fr-mt-2w" href="{% url 'pages:home' %}">Rechercher une offre</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <dialog id="alert-delete-modal"
+            class="fr-modal"
+            aria-labelledby="alert-delete-modal-title">
+        <div class="fr-container fr-container--fluid fr-container-md">
+            <div class="fr-grid-row fr-grid-row--center">
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-modal__body">
+                        <div class="fr-modal__header">
+                            <button type="button"
+                                    class="fr-btn--close fr-btn"
+                                    aria-controls="alert-delete-modal"
+                                    title="Fermer">Fermer</button>
+                        </div>
+                        <div class="fr-modal__content">
+                            <h2 id="alert-delete-modal-title" class="fr-modal__title">Supprimer mon alerte emploi</h2>
+                            <p>
+                                Vous ne recevrez plus d'e-mails pour les nouvelles offres correspondant à « Instructeur en Nouvelle-Aquitaine ».
+                            </p>
+                        </div>
+                        <div class="fr-modal__footer">
+                            <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg">
+                                <li>
+                                    <button type="button"
+                                            class="fr-btn"
+                                            aria-controls="alert-delete-modal"
+                                            hx-delete="{% url 'candidate:alert' %}"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-target="#alert-card"
+                                            hx-swap="outerHTML">Supprimer</button>
+                                </li>
+                                <li>
+                                    <button type="button"
+                                            class="fr-btn fr-btn--secondary"
+                                            aria-controls="alert-delete-modal">Annuler</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

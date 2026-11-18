@@ -1,0 +1,79 @@
+<dialog class="csplab-drawer"
+        data-drawer
+        aria-labelledby="alert-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <h2 id="alert-title" class="fr-h4 fr-mb-1v">Modifier mon alerte</h2>
+            <p class="fr-text--sm fr-mb-3w">
+                Recevez par e-mail les nouvelles offres qui correspondent à vos critères.
+            </p>
+            <form action="#" method="get">
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-name">Titre de l'alerte</label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-name"
+                           value="Instructeur en Nouvelle-Aquitaine">
+                </div>
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-keywords">
+                        Mots clés
+                        <span class="fr-hint-text">Séparez les mots clés par une virgule</span>
+                    </label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-keywords"
+                           value="Instructeur, Gestionnaire">
+                </div>
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-location">Localisation</label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-location"
+                           value="Nouvelle-Aquitaine">
+                </div>
+                <div class="fr-select-group">
+                    <label class="fr-label" for="alert-contract">Type de contrat</label>
+                    <select class="fr-select" id="alert-contract">
+                        <option value="">Tous</option>
+                        <option value="titulaire" selected>Titulaire</option>
+                        <option value="contractuel">Contractuel</option>
+                        <option value="alternance">Alternance</option>
+                    </select>
+                </div>
+                <fieldset class="fr-fieldset" aria-labelledby="alert-frequency-legend">
+                    <legend class="fr-fieldset__legend--regular fr-fieldset__legend" id="alert-frequency-legend">
+                        Fréquence des e-mails
+                    </legend>
+                    <div class="fr-fieldset__element">
+                        <div class="fr-radio-group">
+                            <input type="radio" id="alert-daily" name="frequency" value="daily">
+                            <label class="fr-label" for="alert-daily">Tous les jours</label>
+                        </div>
+                    </div>
+                    <div class="fr-fieldset__element">
+                        <div class="fr-radio-group">
+                            <input type="radio"
+                                   id="alert-weekly"
+                                   name="frequency"
+                                   value="weekly"
+                                   checked>
+                            <label class="fr-label" for="alert-weekly">Une fois par semaine</label>
+                        </div>
+                    </div>
+                </fieldset>
+                <ul class="fr-btns-group fr-btns-group--inline-md">
+                    <li>
+                        <button type="button" class="fr-btn" data-drawer-close>Enregistrer</button>
+                    </li>
+                    <li>
+                        <button type="button" class="fr-btn fr-btn--secondary" data-drawer-close>Annuler</button>
+                    </li>
+                </ul>
+            </form>
+        </div>
+    </div>
+</dialog>

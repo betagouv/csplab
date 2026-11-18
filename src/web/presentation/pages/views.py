@@ -2,6 +2,7 @@ import re
 from itertools import groupby
 
 from django.conf import settings
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.urls import reverse
@@ -16,6 +17,7 @@ from presentation.api.changelog_api import (
     published_fragments,
     published_routes,
 )
+from presentation.pages.stub_offers import OFFERS
 
 _TOC_MAX_LEVEL = 3
 
@@ -87,8 +89,149 @@ def _drop_empty_items(items: list[dict]) -> None:
             del item["items"]
 
 
+_URL = "https://choisirleservicepublic.gouv.fr/"
+_IMG = "candidate/images/"
+
+_FEATURED_NEWS = [
+    {
+        "badge": "Événement",
+        "title": "Semaine européenne pour l'emploi des personnes handicapées 2026 : "
+        "une semaine pour favoriser l'inclusion professionnelle",
+        "url": _URL,
+        "image": _IMG + "service-previews/concours-card-1.png",
+    },
+    {
+        "badge": "Métier",
+        "title": "Sandra Renoir, lauréate du concours de secrétaire administratif "
+        "au MAASA : « Il ne faut pas hésiter à se lancer ! »",
+        "url": _URL,
+        "image": _IMG + "service-previews/concours-card-2.png",
+    },
+]
+
+_NEWS = [
+    {
+        "badge": "Diversité",
+        "title": "Cyril, ancien militaire reconverti, s'engage pour l'inclusion "
+        "et l'emploi des personnes en situation de handicap",
+        "description": "Cyril travaille depuis près de 20 ans au ministère des "
+        "Armées et des Anciens combattants : après une carrière militaire,…",
+        "url": _URL,
+        "image": _IMG + "illustrations-csp/scene-4.svg",
+    },
+    {
+        "badge": "Concours",
+        "title": "Cinq raisons de devenir professeur",
+        "description": "Être professeur, c'est transmettre des savoirs et des "
+        "valeurs, accompagner chaque élève vers la réussite et contribuer à…",
+        "url": _URL,
+        "image": _IMG + "illustrations-csp/parcours-professionnels-1.svg",
+    },
+    {
+        "badge": "Événement",
+        "title": "Mois de l'innovation publique 2026 : découvrez les initiatives "
+        "qui transforment le service public",
+        "description": "Du 2 au 30 novembre 2026, le Mois de l'innovation publique "
+        "revient pour sa 13e édition. Organisé par la Direction interministérielle…",
+        "url": _URL,
+        "image": _IMG + "illustrations-csp/recherche-1.svg",
+    },
+    {
+        "badge": "Concours",
+        "title": "Ouverture du concours Technicien supérieur d'études et de "
+        "fabrications de 3ème classe (TSEF3)",
+        "description": "Vous souhaitez mettre vos compétences techniques au service "
+        "de la Défense ? Exercer un métier où votre savoir-faire contribue…",
+        "url": _URL,
+        "image": _IMG + "illustrations-csp/recherche-emploi.svg",
+    },
+]
+
+
+_REGIONS = [
+    "Auvergne-Rhône-Alpes",
+    "Bourgogne-Franche-Comté",
+    "Bretagne",
+    "Centre-Val de Loire",
+    "Corse",
+    "Grand Est",
+    "Hauts-de-France",
+    "Île-de-France",
+    "Normandie",
+    "Nouvelle-Aquitaine",
+    "Occitanie",
+    "Pays de la Loire",
+    "Provence-Alpes-Côte d'Azur",
+]
+
+
 class HomeView(TemplateView):
     template_name = "pages/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["featured_news"] = _FEATURED_NEWS
+        context["news"] = _NEWS
+        context["query"] = self.request.GET.get("q", "")
+        context["location"] = self.request.GET.get("lieu", "")
+        context["regions"] = _REGIONS
+        return context
+
+
+_DOMAINS = [
+    "Médical et paramédical",
+    "Social, enfance et famille",
+    "Administration et gestion",
+    "Numérique et systèmes d'information",
+    "Éducation et formation",
+]
+_VERSANTS = [
+    "Fonction publique Hospitalière",
+    "Fonction publique Territoriale",
+    "Fonction publique de l'État",
+]
+
+_OFFERS_PER_PAGE = 10
+
+
+class OffersView(TemplateView):
+    template_name = "pages/offers.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        params = self.request.GET
+        query = params.get("q", "").strip()
+        location = params.get("lieu", "")
+        domain = params.get("domaine", "")
+        versant = params.get("structure", "")
+        telework = params.get("teletravail") == "1"
+        offers = [
+            o
+            for o in sorted(OFFERS, key=lambda o: o["since"], reverse=True)
+            if (not query or query.lower() in f"{o['title']} {o['domain']}".lower())
+            and (not location or o["region"] == location)
+            and (not domain or o["domain"] == domain)
+            and (not versant or o["versant"] == versant)
+            and (not telework or o["telework"])
+        ]
+        page = Paginator(offers, _OFFERS_PER_PAGE).get_page(params.get("page"))
+        base_params = params.copy()
+        base_params.pop("page", None)
+        context.update(
+            breadcrumb_data={"links": [], "current": "Offres d'emploi"},
+            offers=page,
+            total=len(offers),
+            page_query=base_params.urlencode(),
+            query=query,
+            location=location,
+            domain=domain,
+            versant=versant,
+            telework=telework,
+            regions=_REGIONS,
+            domains=_DOMAINS,
+            versants=_VERSANTS,
+        )
+        return context
 
 
 class TermsView(TemplateView):

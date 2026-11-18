@@ -1,0 +1,53 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block page_title %}
+    Espace candidat
+{% endblock page_title %}
+{% block meta_description %}
+    Toutes les étapes de vos candidatures dans la fonction publique réunies au même endroit.
+{% endblock meta_description %}
+{% block main %}
+    <section class="fr-container fr-py-8w">
+        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+            <div class="fr-col-12 fr-col-md-7">
+                <h1>
+                    Bienvenue sur
+                    <br />
+                    votre espace candidat
+                </h1>
+                <p class="fr-text--lead">
+                    Toutes les étapes de vos candidatures dans la fonction publique réunies au même endroit.
+                </p>
+                <ul class="fr-btns-group fr-btns-group--inline-md">
+                    <li>
+                        <a class="fr-btn" href="{% url 'candidate:login' %}">Se connecter</a>
+                    </li>
+                    <li>
+                        <a class="fr-btn fr-btn--secondary" href="{% url 'candidate:cv_upload' %}">Analyser mon CV</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="fr-col-12 fr-col-md-5">
+                <img alt=""
+                     class="fr-responsive-img"
+                     height="348"
+                     width="384"
+                     aria-hidden="true"
+                     src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}" />
+            </div>
+        </div>
+    </section>
+    <section class="fr-background-alt--blue-france fr-py-8w">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--gutters">
+                {% for feature in features %}
+                    <div class="fr-col-12 fr-col-md-4">
+                        <span class="{{ feature.icon }} fr-icon--lg fr-mb-2w" aria-hidden="true"></span>
+                        <h2 class="fr-h3">{{ feature.title }}</h2>
+                        <p>{{ feature.text }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock main %}

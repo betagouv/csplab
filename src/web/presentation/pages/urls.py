@@ -8,6 +8,7 @@ from presentation.pages.views import (
     ApiGuideView,
     HomeView,
     LegalNoticesView,
+    OffersView,
     PrivacyView,
     TermsView,
 )
@@ -16,6 +17,7 @@ app_name = "pages"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("offres", OffersView.as_view(), name="offers"),
     path("conditions-generales", TermsView.as_view(), name="terms"),
     path("accessibilite", AccessibilityView.as_view(), name="accessibility"),
     path("confidentialite", PrivacyView.as_view(), name="privacy"),

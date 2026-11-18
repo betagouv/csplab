@@ -24,9 +24,51 @@
     </a>
 {% endblock service_title %}
 {% block service_tagline %}
-    Innover pour choisir le service public
+    {% if request.resolver_match.app_name == "candidate" %}
+        Espace candidat
+    {% else %}
+        Innover pour choisir le service public
+    {% endif %}
 {% endblock service_tagline %}
 {% block header_tools %}
+    {% if request.session.candidate_name %}
+        <div class="fr-header__tools">
+            <div class="fr-header__tools-links">
+                <ul class="fr-btns-group">
+                    <li>
+                        <a class="fr-btn fr-icon-account-line" href="{% url 'candidate:applications' %}">{{ request.session.candidate_name }}</a>
+                    </li>
+                    <li>
+                        <a class="fr-btn fr-icon-logout-box-r-line" href="{% url 'candidate:logout' %}">Se déconnecter</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    {% elif request.resolver_match.app_name == "candidate" %}
+        <div class="fr-header__tools">
+            <div class="fr-header__tools-links">
+                <ul class="fr-btns-group">
+                    <li>
+                        <a class="fr-btn fr-icon-account-line" href="{% url 'candidate:login' %}">Se connecter</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+    <div class="fr-header__tools">
+        <div class="fr-header__tools-links">
+            <ul class="fr-btns-group">
+                <li>
+                    <a class="fr-btn fr-icon-briefcase-line" href="{% url 'ats:ats_base' %}">Espace recruteurs</a>
+                </li>
+                <li>
+                    <a class="fr-btn fr-icon-account-circle-line"
+                       href="{% url 'candidate:home' %}">Espace candidat</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 {% endblock header_tools %}
 {% block header_search %}
 {% endblock header_search %}

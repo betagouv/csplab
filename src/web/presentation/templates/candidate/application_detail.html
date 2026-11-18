@@ -1,0 +1,78 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    {{ application.title }}
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <div class="fr-grid-row fr-grid-row--middle fr-mb-4w">
+            <a class="fr-btn fr-btn--tertiary-no-outline fr-icon-arrow-left-line fr-mr-2w"
+               href="{% url 'candidate:applications' %}"
+               title="Retour à mes candidatures">Retour</a>
+            <div>
+                <h1 class="fr-mb-1w">{{ application.title }}</h1>
+                <p class="fr-text--lead fr-mb-0">{{ application.employer }}</p>
+            </div>
+        </div>
+        <h2 class="fr-h6">État de la candidature</h2>
+        <div class="fr-callout fr-mb-4w">
+            <h3 class="fr-callout__title fr-text--md">{{ status.title }}</h3>
+            <p class="fr-callout__text fr-text--sm">Déposée le {{ submitted_on }}</p>
+            <div class="fr-stepper fr-mt-2w">
+                <p class="fr-stepper__state">Étape {{ status.step }} sur 3</p>
+                <div class="fr-stepper__steps"
+                     data-fr-current-step="{{ status.step }}"
+                     data-fr-steps="3"></div>
+                {% if status.step == 1 %}
+                    <p class="fr-stepper__details">
+                        <span class="fr-text--bold">Suivante :</span> En cours d'examen
+                    </p>
+                {% elif status.step == 2 %}
+                    <p class="fr-stepper__details">
+                        <span class="fr-text--bold">Suivante :</span> Finalisée
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        <h2 class="fr-h6">Conversations</h2>
+        <ul class="fr-raw-list fr-mb-4w">
+            {% for conversation in conversations %}
+                <li class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w {% if conversation.unread %}csplab-application--unread{% endif %}">
+                    <div class="fr-grid-row fr-grid-row--middle">
+                        <div class="fr-col">
+                            <h3 class="fr-text--md fr-text--bold fr-mb-1v">
+                                <a href="{% url 'candidate:conversation' application.id conversation.id %}" data-drawer-open>{{ conversation.title }}</a>
+                            </h3>
+                            <p class="fr-text--sm fr-mb-1v">{{ conversation.preview }}</p>
+                            <p class="fr-text--xs fr-mb-0">{{ conversation.sender }} • {{ conversation.when }}</p>
+                        </div>
+                        {% if conversation.unread %}
+                            <p class="fr-badge fr-badge--sm fr-badge--info fr-badge--no-icon fr-mb-0">Non lue</p>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        <h2 class="fr-h6">Ressources</h2>
+        <ul class="fr-raw-list fr-mb-4w">
+            {% for resource in resources %}
+                <li class="fr-mb-1w">
+                    <span class="fr-icon-file-line fr-icon--sm" aria-hidden="true"></span>
+                    <strong>{{ resource.name }}</strong>
+                    <span class="fr-text--sm">{{ resource.size }}</span>
+                    <a href="{% url 'candidate:document' application.id resource.slug %}"
+                       class="fr-link fr-link--sm"
+                       data-drawer-open>Ouvrir<span class="fr-sr-only">{{ resource.name }}</span></a>
+                </li>
+            {% endfor %}
+        </ul>
+        <h2 class="fr-h6">Toutes les informations</h2>
+        <a class="fr-link"
+           href="{% url 'candidate:offer' application.id %}"
+           data-drawer-open>Lien vers l'offre</a>
+    </div>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}
