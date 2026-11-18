@@ -3,14 +3,13 @@ import type { Offre } from '../store'
 import { computed } from 'vue'
 import { useNav } from '../nav'
 import { candidatures } from '../recrutement'
-import { aujourdhui } from '../store'
 
 // Nombre de candidatures : lien vers le recrutement (offres en ligne seulement).
 defineOptions({ inheritAttrs: false })
 const props = defineProps<{ row: Offre }>()
 const { aller } = useNav()
-// Rien avant la mise en ligne (brouillon, offre programmée).
-const n = computed(() => props.row.etat !== 'brouillon' && props.row.dateDebut <= aujourdhui() ? candidatures(props.row).total : null)
+// Rien avant la mise en ligne (brouillon).
+const n = computed(() => props.row.etat !== 'brouillon' ? candidatures(props.row).total : null)
 </script>
 
 <template>

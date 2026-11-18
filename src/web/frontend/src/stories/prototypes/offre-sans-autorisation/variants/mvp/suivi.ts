@@ -88,20 +88,16 @@ export function referenceCsp(o: Offre): string {
 
 // --- Tableau « Mes offres d'emploi » (sans autorisation) : brouillons, offres publiées et dépubliées ---
 
-export type CategorieOffre = 'brouillon' | 'programmee' | 'en_ligne' | 'depubliee'
+export type CategorieOffre = 'brouillon' | 'en_ligne' | 'depubliee'
 
 /** Libellés des puces de filtre et des badges de statut. */
 export const CATEGORIES_OFFRE: { id: CategorieOffre, label: string, badge: 'info' | 'new' | 'warning' | 'error' | 'success' }[] = [
   { id: 'brouillon', label: 'Brouillon', badge: 'new' },
-  { id: 'programmee', label: 'Programmée', badge: 'info' },
   { id: 'en_ligne', label: 'Publiée', badge: 'success' },
   { id: 'depubliee', label: 'Dépubliée', badge: 'warning' },
 ]
 
 export function categorieOffre(o: Offre): CategorieOffre {
-  if (o.etat === 'publiee' && o.dateDebut > aujourdhui()) {
-    return 'programmee'
-  }
   return o.etat === 'publiee' ? 'en_ligne' : o.etat === 'retiree' ? 'depubliee' : 'brouillon'
 }
 
@@ -122,7 +118,7 @@ function joursDepuis(date: string | undefined): number | null {
 
 /** Temps passé dans le statut : « depuis 6 jours ». */
 export function depuis(o: Offre): string {
-  const date = { brouillon: o.creeLe, programmee: o.publieeLe, en_ligne: o.dateDebut, depubliee: o.dateFin && o.dateFin < aujourdhui() ? o.dateFin : o.retireeLe }[categorieOffre(o)]
+  const date = { brouillon: o.creeLe, en_ligne: o.dateDebut, depubliee: o.dateFin && o.dateFin < aujourdhui() ? o.dateFin : o.retireeLe }[categorieOffre(o)]
   const j = joursDepuis(date)
   if (j === null) {
     return ''
@@ -139,8 +135,6 @@ export function prochaineEtape(o: Offre, peutPublier = true): ActionAFaire {
         return { label: 'Compléter l\'annonce', ecran: offre }
       }
       return peutPublier ? { label: 'Publier', ecran: { nom: 'publier', id: o.id } } : { label: 'À publier par un agent habilité' }
-    case 'programmee':
-      return { label: `En ligne le ${dateCourte(o.dateDebut)}` }
     case 'en_ligne':
       return termineBientot(o) ? { label: 'Prolonger la publication', ecran: offre } : { label: 'Suivre les candidatures', ecran: { nom: 'recrutements' } }
     case 'depubliee':

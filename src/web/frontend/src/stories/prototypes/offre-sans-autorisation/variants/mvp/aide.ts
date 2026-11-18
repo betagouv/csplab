@@ -144,20 +144,17 @@ export function manquesAnnonce(o: Offre): { etape: EtapeFormulaire, label: strin
   return manquesPublication(o).filter(m => m.etape !== 'publication')
 }
 
-/** Date de fin au moins un mois après le début, sauf urgence (D311-2). */
+/** Date de fin au moins un mois après la mise en ligne (aujourd'hui), sauf urgence (D311-2). */
 export function manquesDates(o: Offre): string[] {
-  const debut = o.dateDebut || aujourdhui()
-  if (debut < aujourdhui()) {
-    return ['La date de début ne peut pas être passée.']
-  }
+  const debut = aujourdhui()
   if (!o.dateFin) {
     return ['Indiquez la date de fin de publication.']
   }
   if (o.dateFin <= debut) {
-    return ['La date de fin doit être après la date de début.']
+    return ['La date de fin doit être après aujourd\'hui.']
   }
   if (!o.urgence && o.dateFin < plusUnMois(debut)) {
-    return ['Au moins un mois après la date de début, sauf recrutement urgent.']
+    return ['Au moins un mois après aujourd\'hui, sauf recrutement urgent.']
   }
   return []
 }

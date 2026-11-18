@@ -7,7 +7,7 @@ import ApercuCandidat from './ApercuCandidat.vue'
 import ChampsPublication from './ChampsPublication.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { aujourdhui, dateLongue, db, publier, sauvegarder, UTILISATEUR } from './store'
+import { dateLongue, db, publier, sauvegarder, UTILISATEUR } from './store'
 
 // Publier (parcours séparé) : l'annonce telle que la verront les candidats à gauche ; à droite, ce qui manque
 // encore, la date de fin et le bouton. Publication immédiate. Exigé : champs obligatoires et date de fin.
@@ -19,7 +19,6 @@ const manques = computed(() => manquesAnnonce(o.value))
 const tentative = ref(false)
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 const fait = ref(false)
-const programmee = computed(() => o.value.dateDebut > aujourdhui())
 
 function confirmer() {
   tentative.value = true
@@ -29,7 +28,7 @@ function confirmer() {
   publier(o.value, 'simple', [])
   sauvegarder()
   fait.value = true
-  notifier(programmee.value ? `Offre programmée : elle sera en ligne le ${dateLongue(o.value.dateDebut)} (simulation).` : 'Offre publiée : elle est en ligne (simulation).')
+  notifier('Offre publiée : elle est en ligne (simulation).')
 }
 const SECTION: Record<string, string> = { annonce: 'annonce', candidature: 'candidature' }
 </script>
@@ -38,7 +37,7 @@ const SECTION: Record<string, string> = { annonce: 'annonce', candidature: 'cand
   <PageAts
     actif="offres"
     largeur="full"
-    :titre="fait ? (programmee ? 'Offre programmée' : 'Offre publiée') : 'Publier l\'offre'"
+    :titre="fait ? 'Offre publiée' : 'Publier l\'offre'"
     :sous-titre="o.titre"
     :fil="[{ label: 'Mes offres d\'emploi', to: '/offres' }, { label: o.titre || o.id, to: `/offre/${o.id}` }, { label: 'Publier' }]"
     :retour="{ to: `/offre/${o.id}`, label: 'Retour à l\'offre' }"
@@ -95,7 +94,7 @@ const SECTION: Record<string, string> = { annonce: 'annonce', candidature: 'cand
               @click="aller({ nom: 'offre', id: o.id })"
             />
             <CspButton
-              :label="programmee ? 'Programmer la publication' : 'Publier'"
+              label="Publier"
               icon="ri:send-plane-line"
               is-icon-left
               :disabled="Boolean(manques.length) || !peutPublier"
@@ -106,10 +105,8 @@ const SECTION: Record<string, string> = { annonce: 'annonce', candidature: 'cand
 
         <Panel
           v-else
-          :titre="programmee ? 'L\'offre est programmée' : 'L\'offre est en ligne'"
-          :description="programmee
-            ? `Elle sera en ligne sur Choisir le Service Public du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)}. Les candidatures arriveront dans l'ATS.`
-            : `Publiée aujourd'hui sur Choisir le Service Public, jusqu'au ${dateLongue(o.dateFin)}. Les candidatures arrivent dans l'ATS.`"
+          titre="L'offre est en ligne"
+          :description="`Publiée aujourd'hui sur Choisir le Service Public, jusqu'au ${dateLongue(o.dateFin)}. Les candidatures arrivent dans l'ATS.`"
         >
           <div class="actions actions--colonne">
             <CspButton

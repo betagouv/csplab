@@ -981,8 +981,8 @@ export function validationManquante(o: Offre): boolean {
 // --- Publication (toujours décidée par une personne qui a le droit « Publier ») ---
 
 export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: string[]) {
-  // Date de début choisie en publiant (aujourd'hui par défaut) : dans le futur, l'offre est programmée.
-  o.dateDebut = o.dateDebut && o.dateDebut > aujourdhui() ? o.dateDebut : aujourdhui()
+  // Pas de programmation : l'offre est mise en ligne le jour où on publie.
+  o.dateDebut = aujourdhui()
   o.diffusion = diffusion
   o.canaux = [SUPPORT_MAITRE.id, ...(diffusion === 'multi' ? partenaires : [])]
   for (const id of o.canaux) {
@@ -991,7 +991,7 @@ export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: st
   o.etat = 'publiee'
   o.publieeLe = maintenant()
   const noms = CANAUX_DIFFUSION.filter(c => o.canaux.includes(c.id)).map(c => c.nom).join(', ')
-  journal(o, `Offre ${o.dateDebut > aujourdhui() ? 'programmée' : 'publiée'} du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)} sur ${noms}`)
+  journal(o, `Offre publiée du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)} sur ${noms}`)
 }
 
 /** Prolonger : nouvelle date limite, sans nouvelle validation. */

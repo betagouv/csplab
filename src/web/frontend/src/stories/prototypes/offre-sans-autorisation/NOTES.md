@@ -45,7 +45,7 @@ Ce dossier repart d'une copie des écrans du proto ATS, épurée de tout ce qui 
 - Devenus facultatifs : descriptif du profil recherché. Devenus obligatoires : versant, nombre de postes (max 10),
   nature de l'emploi, descriptif de l'employeur, adresse.
 - Publication : date de début (aujourd'hui par défaut) + date de fin (= date limite de candidature, ≥ début + 1 mois
-  sauf urgence). Une date de début future donne une offre **Programmée** (nouvelle puce et nouveau statut).
+  sauf urgence). Pas de programmation (retour Alice, 18/11/2026) : l'offre est mise en ligne le jour où on publie, seule la date de fin se choisit.
 - Champs « DAR » (motif, agent remplacé, code poste, RIFSEEP, cycle) : masqués sans circuit d'autorisation.
 - Action « Mettre l'offre en pause » (menu ⋮ du tableau) : dépublie l'offre (journal « Offre mise en pause »).
   À trancher : statut « En pause » distinct de « Dépubliée » ?
