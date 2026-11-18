@@ -2,14 +2,11 @@ import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
-import { createRouter, createWebHistory, RouterView } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
@@ -21,12 +18,11 @@ import {
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
-  RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
   USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
-import { setupUser } from '@/test/render'
+import { RoutesWithToasts, setupUser } from '@/test/render'
 import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getCandidatureNotes, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
@@ -40,19 +36,11 @@ vi.mock('../api', () => ({
   getCandidatureActivites: vi.fn(),
 }))
 
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
-}))
-
 vi.mock('@/features/messages/api', () => ({
   getConversations: vi.fn(),
 }))
 
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
-
-const RoutesWithToasts = defineComponent({
-  render: () => h(CspToaster, null, { default: () => h(RouterView) }),
-})
 
 // Web history: closing the panel depends on the browser history state.
 async function renderPanel(paths: string[]) {
@@ -80,7 +68,6 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
     vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })

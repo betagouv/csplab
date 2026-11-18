@@ -293,7 +293,12 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
 
-`src/test/server.ts` starts a [Mock Service Worker](https://mswjs.io/docs/) server for the tests, and `src/test/setup.ts` resets its handlers after each test.
+Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
+
+- `src/test/server.ts` starts the server with the default handlers of each migrated feature, and `src/test/setup.ts` resets them after each test.
+- The default handlers of a feature and the factories for other answers are in `src/test/handlers/<feature>.ts`.
+- A test that needs another answer passes a factory to `server.use(...)`.
+- In a feature without handlers, tests mock its API module with `vi.mock`.
 
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
 
