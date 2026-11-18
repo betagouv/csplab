@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.http import QueryDict
 from django.urls import reverse
+from django.utils.safestring import SafeString
 from rest_framework import status
 
 from infrastructure.authentication.rate_throttle import DocumentationRateThrottle
@@ -329,6 +330,7 @@ def test_title_html_only_renders_code_spans(titre, html):
     )
 
     assert title_html(result) == html
+    assert isinstance(title_html(result), SafeString)
 
 
 def test_ordered_by_date_then_type_then_pr(tmp_path):

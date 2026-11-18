@@ -13,7 +13,8 @@ from django.conf import settings
 from django.db import models
 from django.http import QueryDict
 from django.urls import reverse
-from django.utils.html import escape
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import SafeString
 from markdown_it import MarkdownIt
 
 FRAGMENTS_DIR = settings.STATIC_DIR / "api" / "changelog_api.d"
@@ -351,12 +352,16 @@ def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
     return _markdown.renderer.render(tokens, _markdown.options, {})
 
 
-def title_html(fragment: Fragment) -> str:
+def title_html(fragment: Fragment) -> SafeString:
     # Only code spans: a title never renders as a link, an image or HTML.
     parts = _CODE_SPAN.split(fragment.titre)
-    return "".join(
-        f"<code>{escape(part)}</code>" if index % 2 else escape(part)
-        for index, part in enumerate(parts)
+    return format_html_join(
+        "",
+        "{}",
+        (
+            (format_html("<code>{}</code>", part) if index % 2 else part,)
+            for index, part in enumerate(parts)
+        ),
     )
 
 
