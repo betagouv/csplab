@@ -11,7 +11,10 @@ import sentry_sdk
 from domain.entities.webhook import Webhook
 from infrastructure.celery_app import celery_app
 from infrastructure.di.bootstrap import get_container
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
 from infrastructure.observability.log_config import log_context
 
 if TYPE_CHECKING:
@@ -27,10 +30,14 @@ _Handler = Callable[["Container", Webhook], Awaitable[None]]
 
 
 def _is_transient(exc: Exception) -> bool:
-    if isinstance(exc, httpx.TransportError):
+    if isinstance(exc, (httpx.TransportError, TimeoutError)):
         return True
-    if isinstance(exc, ExternalApiError) and exc.status_code is not None:
-        return exc.status_code >= _SERVER_ERROR_STATUS
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code >= _SERVER_ERROR_STATUS
+    if isinstance(exc, ExternalApiError):
+        if exc.status_code is not None:
+            return exc.status_code >= _SERVER_ERROR_STATUS
+        return isinstance(exc.__cause__, Exception) and _is_transient(exc.__cause__)
     return False
 
 
@@ -122,6 +129,6 @@ def archive_offer_webhook(self, webhook_id: str) -> None:
     _process(self, webhook_id, _archive_offer)
 
 
-@celery_app.task(bind=True, max_retries=_MAX_RETRIES)
+@celery_app.task(bind=True, max_retries=_MAX_RETRIES, throws=(TalentsoftOfferNotFound,))
 def save_raw_offer_webhook(self, webhook_id: str) -> None:
     _process(self, webhook_id, _save_raw_offer)

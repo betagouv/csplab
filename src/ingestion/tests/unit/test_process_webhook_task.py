@@ -14,8 +14,12 @@ from application.tasks.process_webhook import (
     archive_offer_webhook,
     save_raw_offer_webhook,
 )
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.value_objects.webhook_event import EventType, OfferStatus
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
 from infrastructure.observability.log_config import ContextFilter
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
@@ -167,6 +171,18 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
 # --- Retries ---
 
 
+def _http_status_error(status_code: int) -> httpx.HTTPStatusError:
+    request = httpx.Request("POST", "https://web")
+    response = httpx.Response(status_code, request=request)
+    return httpx.HTTPStatusError("error", request=request, response=response)
+
+
+def _wrapped(cause: Exception) -> ExternalApiError:
+    error = ExternalApiError("Request failed after retries", api_name="Talentsoft")
+    error.__cause__ = cause
+    return error
+
+
 @pytest.mark.parametrize(
     "exc",
     [
@@ -174,6 +190,10 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
         httpx.TimeoutException("timed out"),
         ExternalApiError("server error", status_code=500),
         ExternalApiError("gateway error", status_code=503),
+        _http_status_error(502),
+        TimeoutError(),
+        _wrapped(httpx.ConnectError("connection refused")),
+        _wrapped(_http_status_error(503)),
     ],
 )
 def test_is_transient_true(exc):
@@ -187,6 +207,9 @@ def test_is_transient_true(exc):
         RuntimeError("misconfigured"),
         ExternalApiError("bad request", status_code=400),
         ExternalApiError("not found", status_code=404),
+        _http_status_error(400),
+        _wrapped(_http_status_error(401)),
+        ExternalApiError("Invalid response structure"),
     ],
 )
 def test_is_transient_false(exc):
@@ -365,3 +388,79 @@ def test_logs_emitted_during_task_carry_webhook_context(mock_get_container, capl
     record = next(r for r in caplog.records if r.message == "Archiving offer")
     assert record.webhook_id == str(WEBHOOK_ID)
     assert record.reference == REFERENCE
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_not_sent_to_sentry(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert sentry_events == []
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_logged_as_expected_failure(mock_get_container, caplog):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    with caplog.at_level(logging.INFO, logger="celery"):
+        save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+def _talentsoft_error(cause: Exception) -> ExternalApiError:
+    try:
+        raise ExternalApiError("Request failed after retries") from cause
+    except ExternalApiError as exc:
+        return exc
+
+
+_SERVER_ERROR_RESPONSE = httpx.Response(
+    503, request=httpx.Request("GET", "https://talentsoft.example")
+)
+
+
+@pytest.mark.parametrize(
+    "cause",
+    [
+        httpx.ConnectError("connection refused"),
+        httpx.HTTPStatusError(
+            "service unavailable",
+            request=_SERVER_ERROR_RESPONSE.request,
+            response=_SERVER_ERROR_RESPONSE,
+        ),
+    ],
+    ids=["network", "server_error"],
+)
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_retries_transient_talentsoft_error_raised_through_save_raw_offer(
+    mock_get_container, mock_retry, cause
+):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    gateway = MagicMock()
+    gateway.get_detail = AsyncMock(side_effect=_talentsoft_error(cause))
+    usecase = SaveRawOfferUsecase(
+        offers_gateway=gateway, raw_offer_repository=MagicMock(upsert=AsyncMock())
+    )
+    container.ingest_offer_pipeline.return_value.execute.side_effect = usecase.execute
+    mock_get_container.return_value = container
+
+    with pytest.raises(Retry):
+        save_raw_offer_webhook(str(WEBHOOK_ID))
+
+    mock_retry.assert_called_once()
