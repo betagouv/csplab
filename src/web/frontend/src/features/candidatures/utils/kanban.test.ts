@@ -12,6 +12,7 @@ function etape(etapeUuid: string, candidatureUuids: string[]): KanbanColumn {
       date_soumission: '2025-06-10T09:15:00Z',
       date_derniere_activite: '2025-06-10T09:15:00Z',
       unread_conversations: 0,
+      tags: [],
       candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
     })),
   }
@@ -27,6 +28,7 @@ function liste(rows: [candidatureUuid: string, etapeUuid: string][], etapeUuids:
       date_soumission: '2025-06-10T09:15:00Z',
       date_derniere_activite: '2025-06-10T09:15:00Z',
       unread_conversations: 0,
+      tags: [],
       candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
       etape: { uuid: etapeUuid, nom: etapeUuid, categorie: 'EN_COURS' },
     })),

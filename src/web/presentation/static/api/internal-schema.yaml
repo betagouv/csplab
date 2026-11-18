@@ -6262,11 +6262,17 @@ components:
           format: date-time
         etape:
           $ref: '#/components/schemas/EtapeRecrutement'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
       required:
       - candidat
       - date_derniere_activite
       - date_soumission
       - etape
+      - tags
       - unread_conversations
       - uuid
     CandidaturesActives:

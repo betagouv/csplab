@@ -751,6 +751,7 @@ export interface components {
             /** Format: date-time */
             date_derniere_activite: string;
             etape: components["schemas"]["EtapeRecrutement"];
+            readonly tags: components["schemas"]["Tag"][];
         };
         CandidaturesActives: {
             total: number | null;
