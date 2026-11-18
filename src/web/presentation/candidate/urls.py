@@ -7,7 +7,9 @@ from presentation.candidate.views.cv_flow import (
     OfferDrawerView,
 )
 from presentation.candidate.views.home import (
+    CandidateAdviceView,
     CandidateAlertEditView,
+    CandidateAlertsView,
     CandidateAlertView,
     CandidateApplicationDetailView,
     CandidateApplicationsView,
@@ -18,6 +20,7 @@ from presentation.candidate.views.home import (
     CandidateLoginView,
     CandidateLogoutView,
     CandidateOfferView,
+    CandidateSavedOfferRemoveView,
     CandidateSavedOfferView,
 )
 
@@ -61,10 +64,22 @@ urlpatterns = [
         name="alert_edit",
     ),
     path("mon-alerte", CandidateAlertView.as_view(), name="alert"),
+    path("conseils", CandidateAdviceView.as_view(), name="advice"),
+    path("mon-alerte-emploi", CandidateAlertsView.as_view(), name="alerts"),
     path(
         "mes-offres/<int:offer_id>",
         CandidateSavedOfferView.as_view(),
         name="saved_offer",
+    ),
+    path(
+        "mes-offres/<int:offer_id>/retirer",
+        CandidateSavedOfferRemoveView.as_view(),
+        name="saved_offer_remove",
+    ),
+    path(
+        "mes-offres/favori/<int:offer_id>/retirer",
+        CandidateSavedOfferRemoveView.as_view(favorite=True),
+        name="favorite_remove",
     ),
     path(
         "connexion/franceconnect",

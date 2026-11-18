@@ -5,37 +5,152 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from presentation.candidate.mixins import BreadcrumbMixin
+from presentation.pages.stub_offers import OFFERS
 
 
 class AuthenticatedRedirectMixin:
     def dispatch(self, request, *args, **kwargs):
         if request.session.get("candidate_name"):
-            return redirect("candidate:applications")
+            return redirect("candidate:home")
         return super().dispatch(request, *args, **kwargs)
 
 
-class CandidateHomeView(AuthenticatedRedirectMixin, TemplateView):
+class LoginRequiredRedirectMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not request.session.get("candidate_name"):
+            return redirect("candidate:login")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CandidateHomeView(LoginRequiredRedirectMixin, BreadcrumbMixin, TemplateView):
     template_name = "candidate/home.html"
+    breadcrumb_links = []
+    breadcrumb_current = "Mon espace candidat"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["features"] = [
-            {
-                "icon": "fr-icon-briefcase-fill",
-                "title": "Suivez vos candidatures",
-                "text": "Avancement en temps réel des étapes de candidature.",
-            },
-            {
-                "icon": "fr-icon-mail-fill",
-                "title": "Échangez avec les recruteurs",
-                "text": "Conversation privée avec les recruteurs.",
-            },
-            {
-                "icon": "fr-icon-lock-fill",
-                "title": "Envoyez vos documents",
-                "text": "Espace sécurisé.",
-            },
-        ]
+        request = self.request
+        applications_in_progress = sum(
+            a["status"] in ("envoyee", "en_cours") for a in _APPLICATIONS
+        )
+        context.update(
+            first_name=request.session["candidate_name"].split()[0],
+            alert=get_alert(request),
+            applications_in_progress=applications_in_progress,
+            saved_offers_count=len(_saved_offers(request)),
+            unread_count=sum(a["unread"] for a in _APPLICATIONS),
+            suggestions=sorted(OFFERS, key=lambda o: o["since"], reverse=True)[:2],
+            favorites=request.session.get("favorites", []),
+        )
+        return context
+
+
+_ADVICE_IMG = "candidate/images/advice/"
+_ADVICE_URL = "https://choisirleservicepublic.gouv.fr/conseils/"
+_ADVICE_THEMES = {
+    "entretien": "Entretien",
+    "handicap": "Handicap",
+    "interet": "Je m'intéresse à la fonction publique",
+    "agent": "Je suis agent public",
+}
+_ADVICE = [
+    {
+        "title": "Parole d'expert – Conseils pour une photo de CV réussie",
+        "text": "L'idée de mentionner un handicap sur un CV ou lors d'un entretien "
+        "peut être source d'appréhension. « Vais-je être jugé ? », « Ma "
+        "candidature sera-t-elle écartée ? ». Ces craintes...",
+        "image": "Image1.png",
+        "themes": ["entretien", "interet"],
+    },
+    {
+        "title": "Témoignages : l'immersion professionnelle, un dispositif au "
+        "service des projets de mobilité des agents",
+        "text": "Agents publics ! Vous êtes dans une démarche de mobilité et "
+        "souhaitez confirmer votre projet ou découvrir un métier ? Avez-vous "
+        "pensé à l'immersion professionnelle ? Découvrez notre témoignage...",
+        "image": "Periode-dimmersion-professionnelle1-800x445.png",
+        "themes": ["agent"],
+    },
+    {
+        "title": "Réussir sa prise de poste (webinaire en replay)",
+        "text": "Comment imaginez-vous les premiers jours dans votre nouvel "
+        "emploi ? Cette question peut vous être posée en entretien et vous "
+        "pouvez également - vous-même - avoir besoin de vous projeter pour...",
+        "image": "PFRH-GE-Onboarding-800x445.png",
+        "themes": ["entretien", "agent"],
+    },
+    {
+        "title": "Parole d'experte : réseauter pour mieux rebondir !",
+        "text": "Vous souhaitez donner une nouvelle trajectoire à votre parcours "
+        "professionnel, changer de poste, de métier ? ...",
+        "image": "DISPOSITIFS-800x445.webp",
+        "themes": ["agent", "interet"],
+    },
+    {
+        "title": "Parole d'experte – situation de handicap : en parler dans sa "
+        "candidature ?",
+        "text": "L'idée de mentionner un handicap sur un CV ou lors d'un entretien "
+        "peut être source d'appréhension. « Vais-je être jugé ? », « Ma "
+        "candidature sera-t-elle écartée ? ». Ces craintes...",
+        "image": "AdobeStock_53166648R-scaled-1-800x445.jpg",
+        "themes": ["handicap", "entretien"],
+    },
+    {
+        "title": "Parole d'experte : les bonnes pratiques de l'enquête métier",
+        "text": "Vous souhaitez mieux connaître un métier, une fonction, un "
+        "secteur d'activité et confronter vos représentations à la réalité du "
+        "terrain ? Une solution : rencontrer un professionnel ! ...",
+        "image": "illustr-parole-de-CMC-conseil-Etat-1.png",
+        "themes": ["interet"],
+    },
+    {
+        "title": "Parole d'expert : préparer un entretien ne s'improvise pas !",
+        "text": "Que ce soit pour un recrutement, une mobilité ou une "
+        "reconversion, un entretien nécessite de la méthode, de la prise de "
+        "recul… et un peu d'entraînement. En tant que Conseiller Mobilité...",
+        "image": "parole-expert-H-PFRH.jpg",
+        "themes": ["entretien"],
+    },
+    {
+        "title": "Identifier le fil rouge de votre parcours",
+        "text": "Il existe plusieurs moments clés dans votre carrière où vous "
+        "devrez présenter votre parcours : lors de la construction d'un projet "
+        "professionnel ou lors d'un entretien de recrutement....",
+        "image": "Picto_Mobilite.svg",
+        "themes": ["entretien", "agent"],
+    },
+    {
+        "title": "Comment parler d'une réussite professionnelle ?",
+        "text": "Parler de vos réussites professionnelles tout en ne donnant pas "
+        "l'impression d'être prétentieux vous semble être un exercice délicat ? "
+        "C'est pourtant une démarche incontournable dans le cadre...",
+        "image": "Picto_Entretien.svg",
+        "themes": ["entretien"],
+    },
+]
+
+
+class CandidateAdviceView(BreadcrumbMixin, TemplateView):
+    template_name = "candidate/advice.html"
+    breadcrumb_links = []
+    breadcrumb_current = "Conseils aux candidats"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get("q", "").strip().lower()
+        theme = self.request.GET.get("theme", "")
+        context.update(
+            advice=[
+                {**a, "image": _ADVICE_IMG + a["image"], "url": _ADVICE_URL}
+                for a in _ADVICE
+                if (not query or query in f"{a['title']} {a['text']}".lower())
+                and (not theme or theme in a["themes"])
+            ],
+            query=self.request.GET.get("q", ""),
+            theme=theme,
+            themes=_ADVICE_THEMES,
+            hero_image=_ADVICE_IMG + "conseils-01.svg",
+        )
         return context
 
 
@@ -54,7 +169,11 @@ _STATUSES = {
         "title": "Candidature en cours d'examen",
         "step": 2,
     },
-    "finalisee": {"label": "Finalisées", "title": "Candidature finalisée", "step": 3},
+    "finalisee": {
+        "label": "Proposition d'embauche",
+        "title": "Candidature finalisée",
+        "step": 3,
+    },
     "archivee": {"label": "Archivées", "title": "Candidature archivée", "step": 3},
 }
 
@@ -131,64 +250,99 @@ _SAVED_OFFERS = [
 _OFFER_STATUSES = {"en_ligne": "En ligne", "archivee": "Archivées"}
 
 
+def _saved_offers(request) -> list[dict]:
+    favorites = [
+        {
+            "id": offer["id"],
+            "title": offer["title"],
+            "employer": offer["employer"],
+            "status": "en_ligne",
+            "since": offer["since"].strftime("%d/%m/%Y"),
+            "favorite": True,
+        }
+        for offer_id in reversed(request.session.get("favorites", []))
+        for offer in OFFERS
+        if offer["id"] == offer_id
+    ]
+    removed = request.session.get("removed_saved", [])
+    return favorites + [o for o in _SAVED_OFFERS if o["id"] not in removed]
+
+
+_APPLICATION_FILTERS = {
+    "": "Toutes",
+    "sauvegardees": "Sauvegardées",
+    "envoyee": "Envoyées",
+    "en_cours": "En cours d'examen",
+    "finalisee": "Proposition d'embauche",
+    "archivee": "Archivées",
+}
+
+
 class CandidateApplicationsView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/applications.html"
-    breadcrumb_links = []
-    breadcrumb_current = "Mes candidatures"
+    breadcrumb_current = "Suivi candidature"
+
+    def get_breadcrumb_data(self):
+        return {
+            "links": [
+                {"url": reverse("candidate:home"), "title": "Mon espace candidat"}
+            ],
+            "current": self.breadcrumb_current,
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current = self.request.GET.get("statut", "")
-        if current not in _STATUSES:
+        if current not in _APPLICATION_FILTERS:
             current = ""
-        context["candidate_name"] = _CANDIDATE_NAME
-        context["filters"] = [
-            {
-                "label": "Toutes",
-                "value": "",
-                "count": len(_APPLICATIONS),
-                "active": current == "",
-            }
-        ] + [
-            {
-                "label": status["label"],
-                "value": key,
-                "count": sum(a["status"] == key for a in _APPLICATIONS),
-                "active": current == key,
-            }
-            for key, status in _STATUSES.items()
+        saved = _saved_offers(self.request)
+        saved_online = [
+            {**o, "kind": "saved"} for o in saved if o["status"] == "en_ligne"
         ]
-        context["applications"] = [
-            a for a in _APPLICATIONS if not current or a["status"] == current
+        saved_archived = [
+            {**o, "kind": "saved"} for o in saved if o["status"] == "archivee"
         ]
-        context["unread_applications"] = [a for a in _APPLICATIONS if a["unread"]]
-        current_offers = self.request.GET.get("offres", "")
-        if current_offers not in _OFFER_STATUSES:
-            current_offers = ""
-        tab = self.request.GET.get("tab")
-        context["active_tab"] = tab if tab in ("offres", "alerte") else "candidatures"
-        context["offer_filters"] = [
-            {
-                "label": "Toutes",
-                "value": "",
-                "count": len(_SAVED_OFFERS),
-                "active": current_offers == "",
-            }
-        ] + [
-            {
-                "label": label,
-                "value": key,
-                "count": sum(o["status"] == key for o in _SAVED_OFFERS),
-                "active": current_offers == key,
-            }
-            for key, label in _OFFER_STATUSES.items()
-        ]
-        context["saved_offers_count"] = len(_SAVED_OFFERS)
-        context["saved_offers"] = [
-            o
-            for o in _SAVED_OFFERS
-            if not current_offers or o["status"] == current_offers
-        ]
+        applications = [{**a, "kind": "application"} for a in _APPLICATIONS]
+        items = {
+            "": saved_online + [a for a in applications if a["status"] != "archivee"],
+            "sauvegardees": saved_online,
+            "archivee": [a for a in applications if a["status"] == "archivee"]
+            + saved_archived,
+        }
+        for key in ("envoyee", "en_cours", "finalisee"):
+            items[key] = [a for a in applications if a["status"] == key]
+        context.update(
+            first_name=_CANDIDATE_NAME.split(maxsplit=1)[0],
+            filters=[
+                {
+                    "label": label,
+                    "value": key,
+                    "count": len(items[key]),
+                    "active": current == key,
+                }
+                for key, label in _APPLICATION_FILTERS.items()
+            ],
+            items=items[current],
+            statuses=_STATUSES,
+        )
+        return context
+
+
+class CandidateAlertsView(BreadcrumbMixin, TemplateView):
+    template_name = "candidate/alerts.html"
+    breadcrumb_current = "Mon alerte emploi"
+
+    def get_breadcrumb_data(self):
+        return {
+            "links": [
+                {"url": reverse("candidate:home"), "title": "Mon espace candidat"}
+            ],
+            "current": self.breadcrumb_current,
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["alert"] = get_alert(self.request)
         return context
 
 
@@ -326,7 +480,8 @@ class CandidateApplicationDetailView(BreadcrumbMixin, TemplateView):
     def get_context_data(self, **kwargs):
         application = _get_application(kwargs["application_id"])
         self.breadcrumb_links = [
-            {"url": reverse("candidate:applications"), "title": "Mes candidatures"}
+            {"url": reverse("candidate:home"), "title": "Mon espace candidat"},
+            {"url": reverse("candidate:applications"), "title": "Suivi candidature"},
         ]
         self.breadcrumb_current = application["title"]
         context = super().get_context_data(**kwargs)
@@ -395,13 +550,101 @@ class CandidateOfferView(TemplateView):
         return context
 
 
-class CandidateAlertEditView(TemplateView):
-    template_name = "candidate/components/_alert_drawer.html"
+_DEFAULT_ALERT = {
+    "title": "Instructeur en Nouvelle-Aquitaine",
+    "keywords": ["Instructeur", "Gestionnaire"],
+    "location": "Nouvelle-Aquitaine",
+    "contract": "titulaire",
+    "frequency": "weekly",
+}
+_CONTRACTS = {
+    "titulaire": "Titulaire",
+    "contractuel": "Contractuel",
+    "alternance": "Alternance",
+}
+_FREQUENCIES = {"daily": "Tous les jours", "weekly": "Une fois par semaine"}
+
+
+def get_alert(request) -> dict | None:
+    alert = request.session.get("alert", _DEFAULT_ALERT)
+    if not alert:
+        return None
+    return {
+        **alert,
+        "contract_label": _CONTRACTS.get(alert["contract"], ""),
+        "frequency_label": _FREQUENCIES[alert["frequency"]],
+    }
+
+
+class CandidateAlertEditView(View):
+    def get(self, request):
+        params = request.GET
+        creating = "creation" in params
+        if creating:
+            keywords = params.get("q", "").strip()
+            location = params.get("lieu", "")
+            alert = {
+                "title": " en ".join(p for p in (keywords.capitalize(), location) if p)
+                or "Mon alerte",
+                "keywords": [keywords] if keywords else [],
+                "location": location,
+                "contract": "",
+                "frequency": "weekly",
+            }
+        else:
+            alert = get_alert(request) or _DEFAULT_ALERT
+        return render(
+            request,
+            "candidate/components/_alert_drawer.html",
+            {
+                "alert": alert,
+                "keywords_text": ", ".join(alert["keywords"]),
+                "creating": creating,
+                "contracts": _CONTRACTS,
+                "frequencies": _FREQUENCIES,
+            },
+        )
+
+    def post(self, request):
+        data = request.POST
+        keywords = [k.strip() for k in data.get("keywords", "").split(",") if k.strip()]
+        contract = data.get("contract")
+        frequency = data.get("frequency")
+        request.session["alert"] = {
+            "title": data.get("title", "").strip() or "Mon alerte",
+            "keywords": keywords,
+            "location": data.get("location", "").strip(),
+            "contract": contract if contract in _CONTRACTS else "",
+            "frequency": frequency if frequency in _FREQUENCIES else "weekly",
+        }
+        return render(
+            request,
+            "candidate/components/_alert_saved.html",
+            {"alert": get_alert(request)},
+        )
 
 
 class CandidateAlertView(View):
     def delete(self, request):
+        request.session["alert"] = None
         return render(request, "candidate/components/_alert_empty.html")
+
+
+class CandidateSavedOfferRemoveView(View):
+    favorite = False
+
+    def post(self, request, offer_id):
+        if self.favorite:
+            favorites = request.session.get("favorites", [])
+            request.session["favorites"] = [i for i in favorites if i != offer_id]
+        else:
+            removed = request.session.get("removed_saved", [])
+            request.session["removed_saved"] = [*removed, offer_id]
+        response = HttpResponse(status=204)
+        response["HX-Redirect"] = (
+            f"{reverse('candidate:applications')}?statut=sauvegardees"
+        )
+        return response
 
 
 class CandidateSavedOfferView(CandidateOfferView):
@@ -415,7 +658,7 @@ class CandidateSavedOfferView(CandidateOfferView):
 class CandidateFranceConnectView(View):
     def get(self, request):
         request.session["candidate_name"] = _CANDIDATE_NAME
-        return redirect("candidate:applications")
+        return redirect("candidate:home")
 
 
 class CandidateLogoutView(View):

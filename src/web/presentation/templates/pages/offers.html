@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% load dsfr_tags %}
+{% load static dsfr_tags %}
 {% block page_title %}
     Offres d'emploi
 {% endblock page_title %}
@@ -82,7 +82,8 @@
                     <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--right">
                         <li>
                             <a class="fr-btn fr-btn--secondary fr-icon-notification-3-line fr-btn--icon-left"
-                               href="{% url 'candidate:applications' %}?tab=alerte">Créer une alerte</a>
+                               href="{% url 'candidate:alert_edit' %}?creation=1&amp;q={{ query|urlencode }}&amp;lieu={{ location|urlencode }}"
+                               data-drawer-open>Créer une alerte</a>
                         </li>
                         <li>
                             <button class="fr-btn fr-icon-search-line fr-btn--icon-left" type="submit">Rechercher</button>
@@ -115,9 +116,7 @@
                     <div class="csplab-offer__body">
                         <p class="fr-tag fr-tag--sm fr-mb-1w">{{ offer.domain }}</p>
                         <h3 class="fr-h6 fr-mb-1w">
-                            <a href="https://choisirleservicepublic.gouv.fr/"
-                               target="_blank"
-                               rel="noopener noreferrer">{{ offer.title }}</a>
+                            <a href="{% url 'pages:offer_detail' offer.id %}" data-drawer-open>{{ offer.title }}</a>
                         </h3>
                         <p class="fr-text--xs fr-mb-1v">
                             <span class="fr-icon-map-pin-2-line fr-icon--sm" aria-hidden="true"></span>
@@ -134,10 +133,7 @@
                             <span class="fr-icon-calendar-line fr-icon--sm" aria-hidden="true"></span>
                             En ligne depuis le {{ offer.since|date:"j F Y" }}
                         </p>
-                        <button type="button"
-                                class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-star-line fr-btn--icon-right csplab-offer__favorite">
-                            Ajouter aux favoris
-                        </button>
+                        {% include "pages/components/_favorite_button.html" %}
                     </div>
                 </div>
             {% empty %}
@@ -168,3 +164,6 @@
         </div>
     </section>
 {% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

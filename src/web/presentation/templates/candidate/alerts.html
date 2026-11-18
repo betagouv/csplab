@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Mon alerte emploi
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <h1 class="fr-h3 fr-mb-1v">Mon alerte emploi</h1>
+        <p class="fr-text--sm fr-mb-3w">
+            Retrouvez votre recherche sauvegardée et recevez des alertes pour toutes nouvelles offres en ligne.
+        </p>
+        <div class="fr-grid-row">
+        {% if alert %}
+            <div class="fr-col-12 fr-col-md-8" id="alert-card">
+                <div class="csplab-application fr-p-2w">
+                    <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters">
+                        <div class="fr-col-12 fr-col-sm">
+                            <h2 class="fr-text--md fr-text--bold fr-mb-1v">{{ alert.title }}</h2>
+                            {% if alert.keywords %}
+                                <div class="csplab-alert__row">
+                                    <span class="fr-text--xs">Mots clés</span>
+                                    <div class="csplab-alert__tags">
+                                        {% for keyword in alert.keywords %}<p class="fr-tag fr-tag--sm">{{ keyword }}</p>{% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <p class="fr-text--sm fr-mb-0">{{ alert.location|default:"Toute la France" }}{% if alert.contract_label %} · {{ alert.contract_label }}{% endif %} · {{ alert.frequency_label }}</p>
+                        </div>
+                        <div class="fr-col-12 fr-col-sm-auto">
+                            <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm">
+                                <li>
+                                    <button type="button"
+                                            class="fr-btn fr-btn--tertiary fr-icon-delete-line fr-btn--icon-left"
+                                            data-fr-opened="false"
+                                            aria-controls="alert-delete-modal">Supprimer</button>
+                                </li>
+                                <li>
+                                    <a class="fr-btn fr-btn--secondary fr-icon-edit-line fr-btn--icon-left"
+                                       href="{% url 'candidate:alert_edit' %}"
+                                       data-drawer-open>Modifier</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {% include "candidate/components/_alert_empty.html" %}
+        {% endif %}
+        </div>
+        <div class="fr-grid-row fr-mt-4w">
+            <div class="fr-col-12 fr-col-md-8">
+                <div class="fr-callout">
+                    <h2 class="fr-callout__title fr-text--md">Créer une nouvelle alerte</h2>
+                    <p class="fr-callout__text">Lancez une recherche pour en créer une.</p>
+                    <a class="fr-btn fr-mt-2w" href="{% url 'pages:offers' %}">Rechercher une offre</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <dialog id="alert-delete-modal"
+            class="fr-modal"
+            aria-labelledby="alert-delete-modal-title">
+        <div class="fr-container fr-container--fluid fr-container-md">
+            <div class="fr-grid-row fr-grid-row--center">
+                <div class="fr-col-12 fr-col-md-6">
+                    <div class="fr-modal__body">
+                        <div class="fr-modal__header">
+                            <button type="button"
+                                    class="fr-btn--close fr-btn"
+                                    aria-controls="alert-delete-modal"
+                                    title="Fermer">Fermer</button>
+                        </div>
+                        <div class="fr-modal__content">
+                            <h2 id="alert-delete-modal-title" class="fr-modal__title">Supprimer mon alerte emploi</h2>
+                            <p>
+                                Vous ne recevrez plus d'e-mails pour les nouvelles offres correspondant à « {{ alert.title }} ».
+                            </p>
+                        </div>
+                        <div class="fr-modal__footer">
+                            <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg">
+                                <li>
+                                    <button type="button"
+                                            class="fr-btn"
+                                            aria-controls="alert-delete-modal"
+                                            hx-delete="{% url 'candidate:alert' %}"
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            hx-target="#alert-card"
+                                            hx-swap="outerHTML">Supprimer</button>
+                                </li>
+                                <li>
+                                    <button type="button"
+                                            class="fr-btn fr-btn--secondary"
+                                            aria-controls="alert-delete-modal">Annuler</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

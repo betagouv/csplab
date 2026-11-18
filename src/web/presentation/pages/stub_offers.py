@@ -143,4 +143,9 @@ def _generated(index: int) -> dict:
     }
 
 
-OFFERS = _HAND_WRITTEN + [_generated(i) for i in range(TOTAL - len(_HAND_WRITTEN))]
+OFFERS = [
+    {**offer, "id": index}
+    for index, offer in enumerate(
+        _HAND_WRITTEN + [_generated(i) for i in range(TOTAL - len(_HAND_WRITTEN))]
+    )
+]

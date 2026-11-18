@@ -35,10 +35,10 @@
             </div>
         </div>
     </section>
-    <section class="fr-container fr-pb-6w">
+    <section class="fr-container fr-pb-10w">
         <form action="{% url 'pages:offers' %}" method="get" role="search">
             <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
-                <div class="fr-col-12 fr-col-md-5">
+                <div class="fr-col-12 fr-col-md-6">
                     <div class="fr-input-group">
                         <label class="fr-label" for="home-search-input">Rechercher par métier, mot-clé ou référence</label>
                         <input class="fr-input"
@@ -60,7 +60,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="fr-col-12 fr-col-md-3">
+                <div class="fr-col-12 fr-col-md-2 fr-grid-row fr-grid-row--right">
                     <button class="fr-btn fr-btn--icon-left fr-icon-search-line" type="submit">Rechercher</button>
                 </div>
             </div>
@@ -72,38 +72,10 @@
                        rel="noopener noreferrer">Vous cherchez un apprentissage ou un stage ?<span class="fr-sr-only">- nouvelle fenêtre</span></a>
                 </div>
                 <div class="fr-col-12 fr-col-md-4 fr-grid-row fr-grid-row--right">
-                    <a class="fr-link fr-icon-arrow-right-line fr-link--icon-right" href="#">Recherche avancée</a>
+                    <a class="fr-link fr-icon-arrow-right-line fr-link--icon-right" href="{% url 'pages:offers' %}">Recherche avancée</a>
                 </div>
             </div>
         </form>
-    </section>
-    <section class="fr-container fr-pb-6w">
-        <div class="fr-grid-row fr-grid-row--gutters">
-            <div class="fr-col-12 fr-col-md-6">
-                <div class="fr-card fr-enlarge-link">
-                    <div class="fr-card__body">
-                        <div class="fr-card__content">
-                            <h2 class="fr-card__title">
-                                <a href="{% url 'ats:ats_base' %}">Espace recruteurs</a>
-                            </h2>
-                            <p class="fr-card__desc">Publiez vos offres et suivez vos candidatures.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="fr-col-12 fr-col-md-6">
-                <div class="fr-card fr-enlarge-link">
-                    <div class="fr-card__body">
-                        <div class="fr-card__content">
-                            <h2 class="fr-card__title">
-                                <a href="{% url 'candidate:home' %}">Espace candidat</a>
-                            </h2>
-                            <p class="fr-card__desc">Partagez votre CV et découvrez les opportunités qui vous correspondent.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </section>
     <section class="fr-background-alt--blue-france fr-py-8w">
         <div class="fr-container">
@@ -174,6 +146,33 @@
                    rel="noopener noreferrer">Lire toutes nos actualités<span class="fr-sr-only">- nouvelle fenêtre</span></a>
             </p>
         </div>
+    </section>
+    <section class="fr-container fr-py-8w">
+        <h2 class="fr-h3 fr-mb-4w">Territoires</h2>
+        <ul class="fr-grid-row fr-grid-row--gutters fr-raw-list">
+            {% for territory in territories %}
+                <li class="fr-col-12 fr-col-sm-6 fr-col-md-4 fr-col-lg-3">
+                    <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-enlarge-link">
+                        <div class="fr-tile__body">
+                            <div class="fr-tile__content">
+                                <h3 class="fr-tile__title">
+                                    <a href="{% if territory.page %}{% url 'pages:territory' territory.page %}{% else %}{% url 'pages:offers' %}?lieu={{ territory.name|urlencode }}{% endif %}">{{ territory.name }}</a>
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="fr-tile__header">
+                            <div class="fr-tile__pictogram">
+                                <img class="fr-responsive-img"
+                                     src="{% static territory.image %}"
+                                     alt=""
+                                     width="80"
+                                     height="80" />
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </section>
 {% endblock main %}
 {% block page_js %}
