@@ -293,6 +293,8 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
 
+`src/test/server.ts` starts a [Mock Service Worker](https://mswjs.io/docs/) server for the tests, and `src/test/setup.ts` resets its handlers after each test.
+
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
 
 ## API Calls
