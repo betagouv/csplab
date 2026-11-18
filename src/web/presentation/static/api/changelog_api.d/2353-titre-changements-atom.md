@@ -1,7 +1,7 @@
 ---
 titre: "Changelog : le flux Atom titre chaque entrée par ce qui change"
 type: modifie
-date: 2026-11-06
+date: 2026-11-18
 pr: 2356
 liens:
   - https://github.com/betagouv/csplab/issues/2353
