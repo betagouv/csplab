@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% load static dsfr_tags %}
+{% load static dsfr_tags editorial_tags %}
 {% block page_title %}
     Accueil
 {% endblock page_title %}
@@ -87,9 +87,7 @@
                             <div class="fr-card__body">
                                 <div class="fr-card__content">
                                     <h3 class="fr-card__title">
-                                        <a href="{{ item.url }}"
-                                           target="_blank"
-                                           rel="noopener noreferrer">{{ item.title }}</a>
+                                        <a href="{{ item.url }}">{{ item.title }}</a>
                                     </h3>
                                     <div class="fr-card__start">
                                         <ul class="fr-badges-group">
@@ -102,7 +100,7 @@
                             </div>
                             <div class="fr-card__header">
                                 <div class="fr-card__img">
-                                    <img class="fr-responsive-img" src="{% static item.image %}" alt="" />
+                                    <img class="fr-responsive-img" src="{{ item.display_image|image_src }}" alt="" />
                                 </div>
                             </div>
                         </div>
@@ -116,9 +114,7 @@
                             <div class="fr-card__body">
                                 <div class="fr-card__content">
                                     <h3 class="fr-card__title">
-                                        <a href="{{ item.url }}"
-                                           target="_blank"
-                                           rel="noopener noreferrer">{{ item.title }}</a>
+                                        <a href="{{ item.url }}">{{ item.title }}</a>
                                     </h3>
                                     <p class="fr-card__desc">{{ item.description }}</p>
                                     <div class="fr-card__start">
@@ -132,7 +128,7 @@
                             </div>
                             <div class="fr-card__header">
                                 <div class="fr-card__img">
-                                    <img class="fr-responsive-img" src="{% static item.image %}" alt="" />
+                                    <img class="fr-responsive-img" src="{{ item.display_image|image_src }}" alt="" />
                                 </div>
                             </div>
                         </div>
@@ -140,10 +136,7 @@
                 {% endfor %}
             </div>
             <p class="fr-mt-4w">
-                <a class="fr-btn fr-btn--secondary"
-                   href="https://choisirleservicepublic.gouv.fr/"
-                   target="_blank"
-                   rel="noopener noreferrer">Lire toutes nos actualités<span class="fr-sr-only">- nouvelle fenêtre</span></a>
+                <a class="fr-btn fr-btn--secondary" href="{{ news_index.url|default:'#' }}">Lire toutes nos actualités</a>
             </p>
         </div>
     </section>
@@ -156,14 +149,14 @@
                         <div class="fr-tile__body">
                             <div class="fr-tile__content">
                                 <h3 class="fr-tile__title">
-                                    <a href="{% url 'pages:territory' territory.page %}">{{ territory.name }}</a>
+                                    <a href="{{ territory.url }}">{{ territory.name }}</a>
                                 </h3>
                             </div>
                         </div>
                         <div class="fr-tile__header">
                             <div class="fr-tile__pictogram">
                                 <img class="fr-responsive-img"
-                                     src="{% static territory.image %}"
+                                     src="{{ territory.display_image|image_src }}"
                                      alt=""
                                      width="80"
                                      height="80" />

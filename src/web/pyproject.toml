@@ -43,6 +43,9 @@ dependencies = [
     "authlib>=1.7.2",
     "markdown-it-py>=4.2.0",
     "nh3>=0.3.7",
+    "wagtail>=7.2,<8.0",
+    "sites-conformes>=4.3.1",
+    "pillow>=11.0",
 ]
 
 [build-system]
@@ -74,6 +77,7 @@ dev = [
 
 [tool.uv]
 package = true
+override-dependencies = ["django>=6.1,<7.0"]
 
 [[tool.uv.index]]
 name = "pypi"

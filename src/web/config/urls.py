@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
 
 from infrastructure.django_apps.commons.admin import stat_snapshot_list_view
 from presentation.api import urls as api_urls
@@ -40,6 +43,9 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("utilisateur/", include(identite_urls)),
     path("recruteur/", include(recruteur_urls)),
     path("fret/", include(fret_urls)),
+    path(settings.WAGTAILADMIN_PATH, include(wagtailadmin_urls)),
+    path("fichiers/", include("sites_conformes.db_storage.urls")),
+    path("documents/", include(wagtaildocs_urls)),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
@@ -49,3 +55,5 @@ if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
 
 if settings.DEBUG and "django_browser_reload" in settings.INSTALLED_APPS:
     urlpatterns.append(path("__reload__/", include("django_browser_reload.urls")))
+
+urlpatterns.append(path("", include(wagtail_urls)))

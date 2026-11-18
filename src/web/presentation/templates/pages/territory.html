@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% load static dsfr_tags %}
+{% load static dsfr_tags editorial_tags %}
 {% block page_title %}
     {{ territory.title }}
 {% endblock page_title %}
@@ -16,12 +16,13 @@
                 </div>
                 <div class="fr-col-12 fr-col-md-5 fr-py-2w">
                     <img class="fr-responsive-img"
-                         src="{% static territory.image %}"
+                         src="{{ territory.image|image_src }}"
                          alt="" />
                 </div>
             </div>
         </div>
     </section>
+    {% if territory.highlights %}
     <section class="fr-container fr-py-6w">
         <h2>À la une</h2>
         <div class="fr-grid-row fr-grid-row--gutters">
@@ -53,7 +54,7 @@
                             <div class="fr-card__header">
                                 <div class="fr-card__img">
                                     <img class="fr-responsive-img"
-                                         src="{% static item.image %}"
+                                         src="{{ item.image|image_src }}"
                                          alt="" />
                                 </div>
                             </div>
@@ -63,6 +64,7 @@
             {% endfor %}
         </div>
     </section>
+    {% endif %}
     {% if territory.assets %}
         <section class="fr-container fr-pb-6w">
             <h2 class="fr-mb-4w">{{ territory.assets_title }}</h2>
@@ -72,7 +74,7 @@
                         <figure class="fr-content-media" role="group">
                             <div class="fr-content-media__img">
                                 <img class="fr-responsive-img"
-                                     src="{% static asset.image %}"
+                                     src="{{ asset.image|image_src }}"
                                      alt="" />
                             </div>
                             <figcaption class="fr-content-media__caption">{{ asset.caption }}</figcaption>
@@ -151,6 +153,7 @@
             </ul>
         </div>
     </section>
+    {% if territory.links %}
     <section class="fr-container fr-py-8w">
         <h2 class="fr-mb-4w">{{ territory.links_title|default:"Des liens utiles pour en savoir plus !" }}</h2>
         <div class="fr-grid-row fr-grid-row--gutters">
@@ -171,7 +174,7 @@
                             <div class="fr-card__header">
                                 <div class="fr-card__img">
                                     <img class="fr-responsive-img"
-                                         src="{% static link.image %}"
+                                         src="{{ link.image|image_src }}"
                                          alt="" />
                                 </div>
                             </div>
@@ -181,4 +184,5 @@
             {% endfor %}
         </div>
     </section>
+    {% endif %}
 {% endblock main %}

@@ -99,6 +99,37 @@ ADMIN_OTP_REQUIRED = True
 
 # Application definition
 
+WAGTAIL_APPS = [
+    "storages",
+    "widget_tweaks",
+    "taggit",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.routable_page",
+    "wagtail.contrib.settings",
+    "wagtail.contrib.typed_table_block",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.snippets",
+    "wagtail",
+    "wagtailmarkdown",
+    "wagtailmenus",
+    "wagtail_localize",
+    "wagtail_localize.locales",
+    "wagtail_honeypot",
+    "sites_conformes",
+    "sites_conformes.customimages",
+    "sites_conformes.core",
+    "sites_conformes.blog",
+    "sites_conformes.events",
+    "sites_conformes.menus",
+    "sites_conformes.db_storage",
+    "wagtail.admin",
+]
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -110,6 +141,8 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.contrib.sites",
     "django.contrib.redirects",
+    "django.contrib.humanize",
+    "django.contrib.sitemaps",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
@@ -132,6 +165,8 @@ INSTALLED_APPS = [
     "presentation.identite",
     "presentation.recruteur",
     "presentation.ats",
+    "presentation.editorial",
+    *WAGTAIL_APPS,
 ]
 
 MIDDLEWARE = [
@@ -142,6 +177,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django_otp.middleware.OTPMiddleware",
+    "presentation.middleware.cms_admin_otp.CmsAdminOTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -230,6 +266,7 @@ STATIC_ROOT = BASE_DIR / "static_collected"
 VITE_DEV_ORIGIN = env.str("VITE_DEV_ORIGIN", default="http://localhost:5173")
 
 STORAGES = {
+    "default": {"BACKEND": "sites_conformes.db_storage.storage.DatabaseStorage"},
     "staticfiles": {
         "BACKEND": "config.storages.ViteCompressedManifestStaticFilesStorage",
     },
@@ -568,3 +605,28 @@ INGESTION_API_KEY_ALLOWED_IP_RANGES = env.list(
 # Qdrant vector database
 QDRANT_URL = env.str("QDRANT_URL")
 QDRANT_API_KEY = env.str("QDRANT_API_KEY")
+
+
+# Wagtail / sites-conformes (editorial content)
+SILENCED_SYSTEM_CHECKS = ["wagtailadmin.W002"]
+WAGTAIL_SITE_NAME = "Choisir le service public"
+WAGTAILADMIN_PATH = "cockpit-facile/"
+WAGTAILADMIN_BASE_URL = env.str(
+    "WAGTAILADMIN_BASE_URL", default="http://localhost:8000"
+)
+WAGTAILIMAGES_IMAGE_MODEL = "sites_conformes_customimages.CustomImage"
+WAGTAIL_I18N_ENABLED = True
+WAGTAIL_CONTENT_LANGUAGES = [("fr", "Français")]
+WAGTAIL_2FA_REQUIRED = False
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/medias/"
+HOST_URL = env.str("HOST_URL", default="localhost")
+HOST_PROTO = env.str("HOST_PROTO", default="http")
+HOST_PORT = env.int("HOST_PORT", default=8000)
+SF_NOINDEX = False
+SF_DISABLE_TUTORIALS = True
+ADVERTISE_LATEST_VERSION = False
+LATEST_RELEASE_URL = ""
+RELEASES_URL = ""
+NOTIFICATIONS_FILE_URL = ""

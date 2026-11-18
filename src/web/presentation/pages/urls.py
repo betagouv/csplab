@@ -13,7 +13,6 @@ from presentation.pages.views import (
     OffersView,
     PrivacyView,
     TermsView,
-    TerritoryView,
 )
 
 app_name = "pages"
@@ -27,7 +26,6 @@ urlpatterns = [
         OfferFavoriteView.as_view(),
         name="offer_favorite",
     ),
-    path("territoire/<slug:slug>", TerritoryView.as_view(), name="territory"),
     path("conditions-generales", TermsView.as_view(), name="terms"),
     path("accessibilite", AccessibilityView.as_view(), name="accessibility"),
     path("confidentialite", PrivacyView.as_view(), name="privacy"),

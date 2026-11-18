@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -7,6 +8,7 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from presentation.candidate.mixins import BreadcrumbMixin
+from presentation.editorial.models import AdvicePage, AdviceTheme
 from presentation.pages.stub_offers import OFFERS
 
 
@@ -47,91 +49,6 @@ class CandidateHomeView(LoginRequiredRedirectMixin, BreadcrumbMixin, TemplateVie
         return context
 
 
-_ADVICE_IMG = "candidate/images/advice/"
-_ADVICE_URL = "https://choisirleservicepublic.gouv.fr/conseils/"
-_ADVICE_THEMES = {
-    "entretien": "Entretien",
-    "handicap": "Handicap",
-    "interet": "Je m'intéresse à la fonction publique",
-    "agent": "Je suis agent public",
-}
-_ADVICE = [
-    {
-        "title": "Parole d'expert – Conseils pour une photo de CV réussie",
-        "text": "L'idée de mentionner un handicap sur un CV ou lors d'un entretien "
-        "peut être source d'appréhension. « Vais-je être jugé ? », « Ma "
-        "candidature sera-t-elle écartée ? ». Ces craintes...",
-        "image": "Image1.png",
-        "themes": ["entretien", "interet"],
-    },
-    {
-        "title": "Témoignages : l'immersion professionnelle, un dispositif au "
-        "service des projets de mobilité des agents",
-        "text": "Agents publics ! Vous êtes dans une démarche de mobilité et "
-        "souhaitez confirmer votre projet ou découvrir un métier ? Avez-vous "
-        "pensé à l'immersion professionnelle ? Découvrez notre témoignage...",
-        "image": "Periode-dimmersion-professionnelle1-800x445.png",
-        "themes": ["agent"],
-    },
-    {
-        "title": "Réussir sa prise de poste (webinaire en replay)",
-        "text": "Comment imaginez-vous les premiers jours dans votre nouvel "
-        "emploi ? Cette question peut vous être posée en entretien et vous "
-        "pouvez également - vous-même - avoir besoin de vous projeter pour...",
-        "image": "PFRH-GE-Onboarding-800x445.png",
-        "themes": ["entretien", "agent"],
-    },
-    {
-        "title": "Parole d'experte : réseauter pour mieux rebondir !",
-        "text": "Vous souhaitez donner une nouvelle trajectoire à votre parcours "
-        "professionnel, changer de poste, de métier ? ...",
-        "image": "DISPOSITIFS-800x445.webp",
-        "themes": ["agent", "interet"],
-    },
-    {
-        "title": "Parole d'experte – situation de handicap : en parler dans sa "
-        "candidature ?",
-        "text": "L'idée de mentionner un handicap sur un CV ou lors d'un entretien "
-        "peut être source d'appréhension. « Vais-je être jugé ? », « Ma "
-        "candidature sera-t-elle écartée ? ». Ces craintes...",
-        "image": "AdobeStock_53166648R-scaled-1-800x445.jpg",
-        "themes": ["handicap", "entretien"],
-    },
-    {
-        "title": "Parole d'experte : les bonnes pratiques de l'enquête métier",
-        "text": "Vous souhaitez mieux connaître un métier, une fonction, un "
-        "secteur d'activité et confronter vos représentations à la réalité du "
-        "terrain ? Une solution : rencontrer un professionnel ! ...",
-        "image": "illustr-parole-de-CMC-conseil-Etat-1.png",
-        "themes": ["interet"],
-    },
-    {
-        "title": "Parole d'expert : préparer un entretien ne s'improvise pas !",
-        "text": "Que ce soit pour un recrutement, une mobilité ou une "
-        "reconversion, un entretien nécessite de la méthode, de la prise de "
-        "recul… et un peu d'entraînement. En tant que Conseiller Mobilité...",
-        "image": "parole-expert-H-PFRH.jpg",
-        "themes": ["entretien"],
-    },
-    {
-        "title": "Identifier le fil rouge de votre parcours",
-        "text": "Il existe plusieurs moments clés dans votre carrière où vous "
-        "devrez présenter votre parcours : lors de la construction d'un projet "
-        "professionnel ou lors d'un entretien de recrutement....",
-        "image": "Picto_Mobilite.svg",
-        "themes": ["entretien", "agent"],
-    },
-    {
-        "title": "Comment parler d'une réussite professionnelle ?",
-        "text": "Parler de vos réussites professionnelles tout en ne donnant pas "
-        "l'impression d'être prétentieux vous semble être un exercice délicat ? "
-        "C'est pourtant une démarche incontournable dans le cadre...",
-        "image": "Picto_Entretien.svg",
-        "themes": ["entretien"],
-    },
-]
-
-
 class CandidateAdviceView(BreadcrumbMixin, TemplateView):
     template_name = "candidate/advice.html"
     breadcrumb_links = []
@@ -139,19 +56,19 @@ class CandidateAdviceView(BreadcrumbMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        query = self.request.GET.get("q", "").strip().lower()
+        query = self.request.GET.get("q", "").strip()
         theme = self.request.GET.get("theme", "")
+        advice = AdvicePage.objects.live().order_by("path")
+        if query:
+            advice = advice.filter(Q(title__icontains=query) | Q(text__icontains=query))
+        if theme:
+            advice = advice.filter(themes__slug=theme)
         context.update(
-            advice=[
-                {**a, "image": _ADVICE_IMG + a["image"], "url": _ADVICE_URL}
-                for a in _ADVICE
-                if (not query or query in f"{a['title']} {a['text']}".lower())
-                and (not theme or theme in a["themes"])
-            ],
+            advice=advice,
             query=self.request.GET.get("q", ""),
             theme=theme,
-            themes=_ADVICE_THEMES,
-            hero_image=_ADVICE_IMG + "conseils-01.svg",
+            themes={t.slug: t.label for t in AdviceTheme.objects.all()},
+            hero_image="candidate/images/advice/conseils-01.svg",
         )
         return context
 
