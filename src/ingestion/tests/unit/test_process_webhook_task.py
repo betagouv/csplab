@@ -14,6 +14,7 @@ from application.tasks.process_webhook import (
     archive_offer_webhook,
     save_raw_offer_webhook,
 )
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from infrastructure.exceptions.exceptions import (
     ExternalApiError,
@@ -401,3 +402,65 @@ def test_offer_not_found_is_not_sent_to_sentry(mock_get_container, sentry_events
     save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
 
     assert sentry_events == []
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_logged_as_expected_failure(mock_get_container, caplog):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    with caplog.at_level(logging.INFO, logger="celery"):
+        save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+def _talentsoft_error(cause: Exception) -> ExternalApiError:
+    try:
+        raise ExternalApiError("Request failed after retries") from cause
+    except ExternalApiError as exc:
+        return exc
+
+
+_SERVER_ERROR_RESPONSE = httpx.Response(
+    503, request=httpx.Request("GET", "https://talentsoft.example")
+)
+
+
+@pytest.mark.parametrize(
+    "cause",
+    [
+        httpx.ConnectError("connection refused"),
+        httpx.HTTPStatusError(
+            "service unavailable",
+            request=_SERVER_ERROR_RESPONSE.request,
+            response=_SERVER_ERROR_RESPONSE,
+        ),
+    ],
+    ids=["network", "server_error"],
+)
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_retries_transient_talentsoft_error_raised_through_save_raw_offer(
+    mock_get_container, mock_retry, cause
+):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    gateway = MagicMock()
+    gateway.get_detail = AsyncMock(side_effect=_talentsoft_error(cause))
+    usecase = SaveRawOfferUsecase(
+        offers_gateway=gateway, raw_offer_repository=MagicMock(upsert=AsyncMock())
+    )
+    container.ingest_offer_pipeline.return_value.execute.side_effect = usecase.execute
+    mock_get_container.return_value = container
+
+    with pytest.raises(Retry):
+        save_raw_offer_webhook(str(WEBHOOK_ID))
+
+    mock_retry.assert_called_once()

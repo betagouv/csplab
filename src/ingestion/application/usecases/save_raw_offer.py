@@ -50,6 +50,6 @@ class SaveRawOfferUsecase:
             )
 
         if gateway_error is not None:
-            raise gateway_error from None
+            raise gateway_error
 
         return raw_offer

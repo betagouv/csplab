@@ -4,7 +4,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from faker import Faker
 
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -207,6 +210,16 @@ class TestGetDetailOffer:
                 )
 
         assert exc_info.value.api_name == "Talentsoft Front API"
+
+    @pytest.mark.asyncio
+    async def test_get_detail_raises_offer_not_found_on_404(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mocked_response(status_code=404)
+
+            with pytest.raises(TalentsoftOfferNotFound):
+                await talentsoft_client.get_detail(reference=fake.uuid4())
 
     @pytest.mark.asyncio
     async def test_get_detail_fails_due_to_unauthorized_token(self, talentsoft_client):

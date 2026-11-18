@@ -20,11 +20,15 @@ class ExternalApiError(InfrastructureError):
 
 class TalentsoftOfferNotFound(ExternalApiError):
     def __init__(self, reference: str, api_name: str):
+        self.reference = reference
         super().__init__(
             f"Offer not found for reference: {reference}",
             status_code=404,
             api_name=api_name,
         )
+
+    def __reduce__(self):
+        return type(self), (self.reference, self.api_name)
 
 
 class DilaSiretNotFound(InfrastructureError):
