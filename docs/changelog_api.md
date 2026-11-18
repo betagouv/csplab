@@ -51,7 +51,8 @@ Renseignez dans `region` […]
 - `titre` est ce que l'intégrateur lit en premier : il ouvre l'entrée dans le
   Markdown, dans Redoc et sur la page (avec un encadré « En bref » qui liste les
   titres d'une journée de plusieurs changements), il est le titre de l'entrée du flux
-  Atom, sans ses backticks et précédé de ⚠️ pour un changement non rétrocompatible, et
+  Atom, sans ses backticks et précédé de ⚠️ pour un changement non rétrocompatible ou
+  retiré, et
   le champ `titre` du JSON, en Markdown. Une phrase courte en français, de 80 caractères au plus,
   qui dit ce qui change sans qu'il faille lire le corps :
   - elle commence par la ressource concernée, suivie de ` : ` (« Offres : »,

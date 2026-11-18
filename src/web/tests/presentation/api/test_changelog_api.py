@@ -712,22 +712,33 @@ class TestChangelogFeed:
         assert len(entries) == len(expected)
         link = entries[0].find(f"{self.ATOM}link").get("href")
         assert link == f"http://testserver/pages/changelog_api#{expected[0].slug}"
-        title = expected[0].titre.replace("`", "")
-        assert entries[0].find(f"{self.ATOM}title").text == title
         entry_id = entries[0].find(f"{self.ATOM}id").text
         assert entry_id == f"tag:csplab.beta.gouv.fr:changelog-api:{expected[0].slug}"
 
-    def test_flags_breaking_changes_in_the_title(self, db, client):
-        response = client.get(
-            reverse("api:changelog_atom"), {"type": "non_retrocompatible"}
+    def _titles(self, client, type_: str) -> list[str]:
+        response = client.get(reverse("api:changelog_atom"), {"type": type_})
+        feed = ET.fromstring(response.content)  # noqa: S314
+        entries = feed.iter(f"{self.ATOM}entry")
+        return [e.find(f"{self.ATOM}title").text for e in entries]
+
+    def test_strips_backticks_from_the_title(self, db, client):
+        assert (
+            "Offres : référence générée par CSPLab avec la valeur auto"
+            in self._titles(client, "ajoute")
         )
 
-        feed = ET.fromstring(response.content)  # noqa: S314
-        expected = [f for f in published_fragments() if f.type == "non_retrocompatible"]
-        titles = [
-            e.find(f"{self.ATOM}title").text for e in feed.iter(f"{self.ATOM}entry")
-        ]
-        assert titles == [f"⚠️ {f.titre.replace('`', '')}" for f in expected]
+    def test_flags_breaking_changes_in_the_title(self, db, client):
+        assert (
+            "⚠️ Offres : champs du contrat renommés, type_contrat change de sens"
+            in self._titles(client, "non_retrocompatible")
+        )
+
+    def test_flags_removals_in_the_title(self, db, client):
+        title = (
+            "⚠️ Offres : conditions.complements retiré, "
+            "doublon de description.complements"
+        )
+        assert self._titles(client, "retire") == [title]
 
     def test_rejects_an_invalid_filter(self, db, client):
         response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})

@@ -174,6 +174,7 @@ class ChangelogJsonView(_PublicDocumentationView):
 
 
 ATOM_ID_PREFIX = "tag:csplab.beta.gouv.fr:changelog-api"
+BREAKING_TYPES = {TypeChangement.NON_RETROCOMPATIBLE, TypeChangement.RETIRE}
 
 
 class ChangelogFeed(Feed):
@@ -200,7 +201,7 @@ class ChangelogFeed(Feed):
 
     def item_title(self, fragment: Fragment) -> str:
         title = fragment.titre.replace("`", "")
-        if fragment.type == TypeChangement.NON_RETROCOMPATIBLE:
+        if fragment.type in BREAKING_TYPES:
             return f"⚠️ {title}"
         return title
 
