@@ -12,6 +12,7 @@ from domain.entities.webhook import Webhook
 from infrastructure.celery_app import celery_app
 from infrastructure.di.bootstrap import get_container
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.observability.log_config import log_context
 
 if TYPE_CHECKING:
     from infrastructure.di.container import Container
@@ -70,18 +71,24 @@ def _process(task, webhook_id: str, handler: _Handler) -> None:
         )
         await handler(container, webhook)
 
-    try:
-        asyncio.run(_run_with_timeout(_run()))
-    except Exception as exc:
-        _retry_on_transient(task, exc)
-
-    logger.info(
-        "Webhook processed",
-        extra={
-            **context,
-            "duration_ms": round((time.monotonic() - started_at) * 1000),
-        },
-    )
+    outcome = "failed"
+    with log_context(context):
+        try:
+            asyncio.run(_run_with_timeout(_run()))
+            outcome = "succeeded"
+        except Exception as exc:
+            if _is_transient(exc) and task.request.retries < task.max_retries:
+                outcome = "retrying"
+            _retry_on_transient(task, exc)
+        finally:
+            logger.info(
+                "Webhook processed",
+                extra={
+                    **context,
+                    "outcome": outcome,
+                    "duration_ms": round((time.monotonic() - started_at) * 1000),
+                },
+            )
 
 
 async def _archive_offer(container: "Container", webhook: Webhook) -> None:
