@@ -719,7 +719,7 @@ class TestChangelogFeed:
         response = client.get(reverse("api:changelog_atom"), {"type": type_})
         feed = ET.fromstring(response.content)  # noqa: S314
         entries = feed.iter(f"{self.ATOM}entry")
-        return [e.find(f"{self.ATOM}title").text for e in entries]
+        return [e.findtext(f"{self.ATOM}title", default="") for e in entries]
 
     def test_strips_backticks_from_the_title(self, db, client):
         assert (
