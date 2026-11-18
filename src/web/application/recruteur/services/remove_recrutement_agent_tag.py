@@ -37,9 +37,9 @@ def remove_recrutement_agent_tag(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     contexte.check_recrutement_belongs_to_organisme()
-    membre = contexte.get_active_member(agent_id)
 
     with transaction.atomic():
+        membre = contexte.lock_active_member(agent_id)
         deleted, _ = RecrutementAgentTagModel.objects.by_agent_and_tag(
             membre.pk, tag_id
         ).delete()

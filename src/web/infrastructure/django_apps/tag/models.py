@@ -206,7 +206,6 @@ class RecrutementAgentTagQuerySet(models.QuerySet):
         ).exists()
         if not membre_dans_organisme:
             raise TagOrganismeMismatch(tag.pk, "personne membre")
-        # TODO : membre supprimé hors verrou de l'appelant : FK différée, 500 au commit
         try:
             return self.create(id=uuid4(), recrutement_agent=recrutement_agent, tag=tag)
         except IntegrityError as error:

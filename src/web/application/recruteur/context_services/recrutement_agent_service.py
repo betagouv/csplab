@@ -55,3 +55,15 @@ class RecrutementAgentService:
             ).get()
         except RecrutementAgentModel.DoesNotExist as error:
             raise AgentNonMembreRecrutement(self.recrutement_id, agent_id) from error
+
+    def lock_active_member(self, agent_id: UUID) -> RecrutementAgentModel:
+        try:
+            return (
+                RecrutementAgentModel.objects.by_recrutement_and_agent(
+                    self.recrutement_id, agent_id
+                )
+                .select_for_update()
+                .get()
+            )
+        except RecrutementAgentModel.DoesNotExist as error:
+            raise AgentNonMembreRecrutement(self.recrutement_id, agent_id) from error
