@@ -1,10 +1,13 @@
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID
 
 import httpx
 import pytest
+import sentry_sdk
 from celery.app.task import Task
 from celery.exceptions import Retry
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 from application.tasks.process_webhook import (
     _is_transient,
@@ -13,6 +16,7 @@ from application.tasks.process_webhook import (
 )
 from domain.value_objects.webhook_event import EventType, OfferStatus
 from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.observability.log_config import ContextFilter
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")
@@ -247,3 +251,117 @@ def test_no_retry_on_value_error(mock_get_container, mock_retry):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()
+
+
+# --- Logging context ---
+
+
+@pytest.fixture
+def sentry_events():
+    events: list = []
+    sentry_sdk.init(
+        dsn="https://key@o123.ingest.sentry.io/123",
+        integrations=[CeleryIntegration()],
+        default_integrations=False,
+        transport=events.append,
+    )
+    yield events
+    sentry_sdk.init()
+
+
+@patch(_PATCH_CONTAINER)
+def test_exception_sent_to_sentry_has_offer_context(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = RuntimeError()
+    mock_get_container.return_value = container
+
+    archive_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    [event] = sentry_events
+    assert event["tags"]["source_id"] == SOURCE_ID
+    assert event["tags"]["reference"] == REFERENCE
+    assert event["tags"]["webhook_id"] == str(WEBHOOK_ID)
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_processed_webhook_with_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    mock_get_container.return_value = _make_mock_container(webhook)
+
+    with caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.reference == REFERENCE
+    assert record.source_id == SOURCE_ID
+    assert record.outcome == "succeeded"
+    assert isinstance(record.duration_ms, int)
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_failed_webhook_with_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = RuntimeError()
+    mock_get_container.return_value = container
+
+    with (
+        caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"),
+        pytest.raises(RuntimeError),
+    ):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.reference == REFERENCE
+    assert record.outcome == "failed"
+    assert isinstance(record.duration_ms, int)
+
+
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_logs_retrying_webhook(mock_get_container, mock_retry, caplog):
+    container = _make_mock_container()
+    container.webhook_repository.return_value.get_by_id = AsyncMock(
+        side_effect=httpx.ConnectError("connection refused")
+    )
+    mock_get_container.return_value = container
+
+    with (
+        caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"),
+        pytest.raises(Retry),
+    ):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.outcome == "retrying"
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_emitted_during_task_carry_webhook_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+
+    async def _log_from_usecase(**kwargs):
+        logging.getLogger("application.usecases").info("Archiving offer")
+
+    container.archive_offer_usecase.return_value.execute.side_effect = _log_from_usecase
+    mock_get_container.return_value = container
+    caplog.handler.addFilter(ContextFilter())
+
+    with caplog.at_level(logging.INFO):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Archiving offer")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.reference == REFERENCE
