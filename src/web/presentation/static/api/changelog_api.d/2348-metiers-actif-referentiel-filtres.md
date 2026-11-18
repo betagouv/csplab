@@ -1,6 +1,6 @@
 ---
 type: ajoute
-date: 2026-11-06
+date: 2026-11-18
 pr: 2351
 liens:
   - https://github.com/betagouv/csplab/issues/2348
