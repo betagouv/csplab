@@ -45,7 +45,8 @@ const puces = computed(() => ORDRE_PUCES.map(id => CATEGORIES_OFFRE.find(c => c.
 
 // Accès direct depuis le tableau de bord.
 const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'depubliee' }
-const puce = ref<string | undefined>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'toutes')
+// À l'ouverture, on arrive sur les offres publiées (retour Alice).
+const puce = ref<string | undefined>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
 // Recliquer la puce active la désélectionne : on revient à « Toutes ».
 watch(puce, (v) => {
   if (!v) {
