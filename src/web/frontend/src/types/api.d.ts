@@ -734,6 +734,7 @@ export interface components {
             /** Format: uuid */
             document_uuid: string | null;
             navigation_candidature_uuids: string[];
+            readonly tags: components["schemas"]["Tag"][];
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         CandidatureEchec: {

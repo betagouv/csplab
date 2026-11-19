@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -16,6 +17,7 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.tag.models import CandidatureTagModel, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -30,6 +32,10 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.tag.tag_django_factory import (
+    CandidatureTagDjangoFactory,
+    TagDjangoFactory,
+)
 
 NOMBRE_CANDIDATURES_ETAPE = 5
 NOMBRE_REQUETES_ATTENDU = (
@@ -40,6 +46,7 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # agent's role on the recrutement
     + 1  # candidature + candidat, utilisateur, etape, recrutement, offre
     + 1  # prefetch recrutement etapes
+    + 1  # prefetch tags_liaisons (tag via select_related)
     + 1  # latest CV
     + 1  # navigation within the etape
 )
@@ -214,6 +221,29 @@ class TestCandidatureDetailView:
             "value": "experience_insuffisante",
             "label": "Expérience insuffisante",
         }
+
+    def test_returns_tags_in_pose_order(self, authenticated_client, test_user):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        alpha = TagDjangoFactory(
+            organisme=organisme, name="Alpha", color=TagColor.ROUGE
+        )
+        bravo = TagDjangoFactory(organisme=organisme, name="Bravo", color=TagColor.VERT)
+        CandidatureTagDjangoFactory(candidature=candidature, tag=alpha)
+        bravo_pose = CandidatureTagDjangoFactory(candidature=candidature, tag=bravo)
+        CandidatureTagModel.objects.filter(pk=bravo_pose.pk).update(
+            created_at=datetime.now(tz=timezone.utc) - timedelta(minutes=1)
+        )
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.json()["tags"] == [
+            {"uuid": str(bravo.id), "name": "Bravo", "color": "vert"},
+            {"uuid": str(alpha.id), "name": "Alpha", "color": "rouge"},
+        ]
 
     def test_staff_without_organisme_role_gets_candidature_detail(
         self, authenticated_client, test_user

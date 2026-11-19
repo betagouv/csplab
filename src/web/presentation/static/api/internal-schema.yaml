@@ -6214,6 +6214,11 @@ components:
           items:
             type: string
             format: uuid
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
         authorized_actions:
           type: array
           items:
@@ -6231,6 +6236,7 @@ components:
       - motif_refus
       - navigation_candidature_uuids
       - recrutement_intitule
+      - tags
       - uuid
     CandidatureEchec:
       type: object
