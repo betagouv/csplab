@@ -11,12 +11,16 @@ const props = withDefaults(defineProps<{
   color?: PaletteColor
   size?: 'sm' | 'md'
   bordered?: boolean
+  dot?: boolean
+  outlined?: boolean
   clickable?: boolean
   dismissLabel?: string
 }>(), {
   color: 'grey',
   size: 'sm',
   bordered: true,
+  dot: true,
+  outlined: false,
   clickable: false,
   dismissLabel: undefined,
 })
@@ -42,7 +46,7 @@ const colorStyle = computed(() => ({
 <template>
   <span
     class="csp-label"
-    :class="[attrs.class, `csp-label--${size}`, { 'csp-label--bordered': bordered, 'csp-label--dismissible': dismissLabel }]"
+    :class="[attrs.class, `csp-label--${size}`, { 'csp-label--bordered': bordered, 'csp-label--dismissible': dismissLabel, 'csp-label--without-dot': !dot, 'csp-label--outlined': outlined }]"
     :style="[colorStyle, attrs.style]"
   >
     <component
@@ -53,6 +57,7 @@ const colorStyle = computed(() => ({
       v-bind="contentAttrs"
     >
       <span
+        v-if="dot"
         class="csp-label__dot"
         aria-hidden="true"
       />
@@ -99,6 +104,16 @@ const colorStyle = computed(() => ({
   min-width: 0;
   padding: var(--csp-label-padding-y) var(--csp-label-padding-x);
   padding-inline-start: var(--csp-label-padding-start);
+}
+
+.csp-label--outlined {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  color: var(--text-mention-grey);
+}
+
+.csp-label--without-dot .csp-label__content {
+  padding-inline-start: var(--csp-label-padding-x);
 }
 
 .csp-label--dismissible .csp-label__content {
