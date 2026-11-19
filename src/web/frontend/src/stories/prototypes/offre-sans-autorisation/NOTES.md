@@ -47,9 +47,13 @@ Ce dossier repart d'une copie des écrans du proto ATS, épurée de tout ce qui 
 - Publication : date de fin seule (= date limite de candidature, ≥ aujourd'hui + 1 mois
   sauf urgence). Pas de programmation (retour Alice, 18/11/2026) : l'offre est mise en ligne le jour où on publie, seule la date de fin se choisit.
 - Champs « DAR » (motif, agent remplacé, code poste, RIFSEEP, cycle) : masqués sans circuit d'autorisation.
-- « Mettre l'offre en pause » : retirée (retour PO, L10), c'est le même comportement que retirer l'offre.
+- « Mettre l'offre en pause » : remplacée par « Retirer l'offre » dans le menu « … » de la liste (retour PO, point 6 :
+  pas de distinction entre pause et dépublication ; on remet en ligne en prolongeant).
 
-## Retours PO du 19/11/2026 (numérotés comme dans son document)
+## Retours PO du 19/11/2026
+
+Numérotation L/F reprise d'une version reformulée par IA. Le document original de la PO (reçu ensuite) a été relu :
+deux écarts corrigés, décrits sous F2 et sous « pause » ci-dessus. Le reste est conforme.
 
 Liste des offres
 - L1 Onglets par phase : En préparation, En ligne (ouvert par défaut), Terminées, Toutes. Avec un circuit
@@ -61,16 +65,20 @@ Liste des offres
 - L6 « Suivre les candidatures » retiré de Prochaine étape (« — » quand il n'y a rien à faire).
 - L7 Plusieurs responsables : « Camille Moreau +1 », liste complète au survol.
 - L8 « Créer une offre » en bouton principal. L9 « Dupliquer » ouvre directement le formulaire pré-rempli.
+- L10 « Retirer l'offre » remplace « Mettre en pause » (voir plus haut).
 - L11 « Compléter l'annonce » affiche « 10 / 13 champs obligatoires ».
 - L12 « Fin de publication » partout. L13 « Statut » partout. L14 Recherche : « Intitulé, lieu, référence ».
 - L15 Sous-titre : « en préparation, en ligne et terminées ».
 
 Formulaire
-- F1 Six étapes, les mêmes à la création et sur la page de l'offre : Le poste, Cadre du recrutement, Profil et
-  conditions, Employeur et lieux, Informations internes, Candidature. Étapes cliquables, cochées quand complètes.
-- F2 Processus, Équipe et Journal sortis du formulaire. Menu « … » de l'offre : « Personnaliser les étapes de
-  recrutement » et « Équipe de recrutement » renvoient aux écrans existants (simulés) ; le journal s'ouvre à part.
-  À l'intégration : brancher `OffreEtapesRecrutementView`, l'onglet Équipe et le pattern d'historique existants.
+- F1 Une suite de huit écrans de gauche à droite, la même à la création et sur la page de l'offre : Le poste, Cadre
+  du recrutement, Profil et conditions, Employeur et lieux, Informations internes, Candidature, Étapes de
+  recrutement (facultatif), Équipe de recrutement (facultatif). Étapes cliquables, cochées quand complètes.
+- F2 (point 4 du document original) Processus et Équipe restent dans la suite d'écrans, mais reprennent les écrans
+  existants : `EtapesRecrutementOffre.vue` copie `EtapesRecrutementList` (textes, liste ordonnable, encadré) et
+  `EquipeRecrutementOffre.vue` copie `EquipeRecrutementSection` (tableau Membre, Rôle, Poste, Courriel). À
+  l'intégration : brancher les vrais composants. Journal d'activité : sorti du formulaire, ouvert depuis le menu
+  « … » de l'offre, présenté comme l'historique d'une candidature (« N activités récentes »).
 - F3 Messages d'information en bandeau au-dessus du titre (`PageAts`, prop `bandeaux`).
 - F4 Récapitulatif « Avant de publier » : coché / à remplir par étape, « Plus que N champs obligatoires… ».
 - F5 Astérisque rouge sur les champs obligatoires (au lieu de « Champ obligatoire »).

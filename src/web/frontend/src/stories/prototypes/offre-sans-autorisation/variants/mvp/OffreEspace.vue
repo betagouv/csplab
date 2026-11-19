@@ -20,8 +20,8 @@ import { candidatures } from './recrutement'
 import { aujourdhui, dateLongue, db, heure, joursRestants, le, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
 
 // Page d'une offre (sans autorisation) : le formulaire en étapes à gauche (retour PO, F1), l'encart de l'état et le
-// récapitulatif des champs obligatoires à droite (F4). Processus, Équipe et Journal d'activité sont les écrans
-// existants de la plateforme (F2) : on y accède depuis le menu « … », ils ne sont plus intégrés au formulaire.
+// récapitulatif des champs obligatoires à droite (F4). Les deux derniers écrans reprennent les écrans existants
+// (étapes et équipe de recrutement) ; le journal d'activité s'ouvre depuis le menu « … ».
 // Brouillon → Publiée (publication immédiate) → Dépubliée (date de fin ou retrait manuel) → Publiée (prolongation).
 // L'offre reste modifiable une fois publiée. Publier, prolonger et retirer demandent le droit « Publier ».
 const props = defineProps<{ id: string, section?: string }>()
@@ -62,10 +62,7 @@ const menu = [
     ],
   },
   {
-    // Écrans existants de la plateforme, repris tels quels (F2). Simulés ici.
     items: [
-      { label: 'Personnaliser les étapes de recrutement', icon: 'ri:table-line', onSelect: () => notifier('Écran existant « Personnaliser les étapes de recrutement de l\'offre » (non reproduit dans le prototype).') },
-      { label: 'Équipe de recrutement', icon: 'ri:team-line', onSelect: () => notifier('Écran existant « Équipe de recrutement » du recrutement (non reproduit dans le prototype).') },
       { label: 'Journal d’activité', icon: 'ri:history-line', onSelect: () => (journal.value = true) },
     ],
   },
@@ -73,7 +70,7 @@ const menu = [
 const apercu = ref(false)
 
 // --- Étape du formulaire. Depuis la liste, « Compléter » ouvre la candidature ou le début de l'annonce. ---
-const etape = ref(props.section === 'candidature' ? ETAPES_OFFRE.length : 1)
+const etape = ref(props.section === 'candidature' ? ETAPES_OFFRE.findIndex(e => e.id === 'candidature') + 1 : 1)
 function publierOuTenter() {
   if (manques.value.length) {
     tentatives.add(o.value.id)

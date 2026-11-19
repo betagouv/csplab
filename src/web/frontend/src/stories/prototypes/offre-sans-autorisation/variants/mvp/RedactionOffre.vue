@@ -13,8 +13,8 @@ import RecapPublication from './RecapPublication.vue'
 import { db, heure, sauvegarder, UTILISATEUR } from './store'
 
 // Créer une offre : le formulaire en étapes (retour PO, F1), avec le récapitulatif des champs obligatoires à droite
-// (F4). Rien n'est exigé pour enregistrer un brouillon. Processus et Équipe ne font plus partie du formulaire (F2) :
-// le créateur est Responsable, et les étapes de recrutement par défaut de l'organisme s'appliquent.
+// (F4). Rien n'est exigé pour enregistrer un brouillon. Les deux derniers écrans, facultatifs, reprennent les écrans
+// existants (étapes de recrutement, équipe de recrutement).
 const props = defineProps<{ id: string, etape?: number }>()
 const { aller, notifier } = useNav()
 const o = computed(() => db.offres.find(x => x.id === props.id)!)

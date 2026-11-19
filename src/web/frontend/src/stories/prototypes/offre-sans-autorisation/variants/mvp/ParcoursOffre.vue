@@ -4,7 +4,9 @@ import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { champsObligatoires } from './aide'
+import EquipeRecrutementOffre from './EquipeRecrutementOffre.vue'
 import { ETAPES_OFFRE } from './etapes'
+import EtapesRecrutementOffre from './EtapesRecrutementOffre.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
 import FormInterne from './FormInterne.vue'
@@ -69,7 +71,7 @@ defineExpose({ aller })
         Étape {{ etape }} sur {{ ETAPES_OFFRE.length }}
       </p>
       <h2 class="tete__titre">
-        {{ courante.titre }}
+        {{ courante.titre }}{{ courante.facultatif ? ' (facultatif)' : '' }}
       </h2>
       <p class="tete__aide">
         {{ courante.aide }}
@@ -86,6 +88,14 @@ defineExpose({ aller })
         v-else-if="courante.id === 'candidature'"
         :offre="offre"
         :verrouille="verrouilleCandidature"
+      />
+      <EtapesRecrutementOffre
+        v-else-if="courante.id === 'processus'"
+        :offre="offre"
+      />
+      <EquipeRecrutementOffre
+        v-else-if="courante.id === 'equipe'"
+        :offre="offre"
       />
       <FormAnnonce
         v-else
@@ -105,6 +115,12 @@ defineExpose({ aller })
         @click="aller(etape - 1)"
       />
       <span class="nav__espace" />
+      <CspButton
+        v-if="!derniere && courante.facultatif"
+        label="Passer cette étape"
+        variant="tertiary-no-outline"
+        @click="aller(etape + 1)"
+      />
       <CspButton
         v-if="!derniere"
         :label="`Suivant : ${ETAPES_OFFRE[etape]!.titre}`"
