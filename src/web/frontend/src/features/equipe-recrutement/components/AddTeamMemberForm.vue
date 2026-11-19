@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
+import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, useId } from 'vue'
@@ -7,9 +8,9 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
-import { RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 
 const props = defineProps<{
+  options: CspRadioGroupOption<RecrutementRole>[]
   status: AgentSearchStatus
   agent?: AgentRecherche | null
   searching?: boolean
@@ -64,7 +65,7 @@ const formId = useId()
       v-model="role"
       label="Rôle dans le recrutement"
       name="recrutement_role"
-      :options="RECRUTEMENT_ROLE_OPTIONS"
+      :options="options"
     />
   </form>
 

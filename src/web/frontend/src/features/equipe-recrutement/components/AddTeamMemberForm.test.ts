@@ -2,11 +2,12 @@ import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { setupUser } from '@/test/render'
+import { RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 function renderForm(props: Record<string, unknown> = {}) {
   return render(AddTeamMemberForm, {
-    props: { status: 'idle', ...props },
+    props: { options: RECRUTEMENT_ROLE_OPTIONS, status: 'idle', ...props },
   })
 }
 
