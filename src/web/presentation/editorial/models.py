@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -71,7 +72,7 @@ class NewsPage(PictureMixin, Page):
     external_url = models.URLField(blank=True)
     featured = models.BooleanField(default=False)
 
-    parent_page_types = ["editorial.NewsIndexPage"]
+    parent_page_types = ["editorial.NewsIndexPage", "editorial.TerritoryPage"]
     subpage_types: list[str] = []
     template = "editorial/news_page.html"
     content_panels = [
@@ -87,7 +88,7 @@ class NewsPage(PictureMixin, Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["breadcrumb_data"] = {
-            "links": [{"url": self.get_parent().url, "title": "Actualités"}],
+            "links": [{"url": self.get_parent().url, "title": self.get_parent().title}],
             "current": self.title,
         }
         return context
@@ -156,6 +157,11 @@ class HighlightBlock(blocks.StructBlock):
     title = blocks.CharBlock()
     tags = blocks.ListBlock(blocks.CharBlock(), required=False)
     date = blocks.CharBlock(help_text="ex. 3/04/2026")
+    page = blocks.PageChooserBlock(
+        page_type="editorial.NewsPage",
+        required=False,
+        help_text="Actualité enfant de ce territoire",
+    )
     picture = ImageChooserBlock(required=False)
     image = blocks.CharBlock(required=False, help_text=IMAGE_HELP)
 
@@ -208,7 +214,7 @@ class TerritoryPage(PictureMixin, Page):
     links = _stream(LinkBlock())
 
     parent_page_types = ["editorial.TerritoryIndexPage"]
-    subpage_types: list[str] = []
+    subpage_types = ["editorial.NewsPage"]
     template = "pages/territory.html"
     content_panels = [
         *Page.content_panels,
@@ -230,6 +236,16 @@ class TerritoryPage(PictureMixin, Page):
         FieldPanel("links"),
     ]
 
+    def clean(self):
+        super().clean()
+        for block in self.highlights:
+            linked = block.value.get("page")
+            if linked and linked.get_parent().pk != self.pk:
+                raise ValidationError(
+                    f"« {linked.title} » n'est pas une actualité enfant de ce "
+                    "territoire : créez-la sous cette page."
+                )
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["territory"] = {
@@ -242,6 +258,9 @@ class TerritoryPage(PictureMixin, Page):
                     "title": b.value["title"],
                     "tags": list(b.value["tags"]),
                     "date": b.value["date"],
+                    "url": b.value["page"].url
+                    if b.value["page"] and b.value["page"].live
+                    else "",
                     "image": resolve_image(b.value["picture"], b.value["image"]),
                 }
                 for b in self.highlights

@@ -164,6 +164,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "presentation.middleware.cms_admin_csp.CmsAdminCspMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",

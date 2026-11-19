@@ -124,10 +124,13 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        news = NewsPage.objects.live().order_by("path")
+        news_index = NewsIndexPage.objects.live().first()
+        news = NewsPage.objects.none()
+        if news_index:
+            news = NewsPage.objects.child_of(news_index).live().order_by("path")
         context["featured_news"] = news.filter(featured=True)
         context["news"] = news.filter(featured=False)
-        context["news_index"] = NewsIndexPage.objects.live().first()
+        context["news_index"] = news_index
         context["query"] = self.request.GET.get("q", "")
         context["location"] = self.request.GET.get("lieu", "")
         context["regions"] = _REGIONS

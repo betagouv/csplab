@@ -7,12 +7,39 @@ _NOR = "candidate/images/territory-normandie/"
 _ADVICE_IMG = "candidate/images/advice/"
 _ADVICE_URL = "https://choisirleservicepublic.gouv.fr/conseils/"
 
+_SEEPH_TEXT = (
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut non sem vel ante "
+    "consequat pulvinar. Nam consequat gravida velit non sollicitudin. Cras "
+    "tristique in magna nec molestie. Morbi consectetur neque odio, et vestibulum "
+    "est egestas non. Praesent iaculis nisi justo, quis volutpat mi lacinia "
+    "vitae. Aliquam erat volutpat. Nunc a orci id tortor vehicula posuere. "
+    "Praesent sed mollis sapien, eget auctor augue. Etiam aliquet dictum euismod. "
+    "Phasellus eleifend nisi ac porta pretium. Praesent dapibus nibh justo, nec "
+    "pellentesque nunc efficitur et. In hac habitasse platea dictumst. Phasellus "
+    "et augue id tortor condimentum ultricies id sit amet lorem. Cras dui urna, "
+    "volutpat sit amet rutrum sed, laoreet ut mauris. Nulla at luctus mi, at "
+    "consectetur felis. Nam ut nisi elementum turpis tristique tempor vel vitae "
+    "arcu. Pellentesque dui urna, interdum nec dapibus id, ullamcorper tempor "
+    "turpis. Suspendisse sit amet lorem quis massa vulputate convallis molestie "
+    "sed tellus. Nulla pharetra facilisis porttitor. In ligula tellus, rhoncus "
+    "eget est ac, dignissim laoreet felis. Nunc facilisis venenatis odio nec "
+    "tincidunt. Phasellus malesuada urna sit amet massa vestibulum, ut cursus "
+    "dolor ullamcorper. Vestibulum lobortis dolor sed dignissim maximus. Vivamus "
+    "et purus ullamcorper, ornare odio sed, faucibus nulla. Aliquam sodales arcu "
+    "et tortor pulvinar posuere. Donec et sollicitudin est, ornare euismod mi. "
+    "Nunc nec iaculis nisl, quis pharetra massa. In pellentesque luctus sem, sed "
+    "fringilla magna lobortis eget. Mauris tempus risus mi, a facilisis massa "
+    "pharetra vel. Curabitur imperdiet tortor non justo malesuada, sed iaculis "
+    "enim porta. Nulla facilisi. Praesent et turpis "
+)
+
 _FEATURED_NEWS = [
     {
         "badge": "Événement",
         "title": "Semaine européenne pour l'emploi des personnes handicapées 2026 : "
         "une semaine pour favoriser l'inclusion professionnelle",
-        "url": _URL,
+        "description": _SEEPH_TEXT,
+        "url": "https://www.semaine-emploi-handicap.com/edition-2026-seeph2026",
         "image": _IMG + "news/semaine-handicap.jpg",
     },
     {
@@ -85,6 +112,23 @@ _TERRITORIES = [
     ("Provence-Alpes-Côte d'Azur", "provence-alpes-cote-dazur"),
 ]
 
+
+_TERRITORY_NEWS = {
+    "normandie": {
+        "marque-employeur": {
+            "title": "Zoom sur la marque employeur des services de l'Etat en Normandie",
+            "badge": "Marque employeur",
+            "description": "Face aux enjeux en matière d'attractivité auxquels les "
+            "services de l'État sont confrontés, le préfet de la région Normandie a "
+            "souhaité créer une marque employeur permettant de mettre en avant, sous "
+            "une même bannière, les opportunités mais aussi les atouts de ce versant "
+            "de la fonction publique, encore trop souvent méconnu et stigmatisé.",
+            "url": "https://www.prefectures-regions.gouv.fr/normandie/"
+            "Rejoignez-nous/Rejoignez-nous",
+            "image": _NOR + "Logo-4-800x450.jpg",
+        },
+    },
+}
 
 _TERRITORY_PAGES = {
     "pays-de-la-loire": {
