@@ -83,7 +83,7 @@ function isApplied(tagUuid: string): boolean {
         v-else
         class="tag-picker__empty"
       >
-        {{ categoryTags.length > 0 ? 'Aucune étiquette ne correspond.' : 'Aucune étiquette.' }}
+        {{ categoryTags.length > 0 ? 'Aucune étiquette ne correspond.' : 'Aucune étiquette disponible.' }}
       </p>
     </CspAsyncSection>
   </div>
