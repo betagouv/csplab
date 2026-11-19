@@ -143,6 +143,7 @@ class RecrutementListeView(SessionApiMixin, ListAPIView):
         200: ChangerEtapeResultatSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        403: GenericErrorSerializer,
         404: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
@@ -183,6 +184,11 @@ class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
                         ],
                     }
                 ).data
+            )
+        except OrganismePermissionError:
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
             )
         except (
             OrganismeNexistePas,
