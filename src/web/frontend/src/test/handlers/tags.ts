@@ -9,6 +9,10 @@ export function tags(results: Tag[] = TAGS) {
   return http.get(TAGS_PATH, ({ response }) => response(200).json({ count: results.length, results }))
 }
 
+export function tagsFailure(status: number) {
+  return http.get(TAGS_PATH, ({ response }) => response.untyped(failure(status)))
+}
+
 export function tagCreation(
   tag: Tag = TAG_SYNTHESIS,
   onRequest?: (organismeUuid: string, payload: CreateTagPayload) => void,

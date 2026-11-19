@@ -1,5 +1,6 @@
 import type { MembreEquipePayload } from '../types'
-import { screen } from '@testing-library/vue'
+import type { Tag } from '@/features/tags/types'
+import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NOUVEL_AGENT } from '@/test/fixtures/agents'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
@@ -10,18 +11,27 @@ import {
   equipe,
   membreAddition,
   membreAdditionFailure,
+  membreTagAddition,
+  membreTagAdditionFailure,
+  membreTagRemoval,
   membreUpdate,
   membreUpdateFailure,
 } from '@/test/handlers/equipe-recrutement'
 import { recrutementDetail } from '@/test/handlers/recrutements'
+import { tags, tagsFailure } from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import EquipeRecrutementView from './EquipeRecrutementView.vue'
 
 const RECRUTEMENT_DETAIL_EQUIPE_GERABLE = {
   ...RECRUTEMENT_DETAIL,
-  authorized_actions: ['add_recrutement_agent' as const, 'update_recrutement_agent' as const, 'revoke_recrutement_agent' as const],
+  authorized_actions: ['add_recrutement_agent' as const, 'update_recrutement_agent' as const, 'revoke_recrutement_agent' as const, 'manage_tag_on_member' as const],
 }
+
+const TAG_JURY: Tag = { uuid: 'aaaaaaaa-0003-0003-0003-000000000001', name: 'Jury', category: 'recrutement_agent', color: 'vert', usage_count: 0 }
+const TAG_PRESELECTION: Tag = { uuid: 'aaaaaaaa-0003-0003-0003-000000000002', name: 'Présélection', category: 'recrutement_agent', color: 'bleu', usage_count: 0 }
+
+const MEMBRE_JURY = { ...MEMBRE_EQUIPE, tags: [TAG_JURY] }
 
 const Host = withToaster(EquipeRecrutementView, { organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID })
 
@@ -56,9 +66,30 @@ async function chooseAction(user: ReturnType<typeof setupUser>, action: string) 
   await user.click(await screen.findByRole('menuitem', { name: action }))
 }
 
+async function chooseTag(user: ReturnType<typeof setupUser>, name: string) {
+  await chooseAction(user, 'Modifier l\'étiquette')
+  await user.click(await screen.findByRole('combobox', { name: /Étiquette/ }))
+  await user.click(await screen.findByRole('option', { name }))
+  await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
+}
+
+async function addMemberWithTag(user: ReturnType<typeof setupUser>, name: string) {
+  await searchNewAgent(user)
+  await user.click(await screen.findByRole('combobox', { name: /Étiquette/ }))
+  await user.click(await screen.findByRole('option', { name }))
+  await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+}
+
+function watchTagChanges() {
+  const added = vi.fn<(agentUuid: string, tagUuid: string) => void>()
+  const removed = vi.fn<(agentUuid: string, tagUuid: string) => void>()
+  server.use(membreTagAddition(added), membreTagRemoval(removed))
+  return { added, removed }
+}
+
 describe('equipeRecrutementView', () => {
   beforeEach(() => {
-    server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE), agentSearch(NOUVEL_AGENT))
+    server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE), agentSearch(NOUVEL_AGENT), tags([TAG_JURY, TAG_PRESELECTION]))
   })
 
   it('lists the members of the recrutement', async () => {
@@ -201,6 +232,129 @@ describe('equipeRecrutementView', () => {
     await screen.findByRole('radio', { name: /^Contributeur/ })
 
     expect(Boolean(screen.queryByRole('radio', { name: /^Responsable/ }))).toBe(offered)
+  })
+
+  it('shows the tag of each member in a column', async () => {
+    server.use(equipe([MEMBRE_JURY]))
+    await renderView()
+
+    expect(within(screen.getByRole('row', { name: /Dupont Jeanne/ })).getByText('Jury')).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'Étiquette' })).toBeInTheDocument()
+  })
+
+  it('replaces the tag of a member from the tag drawer', async () => {
+    const user = setupUser()
+    const { added, removed } = watchTagChanges()
+    server.use(equipe([MEMBRE_JURY]))
+    await renderView()
+
+    await chooseTag(user, 'Présélection')
+
+    expect(await screen.findByText('Étiquette enregistrée')).toBeInTheDocument()
+    expect(removed).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_JURY.uuid)
+    expect(added).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_PRESELECTION.uuid)
+  })
+
+  it('tags a member without a tag from the tag drawer', async () => {
+    const user = setupUser()
+    const { added, removed } = watchTagChanges()
+    await renderView()
+
+    await chooseTag(user, 'Jury')
+
+    expect(await screen.findByText('Étiquette enregistrée')).toBeInTheDocument()
+    expect(removed).not.toHaveBeenCalled()
+    expect(added).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_JURY.uuid)
+  })
+
+  it('removes the tag of a member by choosing no tag', async () => {
+    const user = setupUser()
+    const { added, removed } = watchTagChanges()
+    server.use(equipe([MEMBRE_JURY]))
+    await renderView()
+
+    await chooseTag(user, 'Aucune étiquette')
+
+    expect(await screen.findByText('Étiquette retirée')).toBeInTheDocument()
+    expect(removed).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_JURY.uuid)
+    expect(added).not.toHaveBeenCalled()
+  })
+
+  it('tags the member it adds', async () => {
+    const user = setupUser()
+    const { added } = watchTagChanges()
+    server.use(membreAddition(SECOND_MEMBRE_EQUIPE))
+    await renderView()
+
+    await addMemberWithTag(user, 'Jury')
+
+    await vi.waitFor(() => expect(added).toHaveBeenCalledWith(SECOND_MEMBRE_EQUIPE.uuid, TAG_JURY.uuid))
+  })
+
+  it('says when the organisme has no member tag', async () => {
+    const user = setupUser()
+    server.use(tags([]))
+    await renderView()
+
+    await chooseAction(user, 'Modifier l\'étiquette')
+
+    const select = await screen.findByRole('combobox', { name: /Étiquette/ })
+    await vi.waitFor(() => expect(select).toHaveTextContent('Aucune étiquette disponible.'))
+    expect(select).toBeDisabled()
+  })
+
+  it('says when the tag of a member cannot be changed', async () => {
+    const user = setupUser()
+    server.use(membreTagAdditionFailure(500))
+    await renderView()
+
+    await chooseTag(user, 'Jury')
+
+    expect(await screen.findByText('La modification de l\'étiquette a échoué')).toBeInTheDocument()
+  })
+
+  it('says when the member or the tag no longer exists', async () => {
+    const user = setupUser()
+    server.use(membreTagAdditionFailure(404))
+    await renderView()
+
+    await chooseTag(user, 'Jury')
+
+    expect(await screen.findByText('Ce membre ou cette étiquette n\'existe plus')).toBeInTheDocument()
+  })
+
+  it('says that the former tag was removed when the new one cannot be added', async () => {
+    const user = setupUser()
+    const { removed } = watchTagChanges()
+    server.use(equipe([MEMBRE_JURY]), membreTagAdditionFailure(500))
+    await renderView()
+
+    await chooseTag(user, 'Présélection')
+
+    expect(await screen.findByText('L\'ancienne étiquette a été retirée, mais la nouvelle n\'a pas pu être posée')).toBeInTheDocument()
+    expect(removed).toHaveBeenCalledOnce()
+  })
+
+  it('says when the member is added but not tagged', async () => {
+    const user = setupUser()
+    server.use(membreAddition(SECOND_MEMBRE_EQUIPE), membreTagAdditionFailure(500))
+    await renderView()
+
+    await addMemberWithTag(user, 'Jury')
+
+    expect(await screen.findByText('Membre ajouté')).toBeInTheDocument()
+    expect(await screen.findByText('L\'étiquette du membre n\'a pas pu être enregistrée')).toBeInTheDocument()
+  })
+
+  it('says when the tags of the organisme cannot be loaded', async () => {
+    const user = setupUser()
+    server.use(tagsFailure(500))
+    await renderView()
+
+    await chooseAction(user, 'Modifier l\'étiquette')
+
+    expect(await screen.findByText('Les étiquettes n\'ont pas pu être chargées.')).toBeInTheDocument()
+    expect(screen.queryByText('Aucune étiquette disponible.')).not.toBeInTheDocument()
   })
 
   it('only lists the team without the right to manage it', async () => {

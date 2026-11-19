@@ -4,6 +4,7 @@ import { ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import AgentEmail from './AgentEmail.vue'
 
 const props = defineProps<{
   email: string
@@ -33,14 +34,7 @@ function handleSubmit(): void {
     novalidate
     @submit.prevent="handleSubmit"
   >
-    <div class="agent-role-form__member">
-      <p class="agent-role-form__label">
-        Courriel
-      </p>
-      <p class="agent-role-form__email">
-        {{ email }}
-      </p>
-    </div>
+    <AgentEmail :email="email" />
 
     <CspRadioGroup
       v-model="selectedRole"
@@ -73,24 +67,5 @@ function handleSubmit(): void {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
-}
-
-.agent-role-form__member {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--csp-field-legend-gap);
-}
-
-.agent-role-form__label {
-  margin: 0;
-  font-size: var(--csp-font-size-base);
-  font-weight: 600;
-  color: var(--text-default-grey);
-}
-
-.agent-role-form__email {
-  margin: 0;
-  overflow-wrap: anywhere;
 }
 </style>
