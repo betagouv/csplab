@@ -6,9 +6,6 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.usecases.attach_organisme_agent import (
     AttachOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.change_etape_candidatures import (
-    ChangeEtapeCandidaturesUsecase,
-)
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsUsecase,
 )
@@ -19,21 +16,11 @@ from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from infrastructure.mappers.candidature_recruteur_mapper import (
-    CandidatureRecruteurMapper,
-)
-from infrastructure.mappers.recrutement_mapper import RecrutementMapper
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
-from infrastructure.repositories.commons.postgres_unit_of_work import (
-    PostgresUnitOfWork,
-)
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
-)
-from infrastructure.repositories.recruteur import (
-    postgres_candidature_recruteur_repository,
 )
 from infrastructure.repositories.recruteur.postgres_organisme_agent_query_service import (  # noqa: E501
     PostgresOrganismeAgentQueryService,
@@ -44,16 +31,11 @@ from infrastructure.repositories.recruteur.postgres_organisme_agent_repository i
 from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
     PostgresRecrutementAgentRepository,
 )
-from infrastructure.repositories.recruteur.postgres_recrutement_repository import (
-    PostgresRecrutementRepository,
-)
 
 
 class RecruteurContainer(containers.DeclarativeContainer):
     app_config: providers.Dependency = providers.Dependency()
     logger_service: providers.Dependency = providers.Dependency()
-
-    postgres_unit_of_work = providers.Singleton(PostgresUnitOfWork)
 
     postgres_audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
 
@@ -71,16 +53,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         PostgresRecrutementAgentRepository
     )
     organisme_permission_service = providers.Factory(OrganismePermissionService)
-    recrutement_mapper = providers.Factory(RecrutementMapper)
-    postgres_recrutement_repository = providers.Singleton(
-        PostgresRecrutementRepository, mapper=recrutement_mapper
-    )
-
-    candidature_recruteur_mapper = providers.Factory(CandidatureRecruteurMapper)
-    postgres_candidature_repository = providers.Singleton(
-        postgres_candidature_recruteur_repository.PostgresCandidatureRecrutementRepository,
-        mapper=candidature_recruteur_mapper,
-    )
 
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
 
@@ -111,13 +83,4 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
         audit_log_writer=audit_log_writer,
-    )
-
-    change_etape_candidatures_usecase = providers.Factory(
-        ChangeEtapeCandidaturesUsecase,
-        permission_service=organisme_permission_service,
-        recrutement_repository=postgres_recrutement_repository,
-        candidature_recruteur_repository=postgres_candidature_repository,
-        audit_log_writer=audit_log_writer,
-        unit_of_work=postgres_unit_of_work,
     )
