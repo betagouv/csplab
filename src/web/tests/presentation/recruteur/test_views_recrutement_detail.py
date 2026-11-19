@@ -347,6 +347,32 @@ class TestRecrutementDetailView:
         assert "grant_recrutement_responsable" not in agent_responsable
         assert "grant_recrutement_responsable" in staff
 
+    @pytest.mark.parametrize(
+        ("organisme_role", "recrutement_role", "expose"),
+        [
+            (AgentOrganismeRole.SUPERVISEUR, None, True),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE, True),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR, False),
+        ],
+    )
+    def test_exposes_manage_tag_on_member_to_superviseur_and_responsable(
+        self, authenticated_client, test_user, organisme_role, recrutement_role, expose
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=organisme_role, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        if recrutement_role is not None:
+            RecrutementAgentDjangoFactory(
+                recrutement=recrutement, agent=agent, role=recrutement_role.value
+            )
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = response.json()["authorized_actions"]
+        assert ("manage_tag_on_member" in actions) is expose
+
     def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user

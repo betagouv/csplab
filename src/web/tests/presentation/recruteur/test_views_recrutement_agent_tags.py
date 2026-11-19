@@ -12,6 +12,7 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.tag.models import RecrutementAgentTagModel, TagCategory
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     create_organisme_with_agent,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
@@ -43,6 +44,16 @@ def _member_tag_url(organisme_id, recrutement_id, agent_id, tag_id) -> str:
             "recrutement_uuid": str(recrutement_id),
             "agent_uuid": str(agent_id),
             "tag_uuid": str(tag_id),
+        },
+    )
+
+
+def _equipe_url(organisme_id, recrutement_id) -> str:
+    return reverse(
+        "recruteur:organisme_recrutement_parametres_agents",
+        kwargs={
+            "organisme_uuid": str(organisme_id),
+            "recrutement_uuid": str(recrutement_id),
         },
     )
 
@@ -297,3 +308,51 @@ class TestRecrutementAgentTagDetailView:
             autre_membre_pose.pk
         ]
         assert _member_events(membre.agent_id) == ["EtiquetteRetiree"]
+
+
+class TestReinstatedMemberTag:
+    def test_reinstated_member_gets_its_tag_back(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        agent = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        membre = RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=agent,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        pose = RecrutementAgentTagDjangoFactory(
+            recrutement_agent=membre, tag=_member_tag(organisme)
+        )
+        url = _equipe_url(organisme.id, recrutement.pk)
+        agent_id = str(agent.utilisateur_id)
+
+        retrait = authenticated_client.put(
+            url,
+            {
+                "agent_id": agent_id,
+                "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+                "date_revocation_recrutement": datetime.now(UTC),
+            },
+            format="json",
+        )
+        reintegration = authenticated_client.post(
+            url,
+            {
+                "agent_id": agent_id,
+                "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            },
+            format="json",
+        )
+        equipe = authenticated_client.get(url).json()["results"]
+
+        assert retrait.status_code == status.HTTP_200_OK
+        assert reintegration.status_code == status.HTTP_201_CREATED
+        assert [
+            (m["recrutement_role"], [tag["uuid"] for tag in m["tags"]])
+            for m in equipe
+            if m["uuid"] == agent_id
+        ] == [(AgentRecrutementRole.RECRUTEUR.value, [str(pose.tag_id)])]
