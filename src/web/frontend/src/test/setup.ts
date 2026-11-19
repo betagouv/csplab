@@ -6,6 +6,7 @@ import { createMediaQueryMock } from './browser'
 import { makeUser } from './fixtures/utilisateur'
 import { server } from './server'
 import '@testing-library/jest-dom/vitest'
+import '@/app/icons'
 
 config.global.plugins.push(createHead())
 
