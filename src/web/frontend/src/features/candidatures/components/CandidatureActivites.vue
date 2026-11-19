@@ -6,6 +6,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useCandidatureActivites } from '../composables/useCandidatureActivites'
 import { LATEST_ACTIVITES_LIMIT } from '../constants/candidature'
 import CandidatureActivitesList from './CandidatureActivitesList.vue'
+import CandidatureAsideTitle from './CandidatureAsideTitle.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -26,12 +27,9 @@ const historiqueLocation = computed(() => ({
 <template>
   <section :aria-labelledby="titleId">
     <div class="candidature-activites__header">
-      <h3
-        :id="titleId"
-        class="candidature-activites__title"
-      >
+      <CandidatureAsideTitle :id="titleId">
         Dernières activités
-      </h3>
+      </CandidatureAsideTitle>
       <RouterLink
         :to="historiqueLocation"
         class="candidature-activites__link"
@@ -55,13 +53,6 @@ const historiqueLocation = computed(() => ({
   justify-content: space-between;
   gap: var(--csp-space-3);
   margin: 0 0 var(--csp-space-3);
-}
-
-.candidature-activites__title {
-  margin: 0;
-  font-size: var(--csp-font-size-base);
-  font-weight: var(--csp-font-weight-bold);
-  color: var(--text-title-grey);
 }
 
 .candidature-activites__link {

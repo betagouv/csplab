@@ -3,7 +3,6 @@ import type { Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -17,6 +16,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import TagList from '@/features/tags/components/TagList.vue'
 import TagPicker from '@/features/tags/components/TagPicker.vue'
+import { useTagChanges } from '@/features/tags/composables/useTagChanges'
 import { can } from '@/utils/authorizedActions'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
@@ -98,7 +98,6 @@ async function confirmDeletion(): Promise<void> {
 const { addTag, removeTag } = useCandidatureNoteTags(() => props.candidature)
 
 const taggedNoteUuid = ref<string | null>(null)
-const addingTagUuid = ref<string | null>(null)
 
 function openTagPicker(note: Note): void {
   taggedNoteUuid.value = note.uuid
@@ -120,36 +119,17 @@ function handleTagPickerOpen(open: boolean | undefined): void {
   }
 }
 
-async function handleAddTag(note: Note, tagUuid: string): Promise<void> {
-  addingTagUuid.value = tagUuid
-  try {
-    await addTag({ noteUuid: note.uuid, tagUuid })
-  }
-  catch (error) {
-    if (isHttpStatus(error, 409)) {
-      return
-    }
-    if (isHttpStatus(error, 404)) {
-      addToast({ variant: 'warning', title: 'L\'étiquette ou la note a été supprimée' })
-      closeTagPicker()
-      return
-    }
-    addToast({ variant: 'error', title: 'L\'ajout de l\'étiquette a échoué' })
-  }
-  finally {
-    addingTagUuid.value = null
-  }
+const { addingTagUuid, submitAdd, submitRemove } = useTagChanges({
+  deletedTitle: 'L\'étiquette ou la note a été supprimée',
+  onDeleted: closeTagPicker,
+})
+
+function handleAddTag(note: Note, tagUuid: string): void {
+  void submitAdd(tagUuid, () => addTag({ noteUuid: note.uuid, tagUuid }))
 }
 
-async function handleRemoveTag(note: Note, tagUuid: string): Promise<void> {
-  try {
-    await removeTag({ noteUuid: note.uuid, tagUuid })
-  }
-  catch (error) {
-    if (!isHttpStatus(error, 404)) {
-      addToast({ variant: 'error', title: 'Le retrait de l\'étiquette a échoué' })
-    }
-  }
+function handleRemoveTag(note: Note, tagUuid: string): void {
+  void submitRemove(() => removeTag({ noteUuid: note.uuid, tagUuid }))
 }
 
 function canChangeNote(note: Note): boolean {
