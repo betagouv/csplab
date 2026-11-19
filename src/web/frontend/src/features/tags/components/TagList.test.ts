@@ -56,6 +56,24 @@ describe('tagList', () => {
     expect(list.getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['Alpha', 'Bravo', 'Charlie', '+2'])
   })
 
+  it('keeps the first tag with the count when it is wider than the row', async () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.hasAttribute('data-fitting-item')) {
+        const index = [...(this.parentElement?.querySelectorAll('[data-fitting-item]') ?? [])].indexOf(this)
+        return rect(0, index * LINE_HEIGHT, ROW_WIDTH + 10)
+      }
+      if (this.hasAttribute('data-fitting-more')) {
+        return rect(0, 0, MORE_WIDTH)
+      }
+      return rect(0, 0, ROW_WIDTH)
+    })
+    render(TagList, { props: { 'tags': TAGS.slice(0, 2), 'maxLines': 1, 'aria-label': 'Étiquettes' } })
+
+    await screen.findByRole('button', { name: '1 autre étiquette' })
+    const list = within(screen.getByRole('list', { name: 'Étiquettes' }))
+    expect(list.getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['Alpha', '+1'])
+  })
+
   it('names the hidden tags on keyboard focus of the count', async () => {
     layOutTwoTagsPerLine()
     vi.stubGlobal('IntersectionObserver', class {

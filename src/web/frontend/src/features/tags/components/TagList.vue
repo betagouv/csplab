@@ -34,7 +34,7 @@ const moreLabel = computed(() => {
 <template>
   <ul
     class="tag-list"
-    :class="{ 'tag-list--bounded': maxLines }"
+    :class="{ 'tag-list--bounded': maxLines, 'tag-list--single-line': maxLines === 1 }"
   >
     <li
       v-if="maxLines"
@@ -79,7 +79,10 @@ const moreLabel = computed(() => {
         @dismiss="emit('dismiss', tag)"
       />
     </li>
-    <li v-if="hiddenTags.length > 0">
+    <li
+      v-if="hiddenTags.length > 0"
+      class="tag-list__more-item"
+    >
       <CspTooltip
         :content="hiddenNames"
         side="top"
@@ -115,8 +118,22 @@ const moreLabel = computed(() => {
   }
 }
 
+// the measured width comes from the parent, whatever tags are visible
 .tag-list--bounded {
   position: relative;
+  contain: inline-size;
+}
+
+.tag-list--single-line {
+  flex-wrap: nowrap;
+
+  > li {
+    min-width: 0;
+  }
+
+  > .tag-list__more-item {
+    flex-shrink: 0;
+  }
 }
 
 .tag-list__measure {

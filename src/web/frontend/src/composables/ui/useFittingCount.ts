@@ -4,6 +4,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue'
 // Counts the items of a wrapping row that fit in `maxLines` lines, keeping room for the
 // trailing "more" element on the last line. The container renders every item, each one
 // marked with `data-fitting-item`, then the "more" element marked with `data-fitting-more`.
+// The count keeps at least the first item, which the container shrinks when it is too wide.
 export function useFittingCount(
   container: Ref<HTMLElement | null>,
   items: MaybeRefOrGetter<readonly unknown[]>,
@@ -29,7 +30,7 @@ export function useFittingCount(
     const moreWidth = element.querySelector<HTMLElement>('[data-fitting-more]')?.getBoundingClientRect().width ?? 0
     const gap = Number.parseFloat(getComputedStyle(element).columnGap) || 0
     let fitting = rects.filter(item => Math.round(item.top) <= lastLineTop).length
-    while (fitting > 0) {
+    while (fitting > 1) {
       const last = rects[fitting - 1]
       if (!last || Math.round(last.top) < lastLineTop || last.right - box.left + gap + moreWidth <= box.width) {
         break
