@@ -10,6 +10,7 @@ import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import Panel from '../../shared/Panel.vue'
 import { manquesAnnonce } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
+import { dupliquer } from './dupliquer'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
 import FormEquipe from './FormEquipe.vue'
@@ -56,7 +57,7 @@ const meta = computed(() => [
 ])
 const menu = [{
   items: [
-    { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: o.value.id }) },
+    { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(o.value, { aller, notifier }) },
   ],
 }]
 const apercu = ref(false)

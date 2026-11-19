@@ -13,18 +13,24 @@ const e = computed(() => prochaineEtape(props.row, Boolean(db.organisme.agents.f
 </script>
 
 <template>
-  <button
-    v-if="e.ecran"
-    type="button"
-    class="lien"
-    @click="aller(e.ecran)"
-  >
-    {{ e.label }}
-  </button>
-  <span
-    v-else
-    class="texte"
-  >{{ e.label }}</span>
+  <div class="etape">
+    <button
+      v-if="e.ecran"
+      type="button"
+      class="lien"
+      @click="aller(e.ecran)"
+    >
+      {{ e.label }}
+    </button>
+    <span
+      v-else
+      class="texte"
+    >{{ e.label }}</span>
+    <span
+      v-if="e.detail"
+      class="detail"
+    >{{ e.detail }}</span>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -46,6 +52,18 @@ const e = computed(() => prochaineEtape(props.row, Boolean(db.organisme.agents.f
 }
 
 .texte {
+  color: var(--text-mention-grey);
+}
+
+.etape {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.detail {
+  font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
 }
 </style>

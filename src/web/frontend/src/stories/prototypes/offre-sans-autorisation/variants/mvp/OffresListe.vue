@@ -2,28 +2,32 @@
 import type { Offre } from './store'
 import type { CategorieOffre } from './suivi'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
-import { computed, ref, watch } from 'vue'
+import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspFiltersDrawer from '@/components/base/CspFiltersDrawer/CspFiltersDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
+import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
-import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useDraft } from '@/composables/storage/useDraft'
+import { useDisclosure } from '@/composables/ui/useDisclosure'
 import ActionsOffreCell from './cellules/ActionsOffreCell.vue'
 import CandidaturesCell from './cellules/CandidaturesCell.vue'
 import DepublicationCell from './cellules/DepublicationCell.vue'
 import EtapeCell from './cellules/EtapeCell.vue'
 import IntituleCell from './cellules/IntituleCell.vue'
+import MiseEnLigneCell from './cellules/MiseEnLigneCell.vue'
+import ResponsablesCell from './cellules/ResponsablesCell.vue'
 import StatutDepuisCell from './cellules/StatutDepuisCell.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
 import { db, fiche } from './store'
-import { categorieOffre, CATEGORIES_OFFRE, dateCourte, prochaineEtape, responsable } from './suivi'
+import { categorieOffre, CATEGORIES_OFFRE, PHASES, prochaineEtape, responsable, responsables } from './suivi'
 
-// « Mes offres d'emploi » (sans autorisation) : brouillons, offres publiées et dépubliées.
-// Les puces au-dessus filtrent le tableau par statut ; « Toutes » garde l'ordre d'urgence.
+// « Mes offres d'emploi » (sans autorisation) : onglets par phase, recherche, filtres, colonnes selon l'onglet.
 const props = defineProps<{ filtre?: string }>()
 const { aller } = useNav()
 
@@ -31,43 +35,84 @@ const offres = computed(() => db.offres.filter(o => o.etat !== 'archivee'))
 const { search, filtered: trouvees } = useTextSearch(offres, o => [o.titre, o.id, o.lieu, fiche(o.ficheId)?.service])
 
 const ORDRE = CATEGORIES_OFFRE.map(c => c.id)
-const parCategorie = computed(() => {
-  const m = new Map<CategorieOffre, Offre[]>()
-  for (const o of trouvees.value) {
-    const c = categorieOffre(o)
-    m.set(c, [...(m.get(c) ?? []), o])
+
+// --- Filtres (retour PO, L3), dans un tiroir et appliqués au clic, comme sur les autres listes ---
+const TOUS = 'tous'
+const filtres = useDraft(() => ({ responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
+const tiroir = useDisclosure()
+function ouvrirFiltres() {
+  filtres.syncDraft()
+  tiroir.open()
+}
+function appliquer() {
+  filtres.apply()
+  tiroir.close()
+}
+const nbFiltres = computed(() => Object.values(filtres.applied).filter(v => v !== TOUS).length)
+const service = (o: Offre) => o.service ?? fiche(o.ficheId)?.service.split(' — ').at(-1) ?? ''
+function options(tous: string, valeurs: string[]) {
+  return [{ value: TOUS, label: tous }, ...[...new Set(valeurs.filter(Boolean))].sort().map(v => ({ value: v, label: v }))]
+}
+const OPTIONS_RESPONSABLE = computed(() => options('Tous les responsables', offres.value.flatMap(responsables)))
+const OPTIONS_SERVICE = computed(() => options('Tous les services', offres.value.map(service)))
+const OPTIONS_LIEU = computed(() => options('Tous les lieux', offres.value.flatMap(o => o.lieu.split(',').map(l => l.trim()))))
+const OPTIONS_CATEGORIE = computed(() => options('Toutes les catégories', offres.value.map(o => o.categorie ? `Catégorie ${o.categorie}` : '')))
+const filtrees = computed(() => trouvees.value.filter((o) => {
+  const f = filtres.applied
+  return (f.responsable === TOUS || responsables(o).includes(f.responsable))
+    && (f.service === TOUS || service(o) === f.service)
+    && (f.lieu === TOUS || o.lieu.split(',').map(l => l.trim()).includes(f.lieu))
+    && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
+}))
+
+// --- Onglets par phase (retour PO, L1) : En préparation, En ligne, Terminées, puis Toutes ---
+type Onglet = CategorieOffre | 'toutes'
+const parPhase = computed(() => {
+  const m = new Map<CategorieOffre, number>()
+  for (const o of filtrees.value) {
+    m.set(categorieOffre(o), (m.get(categorieOffre(o)) ?? 0) + 1)
   }
   return m
 })
-// Ordre des puces (retour Alice) : Publiée d'abord, « Toutes » en dernier. L'ordre du tableau ne change pas.
-const ORDRE_PUCES: CategorieOffre[] = ['en_ligne', 'brouillon', 'depubliee']
-const puces = computed(() => ORDRE_PUCES.map(id => CATEGORIES_OFFRE.find(c => c.id === id)!).filter(c => parCategorie.value.has(c.id)))
-
-// Accès direct depuis le tableau de bord.
+const onglets = computed<CspTabItem<Onglet>[]>(() => [
+  ...PHASES.map(p => ({ value: p.id, label: `${p.label} (${parPhase.value.get(p.id) ?? 0})` })),
+  { value: 'toutes', label: `Toutes (${filtrees.value.length})` },
+])
+// Accès direct depuis le tableau de bord. À l'ouverture, on arrive sur les offres en ligne (retour Alice).
 const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'depubliee' }
-// À l'ouverture, on arrive sur les offres publiées (retour Alice).
-const puce = ref<string | undefined>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
-// Recliquer la puce active la désélectionne : on revient à « Toutes ».
-watch(puce, (v) => {
-  if (!v) {
-    puce.value = 'toutes'
+const onglet = ref<Onglet>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
+
+// Tri par défaut : en ligne, les fins les plus proches d'abord (L4) ; terminées, les plus récentes d'abord.
+const lignes = computed(() => {
+  const l = filtrees.value.filter(o => onglet.value === 'toutes' || categorieOffre(o) === onglet.value)
+  if (onglet.value === 'en_ligne') {
+    return [...l].sort((a, b) => a.dateFin.localeCompare(b.dateFin))
   }
+  if (onglet.value === 'depubliee') {
+    return [...l].sort((a, b) => b.dateFin.localeCompare(a.dateFin))
+  }
+  return [...l].sort((a, b) => ORDRE.indexOf(categorieOffre(a)) - ORDRE.indexOf(categorieOffre(b)))
 })
 
-const lignes = computed(() => trouvees.value
-  .filter(o => !puce.value || puce.value === 'toutes' || categorieOffre(o) === puce.value)
-  .sort((a, b) => ORDRE.indexOf(categorieOffre(a)) - ORDRE.indexOf(categorieOffre(b))))
-
-const COLONNES: CspColumnDef<Offre>[] = [
-  { id: 'intitule', header: 'Intitulé', accessor: o => o.titre, cellComponent: IntituleCell },
-  { id: 'statut', header: 'Statut', sortable: true, accessor: o => ORDRE.indexOf(categorieOffre(o)), cellComponent: StatutDepuisCell, width: '11rem' },
-  { id: 'etape', header: 'Prochaine étape', accessor: o => prochaineEtape(o).label, cellComponent: EtapeCell, width: '12rem' },
-  { id: 'responsable', header: 'Responsable', accessor: o => responsable(o), width: '9rem' },
-  { id: 'enligne', header: 'Mise en ligne', wrapHeader: true, sortable: true, accessor: o => (o.etat !== 'brouillon' && o.dateDebut ? dateCourte(o.dateDebut) : '—'), width: '7.5rem' },
-  { id: 'depublication', header: 'Dépublication', wrapHeader: true, sortable: true, accessor: o => (o.etat !== 'brouillon' ? o.dateFin : ''), cellComponent: DepublicationCell, width: '7.5rem' },
-  { id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: o => (o.etat !== 'brouillon' ? candidatures(o).total : -1), cellComponent: CandidaturesCell, width: '6.5rem' },
-  { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsOffreCell },
-]
+// Colonnes selon l'onglet. Le statut n'est utile que dans « Toutes » (L2) ; les dates et candidatures
+// n'existent pas encore pour une offre en préparation.
+const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
+  const preparation = onglet.value === 'brouillon'
+  return [
+    { id: 'intitule', header: 'Intitulé', accessor: o => o.titre, cellComponent: IntituleCell },
+    ...(onglet.value === 'toutes' ? [{ id: 'statut', header: 'Statut', sortable: true, accessor: (o: Offre) => ORDRE.indexOf(categorieOffre(o)), cellComponent: StatutDepuisCell, width: '7.5rem' }] : []),
+    { id: 'etape', header: 'Prochaine étape', accessor: o => prochaineEtape(o).label, cellComponent: EtapeCell, width: preparation ? '16rem' : '12rem' },
+    { id: 'responsable', header: 'Responsable', accessor: o => responsable(o), cellComponent: ResponsablesCell, width: '11rem' },
+    ...(preparation
+      ? []
+      : [
+          { id: 'enligne', header: 'Mise en ligne', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' && o.dateDebut ? o.dateDebut : ''), cellComponent: MiseEnLigneCell, width: '7.5rem' },
+          { id: 'fin', header: 'Fin de publication', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? o.dateFin : ''), cellComponent: DepublicationCell, width: '8rem' },
+          { id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? candidatures(o).total : -1), cellComponent: CandidaturesCell, width: '6.5rem' },
+        ]),
+    { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsOffreCell },
+  ]
+})
 
 const compte = computed(() => {
   const n = lignes.value.length
@@ -78,41 +123,21 @@ const page = ref(1)
 
 <template>
   <PageAts
+    v-model:onglet="onglet"
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Retrouvez toutes vos offres d'emploi en ligne et en préparation."
+    sous-titre="Retrouvez toutes vos offres d'emploi : en préparation, en ligne et terminées."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
+    :onglets="onglets"
   >
     <template #actions>
       <CspButton
         label="Créer une offre"
-        variant="secondary"
-        size="sm"
         icon="ri:add-line"
         is-icon-left
         @click="aller({ nom: 'creation' })"
       />
     </template>
-
-    <CspTagGroup
-      v-model="puce"
-      type="single"
-      size="sm"
-      aria-label="Filtrer les offres par statut"
-    >
-      <CspTag
-        v-for="c in puces"
-        :key="c.id"
-        variant="selectable"
-        :value="c.id"
-        :label="`${c.label} (${parCategorie.get(c.id)!.length})`"
-      />
-      <CspTag
-        variant="selectable"
-        value="toutes"
-        :label="`Toutes (${trouvees.length})`"
-      />
-    </CspTagGroup>
 
     <div>
       <CspTableToolbar :bordered="false">
@@ -126,23 +151,58 @@ const page = ref(1)
           mode="live"
           label="Rechercher une offre"
           hide-label
-          placeholder="Rechercher un intitulé, un lieu, une référence"
+          placeholder="Intitulé, lieu, référence"
           class="recherche"
+        />
+        <CspButton
+          :label="nbFiltres ? `Filtres (${nbFiltres})` : 'Filtres'"
+          variant="tertiary"
+          icon="ri:filter-line"
+          is-icon-left
+          @click="ouvrirFiltres"
         />
       </CspTableToolbar>
       <CspDataTable
-        :key="puce"
+        :key="onglet"
         v-model:page="page"
         :rows="lignes"
         :columns="COLONNES"
         :row-key="o => o.id"
         activation-mode="cell"
         caption="Mes offres d'emploi"
-        :empty-label="search ? 'Aucune offre ne correspond à votre recherche.' : 'Aucune offre.'"
+        :empty-label="search || nbFiltres ? 'Aucune offre ne correspond à votre recherche.' : 'Aucune offre.'"
         :page-size="10"
         @activate="id => aller({ nom: 'offre', id })"
       />
     </div>
+
+    <CspFiltersDrawer
+      v-model:open="tiroir.isOpen.value"
+      :can-reset="filtres.canReset.value"
+      @apply="appliquer"
+      @reset="filtres.reset()"
+    >
+      <CspSelect
+        v-model="filtres.draft.responsable"
+        label="Responsable"
+        :options="OPTIONS_RESPONSABLE"
+      />
+      <CspSelect
+        v-model="filtres.draft.service"
+        label="Service"
+        :options="OPTIONS_SERVICE"
+      />
+      <CspSelect
+        v-model="filtres.draft.lieu"
+        label="Lieu"
+        :options="OPTIONS_LIEU"
+      />
+      <CspSelect
+        v-model="filtres.draft.categorie"
+        label="Catégorie"
+        :options="OPTIONS_CATEGORIE"
+      />
+    </CspFiltersDrawer>
   </PageAts>
 </template>
 

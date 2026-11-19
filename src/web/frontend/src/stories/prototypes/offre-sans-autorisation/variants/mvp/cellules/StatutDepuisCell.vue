@@ -2,9 +2,9 @@
 import type { Offre } from '../store'
 import { computed } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
-import { categorieOffre, CATEGORIES_OFFRE, depuis } from '../suivi'
+import { categorieOffre, CATEGORIES_OFFRE } from '../suivi'
 
-// Statut (badge) et temps passé dans ce statut : « depuis 6 jours ».
+// Statut (badge), dans l'onglet « Toutes » seulement. Plus de « depuis 6 jours » : la date de mise en ligne suffit (retour PO, L2).
 defineOptions({ inheritAttrs: false })
 const props = defineProps<{ row: Offre }>()
 const c = computed(() => CATEGORIES_OFFRE.find(x => x.id === categorieOffre(props.row))!)
@@ -17,7 +17,6 @@ const c = computed(() => CATEGORIES_OFFRE.find(x => x.id === categorieOffre(prop
       :type="c.badge"
       size="sm"
     />
-    <span class="statut__depuis">{{ depuis(row) }}</span>
   </div>
 </template>
 

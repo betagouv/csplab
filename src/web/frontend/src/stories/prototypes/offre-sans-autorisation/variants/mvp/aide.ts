@@ -111,31 +111,39 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
  * valides. C'est le seul moment où les champs obligatoires sont contrôlés.
  */
 export function manquesPublication(o: Offre): { etape: EtapeFormulaire, label: string }[] {
-  const annonce: [boolean, string][] = [
-    [!o.versant, 'versant'],
-    [!o.titre.trim(), 'intitulé'],
-    [!o.nbPostes, 'nombre de postes'],
-    [!o.metier, 'métier'],
-    [!o.missions.trim(), 'descriptif du poste'],
-    [!o.ouvertA.length, 'nature de l\'emploi'],
-    [!o.statutPoste, 'statut du poste'],
-    [!o.dateVacance, 'date de vacance'],
-    [!o.categorie, 'catégorie'],
-    [o.ouvertA.includes('contractuel') && !o.fondementJuridique, 'fondement juridique (emploi ouvert aux contractuels)'],
-    [Boolean(o.languesListe?.some(l => l.langue.trim() && !l.niveau)), 'niveau de langue'],
-    [!o.tempsTravail, 'temps de travail'],
-    [!o.descriptifEmployeur.trim(), 'descriptif de l\'employeur'],
-    [!o.sansLieuFixe && !o.lieu.trim(), 'lieu'],
-    [!o.sansLieuFixe && !o.adresse?.trim(), 'géolocalisation (adresse)'],
+  return [
+    ...champsObligatoires(o).filter(c => !c.ok).map(({ etape, label }) => ({ etape, label })),
+    ...manquesDates(o).map(label => ({ etape: 'publication' as const, label })),
   ]
-  const candidature: [boolean, string][] = [
-    [o.modeCandidature === 'courriel' && !o.courrielCandidature.trim(), 'adresse de réception des candidatures'],
-    [o.modeCandidature === 'externe' && !o.urlCandidature.trim(), 'lien du site de candidature'],
+}
+
+/** Champs obligatoires applicables à cette offre (certains dépendent d'autres réponses), remplis ou non. */
+export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, label: string, ok: boolean }[] {
+  const lieuFixe = !o.sansLieuFixe
+  const annonce: [boolean, boolean, string][] = [
+    // [applicable, rempli, libellé]
+    [true, Boolean(o.titre.trim()), 'intitulé'],
+    [true, Boolean(o.nbPostes), 'nombre de postes'],
+    [true, Boolean(o.metier), 'métier'],
+    [true, Boolean(o.missions.trim()), 'descriptif du poste'],
+    [true, Boolean(o.ouvertA.length), 'nature de l\'emploi'],
+    [true, Boolean(o.statutPoste), 'statut du poste'],
+    [true, Boolean(o.dateVacance), 'date de vacance'],
+    [true, Boolean(o.categorie), 'catégorie'],
+    [o.ouvertA.includes('contractuel'), Boolean(o.fondementJuridique), 'fondement juridique (emploi ouvert aux contractuels)'],
+    [Boolean(o.languesListe?.some(l => l.langue.trim())), !o.languesListe?.some(l => l.langue.trim() && !l.niveau), 'niveau de langue'],
+    [true, Boolean(o.tempsTravail), 'temps de travail'],
+    [true, Boolean(o.descriptifEmployeur.trim()), 'descriptif de l\'employeur'],
+    [lieuFixe, Boolean(o.lieu.trim()), 'lieu'],
+    [lieuFixe, Boolean(o.adresse?.trim()), 'géolocalisation (adresse)'],
+  ]
+  const candidature: [boolean, boolean, string][] = [
+    [o.modeCandidature === 'courriel', Boolean(o.courrielCandidature.trim()), 'adresse de réception des candidatures'],
+    [o.modeCandidature === 'externe', Boolean(o.urlCandidature.trim()), 'lien du site de candidature'],
   ]
   return [
-    ...annonce.filter(([vide]) => vide).map(([, label]) => ({ etape: 'annonce' as const, label })),
-    ...candidature.filter(([vide]) => vide).map(([, label]) => ({ etape: 'candidature' as const, label })),
-    ...manquesDates(o).map(label => ({ etape: 'publication' as const, label })),
+    ...annonce.filter(([a]) => a).map(([, ok, label]) => ({ etape: 'annonce' as const, label, ok })),
+    ...candidature.filter(([a]) => a).map(([, ok, label]) => ({ etape: 'candidature' as const, label, ok })),
   ]
 }
 

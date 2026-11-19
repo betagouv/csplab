@@ -1,21 +1,39 @@
 <script setup lang="ts">
 import type { Offre } from '../store'
 import { computed } from 'vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { joursRestants } from '../store'
 import { dateCourte } from '../suivi'
 
-// Date de dépublication : en rouge à moins de 7 jours.
+// Fin de publication (= date limite de candidature). Pour une offre en ligne, le nombre de jours restants est
+// écrit sous la date, pas seulement signalé par la couleur (retour PO, L5 : accessibilité).
 defineOptions({ inheritAttrs: false })
 const props = defineProps<{ row: Offre }>()
 const enLigne = computed(() => props.row.etat !== 'brouillon' && Boolean(props.row.dateFin))
-const proche = computed(() => props.row.etat === 'publiee' && joursRestants(props.row.dateFin) < 7)
+const j = computed(() => joursRestants(props.row.dateFin))
+const proche = computed(() => props.row.etat === 'publiee' && j.value < 7)
+const restant = computed(() => (j.value <= 0 ? 'aujourd\'hui' : j.value === 1 ? 'demain' : `dans ${j.value} jours`))
 </script>
 
 <template>
-  <span
+  <div
     v-if="enLigne"
-    :class="{ proche }"
-  >{{ dateCourte(row.dateFin) }}</span>
+    class="fin"
+  >
+    <span>{{ dateCourte(row.dateFin) }}</span>
+    <span
+      v-if="row.etat === 'publiee'"
+      class="fin__restant"
+      :class="{ 'fin__restant--proche': proche }"
+    >
+      <CspIcon
+        v-if="proche"
+        name="ri:error-warning-line"
+        :size="14"
+      />
+      {{ restant }}
+    </span>
+  </div>
   <span
     v-else
     class="vide"
@@ -23,7 +41,21 @@ const proche = computed(() => props.row.etat === 'publiee' && joursRestants(prop
 </template>
 
 <style scoped lang="scss">
-.proche {
+.fin {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.fin__restant {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.fin__restant--proche {
   font-weight: 600;
   color: var(--text-default-error);
 }

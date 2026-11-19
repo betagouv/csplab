@@ -3,6 +3,7 @@ import type { Offre } from '../store'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import { dupliquer } from '../dupliquer'
 import { useNav } from '../nav'
 
 // Menu « … » d'un recrutement. Prolonger et retirer se font depuis la page de l'offre.
@@ -18,7 +19,7 @@ const sections = computed(() => [
     ],
   },
   {
-    items: [{ label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: props.row.id }) }],
+    items: [{ label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(props.row, { aller, notifier }) }],
   },
 ])
 </script>

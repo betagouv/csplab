@@ -3,7 +3,7 @@
 
 import type { Ecran } from './nav'
 import type { Offre } from './store'
-import { manquesAnnonce } from './aide'
+import { champsObligatoires, manquesAnnonce } from './aide'
 import { aujourdhui, aValiderParMoi, dateTri, joursRestants, termineBientot, validationManquante } from './store'
 
 export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'validee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
@@ -39,6 +39,8 @@ export function statutListe(o: Offre): StatutListe {
 
 export interface ActionAFaire {
   label: string
+  /** Précision affichée sous le lien. */
+  detail?: string
   /** Absent : simple information, sans lien. */
   ecran?: Ecran
 }
@@ -90,11 +92,21 @@ export function referenceCsp(o: Offre): string {
 
 export type CategorieOffre = 'brouillon' | 'en_ligne' | 'depubliee'
 
-/** Libellés des puces de filtre et des badges de statut. */
+/** Libellés des badges de statut (colonne « Statut » de l'onglet « Toutes »). */
 export const CATEGORIES_OFFRE: { id: CategorieOffre, label: string, badge: 'info' | 'new' | 'warning' | 'error' | 'success' }[] = [
   { id: 'brouillon', label: 'Brouillon', badge: 'new' },
   { id: 'en_ligne', label: 'Publiée', badge: 'success' },
   { id: 'depubliee', label: 'Dépubliée', badge: 'warning' },
+]
+
+/**
+ * Onglets de la liste, par phase plutôt que par statut (retour PO, L1) : le même écran servira quand l'organisme
+ * a un circuit d'autorisation, dont les statuts (validation en attente, validée…) se rangent dans « En préparation ».
+ */
+export const PHASES: { id: CategorieOffre, label: string }[] = [
+  { id: 'brouillon', label: 'En préparation' },
+  { id: 'en_ligne', label: 'En ligne' },
+  { id: 'depubliee', label: 'Terminées' },
 ]
 
 export function categorieOffre(o: Offre): CategorieOffre {
@@ -132,11 +144,14 @@ export function prochaineEtape(o: Offre, peutPublier = true): ActionAFaire {
   switch (categorieOffre(o)) {
     case 'brouillon':
       if (manquesAnnonce(o).length) {
-        return { label: 'Compléter l\'annonce', ecran: offre }
+        // Retour PO (L11) : dire où on en est, pas seulement qu'il reste à faire.
+        const champs = champsObligatoires(o)
+        return { label: 'Compléter l\'annonce', detail: `${champs.filter(c => c.ok).length} / ${champs.length} champs obligatoires`, ecran: { nom: 'rediger', id: o.id } }
       }
       return peutPublier ? { label: 'Publier', ecran: { nom: 'publier', id: o.id } } : { label: 'À publier par un agent habilité' }
     case 'en_ligne':
-      return termineBientot(o) ? { label: 'Prolonger la publication', ecran: offre } : { label: 'Suivre les candidatures', ecran: { nom: 'recrutements' } }
+      // Rien à faire tant que la fin n'approche pas : les candidatures ont leur propre colonne (retour PO, L6).
+      return termineBientot(o) ? { label: 'Prolonger la publication', ecran: offre } : { label: '—' }
     case 'depubliee':
       return { label: 'Prolonger pour remettre en ligne', ecran: offre }
   }
@@ -145,4 +160,12 @@ export function prochaineEtape(o: Offre, peutPublier = true): ActionAFaire {
 /** Responsable du recrutement (ou, à défaut, la personne qui a créé l'offre). */
 export function responsable(o: Offre): string {
   return o.responsables?.join(', ') || o.equipe.find(m => m.role === 'Responsable')?.nom || o.creePar || '—'
+}
+
+export function responsables(o: Offre): string[] {
+  if (o.responsables?.length) {
+    return o.responsables
+  }
+  const r = o.equipe.find(m => m.role === 'Responsable')?.nom || o.creePar
+  return r ? [r] : []
 }
