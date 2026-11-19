@@ -81,6 +81,7 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
     date_derniere_maj_recruteur: null,
     document_uuid: null,
     navigation_candidature_uuids: etape.candidatures.map(({ uuid }) => uuid),
+    tags: [],
     authorized_actions: ['change_etape_candidatures'],
   }
 }

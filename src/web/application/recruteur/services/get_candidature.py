@@ -62,6 +62,7 @@ def get_candidature(
                 recrutement_id, candidature_id
             )
             .with_detail()
+            .with_tags()
             .get()
         )
     except CandidatureModel.DoesNotExist as error:
