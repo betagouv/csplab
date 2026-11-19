@@ -20,6 +20,7 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.errors.recrutement_agent_errors import RoleRecrutementNonAutorise
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -102,6 +103,10 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
     OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 
+SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS = [
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
+]
+
 SUPERVISEUR_ACTIONS = (
     SUPERVISEUR_ET_STAFF_ACTIONS
     + SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS
@@ -109,6 +114,7 @@ SUPERVISEUR_ACTIONS = (
     + SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+    + SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS
 )
 
 SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT = (
@@ -176,6 +182,7 @@ class TestActionsIntegrity:
             SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS,
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS,
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS,
+            SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS,
         ]
         actions = [action for liste in cases for action in liste]
 
@@ -983,9 +990,18 @@ RECRUTEUR_ACTIONS_RECRUTEMENT = [
     OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 CONTRIBUTEUR_ACTIONS_RECRUTEMENT = [
-    action
-    for action in RECRUTEUR_ACTIONS_RECRUTEMENT
-    if action not in SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
 ]
 RESPONSABLE_ACTIONS_RECRUTEMENT = [
     OrganismeAction.GET_RECRUTEMENT,
@@ -998,7 +1014,42 @@ RESPONSABLE_ACTIONS_RECRUTEMENT = [
     OrganismeAction.ADD_RECRUTEMENT_AGENT,
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
     OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-    *RECRUTEUR_ACTIONS_RECRUTEMENT[3:],
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
+    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+]
+
+SUPERVISEUR_ACTIONS_RECRUTEMENT = [
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+    OrganismeAction.GET_RECRUTEMENT_ETAPES,
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
+    OrganismeAction.ADD_RECRUTEMENT_AGENT,
+    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
+    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
+    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
 ]
 
 
@@ -1006,11 +1057,11 @@ class TestAuthorizedActionsRecrutement:
     @pytest.mark.parametrize(
         ("role", "recrutement_role", "expected"),
         [
-            (AgentOrganismeRole.SUPERVISEUR, None, RESPONSABLE_ACTIONS_RECRUTEMENT),
+            (AgentOrganismeRole.SUPERVISEUR, None, SUPERVISEUR_ACTIONS_RECRUTEMENT),
             (
                 AgentOrganismeRole.SUPERVISEUR,
                 AgentRecrutementRole.CONTRIBUTEUR,
-                RESPONSABLE_ACTIONS_RECRUTEMENT,
+                SUPERVISEUR_ACTIONS_RECRUTEMENT,
             ),
             (
                 AgentOrganismeRole.AGENT,
@@ -1045,6 +1096,30 @@ class TestAuthorizedActionsRecrutement:
             )
             == expected
         )
+
+    @pytest.mark.parametrize(
+        "role", [AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT]
+    )
+    def test_grant_responsable_is_exposed_when_check_role_grantable_accepts_it(
+        self, role
+    ):
+        exposee = (
+            OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE
+            in OrganismePermissionService().authorized_actions_recrutement(
+                role, recrutement_role=AgentRecrutementRole.RESPONSABLE
+            )
+        )
+
+        try:
+            OrganismePermissionService().check_role_grantable(
+                demandeur_role=role, role=AgentRecrutementRole.RESPONSABLE.value
+            )
+            attribuable = True
+        except RoleRecrutementNonAutorise:
+            attribuable = False
+
+        assert exposee is attribuable
+        assert exposee is (role == AgentOrganismeRole.SUPERVISEUR)
 
     @pytest.mark.parametrize(
         "recrutement_role",
