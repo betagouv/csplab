@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Prints what the browser meets when it opens the ATS in dev. Run it while a dev stack is up.
+# Usage: MISE_ENV=diag[,<profile>] mise run diag
+
+set -u
+
+section() { printf '\n== %s ==\n' "$1"; }
+port_of() {
+  local p=${1#*://}
+  p=${p%%/*}
+  case $p in
+    *:*) echo "${p##*:}" ;;
+    *) case $1 in https*) echo 443 ;; *) echo 80 ;; esac ;;
+  esac
+}
+
+headers=$(mktemp)
+body=$(mktemp)
+asset=$(mktemp)
+trap 'rm -f "$headers" "$body" "$asset"' EXIT
+
+section "Tools"
+uname -sr
+mise --version 2>/dev/null | head -1
+(cd src/web && printf 'node %s, pnpm %s, vite %s\n' "$(node -v)" "$(pnpm -v)" "$(node -p "require('./node_modules/vite/package.json').version" 2>/dev/null)")
+echo "MISE_ENV=${MISE_ENV:-<unset>}"
+
+section "Variables in the task environment"
+for v in HOST PORT WEB_VITE_DEV_ORIGIN WEB_ATS_ORIGIN; do printf '%s=%s\n' "$v" "${!v-<unset>}"; done
+for v in http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY; do [ -n "${!v-}" ] && echo "$v is set"; done
+for v in no_proxy NO_PROXY; do [ -n "${!v-}" ] && echo "$v=${!v}"; done
+
+section "Variables mise sets for src/web"
+web_env=$(mise -C src/web env -s bash 2>/dev/null | grep -E '^export (WEB_VITE_DEV_ORIGIN|WEB_ATS_ORIGIN|HOST|PORT|DJANGO_SETTINGS_MODULE)=')
+echo "${web_env:-none of WEB_VITE_DEV_ORIGIN, WEB_ATS_ORIGIN, HOST, PORT, DJANGO_SETTINGS_MODULE}"
+echo "lines of env.d/web that set them:"
+grep -nE '^(export )?(WEB_VITE_DEV_ORIGIN|WEB_ATS_ORIGIN|HOST|PORT|DJANGO_SETTINGS_MODULE)=' env.d/web || echo "  none"
+
+django=${DIAG_DJANGO:-http://127.0.0.1:8000}
+
+section "Django page $django/ats/"
+curl -sS -m 5 -D "$headers" -o "$body" -w 'status %{http_code}\n' "$django/ats/"
+grep -i '^content-security-policy' "$headers" | tr ';' '\n' | grep -E 'script-src|connect-src' | sed 's/^ */  /'
+srcs=$(grep -o '<script[^>]*src="[^"]*"' "$body" | sed 's/.*src="//; s/"$//')
+echo "scripts: ${srcs:-none}"
+
+vite=$(printf '%s\n' "$srcs" | grep -oE '^https?://[^/]+' | head -1)
+vite=${vite:-http://127.0.0.1:5173}
+django_port=$(port_of "$django")
+vite_port=$(port_of "$vite")
+echo "the page loads Vite from $vite"
+
+section "localhost resolution"
+echo "node, as Vite resolves it: $(node -e "require('dns').lookup('localhost', { all: true }, (e, a) => console.log(e ? e.message : a.map(x => x.address).join(' ')))")"
+if command -v getent >/dev/null; then
+  echo "system: $(getent ahosts localhost | awk '{print $1}' | sort -u | tr '\n' ' ')"
+  echo "$(hostname): $(getent ahosts "$(hostname)" | awk '{print $1}' | sort -u | tr '\n' ' ')"
+  grep -E '^hosts:' /etc/nsswitch.conf
+fi
+grep -E "localhost|$(hostname)" /etc/hosts
+
+section "Sockets listening on $django_port and $vite_port"
+if command -v ss >/dev/null; then
+  sockets=$(ss -ltnpH 2>/dev/null | grep -E ":($django_port|$vite_port)\b")
+  pids=$(printf '%s\n' "$sockets" | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u)
+else
+  sockets=$(lsof -nP -iTCP -sTCP:LISTEN | grep -E ":($django_port|$vite_port)\b")
+  pids=$(printf '%s\n' "$sockets" | awk '{print $2}' | sort -u)
+fi
+echo "${sockets:-nothing}"
+for pid in $pids; do
+  if [ -r "/proc/$pid/cwd" ]; then
+    cwd=$(readlink "/proc/$pid/cwd")
+  else
+    cwd=$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')
+  fi
+  echo "pid $pid in ${cwd:-?}: $(ps -o command= -p "$pid" | cut -c1-160)"
+done
+
+if [ -r /proc/sys/fs/inotify/max_user_watches ]; then
+  section "inotify"
+  echo "max_user_watches=$(cat /proc/sys/fs/inotify/max_user_watches) max_user_instances=$(cat /proc/sys/fs/inotify/max_user_instances)"
+fi
+
+section "Docker published ports"
+docker ps --format '{{.Names}}  {{.Ports}}' 2>&1
+
+section "Scripts fetched as the browser does (Origin: $django)"
+for src in $srcs; do
+  case $src in http*) url=$src ;; *) url=$django$src ;; esac
+  host=${url#*://}
+  host=${host%%[:/]*}
+  case $host in *[a-z]*) families="-4 -6" ;; *) families="-4" ;; esac
+  for family in $families; do
+    result=$(curl -sS -m 5 "$family" -o "$asset" -D - -w 'status %{http_code}' -H "Origin: $django" "$url" 2>&1 | grep -iE '^access-control-allow-origin|^status|^curl' | tr -d '\r' | tr '\n' ' ')
+    case $url in
+      */src/app/main.ts) grep -q "#ats-app" "$asset" && result="$result (csplab entry)" || result="$result (NOT the csplab entry)" ;;
+    esac
+    echo "$family $url: $result"
+  done
+done

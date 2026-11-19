@@ -1,0 +1,7 @@
+[tasks.diag]
+description = "Print what the browser meets when it opens the ATS in dev (run while a dev stack is up)"
+run = "bin/diag-ats-dev"
+
+[tasks."diag:prepare"]
+description = "Bring a checkout up to date: env files, dependencies, migrations"
+depends = ["setup", "//src/web:install", "//src/web:migrate"]
