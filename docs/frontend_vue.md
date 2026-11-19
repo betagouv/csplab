@@ -70,11 +70,12 @@ In dev mode, the Django template loads assets from the Vite server. Changes in `
 ### Changing the dev server origin
 
 The Vite dev origin is a single environment variable, `WEB_VITE_DEV_ORIGIN`
-(default `http://localhost:5173`), read by both Vite (port, HMR) and Django
-(template, CSP). Set it in `env.d/web` to use another port:
+(default `http://127.0.0.1:5173`), read by both Vite (host, port, HMR) and
+Django (template, CSP). Vite listens on the origin's host unless `HOST` is set.
+Set it in `env.d/web` to use another port:
 
 ```
-WEB_VITE_DEV_ORIGIN=http://localhost:5200
+WEB_VITE_DEV_ORIGIN=http://127.0.0.1:5200
 ```
 
 An `https://` origin switches Vite to reverse-proxy mode (HMR over `wss`), for

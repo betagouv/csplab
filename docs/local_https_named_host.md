@@ -1,7 +1,7 @@
 # Servir l'ATS sur un hôte HTTPS local nommé
 
-Par défaut, l'ATS tourne sur `http://localhost:8000` et charge Vite depuis
-`http://localhost:5173`. On peut aussi le servir derrière un nom stable en HTTPS
+Par défaut, l'ATS tourne sur `http://127.0.0.1:8000` et charge Vite depuis
+`http://127.0.0.1:5173`. On peut aussi le servir derrière un nom stable en HTTPS
 (ex. `https://csplab.localhost`, sans port). Le dépôt ne code aucun hôte en dur ;
 le reverse-proxy (Caddy, Traefik, valet + portless…) reste propre à chaque machine.
 

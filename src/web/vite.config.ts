@@ -9,7 +9,7 @@ import checker from 'vite-plugin-checker'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const devOrigin = process.env.WEB_VITE_DEV_ORIGIN ?? 'http://localhost:5173'
+const devOrigin = process.env.WEB_VITE_DEV_ORIGIN ?? 'http://127.0.0.1:5173'
 const atsOrigin = process.env.WEB_ATS_ORIGIN
 const devUrl = new URL(devOrigin)
 
@@ -32,7 +32,7 @@ const server = devUrl.protocol === 'https:'
       },
     }
   : {
-      host: listenHost,
+      host: listenHost ?? devUrl.hostname,
       port: listenPort ?? (Number(devUrl.port) || 5173),
       strictPort: true,
       origin: devOrigin,
