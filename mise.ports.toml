@@ -1,0 +1,16 @@
+[env]
+WEB_VITE_DEV_ORIGIN = "http://localhost:5273"
+DIAG_DJANGO = "http://localhost:8123"
+
+[tasks.dev]
+description = "ATS dev stack on ports 8123 (Django) and 5273 (Vite)"
+depends = ["dev:ports:django", "dev:ports:vite"]
+run = "true"
+
+[tasks."dev:ports:django"]
+env = { PORT = "8123" }
+run = "mise run web:dev"
+
+[tasks."dev:ports:vite"]
+env = { PORT = "5273" }
+run = "mise run front:dev"
