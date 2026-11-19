@@ -7,6 +7,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
+import TagSelect from '@/features/tags/components/TagSelect.vue'
 import { RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 
 const props = defineProps<{
@@ -15,11 +16,13 @@ const props = defineProps<{
   searching?: boolean
   submitting?: boolean
   emailError?: string
+  organismeUuid: string
+  tagsEditable: boolean
 }>()
 
 const emit = defineEmits<{
   search: [email: string]
-  add: [role: RecrutementRole]
+  add: [role: RecrutementRole, tagUuid: string | null]
   reset: []
   cancel: []
 }>()
@@ -28,6 +31,7 @@ const DEFAULT_ROLE: RecrutementRole = 'contributeur'
 
 const email = ref('')
 const role = ref<RecrutementRole>(DEFAULT_ROLE)
+const tagUuid = ref<string | null>(null)
 
 const isSearched = computed(() => props.status !== 'idle')
 
@@ -35,7 +39,7 @@ const submitLabel = computed(() => props.status === 'not-found' ? 'Créer et ajo
 
 function handleSubmit(): void {
   if (isSearched.value) {
-    emit('add', role.value)
+    emit('add', role.value, tagUuid.value)
   }
 }
 
@@ -65,6 +69,13 @@ const formId = useId()
       label="Rôle dans le recrutement"
       name="recrutement_role"
       :options="RECRUTEMENT_ROLE_OPTIONS"
+    />
+
+    <TagSelect
+      v-if="isSearched && tagsEditable"
+      v-model="tagUuid"
+      :organisme-uuid="organismeUuid"
+      category="recrutement_agent"
     />
   </form>
 

@@ -10,6 +10,11 @@ export interface RecrutementParams extends OrganismeParams {
   recrutementUuid: string
 }
 
+export interface MembreTagParams extends RecrutementParams {
+  agentUuid: string
+  tagUuid: string
+}
+
 export interface CandidatureParams extends RecrutementParams {
   candidatureUuid: string
 }

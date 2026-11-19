@@ -1,8 +1,10 @@
 import type { MembreEquipe, RecrutementRole } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { updateMembreEquipe } from '../api'
+import { addMembreTag, removeMembreTag, updateMembreEquipe } from '../api'
 import { equipeRecrutementQuery, invalidateEquipeRecrutement } from '../queries'
+
+export class TagNotReplacedError extends Error {}
 
 export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: string) {
   const queryCache = useQueryCache()
@@ -31,6 +33,24 @@ export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: str
     onSettled: invalidate,
   })
 
+  const tagMutation = useMutation({
+    mutation: async ({ membre, tagUuid }: { membre: MembreEquipe, tagUuid: string | null }) => {
+      const current = membre.tags[0]?.uuid ?? null
+      if (current === tagUuid) {
+        return
+      }
+      if (current) {
+        await removeMembreTag({ ...params, agentUuid: membre.uuid, tagUuid: current })
+      }
+      if (tagUuid) {
+        await addMembreTag({ ...params, agentUuid: membre.uuid, tagUuid }).catch((error: unknown) => {
+          throw current ? new TagNotReplacedError() : error
+        })
+      }
+    },
+    onSettled: invalidate,
+  })
+
   return {
     membres: computed(() => query.data.value ?? []),
     pending: query.isPending,
@@ -39,5 +59,7 @@ export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: str
     revoking: revokeMutation.isLoading,
     changeRole: roleMutation.mutateAsync,
     changingRole: roleMutation.isLoading,
+    changeTag: tagMutation.mutateAsync,
+    changingTag: tagMutation.isLoading,
   }
 }

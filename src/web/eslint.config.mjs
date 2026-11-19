@@ -19,7 +19,7 @@ const FEATURE_DEPENDENCIES = {
   'etapes-recrutement': ['recrutements'],
   'organismes': ['agents'],
   'recrutements': ['agents', 'messages'],
-  'equipe-recrutement': ['agents', 'recrutements'],
+  'equipe-recrutement': ['agents', 'recrutements', 'tags'],
 }
 
 function assertAcyclic(graph) {
