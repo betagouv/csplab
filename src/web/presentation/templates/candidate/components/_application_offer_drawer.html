@@ -1,0 +1,45 @@
+<dialog class="csplab-drawer"
+        data-drawer
+        aria-labelledby="offer-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <ul class="fr-tags-group fr-mb-1w">
+                <li>
+                    <p class="fr-badge fr-badge--sm fr-badge--no-icon">Offre d'emploi</p>
+                </li>
+            </ul>
+            <h2 id="offer-title" class="fr-h4 fr-mb-1v">{{ application.title }}</h2>
+            <p class="fr-text--lead fr-mb-2w">{{ application.employer }}</p>
+            <ul class="fr-tags-group fr-mb-3w">
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-map-pin-2-line fr-tag--icon-left">Bordeaux (33)</p>
+                </li>
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-calendar-line fr-tag--icon-left">CDI · Temps complet</p>
+                </li>
+                <li>
+                    <p class="fr-tag fr-tag--sm">Catégorie B</p>
+                </li>
+            </ul>
+            <h3 class="fr-h6">Missions</h3>
+            <ul class="fr-mb-3w">
+                {% for mission in missions %}<li>{{ mission }}</li>{% endfor %}
+            </ul>
+            <h3 class="fr-h6">Profil recherché</h3>
+            <ul class="fr-mb-3w">
+                {% for item in profile %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+            <h3 class="fr-h6">Conditions</h3>
+            <p class="fr-mb-3w">Rémunération selon grille indiciaire. Télétravail possible jusqu'à 2 jours par semaine.</p>
+            <p>
+                <a class="fr-link"
+                   href="{{ offer_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer">Voir l'offre sur Choisir le service public<span class="fr-sr-only">- nouvelle fenêtre</span></a>
+            </p>
+        </div>
+    </div>
+</dialog>

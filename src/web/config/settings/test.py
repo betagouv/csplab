@@ -16,6 +16,7 @@ CACHES["default"]["LOCATION"] = (  # noqa: F405
 )
 
 STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },

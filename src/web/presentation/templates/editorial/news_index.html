@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags wagtailcore_tags editorial_tags %}
+{% block page_title %}
+    {{ page.title }}
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <section class="fr-container fr-pb-8w">
+        <h1 class="fr-mb-4w">{{ page.title }}</h1>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            {% for item in news %}
+                <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+                    <div class="fr-card fr-enlarge-link">
+                        <div class="fr-card__body">
+                            <div class="fr-card__content">
+                                <h2 class="fr-card__title">
+                                    <a href="{% pageurl item %}">{{ item.title }}</a>
+                                </h2>
+                                <p class="fr-card__desc">{{ item.description }}</p>
+                                <div class="fr-card__start">
+                                    <ul class="fr-badges-group">
+                                        <li>
+                                            <p class="fr-badge fr-badge--sm fr-badge--no-icon">{{ item.badge }}</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fr-card__header">
+                            <div class="fr-card__img">
+                                <img class="fr-responsive-img"
+                                     src="{{ item.display_image|image_src }}"
+                                     alt="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="fr-col-12">Aucune actualité pour le moment.</p>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock main %}

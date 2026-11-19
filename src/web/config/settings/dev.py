@@ -39,6 +39,7 @@ DEBUG_TOOLBAR_CONFIG = {
 
 # Use simple static files storage for development (no compression/manifest)
 STORAGES = {
+    "default": {"BACKEND": "presentation.editorial.storage.DatabaseStorage"},
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },

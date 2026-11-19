@@ -95,9 +95,23 @@ X_FRAME_OPTIONS = "DENY"
 # Admin
 # ---------------------------------------
 # Require a verified TOTP device to log into the Django admin.
-ADMIN_OTP_REQUIRED = True
+ADMIN_OTP_REQUIRED = env.bool("ADMIN_OTP_REQUIRED", default=True)
 
 # Application definition
+
+WAGTAIL_APPS = [
+    "storages",
+    "taggit",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.snippets",
+    "wagtail",
+    "wagtail.admin",
+]
 
 
 INSTALLED_APPS = [
@@ -110,6 +124,8 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.contrib.sites",
     "django.contrib.redirects",
+    "django.contrib.humanize",
+    "django.contrib.sitemaps",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_spectacular",
@@ -132,6 +148,8 @@ INSTALLED_APPS = [
     "presentation.identite",
     "presentation.recruteur",
     "presentation.ats",
+    "presentation.editorial",
+    *WAGTAIL_APPS,
 ]
 
 MIDDLEWARE = [
@@ -142,6 +160,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django_otp.middleware.OTPMiddleware",
+    "presentation.middleware.cms_admin_otp.CmsAdminOTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -149,7 +168,7 @@ MIDDLEWARE = [
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
     "presentation.middleware.rate_limit_headers.RateLimitHeadersMiddleware",
-    "presentation.middleware.candidate_redirect.CandidateRedirectMiddleware",
+    # "presentation.middleware.candidate_redirect.CandidateRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -230,6 +249,7 @@ STATIC_ROOT = BASE_DIR / "static_collected"
 VITE_DEV_ORIGIN = env.str("VITE_DEV_ORIGIN", default="http://localhost:5173")
 
 STORAGES = {
+    "default": {"BACKEND": "presentation.editorial.storage.DatabaseStorage"},
     "staticfiles": {
         "BACKEND": "config.storages.ViteCompressedManifestStaticFilesStorage",
     },
@@ -568,3 +588,14 @@ INGESTION_API_KEY_ALLOWED_IP_RANGES = env.list(
 # Qdrant vector database
 QDRANT_URL = env.str("QDRANT_URL")
 QDRANT_API_KEY = env.str("QDRANT_API_KEY")
+
+
+# Wagtail (editorial content)
+WAGTAIL_SITE_NAME = "Choisir le service public"
+WAGTAILADMIN_PATH = "cockpit-facile/"
+WAGTAILADMIN_BASE_URL = env.str(
+    "WAGTAILADMIN_BASE_URL", default="http://localhost:8000"
+)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/medias/"

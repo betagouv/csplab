@@ -1,0 +1,87 @@
+<dialog class="csplab-drawer"
+        data-drawer
+        aria-labelledby="alert-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <h2 id="alert-title" class="fr-h4 fr-mb-1v">
+                {% if creating %}Créer une alerte emploi{% else %}Modifier mon alerte{% endif %}
+            </h2>
+            <p class="fr-text--sm fr-mb-3w">
+                Recevez par e-mail les nouvelles offres qui correspondent à vos critères.
+            </p>
+            <form hx-post="{% url 'candidate:alert_edit' %}"
+                  hx-target="closest .csplab-drawer__body"
+                  hx-swap="innerHTML">
+                {% csrf_token %}
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-name">Titre de l'alerte</label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-name"
+                           name="title"
+                           value="{{ alert.title }}"
+                           required>
+                </div>
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-keywords">
+                        Mots clés
+                        <span class="fr-hint-text">Séparez les mots clés par une virgule</span>
+                    </label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-keywords"
+                           name="keywords"
+                           value="{{ keywords_text }}">
+                </div>
+                <div class="fr-input-group">
+                    <label class="fr-label" for="alert-location">Localisation</label>
+                    <input class="fr-input"
+                           type="text"
+                           id="alert-location"
+                           name="location"
+                           value="{{ alert.location }}">
+                </div>
+                <div class="fr-select-group">
+                    <label class="fr-label" for="alert-contract">Type de contrat</label>
+                    <select class="fr-select" id="alert-contract" name="contract">
+                        <option value="">Tous</option>
+                        {% for value, label in contracts.items %}
+                            <option value="{{ value }}"
+                                    {% if alert.contract == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <fieldset class="fr-fieldset" aria-labelledby="alert-frequency-legend">
+                    <legend class="fr-fieldset__legend--regular fr-fieldset__legend" id="alert-frequency-legend">
+                        Fréquence des e-mails
+                    </legend>
+                    {% for value, label in frequencies.items %}
+                        <div class="fr-fieldset__element">
+                            <div class="fr-radio-group">
+                                <input type="radio"
+                                       id="alert-{{ value }}"
+                                       name="frequency"
+                                       value="{{ value }}"
+                                       {% if alert.frequency == value %}checked{% endif %}>
+                                <label class="fr-label" for="alert-{{ value }}">{{ label }}</label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </fieldset>
+                <ul class="fr-btns-group fr-btns-group--inline-md">
+                    <li>
+                        <button type="submit" class="fr-btn">
+                            {% if creating %}Créer mon alerte{% else %}Enregistrer{% endif %}
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="fr-btn fr-btn--secondary" data-drawer-close>Annuler</button>
+                    </li>
+                </ul>
+            </form>
+        </div>
+    </div>
+</dialog>

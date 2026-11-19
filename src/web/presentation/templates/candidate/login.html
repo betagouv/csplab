@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Connexion
+{% endblock page_title %}
+{% block meta_description %}
+    Connectez-vous pour accéder à vos candidatures.
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-lg-10">
+                <div class="fr-grid-row csplab-login">
+                    <div class="fr-col-12 fr-col-md-5 fr-background-alt--blue-france fr-p-4w fr-grid-row fr-grid-row--center fr-grid-row--middle">
+                        <div class="fr-text--center">
+                            <img alt=""
+                                 class="fr-responsive-img fr-mb-2w"
+                                 aria-hidden="true"
+                                 src="{% static 'candidate/images/illustrations-csp/home-assis-11.svg' %}" />
+                            <h2 class="fr-h4">Bienvenue</h2>
+                            <p class="fr-text--lg fr-text-mention--grey">Connectez-vous pour accéder à vos candidatures</p>
+                        </div>
+                    </div>
+                    <div class="fr-col-12 fr-col-md-7 fr-p-4w">
+                        <h1 class="fr-h3">Connexion</h1>
+                        <div class="fr-connect-group">
+                            <a href="{% url 'candidate:franceconnect' %}" class="fr-connect">
+                                <span class="fr-connect__login">S'identifier avec</span>
+                                <span class="fr-connect__brand">FranceConnect</span>
+                            </a>
+                            <p>
+                                <a href="https://franceconnect.gouv.fr/"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   title="Qu'est-ce que FranceConnect ? - Ouvre une nouvelle fenêtre">Qu'est-ce que FranceConnect ?</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock main %}
