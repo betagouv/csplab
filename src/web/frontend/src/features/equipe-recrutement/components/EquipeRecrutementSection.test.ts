@@ -132,10 +132,10 @@ describe('equipeRecrutementSection', () => {
     { droit: 'with', authorizedActions: ['grant_recrutement_responsable' as const], offered: true },
   ])('offers the responsable role $droit the right to grant it', async ({ authorizedActions, offered }) => {
     const user = setupUser()
-    vi.mocked(getRecrutementDetail).mockResolvedValue({
+    server.use(recrutementDetail({
       ...RECRUTEMENT_DETAIL_EQUIPE_GERABLE,
       authorized_actions: [...RECRUTEMENT_DETAIL_EQUIPE_GERABLE.authorized_actions, ...authorizedActions],
-    })
+    }))
     await renderSection()
 
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
