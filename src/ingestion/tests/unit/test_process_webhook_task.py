@@ -1,18 +1,30 @@
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID
 
 import httpx
 import pytest
+import sentry_sdk
 from celery.app.task import Task
 from celery.exceptions import Retry
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 from application.tasks.process_webhook import (
     _is_transient,
     archive_offer_webhook,
     save_raw_offer_webhook,
 )
-from domain.value_objects.webhook_event import EventType, OfferStatus
-from infrastructure.exceptions.exceptions import ExternalApiError
+from application.usecases.save_raw_offer import SaveRawOfferUsecase
+from domain.value_objects.webhook_event import (
+    EventType,
+    OfferStatus,
+    WebhookProcessingStatus,
+)
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
+from infrastructure.observability.log_config import ContextFilter
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")
@@ -24,9 +36,10 @@ _PATCH_CONTAINER = "application.tasks.process_webhook.get_container"
 
 def _make_mock_container(webhook=None) -> MagicMock:
     container = MagicMock()
-    container.webhook_repository.return_value.get_by_id = AsyncMock(
-        return_value=webhook
-    )
+    repository = container.webhook_repository.return_value
+    repository.get_by_id = AsyncMock(return_value=webhook)
+    repository.mark_processing = AsyncMock()
+    repository.mark_processed = AsyncMock()
     container.archive_offer_usecase.return_value.execute = AsyncMock()
     container.ingest_offer_pipeline.return_value.execute = AsyncMock()
     source = SourceFactory.build(source_id=SOURCE_ID, client_id_front=CLIENT_ID_FRONT)
@@ -163,6 +176,18 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
 # --- Retries ---
 
 
+def _http_status_error(status_code: int) -> httpx.HTTPStatusError:
+    request = httpx.Request("POST", "https://web")
+    response = httpx.Response(status_code, request=request)
+    return httpx.HTTPStatusError("error", request=request, response=response)
+
+
+def _wrapped(cause: Exception) -> ExternalApiError:
+    error = ExternalApiError("Request failed after retries", api_name="Talentsoft")
+    error.__cause__ = cause
+    return error
+
+
 @pytest.mark.parametrize(
     "exc",
     [
@@ -170,6 +195,10 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
         httpx.TimeoutException("timed out"),
         ExternalApiError("server error", status_code=500),
         ExternalApiError("gateway error", status_code=503),
+        _http_status_error(502),
+        TimeoutError(),
+        _wrapped(httpx.ConnectError("connection refused")),
+        _wrapped(_http_status_error(503)),
     ],
 )
 def test_is_transient_true(exc):
@@ -183,6 +212,9 @@ def test_is_transient_true(exc):
         RuntimeError("misconfigured"),
         ExternalApiError("bad request", status_code=400),
         ExternalApiError("not found", status_code=404),
+        _http_status_error(400),
+        _wrapped(_http_status_error(401)),
+        ExternalApiError("Invalid response structure"),
     ],
 )
 def test_is_transient_false(exc):
@@ -247,3 +279,287 @@ def test_no_retry_on_value_error(mock_get_container, mock_retry):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()
+
+
+# --- Logging context ---
+
+
+@pytest.fixture
+def sentry_events():
+    events: list = []
+    sentry_sdk.init(
+        dsn="https://key@o123.ingest.sentry.io/123",
+        integrations=[CeleryIntegration()],
+        default_integrations=False,
+        transport=events.append,
+    )
+    yield events
+    sentry_sdk.init()
+
+
+@patch(_PATCH_CONTAINER)
+def test_exception_sent_to_sentry_has_offer_context(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = RuntimeError()
+    mock_get_container.return_value = container
+
+    archive_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    [event] = sentry_events
+    assert event["tags"]["source_id"] == SOURCE_ID
+    assert event["tags"]["reference"] == REFERENCE
+    assert event["tags"]["webhook_id"] == str(WEBHOOK_ID)
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_processed_webhook_with_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    mock_get_container.return_value = _make_mock_container(webhook)
+
+    with caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.reference == REFERENCE
+    assert record.source_id == SOURCE_ID
+    assert record.outcome == "succeeded"
+    assert isinstance(record.duration_ms, int)
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_failed_webhook_with_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = RuntimeError()
+    mock_get_container.return_value = container
+
+    with (
+        caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"),
+        pytest.raises(RuntimeError),
+    ):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.reference == REFERENCE
+    assert record.outcome == "failed"
+    assert isinstance(record.duration_ms, int)
+
+
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_logs_retrying_webhook(mock_get_container, mock_retry, caplog):
+    container = _make_mock_container()
+    container.webhook_repository.return_value.get_by_id = AsyncMock(
+        side_effect=httpx.ConnectError("connection refused")
+    )
+    mock_get_container.return_value = container
+
+    with (
+        caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"),
+        pytest.raises(Retry),
+    ):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.outcome == "retrying"
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_emitted_during_task_carry_webhook_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+
+    async def _log_from_usecase(**kwargs):
+        logging.getLogger("application.usecases").info("Archiving offer")
+
+    container.archive_offer_usecase.return_value.execute.side_effect = _log_from_usecase
+    mock_get_container.return_value = container
+    caplog.handler.addFilter(ContextFilter())
+
+    with caplog.at_level(logging.INFO):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Archiving offer")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.reference == REFERENCE
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_not_sent_to_sentry(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert sentry_events == []
+    container.webhook_repository.return_value.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID,
+        WebhookProcessingStatus.FAILED,
+        f"TalentsoftOfferNotFound: Offer not found for reference: {REFERENCE}",
+    )
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_logged_as_expected_failure(mock_get_container, caplog):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    with caplog.at_level(logging.INFO, logger="celery"):
+        save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+def _talentsoft_error(cause: Exception) -> ExternalApiError:
+    try:
+        raise ExternalApiError("Request failed after retries") from cause
+    except ExternalApiError as exc:
+        return exc
+
+
+_SERVER_ERROR_RESPONSE = httpx.Response(
+    503, request=httpx.Request("GET", "https://talentsoft.example")
+)
+
+
+@pytest.mark.parametrize(
+    "cause",
+    [
+        httpx.ConnectError("connection refused"),
+        httpx.HTTPStatusError(
+            "service unavailable",
+            request=_SERVER_ERROR_RESPONSE.request,
+            response=_SERVER_ERROR_RESPONSE,
+        ),
+    ],
+    ids=["network", "server_error"],
+)
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_retries_transient_talentsoft_error_raised_through_save_raw_offer(
+    mock_get_container, mock_retry, cause
+):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    gateway = MagicMock()
+    gateway.get_detail = AsyncMock(side_effect=_talentsoft_error(cause))
+    usecase = SaveRawOfferUsecase(
+        offers_gateway=gateway, raw_offer_repository=MagicMock(upsert=AsyncMock())
+    )
+    container.ingest_offer_pipeline.return_value.execute.side_effect = usecase.execute
+    mock_get_container.return_value = container
+
+    with pytest.raises(Retry):
+        save_raw_offer_webhook(str(WEBHOOK_ID))
+
+    mock_retry.assert_called_once()
+    container.webhook_repository.return_value.mark_processed.assert_not_called()
+
+
+# --- Processing status ---
+
+
+@patch(_PATCH_CONTAINER)
+def test_marks_webhook_processing_then_succeeded(mock_get_container):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
+
+    archive_offer_webhook(str(WEBHOOK_ID))
+
+    repository = container.webhook_repository.return_value
+    repository.mark_processing.assert_awaited_once_with(WEBHOOK_ID)
+    repository.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID, WebhookProcessingStatus.SUCCEEDED
+    )
+
+
+@patch(_PATCH_CONTAINER)
+def test_marks_webhook_failed_on_non_transient_error(mock_get_container):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = ValueError("x")
+    mock_get_container.return_value = container
+
+    with pytest.raises(ValueError):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    container.webhook_repository.return_value.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID, WebhookProcessingStatus.FAILED, "ValueError: x"
+    )
+
+
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_does_not_mark_webhook_failed_before_last_retry(mock_get_container, _):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = TimeoutError()
+    mock_get_container.return_value = container
+
+    with pytest.raises(Retry):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    container.webhook_repository.return_value.mark_processed.assert_not_called()
+
+
+@patch(_PATCH_CONTAINER)
+def test_marks_webhook_failed_once_retries_are_exhausted(mock_get_container):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = TimeoutError()
+    mock_get_container.return_value = container
+
+    result = archive_offer_webhook.apply(
+        args=[str(WEBHOOK_ID)], retries=archive_offer_webhook.max_retries
+    )
+
+    assert isinstance(result.result, TimeoutError)
+    container.webhook_repository.return_value.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID, WebhookProcessingStatus.FAILED, "TimeoutError: "
+    )
+
+
+@patch(_PATCH_CONTAINER)
+def test_original_error_raised_when_marking_webhook_failed_fails(
+    mock_get_container, caplog
+):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = ValueError("x")
+    container.webhook_repository.return_value.mark_processed.side_effect = RuntimeError(
+        "DB unavailable"
+    )
+    mock_get_container.return_value = container
+
+    with (
+        caplog.at_level(logging.WARNING, logger="application.tasks.process_webhook"),
+        pytest.raises(ValueError, match="x"),
+    ):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    assert any(
+        r.levelno == logging.WARNING and r.getMessage().startswith("Failed to mark")
+        for r in caplog.records
+    )

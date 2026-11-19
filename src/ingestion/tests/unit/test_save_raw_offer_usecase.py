@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -113,14 +113,11 @@ async def test_execute_re_raises_original_error_when_upsert_also_fails(
 
 
 @pytest.mark.asyncio
-@patch("application.usecases.save_raw_offer.logger")
-async def test_execute_returns_none_when_upsert_fails_after_success(
-    mock_logger, usecase, mock_offers_gateway, mock_raw_offer_repository
+async def test_execute_raises_when_upsert_fails_after_success(
+    usecase, mock_offers_gateway, mock_raw_offer_repository
 ):
     mock_offers_gateway.get_detail.return_value = GATEWAY_OFFER
     mock_raw_offer_repository.upsert.side_effect = RuntimeError("DB unavailable")
 
-    result = await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
-    assert result is None
+    with pytest.raises(RuntimeError):
+        await usecase.execute(reference=REFERENCE, source_id=SOURCE_ID)

@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.errors.application_errors_recruteur import (
-    OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
 from application.recruteur.services.get_recrutement_etapes import (
@@ -16,14 +15,13 @@ from application.recruteur.services.get_recrutement_etapes import (
 from application.recruteur.services.initialize_recrutement_etapes import (
     initialize_recrutement_etapes,
 )
-from application.recruteur.usecases.update_recrutement_etapes import (
-    UpdateRecrutementEtapesCommand,
+from application.recruteur.services.update_recrutement_etapes import (
+    update_recrutement_etapes,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
-from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
@@ -35,22 +33,13 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     EtapeRecrutementModelSerializer,
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
 )
-
-
-def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
-    return [
-        {"etape_uuid": e.entity_id, "nom": e.nom, "categorie": e.categorie.name}
-        for e in etapes
-    ]
 
 
 @extend_schema_view(
@@ -80,11 +69,6 @@ def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dic
     ),
 )
 class RecrutementEtapeView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
@@ -125,21 +109,15 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
             for etape in validated_etapes
         ]
         try:
-            usecase = self.container.update_recrutement_etapes_usecase()
-            resultat = usecase.execute(
-                UpdateRecrutementEtapesCommand(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                    etapes_data=etapes_data,
-                )
+            etapes = update_recrutement_etapes(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                utilisateur=request.user,
+                etapes=etapes_data,
             )
-            out_serializer = EtapeRecrutementSerializer(
-                _etapes_to_serializer_data(resultat), many=True
-            )
+            out_serializer = EtapeRecrutementModelSerializer(etapes, many=True)
             return Response(out_serializer.data)
         except (
-            OrganismeRecrutementIncoherents,
             RecrutementEtapeIncoherents,
             SupressionEtapeImpossible,
             ConfigurationEtapesInvalide,

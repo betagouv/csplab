@@ -1,13 +1,9 @@
-import logging
 from datetime import datetime, timezone
-from typing import cast
 
 from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from application.usecases.publish_offer import PublishOfferUsecase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from domain.repositories.raw_offer_repository import IRawOfferRepository
-
-logger = logging.getLogger(__name__)
 
 
 class IngestOfferPipeline:
@@ -25,39 +21,20 @@ class IngestOfferPipeline:
 
     async def execute(self, reference: str, source_id: str) -> None:
         raw_offer = await self._save_raw_offer.execute(reference, source_id)
-        if raw_offer is None:
-            return
-
-        offer = None
-        try:
-            offer = self._clean_raw_offer.execute(raw_offer)
-            await self._raw_offer_repository.mark_as_cleaned(
-                cast(str, raw_offer.reference),
-                cast(str, raw_offer.source_id),
-                datetime.now(tz=timezone.utc),
-            )
-        except Exception:
-            logger.exception("Failed to clean raw offer for reference %s", reference)
-
-        if offer is None or self._publish_offer is None:
+        offer = self._clean_raw_offer.execute(raw_offer)
+        await self._raw_offer_repository.mark_as_cleaned(
+            reference, source_id, datetime.now(tz=timezone.utc)
+        )
+        if self._publish_offer is None:
             return
 
         try:
             await self._publish_offer.execute(offer)
-            await self._raw_offer_repository.mark_as_upserted(
-                cast(str, raw_offer.reference),
-                cast(str, raw_offer.source_id),
-                datetime.now(tz=timezone.utc),
-            )
         except Exception as exc:
-            logger.exception("Failed to publish offer for reference %s", reference)
-            try:
-                await self._raw_offer_repository.mark_as_publish_failed(
-                    cast(str, raw_offer.reference),
-                    cast(str, raw_offer.source_id),
-                    str(exc),
-                )
-            except Exception:
-                logger.exception(
-                    "Failed to record publish error for reference %s", reference
-                )
+            await self._raw_offer_repository.mark_as_publish_failed(
+                reference, source_id, str(exc)
+            )
+            raise
+        await self._raw_offer_repository.mark_as_upserted(
+            reference, source_id, datetime.now(tz=timezone.utc)
+        )

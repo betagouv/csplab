@@ -15,7 +15,7 @@ const FEATURES = subfolders(`./${SRC}/features`)
 const ROOT_FOLDERS = subfolders(`./${SRC}`).filter(folder => !['features', 'app', 'router', 'test'].includes(folder))
 
 const FEATURE_DEPENDENCIES = {
-  'candidatures': ['recrutements', 'etapes-recrutement', 'messages'],
+  'candidatures': ['recrutements', 'etapes-recrutement', 'messages', 'tags'],
   'etapes-recrutement': ['recrutements'],
   'organismes': ['agents'],
   'recrutements': ['agents', 'messages'],
