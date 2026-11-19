@@ -57,22 +57,15 @@ class RecrutementAgentService:
         ).exists():
             raise AgentDejaMembreRecrutement(self.recrutement_id, agent_id)
 
-    def get_active_member(self, agent_id: UUID) -> RecrutementAgentModel:
+    def get_active_member(
+        self, agent_id: UUID, *, for_update: bool = False
+    ) -> RecrutementAgentModel:
+        membres = RecrutementAgentModel.objects.by_recrutement_and_agent(
+            self.recrutement_id, agent_id
+        )
+        if for_update:
+            membres = membres.select_for_update()
         try:
-            return RecrutementAgentModel.objects.by_recrutement_and_agent(
-                self.recrutement_id, agent_id
-            ).get()
-        except RecrutementAgentModel.DoesNotExist as error:
-            raise AgentNonMembreRecrutement(self.recrutement_id, agent_id) from error
-
-    def lock_active_member(self, agent_id: UUID) -> RecrutementAgentModel:
-        try:
-            return (
-                RecrutementAgentModel.objects.by_recrutement_and_agent(
-                    self.recrutement_id, agent_id
-                )
-                .select_for_update()
-                .get()
-            )
+            return membres.get()
         except RecrutementAgentModel.DoesNotExist as error:
             raise AgentNonMembreRecrutement(self.recrutement_id, agent_id) from error

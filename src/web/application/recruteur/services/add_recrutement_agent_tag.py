@@ -39,7 +39,7 @@ def add_recrutement_agent_tag(
     contexte.check_recrutement_belongs_to_organisme()
 
     with transaction.atomic():
-        membre = contexte.lock_active_member(agent_id)
+        membre = contexte.get_active_member(agent_id, for_update=True)
         try:
             tag = TagModel.objects.by_id(organisme_id, tag_id).select_for_update().get()
         except TagModel.DoesNotExist as error:
