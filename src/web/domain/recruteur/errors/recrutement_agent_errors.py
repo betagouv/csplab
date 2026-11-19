@@ -23,3 +23,9 @@ class AgentNonMembreRecrutement(RecrutementAgentError):
         )
         self.recrutement_id = recrutement_id
         self.agent_id = agent_id
+
+
+class RoleRecrutementNonAutorise(RecrutementAgentError):
+    def __init__(self, role: str):
+        super().__init__(f"Role {role} cannot be granted by a non-superviseur")
+        self.role = role
