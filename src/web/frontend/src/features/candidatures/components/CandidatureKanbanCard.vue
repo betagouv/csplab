@@ -6,9 +6,10 @@ import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { formatUnreadConversations } from '@/features/messages/format'
+import TagList from '@/features/tags/components/TagList.vue'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
-import { formatCandidatName } from '../format'
+import { formatCandidatName, formatCandidatTagsLabel } from '../format'
 
 const props = defineProps<{
   candidature: KanbanCard
@@ -81,6 +82,13 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
       />
       {{ formatElapsedDays(candidature.date_soumission) }}
     </p>
+    <TagList
+      v-if="candidature.tags.length > 0"
+      :tags="candidature.tags"
+      :max-lines="2"
+      :aria-label="formatCandidatTagsLabel(candidature.candidat)"
+      class="candidature-kanban-card__tags"
+    />
     <template
       v-if="candidature.unread_conversations"
       #footer
@@ -181,6 +189,18 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
 
 .candidature-kanban-card__date-icon {
   flex-shrink: 0;
+}
+
+/* the stretched link of the card takes the clicks on the tags, except on the count */
+.candidature-kanban-card__tags {
+  margin-top: var(--csp-space-2);
+  pointer-events: none;
+
+  :deep(.tag-list__more) {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+  }
 }
 
 .candidature-kanban-card__messages {

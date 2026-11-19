@@ -18,6 +18,7 @@ import {
   RECRUTEMENT_UUID,
   USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
+import { TAG_TO_RECALL } from '@/test/fixtures/tags'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
@@ -105,6 +106,16 @@ describe('candidaturesListeView', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(table.getByRole('link', { name: 'Alice Dupont', hidden: true }).closest('tr')).toHaveAttribute('aria-current', 'true')
     expect(table.getByRole('link', { name: 'Bruno Martin', hidden: true }).closest('tr')).not.toHaveAttribute('aria-current')
+  })
+
+  it('shows the tags of each candidature in a column', async () => {
+    const results = CANDIDATURE_LISTE.results.map(row => row.uuid === CANDIDATURE_ALICE ? { ...row, tags: [TAG_TO_RECALL] } : row)
+    vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, results })
+    const { table } = await renderListe()
+
+    expect(table.getByRole('columnheader', { name: 'Étiquettes' })).toBeInTheDocument()
+    expect(within(table.getByRole('list', { name: 'Étiquettes d\'Alice Dupont' })).getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['À rappeler'])
+    expect(table.queryByRole('list', { name: 'Étiquettes de Bruno Martin' })).not.toBeInTheDocument()
   })
 
   it('shows the rows matching the search of the candidatures tab', async () => {
