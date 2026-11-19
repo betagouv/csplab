@@ -43,3 +43,4 @@ class OrganismeAction(Enum):
     UPDATE_TAG = "update_tag"
     DELETE_TAG = "delete_tag"
     MANAGE_TAG_ON_APPLICATION = "manage_tag_on_application"
+    MANAGE_TAG_ON_MEMBER = "manage_tag_on_member"

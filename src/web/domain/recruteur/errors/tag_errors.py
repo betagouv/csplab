@@ -48,3 +48,15 @@ class TagAlreadyOnCandidature(TagError):
 class TagNotOnCandidature(TagError):
     def __init__(self, tag_id: UUID):
         super().__init__(f"L'étiquette {tag_id} n'est pas posée sur cette candidature")
+
+
+class TagAlreadyOnMember(TagError):
+    def __init__(self, tag_id: UUID):
+        super().__init__(
+            f"L'étiquette {tag_id} ne peut pas être posée : ce membre en porte déjà une"
+        )
+
+
+class TagNotOnMember(TagError):
+    def __init__(self, tag_id: UUID):
+        super().__init__(f"L'étiquette {tag_id} n'est pas posée sur ce membre")

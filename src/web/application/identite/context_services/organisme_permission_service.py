@@ -140,6 +140,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(
         {AgentOrganismeRole.SUPERVISEUR}
     ),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
 }
 
 _ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR: frozenset[str] = frozenset(
@@ -278,6 +281,7 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
     OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset({AgentRecrutementRole.RESPONSABLE}),
 }
 
 
