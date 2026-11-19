@@ -1,11 +1,10 @@
 import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
 import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
-import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
 import { routes } from '@/router/routes'
 import {
@@ -71,11 +70,6 @@ describe('candidaturePanelView', () => {
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
     vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('shows who applies, to which offer and at which stage from the candidature detail', async () => {

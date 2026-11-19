@@ -1,9 +1,8 @@
 import { screen, within } from '@testing-library/vue'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { TAG_SYNTHESIS, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
@@ -46,11 +45,6 @@ describe('tagsSection', () => {
     vi.mocked(createTag).mockReset()
     vi.mocked(updateTag).mockReset()
     vi.mocked(deleteTag).mockReset()
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the tags of each category', async () => {

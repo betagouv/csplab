@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
@@ -67,8 +66,6 @@ function renderNotes(route = NOTES_PATH) {
 describe('candidatureNotes', () => {
   afterEach(() => {
     vi.clearAllMocks()
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the notes with their author and publication date', async () => {

@@ -1,9 +1,8 @@
 import { screen, within } from '@testing-library/vue'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError, ValidationError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { ETAPES_RECRUTEMENT } from '@/test/fixtures/etapes'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getEtapesOffre, initEtapesOffre, updateEtapesOffre } from '../api'
@@ -77,11 +76,6 @@ describe('etapesRecrutementList', () => {
     vi.mocked(getEtapesOffre).mockReset().mockResolvedValue(ETAPES)
     vi.mocked(updateEtapesOffre).mockReset()
     vi.mocked(initEtapesOffre).mockReset()
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('deletes an etape and closes the dialog', async () => {
