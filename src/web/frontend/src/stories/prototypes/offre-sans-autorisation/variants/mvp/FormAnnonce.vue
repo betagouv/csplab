@@ -1,26 +1,25 @@
 <script setup lang="ts">
+import type { PartieOffre } from './etapes'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
 import ChampSimple from './ChampSimple.vue'
+import LieuxPoste from './LieuxPoste.vue'
 import { useNav } from './nav'
-import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL, VERSANTS } from './store'
+import { CATEGORIES, contenuDepuisFiche, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
 
-// Section « Annonce » de la page de l'offre : ce que lit le candidat sur Choisir le Service Public (D311-8).
-// Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Les informations internes (jamais
-// publiées) sont dans leur propre section (FormInterne). Le résumé pour la validation est en haut de la page.
-// Seuls les champs obligatoires portent une mention (« Champ obligatoire », aide grise DSFR) ; ils ne sont
-// contrôlés qu'au moment de publier. Les aides vont sous le champ (message d'information) ou en exemple dans le champ.
-// lectureSeule : la note sur les champs obligatoires ne concerne que la personne qui rédige.
-const props = defineProps<{ offre: Offre, fiche?: Fiche, lectureSeule?: boolean }>()
+// Champs de l'annonce (ce que lit le candidat sur Choisir le Service Public, D311-8), découpés en étapes (retour PO, F1) :
+// `partie` choisit l'étape affichée. Les champs obligatoires portent un astérisque (F5) et ne sont contrôlés qu'au moment
+// de publier. Versant et organisme de rattachement ne sont plus demandés : ils viennent de l'organisme (F7).
+const props = defineProps<{ offre: Offre, partie: PartieOffre, fiche?: Fiche, lectureSeule?: boolean }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
@@ -37,18 +36,16 @@ const fondement = modele('fondementJuridique')
 const temps = computed({ get: () => o.value.tempsTravail || 'aucun', set: (v: string) => (o.value.tempsTravail = v === 'aucun' ? '' : v) })
 const OPTIONS_TEMPS = [{ value: 'aucun', label: 'Choisir' }, ...TEMPS_TRAVAIL]
 // Champs facultatifs à liste : « aucun » = non renseigné.
-function choix(cle: 'versant' | 'natureContrat' | 'niveauExperience' | 'niveauEtudes' | 'management') {
+function choix(cle: 'natureContrat' | 'niveauExperience' | 'niveauEtudes' | 'management') {
   return computed({
     get: () => o.value[cle] || 'aucun',
     set: (v: string) => (o.value[cle] = v === 'aucun' ? '' : v),
   })
 }
-const versant = choix('versant')
 const natureContrat = choix('natureContrat')
 const experience = choix('niveauExperience')
 const etudes = choix('niveauEtudes')
 const management = choix('management')
-const OPTIONS_VERSANT = VERSANTS.map(v => ({ value: v, label: v }))
 const CONTRATS = ['Contrat à durée déterminée (CDD)', 'Contrat à durée indéterminée (CDI)', 'Contrat de projet']
 const EXPERIENCES = ['Débutant accepté', 'Confirmé (2 à 5 ans)', 'Expert (plus de 5 ans)']
 const ETUDES = ['Sans diplôme', 'CAP, BEP', 'Baccalauréat', 'Bac + 2', 'Bac + 3', 'Bac + 5 et plus']
@@ -83,14 +80,6 @@ function retirerLangue(i: number) {
   o.value.languesListe = langues.value.filter((_, j) => j !== i)
   synchroLangues()
 }
-// Lieu : une ou plusieurs villes, ou « Pas de lieu fixe » si le poste est itinérant.
-const sansLieuFixe = computed({
-  get: () => Boolean(o.value.sansLieuFixe),
-  set: (v: boolean) => {
-    o.value.sansLieuFixe = v
-    o.value.lieu = v ? 'Pas de lieu fixe' : ''
-  },
-})
 
 // Métier RMFP+ (à gauche) : ses compétences s'affichent à droite, déjà cochées ; on peut en retirer
 // ou en ajouter librement (doc « Création manuelle des offres »).
@@ -112,7 +101,16 @@ function ajouterCompetence() {
   nouvelle.value = ''
 }
 
-const OUVERT = [{ value: 'titulaire', label: 'Fonctionnaires' }, { value: 'contractuel', label: 'Contractuels' }]
+// Nature de l'emploi (retour PO, F8) : un seul choix parmi trois, plutôt que deux cases à cocher.
+const OUVERT = [
+  { value: 'titulaire', label: 'Fonctionnaires uniquement' },
+  { value: 'les_deux', label: 'Fonctionnaires et contractuels' },
+  { value: 'contractuel', label: 'Contractuels uniquement' },
+]
+const ouvertA = computed({
+  get: () => (o.value.ouvertA.length === 2 ? 'les_deux' : o.value.ouvertA[0] ?? ''),
+  set: (v: string) => (o.value.ouvertA = v === 'les_deux' ? ['titulaire', 'contractuel'] : v ? [v] : []),
+})
 const FONDEMENTS = ['Article L332-2 (besoins permanents)', 'Article L332-8 (emplois de catégorie A)', 'Article L332-23 (accroissement temporaire)', 'Article L332-24 (contrat de projet)']
 
 // « Repris de la fiche » tant que le texte est identique à ce que la fiche propose.
@@ -136,40 +134,17 @@ function formater() {
 
 <template>
   <div class="annonce">
-    <p
-      v-if="!lectureSeule"
-      class="note"
+    <!-- Étape « Le poste » -->
+    <div
+      v-if="partie === 'poste'"
+      class="groupe"
     >
-      Les champs obligatoires ne sont contrôlés qu'au moment de publier : vous pouvez enregistrer une annonce incomplète.
-    </p>
-
-    <!-- Métadonnées : pré-remplies depuis l'organisme -->
-    <div class="groupe">
-      <FieldRow :cols="2">
-        <CspSelect
-          v-model="versant"
-          label="Versant"
-          hint="Champ obligatoire"
-          :options="OPTIONS_VERSANT"
-        />
-        <CspInput
-          :model-value="db.organisme.nom"
-          label="Organisme de rattachement"
-          hint="Champ obligatoire"
-          disabled
-        />
-      </FieldRow>
-    </div>
-
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Le poste
-      </h3>
       <ChampOffre
         :offre="o"
         champ="titre"
         label="Intitulé de l'offre"
-        hint="Champ obligatoire · 150 caractères maximum"
+        obligatoire
+        hint="150 caractères maximum"
         for-id="a-titre"
         :repris="repris('titre')"
         :modifie="modifie('titre')"
@@ -187,8 +162,8 @@ function formater() {
           type="number"
           min="1"
           max="10"
-          label="Nombre de postes"
-          hint="Champ obligatoire · 10 au maximum"
+          label="Nombre de postes *"
+          hint="10 au maximum"
         />
       </FieldRow>
       <div class="metier">
@@ -196,7 +171,8 @@ function formater() {
           :offre="o"
           champ="metier"
           label="Métier (référentiel RMFP+)"
-          hint="Champ obligatoire · le domaine et le sous-domaine en sont déduits"
+          obligatoire
+          hint="Le domaine et le sous-domaine en sont déduits"
           for-id="a-metier"
         >
           <CspSelect
@@ -248,7 +224,7 @@ function formater() {
         :offre="o"
         champ="missions"
         label="Descriptif du poste"
-        hint="Champ obligatoire"
+        obligatoire
         for-id="a-missions"
         :repris="repris('missions')"
         :modifie="modifie('missions')"
@@ -282,294 +258,247 @@ function formater() {
       </FieldRow>
     </div>
 
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Cadre du recrutement
-      </h3>
-      <FieldRow :cols="2">
-        <ChampSimple
-          label="Nature de l'emploi : ouvert aux"
-          hint="Champ obligatoire"
-        >
-          <CspCheckboxGroup
-            v-model="o.ouvertA"
-            label="Nature de l'emploi : ouvert aux"
-            class="sans-label"
-            :options="OUVERT"
-          />
-        </ChampSimple>
+    <!-- Étape « Cadre du recrutement » : Catégorie, Corps puis Grade (le grade dépend du corps, F8) -->
+    <div
+      v-else-if="partie === 'cadre'"
+      class="groupe"
+    >
+      <CspRadioGroup
+        v-model="ouvertA"
+        label="Nature de l'emploi : l'emploi est ouvert aux *"
+        name="ouvert-a"
+        :options="OUVERT"
+      />
+      <FieldRow
+        v-if="contractuels"
+        :cols="2"
+      >
         <CspSelect
-          v-if="contractuels"
           v-model="natureContrat"
           label="Nature du contrat"
           :options="opts(CONTRATS, 'Non renseigné')"
+        />
+        <CspSelect
+          v-model="fondement"
+          label="Fondement juridique *"
+          hint="Pour les contractuels"
+          :options="opts(FONDEMENTS, 'Choisir')"
         />
       </FieldRow>
       <FieldRow :cols="2">
         <CspSelect
           v-model="statutPoste"
-          label="Statut du poste"
-          hint="Champ obligatoire"
+          label="Statut du poste *"
           :options="opts(STATUTS_POSTE, 'Choisir')"
         />
         <CspInput
           v-model="o.dateVacance"
-          label="Date de vacance"
-          hint="Champ obligatoire"
+          label="Date de vacance *"
           placeholder="AAAA-MM-JJ"
         />
       </FieldRow>
       <FieldRow :cols="3">
         <CspSelect
           v-model="categorie"
-          label="Catégorie"
-          hint="Champ obligatoire"
+          label="Catégorie *"
           :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
-        />
-        <CspInput
-          v-model="o.grade"
-          label="Grade"
         />
         <CspInput
           v-model="o.corps"
           label="Corps"
           placeholder="Ex. : attachés d'administration de l'État"
         />
-      </FieldRow>
-      <FieldRow :cols="2">
-        <CspSelect
-          v-if="contractuels"
-          v-model="fondement"
-          label="Fondement juridique"
-          hint="Champ obligatoire si l'emploi est ouvert aux contractuels"
-          :options="opts(FONDEMENTS, 'Choisir')"
-        />
         <CspInput
-          v-model="o.lienJO"
-          type="url"
-          label="Lien vers l'avis de vacance au Journal officiel"
-          placeholder="Ex. : https://www.legifrance.gouv.fr/jorf/id/…"
+          v-model="o.grade"
+          label="Grade"
+          hint="Dépend du corps"
         />
       </FieldRow>
+      <CspInput
+        v-model="o.lienJO"
+        type="url"
+        label="Lien vers l'avis de vacance au Journal officiel"
+        placeholder="Ex. : https://www.legifrance.gouv.fr/jorf/id/…"
+      />
     </div>
 
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Profil recherché
-      </h3>
-      <ChampOffre
-        :offre="o"
-        champ="profil"
-        label="Descriptif du profil recherché"
-        for-id="a-profil"
-        :repris="repris('profil')"
-        :modifie="modifie('profil')"
-        @restaurer="restaurer('profil')"
-      >
-        <CspTextarea
-          id="a-profil"
-          v-model="o.profil"
-          :rows="3"
-        />
-      </ChampOffre>
-      <FieldRow :cols="2">
-        <CspSelect
-          v-model="experience"
-          label="Niveau d'expérience"
-          :options="opts(EXPERIENCES, 'Non renseigné')"
-        />
-        <CspSelect
-          v-model="etudes"
-          label="Niveau d'études"
-          :options="opts(ETUDES, 'Non renseigné')"
-        />
-      </FieldRow>
-      <FieldRow :cols="2">
-        <CspSelect
-          v-model="diplome"
-          label="Diplôme d'État requis"
-          :options="opts(DIPLOMES_ETAT, 'Aucun')"
-        />
-        <CspSelect
-          v-model="specialisation"
-          label="Spécialisation"
-          :options="opts(SPECIALISATIONS, 'Non renseigné')"
-        />
-      </FieldRow>
-      <ChampSimple
-        label="Langues"
-        info="Pour chaque langue ajoutée, le niveau est obligatoire."
-      >
-        <div
-          v-for="(l, i) in langues"
-          :key="i"
-          class="langue"
-        >
-          <CspInput
-            v-model="l.langue"
-            :label="`Langue ${i + 1}`"
-            placeholder="Ex. : anglais"
-            @update:model-value="synchroLangues"
-          />
-          <CspSelect
-            :model-value="l.niveau || 'aucun'"
-            label="Niveau"
-            hint="Champ obligatoire"
-            :options="opts(NIVEAUX_LANGUE, 'Choisir')"
-            @update:model-value="(v?: string) => { l.niveau = !v || v === 'aucun' ? '' : v; synchroLangues() }"
-          />
-          <CspButton
-            label="Retirer"
-            variant="tertiary-no-outline"
-            size="sm"
-            icon="ri:delete-bin-line"
-            is-icon-left
-            @click="retirerLangue(i)"
-          />
-        </div>
-        <CspButton
-          label="Ajouter une langue"
-          variant="secondary"
-          size="sm"
-          icon="ri:add-line"
-          is-icon-left
-          @click="ajouterLangue"
-        />
-      </ChampSimple>
-    </div>
-
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Conditions de travail
-      </h3>
-      <FieldRow :cols="2">
-        <CspSelect
-          v-model="temps"
-          label="Temps de travail"
-          hint="Champ obligatoire"
-          :options="OPTIONS_TEMPS"
-        />
-        <CspSelect
-          v-model="teletravail"
-          label="Télétravail"
-          :options="opts(['Oui', 'Non'], 'Non renseigné')"
-        />
-      </FieldRow>
-      <ChampOffre
-        :offre="o"
-        champ="conditions"
-        label="Conditions particulières"
-        for-id="a-conditions"
-      >
-        <CspTextarea
-          id="a-conditions"
-          v-model="o.conditions"
-          :rows="2"
-        />
-      </ChampOffre>
-      <FieldRow :cols="2">
+    <!-- Étape « Profil et conditions » -->
+    <template v-else-if="partie === 'profil'">
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Profil recherché
+        </h3>
         <ChampOffre
           :offre="o"
-          champ="remuneration"
-          label="Rémunération des fonctionnaires"
-          for-id="a-remu"
+          champ="profil"
+          label="Descriptif du profil recherché"
+          for-id="a-profil"
+          :repris="repris('profil')"
+          :modifie="modifie('profil')"
+          @restaurer="restaurer('profil')"
         >
-          <CspInput
-            id="a-remu"
-            v-model="o.remuneration"
-            placeholder="Ex. : grille indiciaire, selon expérience"
+          <CspTextarea
+            id="a-profil"
+            v-model="o.profil"
+            :rows="3"
           />
         </ChampOffre>
-        <CspInput
-          v-if="contractuels"
-          v-model="o.remunerationContractuels"
-          label="Rémunération des contractuels"
-          placeholder="Ex. : 2 600 à 3 200 € brut mensuel"
-        />
-      </FieldRow>
-      <ChampSimple
-        label="Informations complémentaires"
-      >
+        <FieldRow :cols="2">
+          <CspSelect
+            v-model="experience"
+            label="Niveau d'expérience"
+            :options="opts(EXPERIENCES, 'Non renseigné')"
+          />
+          <CspSelect
+            v-model="etudes"
+            label="Niveau d'études"
+            :options="opts(ETUDES, 'Non renseigné')"
+          />
+        </FieldRow>
+        <FieldRow :cols="2">
+          <CspSelect
+            v-model="diplome"
+            label="Diplôme d'État requis"
+            :options="opts(DIPLOMES_ETAT, 'Aucun')"
+          />
+          <CspSelect
+            v-model="specialisation"
+            label="Spécialisation"
+            :options="opts(SPECIALISATIONS, 'Non renseigné')"
+          />
+        </FieldRow>
+        <ChampSimple
+          label="Langues"
+          info="Pour chaque langue ajoutée, le niveau est obligatoire."
+        >
+          <div
+            v-for="(l, i) in langues"
+            :key="i"
+            class="langue"
+          >
+            <CspInput
+              v-model="l.langue"
+              :label="`Langue ${i + 1}`"
+              placeholder="Ex. : anglais"
+              @update:model-value="synchroLangues"
+            />
+            <CspSelect
+              :model-value="l.niveau || 'aucun'"
+              label="Niveau *"
+              :options="opts(NIVEAUX_LANGUE, 'Choisir')"
+              @update:model-value="(v?: string) => { l.niveau = !v || v === 'aucun' ? '' : v; synchroLangues() }"
+            />
+            <CspButton
+              label="Retirer"
+              variant="tertiary-no-outline"
+              size="sm"
+              icon="ri:delete-bin-line"
+              is-icon-left
+              @click="retirerLangue(i)"
+            />
+          </div>
+          <CspButton
+            label="Ajouter une langue"
+            variant="secondary"
+            size="sm"
+            icon="ri:add-line"
+            is-icon-left
+            @click="ajouterLangue"
+          />
+        </ChampSimple>
+      </div>
+
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Conditions de travail
+        </h3>
+        <FieldRow :cols="2">
+          <CspSelect
+            v-model="temps"
+            label="Temps de travail *"
+            :options="OPTIONS_TEMPS"
+          />
+          <CspSelect
+            v-model="teletravail"
+            label="Télétravail"
+            :options="opts(['Oui', 'Non'], 'Non renseigné')"
+          />
+        </FieldRow>
+        <ChampOffre
+          :offre="o"
+          champ="conditions"
+          label="Conditions particulières"
+          for-id="a-conditions"
+        >
+          <CspTextarea
+            id="a-conditions"
+            v-model="o.conditions"
+            :rows="2"
+          />
+        </ChampOffre>
+        <FieldRow :cols="2">
+          <ChampOffre
+            :offre="o"
+            champ="remuneration"
+            label="Rémunération des fonctionnaires"
+            for-id="a-remu"
+          >
+            <CspInput
+              id="a-remu"
+              v-model="o.remuneration"
+              placeholder="Ex. : grille indiciaire, selon expérience"
+            />
+          </ChampOffre>
+          <CspInput
+            v-if="contractuels"
+            v-model="o.remunerationContractuels"
+            label="Rémunération des contractuels"
+            placeholder="Ex. : 2 600 à 3 200 € brut mensuel"
+          />
+        </FieldRow>
         <CspTextarea
           v-model="o.infosComplementaires"
           label="Informations complémentaires"
           placeholder="Ex. : accessibilité du poste aux personnes en situation de handicap, avantages sociaux."
           :rows="2"
         />
-      </ChampSimple>
-    </div>
+      </div>
+    </template>
 
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Employeur
-      </h3>
-      <ChampSimple
-        label="Descriptif de l'employeur"
-        hint="Champ obligatoire"
-      >
+    <!-- Étape « Employeur et lieux » -->
+    <template v-else-if="partie === 'lieu'">
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Employeur
+        </h3>
         <CspTextarea
           v-model="o.descriptifEmployeur"
-          label="Descriptif de l'employeur"
+          label="Descriptif de l'employeur *"
           :rows="2"
         />
-      </ChampSimple>
-      <ChampOffre
-        :offre="o"
-        champ="presentation"
-        label="Descriptif du service"
-        for-id="a-presentation"
-        :repris="repris('presentation')"
-        :modifie="modifie('presentation')"
-        @restaurer="restaurer('presentation')"
-      >
-        <CspTextarea
-          id="a-presentation"
-          v-model="o.presentation"
-          :rows="3"
-        />
-      </ChampOffre>
-    </div>
-
-    <div class="groupe">
-      <h3 class="groupe__titre">
-        Localisation
-      </h3>
-      <ChampOffre
-        :offre="o"
-        champ="lieu"
-        label="Lieu"
-        hint="Champ obligatoire · plusieurs lieux possibles, séparés par une virgule"
-        for-id="a-lieu"
-        :repris="repris('lieu')"
-      >
-        <CspInput
-          id="a-lieu"
-          v-model="o.lieu"
-          :disabled="sansLieuFixe"
-          placeholder="Ex. : Montpellier, Nîmes"
-        />
-      </ChampOffre>
-      <CspCheckbox
-        v-model="sansLieuFixe"
-        label="Pas de lieu fixe (poste itinérant)"
-      />
-      <FieldRow
-        v-if="!sansLieuFixe"
-        :cols="2"
-      >
-        <CspInput
-          v-model="o.adresse"
-          label="Géolocalisation : adresse du poste"
-          hint="Champ obligatoire"
-          placeholder="Numéro, rue, code postal, ville"
-        />
-        <CspInput
-          v-model="o.lieuAffectation"
-          label="Lieu d'affectation"
-          placeholder="Ex. : site de la Pompignane, bâtiment B"
-        />
-      </FieldRow>
-    </div>
+        <ChampOffre
+          :offre="o"
+          champ="presentation"
+          label="Descriptif du service"
+          for-id="a-presentation"
+          :repris="repris('presentation')"
+          :modifie="modifie('presentation')"
+          @restaurer="restaurer('presentation')"
+        >
+          <CspTextarea
+            id="a-presentation"
+            v-model="o.presentation"
+            :rows="3"
+          />
+        </ChampOffre>
+      </div>
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Lieux
+        </h3>
+        <LieuxPoste :offre="o" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -614,12 +543,6 @@ function formater() {
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
-}
-
-.note {
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
 }
 
 .metier {

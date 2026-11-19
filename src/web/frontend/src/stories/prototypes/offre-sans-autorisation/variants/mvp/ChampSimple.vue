@@ -5,7 +5,7 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 // libellé, texte d'aide gris sous le libellé (ex. « Champ obligatoire »), le champ, puis un message
 // d'information sous le champ (icône bleue). Le composant glissé dedans garde son libellé, masqué à l'écran
 // quand ce cadre affiche le sien.
-defineProps<{ label?: string, hint?: string, forId?: string, info?: string }>()
+defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obligatoire?: boolean }>()
 </script>
 
 <template>
@@ -16,7 +16,11 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string }>()
       :for="forId"
       class="champ__label"
     >
-      {{ label }}
+      {{ label }}<abbr
+        v-if="obligatoire"
+        class="champ__etoile"
+        title="obligatoire"
+      > *</abbr>
       <span
         v-if="hint"
         class="champ__hint"
@@ -75,5 +79,9 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string }>()
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+.champ__etoile {
+  color: var(--text-default-error);
+  text-decoration: none;
 }
 </style>

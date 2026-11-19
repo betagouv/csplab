@@ -1,7 +1,9 @@
 // Aide à la rédaction, simulée par des règles simples (pas d'IA) : un conseil par champ,
 // et au plus une alerte discrète quand une information essentielle manque ou qu'un texte est difficile.
 
+import type { PartieOffre } from './etapes'
 import type { Offre } from './store'
+import { reactive } from 'vue'
 import { aujourdhui, plusUnMois } from './store'
 
 export type EtapeFormulaire = 'annonce' | 'candidature' | 'parametres' | 'publication'
@@ -112,40 +114,40 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
  */
 export function manquesPublication(o: Offre): { etape: EtapeFormulaire, label: string }[] {
   return [
-    ...champsObligatoires(o).filter(c => !c.ok).map(({ etape, label }) => ({ etape, label })),
+    ...champsObligatoires(o).filter(c => !c.ok).map(({ etape, label }) => ({ etape, label: label.charAt(0).toLowerCase() + label.slice(1) })),
     ...manquesDates(o).map(label => ({ etape: 'publication' as const, label })),
   ]
 }
 
 /** Champs obligatoires applicables à cette offre (certains dépendent d'autres réponses), remplis ou non. */
-export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, label: string, ok: boolean }[] {
-  const lieuFixe = !o.sansLieuFixe
-  const annonce: [boolean, boolean, string][] = [
-    // [applicable, rempli, libellé]
-    [true, Boolean(o.titre.trim()), 'intitulé'],
-    [true, Boolean(o.nbPostes), 'nombre de postes'],
-    [true, Boolean(o.metier), 'métier'],
-    [true, Boolean(o.missions.trim()), 'descriptif du poste'],
-    [true, Boolean(o.ouvertA.length), 'nature de l\'emploi'],
-    [true, Boolean(o.statutPoste), 'statut du poste'],
-    [true, Boolean(o.dateVacance), 'date de vacance'],
-    [true, Boolean(o.categorie), 'catégorie'],
-    [o.ouvertA.includes('contractuel'), Boolean(o.fondementJuridique), 'fondement juridique (emploi ouvert aux contractuels)'],
-    [Boolean(o.languesListe?.some(l => l.langue.trim())), !o.languesListe?.some(l => l.langue.trim() && !l.niveau), 'niveau de langue'],
-    [true, Boolean(o.tempsTravail), 'temps de travail'],
-    [true, Boolean(o.descriptifEmployeur.trim()), 'descriptif de l\'employeur'],
-    [lieuFixe, Boolean(o.lieu.trim()), 'lieu'],
-    [lieuFixe, Boolean(o.adresse?.trim()), 'géolocalisation (adresse)'],
+export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, partie: PartieOffre, label: string, ok: boolean }[] {
+  const lieux = o.lieux ?? []
+  const liste: [PartieOffre, boolean, boolean, string][] = [
+    // [étape, applicable, rempli, libellé]
+    ['poste', true, Boolean(o.titre.trim()), 'Intitulé de l\'offre'],
+    ['poste', true, Boolean(o.nbPostes), 'Nombre de postes'],
+    ['poste', true, Boolean(o.metier), 'Métier'],
+    ['poste', true, Boolean(o.missions.trim()), 'Descriptif du poste'],
+    ['cadre', true, Boolean(o.ouvertA.length), 'Nature de l\'emploi'],
+    ['cadre', true, Boolean(o.statutPoste), 'Statut du poste'],
+    ['cadre', true, Boolean(o.dateVacance), 'Date de vacance'],
+    ['cadre', true, Boolean(o.categorie), 'Catégorie'],
+    ['cadre', o.ouvertA.includes('contractuel'), Boolean(o.fondementJuridique), 'Fondement juridique'],
+    ['profil', Boolean(o.languesListe?.some(l => l.langue.trim())), !o.languesListe?.some(l => l.langue.trim() && !l.niveau), 'Niveau de langue'],
+    ['profil', true, Boolean(o.tempsTravail), 'Temps de travail'],
+    ['lieu', true, Boolean(o.descriptifEmployeur.trim()), 'Descriptif de l\'employeur'],
+    ['lieu', !o.sansLieuFixe, lieux.length > 0 && lieux.every(l => l.geo), 'Lieu (adresse géolocalisée)'],
+    ['candidature', o.modeCandidature === 'courriel', Boolean(o.courrielCandidature.trim()), 'Adresse de réception des candidatures'],
+    ['candidature', o.modeCandidature === 'externe', Boolean(o.urlCandidature.trim()), 'Lien du site de candidature'],
   ]
-  const candidature: [boolean, boolean, string][] = [
-    [o.modeCandidature === 'courriel', Boolean(o.courrielCandidature.trim()), 'adresse de réception des candidatures'],
-    [o.modeCandidature === 'externe', Boolean(o.urlCandidature.trim()), 'lien du site de candidature'],
-  ]
-  return [
-    ...annonce.filter(([a]) => a).map(([, ok, label]) => ({ etape: 'annonce' as const, label, ok })),
-    ...candidature.filter(([a]) => a).map(([, ok, label]) => ({ etape: 'candidature' as const, label, ok })),
-  ]
+  return liste.filter(([, a]) => a).map(([partie, , ok, label]) => ({ etape: partie === 'candidature' ? 'candidature' as const : 'annonce' as const, partie, label, ok }))
 }
+
+/**
+ * Tentative de publication par offre (retour PO, F6) : les erreurs ne s'affichent qu'après avoir essayé de publier.
+ * Avant, rien n'est contrôlé et on peut enregistrer un brouillon incomplet.
+ */
+export const tentatives = reactive(new Set<string>())
 
 /** Ce qui manque à l'offre elle-même (annonce, candidature). Les dates se choisissent en publiant. */
 export function manquesAnnonce(o: Offre): { etape: EtapeFormulaire, label: string }[] {

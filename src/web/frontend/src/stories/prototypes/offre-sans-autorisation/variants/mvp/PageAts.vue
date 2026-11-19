@@ -21,12 +21,15 @@ const props = withDefaults(defineProps<{
   retour?: { to: string, label: string }
   onglets?: CspTabItem<T>[]
   largeur?: 'wide' | 'full'
+  /** Messages d'information en bandeau, au-dessus du titre (bandeau d'information DSFR, retour PO F3). */
+  bandeaux?: string[]
 }>(), {
   sousTitre: undefined,
   fil: () => [],
   retour: undefined,
   onglets: undefined,
   largeur: 'wide',
+  bandeaux: () => [],
 })
 const onglet = defineModel<T>('onglet')
 const { flash } = useNav()
@@ -45,6 +48,17 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
     >
       <AtsSidebar :actif="actif" />
       <div class="ats__main">
+        <p
+          v-for="b in bandeaux"
+          :key="b"
+          class="ats__bandeau"
+        >
+          <CspIcon
+            name="ri:information-fill"
+            :size="20"
+          />
+          {{ b }}
+        </p>
         <CspPageHeader
           :title="titre"
           :subtitle="sousTitre"
@@ -138,6 +152,21 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 // sinon ils allongent la page entière et la barre « Accéder à » fixe sort de l'écran.
 .ats__main :deep(.csp-page-container) {
   position: relative;
+}
+
+.ats__bandeau {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+  margin: 0;
+  padding: var(--csp-space-3) var(--csp-space-8);
+  background: var(--background-contrast-info);
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-info);
+
+  & + & {
+    padding-top: 0;
+  }
 }
 
 .ats__actions {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
@@ -8,21 +8,20 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import Panel from '../../shared/Panel.vue'
-import { manquesAnnonce } from './aide'
+import { manquesAnnonce, tentatives } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import { dupliquer } from './dupliquer'
-import FormAnnonce from './FormAnnonce.vue'
-import FormCandidature from './FormCandidature.vue'
-import FormEquipe from './FormEquipe.vue'
-import FormInterne from './FormInterne.vue'
-import FormProcessus from './FormProcessus.vue'
+import { ETAPES_OFFRE } from './etapes'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
+import ParcoursOffre from './ParcoursOffre.vue'
+import RecapPublication from './RecapPublication.vue'
 import { candidatures } from './recrutement'
-import SectionOffre from './SectionOffre.vue'
 import { aujourdhui, dateLongue, db, heure, joursRestants, le, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
 
-// Page d'une offre (sans autorisation) : sections modifiables à gauche, encart de l'état à droite.
+// Page d'une offre (sans autorisation) : le formulaire en étapes à gauche (retour PO, F1), l'encart de l'état et le
+// récapitulatif des champs obligatoires à droite (F4). Processus, Équipe et Journal d'activité sont les écrans
+// existants de la plateforme (F2) : on y accède depuis le menu « … », ils ne sont plus intégrés au formulaire.
 // Brouillon → Publiée (publication immédiate) → Dépubliée (date de fin ou retrait manuel) → Publiée (prolongation).
 // L'offre reste modifiable une fois publiée. Publier, prolonger et retirer demandent le droit « Publier ».
 const props = defineProps<{ id: string, section?: string }>()
@@ -55,59 +54,37 @@ const meta = computed(() => [
   ...(o.value.categorie ? [{ icon: 'ri:price-tag-3-line', srLabel: 'Catégorie', label: `Catégorie ${o.value.categorie}` }] : []),
   { icon: 'ri:group-line', srLabel: 'Postes', label: `${o.value.nbPostes || 1} poste${Number(o.value.nbPostes) > 1 ? 's' : ''}` },
 ])
-const menu = [{
-  items: [
-    { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(o.value, { aller, notifier }) },
-  ],
-}]
+const journal = ref(false)
+const menu = [
+  {
+    items: [
+      { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(o.value, { aller, notifier }) },
+    ],
+  },
+  {
+    // Écrans existants de la plateforme, repris tels quels (F2). Simulés ici.
+    items: [
+      { label: 'Personnaliser les étapes de recrutement', icon: 'ri:table-line', onSelect: () => notifier('Écran existant « Personnaliser les étapes de recrutement de l\'offre » (non reproduit dans le prototype).') },
+      { label: 'Équipe de recrutement', icon: 'ri:team-line', onSelect: () => notifier('Écran existant « Équipe de recrutement » du recrutement (non reproduit dans le prototype).') },
+      { label: 'Journal d’activité', icon: 'ri:history-line', onSelect: () => (journal.value = true) },
+    ],
+  },
+]
 const apercu = ref(false)
 
-// --- Sections et raccourcis « Accéder à » (dans l'ordre de la page) ---
-const RACCOURCIS = [
-  { id: 'annonce', label: 'Annonce' },
-  { id: 'interne', label: 'Informations internes' },
-  { id: 'candidature', label: 'Formulaire de candidature' },
-  { id: 'processus', label: 'Processus' },
-  { id: 'equipe', label: 'Équipe' },
-  { id: 'journal', label: 'Journal d\'activité' },
-]
-const ouverts = reactive<Record<string, boolean>>({ annonce: true, interne: true, candidature: true, processus: true, equipe: true, journal: false })
-const active = ref('')
-let choisie = ''
-let finChoix: ReturnType<typeof setTimeout> | undefined
-async function allerA(id: string) {
-  ouverts[id] = true
-  choisie = id
-  active.value = id
-  await nextTick()
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+// --- Étape du formulaire. Depuis la liste, « Compléter » ouvre la candidature ou le début de l'annonce. ---
+const etape = ref(props.section === 'candidature' ? ETAPES_OFFRE.length : 1)
+function publierOuTenter() {
+  if (manques.value.length) {
+    tentatives.add(o.value.id)
+  }
+  aller({ nom: 'publier', id: o.value.id })
 }
-let defileur: HTMLElement | null = null
-function suivreSection() {
-  if (!defileur) {
-    return
-  }
-  if (choisie) {
-    clearTimeout(finChoix)
-    finChoix = setTimeout(() => (choisie = ''), 150)
-    return
-  }
-  const ids = RACCOURCIS.map(r => r.id)
-  if (defileur.scrollTop + defileur.clientHeight >= defileur.scrollHeight - 4) {
-    active.value = ids.at(-1) ?? ''
-    return
-  }
-  const repere = (document.querySelector('.raccourcis')?.getBoundingClientRect().bottom ?? 0) + 120
-  active.value = ids.filter(id => (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= repere).at(-1) ?? ''
-}
-onMounted(() => {
-  defileur = document.querySelector('.csp-page-container')
-  defileur?.addEventListener('scroll', suivreSection, { passive: true })
-  if (props.section) {
-    void allerA(props.section)
-  }
-})
-onBeforeUnmount(() => defileur?.removeEventListener('scroll', suivreSection))
+const bandeaux = computed(() => o.value.etat === 'publiee'
+  ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.']
+  : o.value.etat === 'brouillon'
+    ? ['Les champs obligatoires (*) ne sont contrôlés qu\'au moment de publier : vous pouvez enregistrer une offre incomplète.']
+    : [])
 
 // --- Prolonger (publiée ou dépubliée) ---
 const prolongation = ref(false)
@@ -146,6 +123,7 @@ function confirmerRetrait() {
     :titre="o.titre || 'Offre sans titre'"
     :fil="[{ label: 'Mes offres d\'emploi', to: '/offres' }, { label: o.titre || o.id }]"
     :retour="{ to: '/offres', label: 'Retour à mes offres d\'emploi' }"
+    :bandeaux="bandeaux"
   >
     <template #meta>
       <div class="meta">
@@ -183,24 +161,6 @@ function confirmerRetrait() {
       </CspDropdownMenu>
     </template>
 
-    <nav
-      class="raccourcis"
-      aria-label="Accéder à une section"
-    >
-      <span>Accéder à :</span>
-      <button
-        v-for="r in RACCOURCIS"
-        :key="r.id"
-        type="button"
-        class="raccourci"
-        :class="{ 'raccourci--actif': active === r.id }"
-        :aria-current="active === r.id ? 'location' : undefined"
-        @click="allerA(r.id)"
-      >
-        {{ r.label }}
-      </button>
-    </nav>
-
     <div class="colonnes">
       <!-- Encart de l'état et des actions -->
       <aside class="tete">
@@ -208,32 +168,18 @@ function confirmerRetrait() {
           v-if="o.etat === 'brouillon'"
           class="encart encart--action"
           titre="Brouillon"
-          :description="manques.length ? 'Enregistré à tout moment, rien n\'est exigé. Pour publier, complétez :' : 'L\'annonce est complète : il ne reste qu\'à choisir la date de fin et publier.'"
+          :description="manques.length ? undefined : 'Il ne reste qu\'à choisir la date de fin et publier.'"
         >
-          <ul
-            v-if="manques.length"
-            class="manques"
-          >
-            <li
-              v-for="m in manques"
-              :key="m.label"
-            >
-              {{ m.label }}
-              <button
-                type="button"
-                class="lien"
-                @click="allerA(m.etape === 'candidature' ? 'candidature' : 'annonce')"
-              >
-                Compléter
-              </button>
-            </li>
-          </ul>
+          <RecapPublication
+            :offre="o"
+            @aller="(n: number) => (etape = n)"
+          />
           <div v-if="peutPublier">
             <CspButton
               label="Publier"
               icon="ri:send-plane-line"
               is-icon-left
-              @click="aller({ nom: 'publier', id: o.id })"
+              @click="publierOuTenter"
             />
           </div>
           <p
@@ -326,106 +272,26 @@ function confirmerRetrait() {
       </aside>
 
       <div class="sections">
-        <SectionOffre
-          id="annonce"
-          v-model:ouvert="ouverts.annonce"
-          titre="Annonce"
-          :description="o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
+        <fieldset
+          class="verrou"
+          :disabled="!modifiable"
         >
-          <fieldset
-            class="verrou"
-            :disabled="!modifiable"
-          >
-            <FormAnnonce
-              :offre="o"
-              :lecture-seule="!modifiable"
-            />
-          </fieldset>
-        </SectionOffre>
-
-        <SectionOffre
-          id="interne"
-          v-model:ouvert="ouverts.interne"
-          titre="Informations internes"
-        >
-          <template #intro>
-            <p class="source">
-              Jamais publiées.
-            </p>
-          </template>
-          <fieldset
-            class="verrou"
-            :disabled="!modifiable"
-          >
-            <FormInterne
-              :offre="o"
-              :lecture-seule="!modifiable"
-            />
-          </fieldset>
-        </SectionOffre>
-
-        <SectionOffre
-          id="candidature"
-          v-model:ouvert="ouverts.candidature"
-          titre="Formulaire de candidature"
-        >
-          <fieldset
-            class="verrou"
-            :disabled="!modifiable"
-          >
-            <FormCandidature
-              :offre="o"
-              :verrouille="o.etat !== 'brouillon'"
-            />
-          </fieldset>
-        </SectionOffre>
-
-        <SectionOffre
-          id="processus"
-          v-model:ouvert="ouverts.processus"
-          titre="Processus"
-        >
-          <template #intro>
-            <p class="source">
-              Facultatif. Ne bloque pas la publication.
-            </p>
-          </template>
-          <FormProcessus
+          <ParcoursOffre
+            v-model:etape="etape"
             :offre="o"
             :lecture-seule="!modifiable"
-          />
-        </SectionOffre>
-
-        <SectionOffre
-          id="equipe"
-          v-model:ouvert="ouverts.equipe"
-          titre="Équipe"
-        >
-          <template #intro>
-            <p class="source">
-              Facultatif. Le créateur de l'offre en est Responsable.
-            </p>
-          </template>
-          <FormEquipe
-            :offre="o"
-            :lecture-seule="!modifiable"
-          />
-        </SectionOffre>
-
-        <SectionOffre
-          id="journal"
-          v-model:ouvert="ouverts.journal"
-          titre="Journal d'activité"
-        >
-          <ol class="histo">
-            <li
-              v-for="(h, i) in [...o.historique].reverse()"
-              :key="i"
-            >
-              <small>{{ h.date }}</small>{{ h.texte }}
-            </li>
-          </ol>
-        </SectionOffre>
+            :verrouille-candidature="o.etat !== 'brouillon'"
+          >
+            <template #fin>
+              <CspButton
+                v-if="o.etat === 'brouillon' && peutPublier"
+                label="Publier"
+                icon="ri:arrow-right-line"
+                @click="publierOuTenter"
+              />
+            </template>
+          </ParcoursOffre>
+        </fieldset>
       </div>
     </div>
 
@@ -465,6 +331,25 @@ function confirmerRetrait() {
         :organisme="db.organisme.nom"
       />
     </CspDrawer>
+
+    <!-- Journal d'activité : consulté à part, comme l'historique ailleurs dans la plateforme (F2). -->
+    <CspDrawer
+      v-model:open="journal"
+      title="Journal d'activité"
+      size="md"
+    >
+      <p class="journal__titre">
+        {{ o.historique.length }} activité{{ o.historique.length > 1 ? 's' : '' }} récente{{ o.historique.length > 1 ? 's' : '' }}
+      </p>
+      <ol class="histo">
+        <li
+          v-for="(h, i) in [...o.historique].reverse()"
+          :key="i"
+        >
+          <small>{{ h.date }}</small>{{ h.texte }}
+        </li>
+      </ol>
+    </CspDrawer>
   </PageAts>
 </template>
 
@@ -498,50 +383,6 @@ function confirmerRetrait() {
   align-self: center;
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
-}
-
-.raccourcis {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--csp-space-2) var(--csp-space-5);
-  margin: var(--csp-space-2) calc(-1 * var(--csp-space-2)) calc(-1 * var(--csp-space-2));
-  padding: var(--csp-space-3) var(--csp-space-2);
-  background: var(--background-default-grey);
-  box-shadow: 0 1px 0 var(--border-default-grey);
-  font-size: var(--csp-font-size-sm);
-
-  > span {
-    margin-right: var(--csp-space-1);
-  }
-}
-
-.raccourci {
-  padding: 2px var(--csp-space-3);
-  border: 0;
-  border-radius: 1rem;
-  background: var(--background-action-low-blue-france);
-  font: inherit;
-  color: var(--text-action-high-blue-france);
-  cursor: pointer;
-
-  &:hover {
-    background: var(--background-action-low-blue-france-hover);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
-
-  &--actif,
-  &--actif:hover {
-    background: var(--background-action-high-blue-france);
-    color: var(--text-inverted-blue-france);
-  }
 }
 
 .colonnes {
@@ -583,15 +424,6 @@ function confirmerRetrait() {
   &--attention {
     border-top: 3px solid var(--border-plain-warning);
   }
-}
-
-.manques {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-2);
-  margin: 0;
-  padding-left: var(--csp-space-5);
-  font-size: var(--csp-font-size-sm);
 }
 
 .lien {
@@ -643,6 +475,13 @@ function confirmerRetrait() {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.journal__titre {
+  margin: 0 0 var(--csp-space-4);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-mention-grey);
 }
 
 .histo {

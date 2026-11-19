@@ -6,6 +6,14 @@
 import { reactive } from 'vue'
 
 export type OrigineFiche = 'ats' | 'sirh' | 'document'
+export interface LieuPoste {
+  adresse: string
+  ville: string
+  /** Coordonnées, renseignées quand l'adresse est choisie dans les suggestions. */
+  geo?: string
+  affectation?: string
+}
+
 /** Statut de l'offre. La validation n'est pas un statut : elle se suit à part (voir EtatValidation). */
 export type EtatOffre = 'brouillon' | 'publiee' | 'retiree' | 'archivee'
 export type EtatValidation = 'non_demandee' | 'en_attente' | 'validee' | 'refusee'
@@ -153,7 +161,9 @@ export interface Offre {
   languesListe?: { langue: string, niveau: string }[]
   /** Poste itinérant : « Pas de lieu fixe » à la place des villes. */
   sansLieuFixe?: boolean
-  /** Géolocalisation : adresse du poste. */
+  /** Lieux du poste (retour PO, F9) : chacun avec son adresse, choisie dans une liste (saisie assistée) et géolocalisée. */
+  lieux?: LieuPoste[]
+  /** Géolocalisation : adresse du poste (ancien champ unique, gardé pour la compatibilité). */
   adresse?: string
   /** Lieu d'affectation (sans géolocalisation). */
   lieuAffectation?: string
@@ -527,7 +537,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v3'
+const CLE = 'csplab-proto-offre-mvp-v4'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -670,7 +680,22 @@ function avecRecrutements(offres: Offre[]): Offre[] {
   return [...offres, ...copies]
 }
 
-export const db = reactive(lire() ?? initial())
+// Lieux du jeu de démonstration : une adresse géolocalisée par ville (retour PO, F9).
+const GEO: Record<string, [string, string]> = {
+  'Montpellier (34)': ['520 allée Henri II de Montmorency, 34000 Montpellier', '43,6119 · 3,8999'],
+  'Toulouse (31)': ['1 rue de la Cité administrative, 31000 Toulouse', '43,6106 · 1,4436'],
+  'Nîmes (30)': ['5 rue Saint-Rémy, 30000 Nîmes', '43,8336 · 4,3591'],
+}
+function avecLieux(b: Base): Base {
+  for (const o of b.offres) {
+    if (!o.lieux && !o.sansLieuFixe) {
+      o.lieux = o.lieu.split(',').map(v => v.trim()).filter(Boolean).map(v => ({ adresse: GEO[v]?.[0] ?? v, ville: v, geo: GEO[v]?.[1] }))
+    }
+  }
+  return b
+}
+
+export const db = reactive(lire() ?? avecLieux(initial()))
 
 export function sauvegarder() {
   try {
@@ -792,6 +817,12 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
         remunerationContractuels: depuis.remunerationContractuels,
         teletravail: depuis.teletravail,
         lieu: depuis.lieu,
+        lieux: depuis.lieux?.map(l => ({ ...l })),
+        sansLieuFixe: depuis.sansLieuFixe,
+        adresse: depuis.adresse,
+        languesListe: depuis.languesListe?.map(l => ({ ...l })),
+        diplomeEtat: depuis.diplomeEtat,
+        specialisation: depuis.specialisation,
         versant: depuis.versant,
         natureContrat: depuis.natureContrat,
         niveauExperience: depuis.niveauExperience,

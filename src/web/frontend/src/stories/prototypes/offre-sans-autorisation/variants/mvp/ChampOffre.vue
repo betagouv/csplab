@@ -3,7 +3,7 @@ import type { Champ } from './aide'
 import type { Offre } from './store'
 import { computed, ref } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { alerte, CONSEILS } from './aide'
+import { alerte, CONSEILS, tentatives } from './aide'
 
 // Un champ de l'annonce avec son aide légère : un conseil et un exemple derrière le « ? » du libellé,
 // une alerte discrète au besoin, et l'indication « repris de la fiche » tant que le texte n'a pas été adapté.
@@ -12,8 +12,10 @@ const props = defineProps<{
   offre: Offre
   champ: Champ
   label?: string
-  /** Texte d'aide gris sous le libellé (DSFR), par ex. « Champ obligatoire ». */
+  /** Texte d'aide gris sous le libellé (DSFR). */
   hint?: string
+  /** Champ obligatoire pour publier : astérisque après le libellé (retour PO, F5). */
+  obligatoire?: boolean
   forId?: string
   repris?: boolean
   modifie?: boolean
@@ -27,7 +29,11 @@ const props = defineProps<{
 const emit = defineEmits<{ restaurer: [] }>()
 
 const aide = computed(() => CONSEILS[props.champ])
-const a = computed(() => alerte(props.offre, props.champ))
+// Les alertes « à corriger » n'apparaissent qu'après une tentative de publication (retour PO, F6).
+const a = computed(() => {
+  const x = alerte(props.offre, props.champ)
+  return x?.niveau === 'attention' && !tentatives.has(props.offre.id) ? null : x
+})
 const ouvert = ref(false)
 </script>
 
@@ -41,7 +47,11 @@ const ouvert = ref(false)
         <label
           :for="forId"
           class="champ__label"
-        >{{ label }}</label>
+        >{{ label }}<abbr
+          v-if="obligatoire"
+          class="champ__etoile"
+          title="obligatoire"
+        > *</abbr></label>
         <button
           type="button"
           class="champ__aide"
@@ -220,5 +230,9 @@ const ouvert = ref(false)
   color: var(--text-action-high-blue-france);
   text-decoration: underline;
   cursor: pointer;
+}
+.champ__etoile {
+  color: var(--text-default-error);
+  text-decoration: none;
 }
 </style>

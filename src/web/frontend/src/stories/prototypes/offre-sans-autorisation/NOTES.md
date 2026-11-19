@@ -47,8 +47,55 @@ Ce dossier repart d'une copie des écrans du proto ATS, épurée de tout ce qui 
 - Publication : date de fin seule (= date limite de candidature, ≥ aujourd'hui + 1 mois
   sauf urgence). Pas de programmation (retour Alice, 18/11/2026) : l'offre est mise en ligne le jour où on publie, seule la date de fin se choisit.
 - Champs « DAR » (motif, agent remplacé, code poste, RIFSEEP, cycle) : masqués sans circuit d'autorisation.
-- Action « Mettre l'offre en pause » (menu ⋮ du tableau) : dépublie l'offre (journal « Offre mise en pause »).
-  À trancher : statut « En pause » distinct de « Dépubliée » ?
+- « Mettre l'offre en pause » : retirée (retour PO, L10), c'est le même comportement que retirer l'offre.
+
+## Retours PO du 19/11/2026 (numérotés comme dans son document)
+
+Liste des offres
+- L1 Onglets par phase : En préparation, En ligne (ouvert par défaut), Terminées, Toutes. Avec un circuit
+  d'autorisation, les statuts de validation se rangeront dans « En préparation ».
+- L2 Colonne Statut seulement dans « Toutes » ; plus de « depuis N jours », la date de mise en ligne suffit.
+- L3 Filtres dans un tiroir : responsable, service, lieu, catégorie.
+- L4 En ligne : tri par date de fin croissante. Terminées : les plus récentes d'abord.
+- L5 « dans N jours » écrit sous la date de fin (plus seulement la couleur), icône d'alerte à moins de 7 jours.
+- L6 « Suivre les candidatures » retiré de Prochaine étape (« — » quand il n'y a rien à faire).
+- L7 Plusieurs responsables : « Camille Moreau +1 », liste complète au survol.
+- L8 « Créer une offre » en bouton principal. L9 « Dupliquer » ouvre directement le formulaire pré-rempli.
+- L11 « Compléter l'annonce » affiche « 10 / 13 champs obligatoires ».
+- L12 « Fin de publication » partout. L13 « Statut » partout. L14 Recherche : « Intitulé, lieu, référence ».
+- L15 Sous-titre : « en préparation, en ligne et terminées ».
+
+Formulaire
+- F1 Six étapes, les mêmes à la création et sur la page de l'offre : Le poste, Cadre du recrutement, Profil et
+  conditions, Employeur et lieux, Informations internes, Candidature. Étapes cliquables, cochées quand complètes.
+- F2 Processus, Équipe et Journal sortis du formulaire. Menu « … » de l'offre : « Personnaliser les étapes de
+  recrutement » et « Équipe de recrutement » renvoient aux écrans existants (simulés) ; le journal s'ouvre à part.
+  À l'intégration : brancher `OffreEtapesRecrutementView`, l'onglet Équipe et le pattern d'historique existants.
+- F3 Messages d'information en bandeau au-dessus du titre (`PageAts`, prop `bandeaux`).
+- F4 Récapitulatif « Avant de publier » : coché / à remplir par étape, « Plus que N champs obligatoires… ».
+- F5 Astérisque rouge sur les champs obligatoires (au lieu de « Champ obligatoire »).
+- F6 Les alertes « à corriger » n'apparaissent qu'après une tentative de publication (`tentatives` dans aide.ts).
+- F7 Versant et organisme de rattachement retirés du formulaire (déduits de l'organisme).
+- F8 Catégorie, Corps, puis Grade. Nature de l'emploi : un choix unique (fonctionnaires uniquement, fonctionnaires
+  et contractuels, contractuels uniquement).
+- F9 Plusieurs lieux (« Ajouter un lieu »), chacun avec une adresse à suggestions (simulées ; la Base adresse
+  nationale en vrai) et sa géolocalisation. « Pas de lieu fixe » gardé en attendant la DGAFP.
+- F10 Publication programmée retirée (18/11). F11 « Multidiffusion : bientôt » retiré. F12 Mention « pas de
+  circuit d'autorisation » retirée.
+
+Réponses aux questions
+- Q1 Sous l'intitulé : service · lieu(x) · référence. Le service vient de la fiche de poste du jeu de données (ou
+  de l'offre dupliquée) : il n'est saisi nulle part dans le formulaire. Le lieu vient de l'étape « Employeur et
+  lieux ». La référence est la référence interne de l'ATS (OFF-…). À trancher : ajouter un champ « Service ».
+- Q2 « Champs obligatoires seulement » : pas fait. Avec les étapes et le récapitulatif, on va directement aux
+  champs manquants ; à tester avant d'ajouter ce filtre.
+
+## Blocage technique (à signaler à Lucas)
+
+- 19/11/2026 : les dépendances installées sur le poste sont celles d'une branche plus récente (proto/vision-csp).
+  Storybook affiche des erreurs de types sans lien avec le proto (fenêtre « vue-tsc », à fermer). La réinstallation
+  (`pnpm install --frozen-lockfile`) échoue : pnpm 12.9.1 plante au démarrage (« SyntaxError: Invalid or unexpected
+  token » sur son propre exécutable). Le prototype s'affiche et fonctionne malgré tout.
 
 ## Manques design system (repris du proto ATS)
 

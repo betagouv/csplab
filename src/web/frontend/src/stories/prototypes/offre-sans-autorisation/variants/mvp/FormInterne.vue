@@ -121,12 +121,6 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
         </ChampOffre>
       </FieldRow>
     </template>
-    <p
-      v-else
-      class="interne__aide"
-    >
-      Votre organisme n'a pas de circuit d'autorisation : seules les références internes sont demandées.
-    </p>
 
     <div
       v-if="avecValidation"
@@ -384,10 +378,5 @@ const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné'
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
-}
-.interne__aide {
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
 }
 </style>

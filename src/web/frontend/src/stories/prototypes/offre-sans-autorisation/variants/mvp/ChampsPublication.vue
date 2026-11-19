@@ -2,14 +2,13 @@
 import type { Offre } from './store'
 import { computed } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { manquesDates } from './aide'
 import { aujourdhui, dateLongue, plusUnMois, SUPPORT_MAITRE } from './store'
 
 // Publication (doc PO) : l'offre est mise en ligne le jour où on publie (pas de programmation). Date de fin de
 // publication, qui vaut date limite de candidature (au moins un mois, sauf urgence). Saisies au moment de
-// publier, pas dans le formulaire de l'offre. La multidiffusion est hors périmètre : son emplacement est prévu.
+// publier, pas dans le formulaire de l'offre. La multidiffusion n'est pas annoncée (retour PO, F11).
 const props = defineProps<{ offre: Offre, tentative?: boolean }>()
 const o = computed(() => props.offre)
 if (!o.value.dateFin) {
@@ -42,18 +41,6 @@ const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : unde
       v-model="o.urgence"
       label="Recrutement urgent : publier moins d'un mois (article D311-2)"
     />
-    <div class="multi">
-      <p class="multi__titre">
-        <CspIcon
-          name="ri:megaphone-line"
-          :size="16"
-        />
-        Multidiffusion
-      </p>
-      <p class="multi__texte">
-        Bientôt : diffuser aussi l'offre sur des sites partenaires (France Travail, APEC…).
-      </p>
-    </div>
   </div>
 </template>
 
@@ -73,26 +60,5 @@ const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : unde
     margin: 0;
     font-size: var(--csp-font-size-sm);
   }
-}
-
-.multi {
-  padding: var(--csp-space-3) var(--csp-space-4);
-  border: 1px dashed var(--border-default-grey);
-}
-
-.multi__titre {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-1);
-  margin: 0;
-  font-weight: 600;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
-
-.multi__texte {
-  margin: var(--csp-space-1) 0 0;
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
 }
 </style>
