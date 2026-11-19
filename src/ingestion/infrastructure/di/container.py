@@ -425,9 +425,10 @@ def create_container() -> Container:
         settings.talentsoft_dgafp_source_id
     )
 
-    _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(
-        container, settings.talentsoft_credentials, _logger
+        container,
+        settings.talentsoft_credentials,
+        logging.getLogger(TalentsoftFrontClient.__module__),
     )
     return container
 

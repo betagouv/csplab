@@ -6,13 +6,13 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
-import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize, quote } from '@/utils/format'
 import { useTags } from '../composables/useTags'
-import { DEFAULT_TAG_COLOR, TAG_CATEGORIES, TAG_CATEGORY_TEXTS, TAG_COLOR_PALETTE } from '../constants/tag'
+import { TAG_CATEGORIES, TAG_CATEGORY_TEXTS } from '../constants/tag'
 import TagForm from './TagForm.vue'
+import TagList from './TagList.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -134,25 +134,14 @@ async function confirmDeletion(): Promise<void> {
             {{ TAG_CATEGORY_TEXTS[category].description }}
           </p>
 
-          <ul
+          <TagList
             v-if="tagsByCategory[category].length > 0"
-            class="tags-section__list"
-          >
-            <li
-              v-for="tag in tagsByCategory[category]"
-              :key="tag.uuid"
-            >
-              <CspLabel
-                :label="tag.name"
-                :color="TAG_COLOR_PALETTE[tag.color ?? DEFAULT_TAG_COLOR]"
-                clickable
-                :aria-label="`Modifier l'étiquette ${tag.name}`"
-                :dismiss-label="`Supprimer l'étiquette ${tag.name}`"
-                @click="openDrawer(category, tag)"
-                @dismiss="openDeletionDialog(tag)"
-              />
-            </li>
-          </ul>
+            :tags="tagsByCategory[category]"
+            :edit-label="tag => `Modifier l'étiquette ${tag.name}`"
+            :dismiss-label="tag => `Supprimer l'étiquette ${tag.name}`"
+            @edit="tag => openDrawer(category, tag)"
+            @dismiss="openDeletionDialog"
+          />
           <p
             v-else
             class="tags-section__empty"
@@ -252,14 +241,5 @@ async function confirmDeletion(): Promise<void> {
 
 .tags-section__description {
   max-width: 65ch;
-}
-
-.tags-section__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 </style>

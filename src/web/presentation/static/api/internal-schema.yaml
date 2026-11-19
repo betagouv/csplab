@@ -6339,6 +6339,7 @@ components:
       - add_recrutement_agent
       - update_recrutement_agent
       - revoke_recrutement_agent
+      - grant_recrutement_responsable
       - set_recrutements_responsable
       - get_motifs_refus
       - read_document
@@ -6382,6 +6383,7 @@ components:
         * `add_recrutement_agent` - add_recrutement_agent
         * `update_recrutement_agent` - update_recrutement_agent
         * `revoke_recrutement_agent` - revoke_recrutement_agent
+        * `grant_recrutement_responsable` - grant_recrutement_responsable
         * `set_recrutements_responsable` - set_recrutements_responsable
         * `get_motifs_refus` - get_motifs_refus
         * `read_document` - read_document

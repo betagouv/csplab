@@ -50,6 +50,12 @@ const actions = computed(() => recrutementDetail.value?.authorized_actions)
 const canAdd = computed(() => can(actions.value, 'add_recrutement_agent'))
 const canChangeRole = computed(() => can(actions.value, 'update_recrutement_agent'))
 const canRevoke = computed(() => can(actions.value, 'revoke_recrutement_agent'))
+const canGrantResponsable = computed(() => can(actions.value, 'grant_recrutement_responsable'))
+const roleOptions = computed(() =>
+  canGrantResponsable.value
+    ? RECRUTEMENT_ROLE_OPTIONS
+    : RECRUTEMENT_ROLE_OPTIONS.filter(option => option.value !== 'responsable'),
+)
 const { revocation, roleChange } = provideMembreEquipeActions({ canRevoke, canChangeRole })
 const { addToast } = useToast()
 
@@ -214,6 +220,7 @@ const countLabel = computed(() => {
       size="md"
     >
       <AddTeamMemberForm
+        :options="roleOptions"
         :status="agentStatus"
         :agent="foundAgent"
         :searching="searching"
@@ -237,7 +244,7 @@ const countLabel = computed(() => {
         :email="roleChange.requested.email"
         :role="roleChange.requested.recrutement_role"
         role-label="Rôle dans le recrutement"
-        :options="RECRUTEMENT_ROLE_OPTIONS"
+        :options="roleOptions"
         :submitting="changingRole"
         @submit="handleRoleChange"
         @cancel="roleDrawerOpen = false"

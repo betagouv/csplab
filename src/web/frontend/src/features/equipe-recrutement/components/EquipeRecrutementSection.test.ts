@@ -4,12 +4,13 @@ import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { searchAgentByEmail } from '@/features/agents/api'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
+import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser } from '@/test/render'
+import { server } from '@/test/server'
 import { addMembreEquipe, getEquipeRecrutement, updateMembreEquipe } from '../api'
 import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
 
@@ -22,10 +23,6 @@ vi.mock('../api', () => ({
 vi.mock('@/features/agents/api', async importOriginal => ({
   ...await importOriginal<typeof import('@/features/agents/api')>(),
   searchAgentByEmail: vi.fn(),
-}))
-
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
 }))
 
 const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
@@ -50,7 +47,7 @@ async function renderSection() {
 
 describe('equipeRecrutementSection', () => {
   beforeEach(() => {
-    vi.mocked(getRecrutementDetail).mockReset().mockResolvedValue(RECRUTEMENT_DETAIL_EQUIPE_GERABLE)
+    server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE))
     vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([MEMBRE_EQUIPE])
     vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(NOUVEL_AGENT)
     vi.mocked(addMembreEquipe).mockReset()
@@ -130,8 +127,29 @@ describe('equipeRecrutementSection', () => {
     expect(updateMembreEquipe).toHaveBeenCalledWith({ organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID }, expect.objectContaining({ recrutement_role: 'contributeur' }))
   })
 
+  it.each([
+    { droit: 'without', authorizedActions: [], offered: false },
+    { droit: 'with', authorizedActions: ['grant_recrutement_responsable' as const], offered: true },
+  ])('offers the responsable role $droit the right to grant it', async ({ authorizedActions, offered }) => {
+    const user = setupUser()
+    server.use(recrutementDetail({
+      ...RECRUTEMENT_DETAIL_EQUIPE_GERABLE,
+      authorized_actions: [...RECRUTEMENT_DETAIL_EQUIPE_GERABLE.authorized_actions, ...authorizedActions],
+    }))
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    await user.type(
+      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
+      `${NOUVEL_AGENT.email}{Enter}`,
+    )
+    await screen.findByRole('radio', { name: /^Contributeur/ })
+
+    expect(Boolean(screen.queryByRole('radio', { name: /^Responsable/ }))).toBe(offered)
+  })
+
   it('only lists the team without the right to manage it', async () => {
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] })
+    server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] }))
     await renderWithApp(Host, { route: EQUIPE_PATH })
 
     await screen.findByText(MEMBRE_EQUIPE.email)

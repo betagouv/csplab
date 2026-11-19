@@ -11,10 +11,17 @@ class MetierQuerySet(models.QuerySet):
     def active(self) -> "MetierQuerySet":
         return self.filter(archived_at__isnull=True)
 
-    def by_functional_area(self, code: str | None) -> "MetierQuerySet":
-        if not code:
-            return self
-        return self.filter(domaine_fonctionnel_code=code)
+    def by_functional_areas(self, codes: list[str] | None) -> "MetierQuerySet":
+        return self.filter(domaine_fonctionnel_code__in=codes) if codes else self
+
+    def by_offer_family_codes(self, codes: list[str] | None) -> "MetierQuerySet":
+        return self.filter(offer_family_code__in=codes) if codes else self
+
+    def by_active(self, active: bool | None) -> "MetierQuerySet":
+        return self if active is None else self.filter(archived_at__isnull=active)
+
+    def by_versant(self, versant: str | None) -> "MetierQuerySet":
+        return self.filter(versants__contains=[versant]) if versant else self
 
     def functional_area_codes(self) -> set[str]:
         return set(self.values_list("domaine_fonctionnel_code", flat=True))
@@ -43,6 +50,10 @@ class MetierModel(BaseDatedModel):
     archived_at = models.DateTimeField(null=True, blank=True)
 
     objects = MetierQuerySet.as_manager()
+
+    @property
+    def is_active(self) -> bool:
+        return self.archived_at is None
 
     class Meta:
         db_table = "metiers"

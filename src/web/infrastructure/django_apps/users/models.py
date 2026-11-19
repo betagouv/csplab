@@ -6,6 +6,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Exists, F, Func, OuterRef, Q
 from django.db.models.functions import Lower, Trim
+from django.utils import timezone
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
@@ -78,6 +80,18 @@ class UserModel(AbstractUser):
     def api_ip_is_allowed(self, ip: IPAddressInput | None) -> bool:
         networks = [network.cidr for network in self.allowed_networks.all()]
         return not networks or ip_in_networks(ip, networks)
+
+    def revoke_refresh_tokens(self) -> int:
+        tokens = list(
+            self.outstandingtoken_set.filter(
+                expires_at__gt=timezone.now(), blacklistedtoken__isnull=True
+            )
+        )
+        BlacklistedToken.objects.bulk_create(
+            [BlacklistedToken(token=token) for token in tokens],
+            ignore_conflicts=True,
+        )
+        return len(tokens)
 
 
 class CanonicalCidr(Func):

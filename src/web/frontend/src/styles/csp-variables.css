@@ -111,6 +111,9 @@
   --csp-page-container-large-width: 110rem;
   --csp-page-content-padding-block: var(--csp-space-6);
 
+  /* Floating surfaces anchored to an element */
+  --csp-popover-width: 22rem;
+
   /* Page header rows, mirrored by the sidebar header */
   --csp-page-header-padding-top: var(--csp-space-3);
   --csp-page-header-breadcrumb-height: var(--csp-space-6);

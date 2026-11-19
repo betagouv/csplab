@@ -1,10 +1,12 @@
 import { cleanup } from '@testing-library/vue'
 import { createHead } from '@unhead/vue/client'
 import { config } from '@vue/test-utils'
-import { afterEach, beforeAll, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { createMediaQueryMock } from './browser'
 import { makeUser } from './fixtures/utilisateur'
+import { server } from './server'
 import '@testing-library/jest-dom/vitest'
+import '@/app/icons'
 
 config.global.plugins.push(createHead())
 
@@ -14,6 +16,7 @@ vi.mock('@/api/utilisateur', async importOriginal => ({
 }))
 
 beforeAll(() => {
+  server.listen({ onUnhandledFrame: 'error' })
   Element.prototype.scrollIntoView = vi.fn()
   Element.prototype.hasPointerCapture = vi.fn(() => false)
   Element.prototype.releasePointerCapture = vi.fn()
@@ -31,4 +34,9 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup()
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
 })

@@ -92,6 +92,7 @@ function select(value: string) {
     side="bottom"
     align="start"
     padding="menu"
+    :collision-padding="0"
   >
     <template #trigger>
       <CspSidebarButton

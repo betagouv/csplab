@@ -18,9 +18,6 @@ from application.recruteur.usecases.revoke_organisme_agent import (
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.update_recrutement_etapes import (
-    UpdateRecrutementEtapesUsecase,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.mappers.candidature_recruteur_mapper import (
     CandidatureRecruteurMapper,
@@ -44,9 +41,6 @@ from infrastructure.repositories.recruteur.postgres_organisme_agent_query_servic
 from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
     PostgresOrganismeAgentRepository,
 )
-from infrastructure.repositories.recruteur.postgres_organisme_repository import (
-    PostgresOrganismeRecruteurRepository,
-)
 from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
     PostgresRecrutementAgentRepository,
 )
@@ -66,9 +60,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     audit_log_writer = providers.Factory(
         AuditLogWriter,
         repository=postgres_audit_log_repository,
-    )
-    postgres_organisme_recruteur_repository = providers.Singleton(
-        PostgresOrganismeRecruteurRepository
     )
     postgres_organisme_agent_repository = providers.Singleton(
         PostgresOrganismeAgentRepository
@@ -119,14 +110,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_agent_repository=postgres_organisme_agent_repository,
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
-        audit_log_writer=audit_log_writer,
-    )
-
-    update_recrutement_etapes_usecase = providers.Factory(
-        UpdateRecrutementEtapesUsecase,
-        permission_service=organisme_permission_service,
-        recrutement_repository=postgres_recrutement_repository,
-        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         audit_log_writer=audit_log_writer,
     )
 

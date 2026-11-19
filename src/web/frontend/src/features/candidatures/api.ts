@@ -1,5 +1,5 @@
 import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementListe, UpdateNotePayload } from './types'
-import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
+import type { CandidatureParams, NoteParams, NoteTagParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
 const MAX_PAGE_SIZE = 1_000
@@ -128,5 +128,19 @@ export async function deleteCandidatureNote(params: NoteParams): Promise<void> {
   await api.DELETE(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
     { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } } },
+  )
+}
+
+export async function addCandidatureNoteTag({ tagUuid, ...params }: NoteTagParams): Promise<void> {
+  await api.POST(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: { tag_uuid: tagUuid } },
+  )
+}
+
+export async function removeCandidatureNoteTag(params: NoteTagParams): Promise<void> {
+  await api.DELETE(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags/{tag_uuid}',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid, tag_uuid: params.tagUuid } } },
   )
 }

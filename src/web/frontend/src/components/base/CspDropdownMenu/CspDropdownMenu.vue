@@ -15,6 +15,10 @@ withDefaults(defineProps<CspDropdownMenuProps>(), {
   side: 'top',
 })
 
+const emit = defineEmits<{
+  closeAutoFocus: [event: Event]
+}>()
+
 const open = defineModel<boolean | undefined>('open')
 </script>
 
@@ -34,6 +38,7 @@ const open = defineModel<boolean | undefined>('open')
         :side="side"
         :side-offset="sideOffset"
         :side-flip="sideFlip"
+        @close-auto-focus="event => emit('closeAutoFocus', event)"
       >
         <template
           v-for="(section, sectionIndex) in sections"

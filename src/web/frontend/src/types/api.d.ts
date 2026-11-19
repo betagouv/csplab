@@ -713,6 +713,7 @@ export interface components {
          *     * `add_recrutement_agent` - add_recrutement_agent
          *     * `update_recrutement_agent` - update_recrutement_agent
          *     * `revoke_recrutement_agent` - revoke_recrutement_agent
+         *     * `grant_recrutement_responsable` - grant_recrutement_responsable
          *     * `set_recrutements_responsable` - set_recrutements_responsable
          *     * `get_motifs_refus` - get_motifs_refus
          *     * `read_document` - read_document
@@ -733,7 +734,7 @@ export interface components {
          *     * `manage_tag_on_member` - manage_tag_on_member
          * @enum {string}
          */
-        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag" | "manage_tag_on_application" | "manage_tag_on_member";
+        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "grant_recrutement_responsable" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag" | "manage_tag_on_application" | "manage_tag_on_member";
         Candidat: {
             /** Format: uuid */
             uuid: string;

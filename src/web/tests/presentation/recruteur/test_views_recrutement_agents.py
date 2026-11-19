@@ -66,6 +66,31 @@ def _recrutement_from_another_organisme_ids(organisme):
     return organisme.id, recrutement.pk
 
 
+def _responsable_non_superviseur(test_user):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+    )
+    return organisme, recrutement
+
+
+def _agent_a_ajouter(organisme, *, deja_rattache):
+    if deja_rattache:
+        return OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+    return AgentDjangoFactory()
+
+
+def _payload(agent, role):
+    return {"agent_id": str(agent.utilisateur_id), "recrutement_role": role.value}
+
+
 class TestRecrutementAgentsView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(_url(uuid4(), uuid4()))
@@ -421,6 +446,124 @@ class TestRecrutementAgentsViewPost:
 
         assert response.status_code == status.HTTP_409_CONFLICT
 
+    @pytest.mark.parametrize(
+        "role",
+        [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
+    )
+    @pytest.mark.parametrize("deja_rattache", [True, False], ids=["membre", "neuf"])
+    def test_responsable_adds_agent_with_allowed_role(
+        self, authenticated_client, test_user, role, deja_rattache
+    ):
+        organisme, recrutement = _responsable_non_superviseur(test_user)
+        agent = _agent_a_ajouter(organisme, deja_rattache=deja_rattache)
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), _payload(agent, role)
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert (
+            RecrutementAgentModel.objects.get(recrutement=recrutement, agent=agent).role
+            == role.value
+        )
+        assert (
+            OrganismeAgentModel.objects.get(organisme=organisme, agent=agent).role
+            == AgentOrganismeRole.AGENT.value
+        )
+
+    @pytest.mark.parametrize("deja_rattache", [True, False], ids=["membre", "neuf"])
+    def test_responsable_cannot_grant_responsable_role(
+        self, authenticated_client, test_user, deja_rattache
+    ):
+        organisme, recrutement = _responsable_non_superviseur(test_user)
+        agent = _agent_a_ajouter(organisme, deja_rattache=deja_rattache)
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk),
+            _payload(agent, AgentRecrutementRole.RESPONSABLE),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not RecrutementAgentModel.objects.filter(
+            recrutement=recrutement, agent=agent
+        ).exists()
+        assert (
+            OrganismeAgentModel.objects.filter(
+                organisme=organisme, agent=agent
+            ).exists()
+            is deja_rattache
+        )
+
+    def test_responsable_cannot_reattach_revoked_organisme_agent(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement = _responsable_non_superviseur(test_user)
+        revoque = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.AGENT.value,
+            date_revocation=datetime.now(UTC),
+        ).agent
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk),
+            _payload(revoque, AgentRecrutementRole.RECRUTEUR),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert OrganismeAgentModel.objects.get(
+            organisme=organisme, agent=revoque
+        ).date_revocation
+        assert not RecrutementAgentModel.objects.filter(
+            recrutement=recrutement, agent=revoque
+        ).exists()
+
+    def test_superviseur_reattaches_revoked_agent_as_responsable(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        revoque = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.AGENT.value,
+            date_revocation=datetime.now(UTC),
+        ).agent
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk),
+            _payload(revoque, AgentRecrutementRole.RESPONSABLE),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert (
+            OrganismeAgentModel.objects.get(
+                organisme=organisme, agent=revoque
+            ).date_revocation
+            is None
+        )
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=revoque
+            ).role
+            == AgentRecrutementRole.RESPONSABLE.value
+        )
+
+    def test_staff_can_add_agent_as_responsable(self, api_client):
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        organisme = OrganismeDjangoFactory()
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+        response = api_client.post(
+            _url(organisme.id, recrutement.pk),
+            _payload(membre, AgentRecrutementRole.RESPONSABLE),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
 
 class TestRecrutementAgentsViewPut:
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -691,6 +834,90 @@ class TestRecrutementAgentsViewPut:
                 recrutement=recrutement, agent=membre
             ).role
             == AgentRecrutementRole.RECRUTEUR.value
+        )
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
+    )
+    def test_responsable_updates_agent_to_allowed_role(
+        self, authenticated_client, test_user, role
+    ):
+        organisme, recrutement = _responsable_non_superviseur(test_user)
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), _payload(membre, role)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=membre
+            ).role
+            == role.value
+        )
+
+    def test_responsable_cannot_update_agent_to_responsable(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement = _responsable_non_superviseur(test_user)
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(membre, AgentRecrutementRole.RESPONSABLE),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=membre
+            ).role
+            == AgentRecrutementRole.CONTRIBUTEUR.value
+        )
+
+    def test_superviseur_updates_agent_to_responsable(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(membre, AgentRecrutementRole.RESPONSABLE),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=membre
+            ).role
+            == AgentRecrutementRole.RESPONSABLE.value
         )
 
     def test_staff_can_update_agent_without_organisme_role(self, api_client):

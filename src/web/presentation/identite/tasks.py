@@ -2,6 +2,7 @@ import logging
 from importlib import import_module
 
 from django.conf import settings
+from django.core.management import call_command
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
@@ -28,3 +29,9 @@ def clear_expired_sessions():
             details={"error": str(e)},
         ) from e
     logger.info("Cleared expired sessions.")
+
+
+@db_periodic_task(crontab(hour="4", minute="45"))
+@lock_task("flush-expired-tokens-periodic")
+def flush_expired_tokens():
+    call_command("flushexpiredtokens")
