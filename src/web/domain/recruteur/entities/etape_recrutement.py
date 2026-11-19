@@ -2,15 +2,8 @@ from dataclasses import dataclass
 from typing import List
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, factory, mutate
+from ddd.aggregate_root import AggregateRoot
 
-from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
-from domain.recruteur.events.etape_events import (
-    EtapeAjoutee,
-    EtapeRenommee,
-    EtapeReordonnee,
-    EtapeSupprimee,
-)
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -21,13 +14,6 @@ class EtapeRecrutement(AggregateRoot):
     _categorie: CategorieEtapeRecrutement  # catégorie connue du système
     _nom: str  # label libre, personnalisé par l'organisme
     _candidatures: List[UUID] | None
-
-    @classmethod
-    @factory(EtapeAjoutee)
-    def create(
-        cls, categorie: CategorieEtapeRecrutement, nom: str
-    ) -> "EtapeRecrutement":
-        return cls(_categorie=categorie, _nom=nom, _candidatures=None)
 
     @classmethod
     def build(
@@ -43,20 +29,6 @@ class EtapeRecrutement(AggregateRoot):
             _nom=nom,
             _candidatures=candidatures,
         )
-
-    @mutate(EtapeRenommee)
-    def renommer(self, nom: str) -> None:
-        self._nom = nom
-
-    @mutate(EtapeReordonnee)
-    def modifier_rang(self, nouveau_rang: int) -> None: ...
-
-    @mutate(EtapeSupprimee)
-    def delete(self) -> None:
-        if self._candidatures is not None:
-            raise SupressionEtapeImpossible(
-                etape_id=self.entity_id, nombre_candidatures=len(self._candidatures)
-            )
 
     @property
     def nom(self) -> str:
