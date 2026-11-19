@@ -57,12 +57,12 @@ const moreLabel = computed(() => {
             :dismiss-label="props.dismissLabel?.(tag)"
           />
         </span>
-        <span
+        <CspLabel
           data-fitting-more
-          class="tag-list__more"
-        >
-          +{{ tags.length }}
-        </span>
+          :label="`+${tags.length}`"
+          :dot="false"
+          outlined
+        />
       </div>
     </li>
     <li
@@ -89,7 +89,11 @@ const moreLabel = computed(() => {
           class="tag-list__more"
           :aria-label="moreLabel"
         >
-          +{{ hiddenTags.length }}
+          <CspLabel
+            :label="`+${hiddenTags.length}`"
+            :dot="false"
+            outlined
+          />
         </button>
       </CspTooltip>
     </li>
@@ -101,9 +105,14 @@ const moreLabel = computed(() => {
   display: flex;
   flex-wrap: wrap;
   gap: var(--csp-space-2);
+  align-items: center;
   margin: 0;
   padding: 0;
   list-style: none;
+
+  > li {
+    display: flex;
+  }
 }
 
 .tag-list--bounded {
@@ -121,17 +130,16 @@ const moreLabel = computed(() => {
 
 .tag-list__measure-row {
   display: flex;
+  width: 100%;
   flex-wrap: wrap;
   gap: var(--csp-space-2);
 }
 
 .tag-list__more {
-  padding: 0 var(--csp-space-1);
+  display: inline-flex;
+  padding: 0;
   border: 0;
   background: none;
-  font: inherit;
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
   cursor: default;
 
   &:focus-visible {
