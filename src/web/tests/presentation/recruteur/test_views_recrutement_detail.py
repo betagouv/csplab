@@ -120,6 +120,13 @@ def _detail_url(organisme_id, recrutement_id) -> str:
     )
 
 
+def _etape_url(organisme_id, recrutement_id) -> str:
+    return reverse(
+        "recruteur:organisme_recrutement_candidatures_etape",
+        kwargs={"organisme_uuid": organisme_id, "recrutement_uuid": recrutement_id},
+    )
+
+
 def _authorized_actions(organisme_role, recrutement_role) -> list[str]:
     permissions = OrganismePermissionService()
     return [
@@ -979,6 +986,46 @@ class TestRecrutementCandidaturesEtapeViewDbVerified:
         assert response.json() == {
             "error": RecrutementInexistant(recrutement.offre_id).message
         }
+        candidature.refresh_from_db()
+        assert candidature.etape_id == origine.id
+        assert not AuditLogModel.objects.exists()
+
+    @pytest.mark.parametrize(
+        "organisme_role",
+        [
+            pytest.param(None, id="sans_role_organisme"),
+            pytest.param(AgentOrganismeRole.AGENT, id="agent_contributeur"),
+        ],
+    )
+    def test_returns_403_when_not_authorized(
+        self, authenticated_client, test_user, organisme_role
+    ):
+        if organisme_role is None:
+            organisme = OrganismeDjangoFactory()
+            recrutement = RecrutementDjangoFactory(organisme=organisme)
+        else:
+            agent, organisme = create_organisme_with_agent(
+                role=organisme_role, utilisateur=test_user
+            )
+            recrutement = RecrutementDjangoFactory(
+                organisme=organisme,
+                agent_link__agent=agent,
+                agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+            )
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, recrutement.offre_id),
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
         candidature.refresh_from_db()
         assert candidature.etape_id == origine.id
         assert not AuditLogModel.objects.exists()
