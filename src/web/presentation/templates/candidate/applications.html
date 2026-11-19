@@ -38,12 +38,12 @@
                     <p class="fr-col fr-text--sm fr-mb-0">{{ items|length }} opportunité{{ items|length|pluralize }}</p>
                     <button type="button"
                             class="fr-btn fr-btn--tertiary fr-btn--sm fr-icon-filter-line fr-btn--icon-left"
-                            aria-expanded="{% if active_filters %}true{% else %}false{% endif %}"
+                            aria-expanded="false"
                             aria-controls="applications-filters">
                         Filtres{% if active_filters %} ({{ active_filters }}){% endif %}
                     </button>
                 </div>
-                <div class="fr-collapse{% if active_filters %} fr-collapse--expanded{% endif %} fr-mb-2w"
+                <div class="fr-collapse fr-mb-2w"
                      id="applications-filters">
                     <form action="{% url 'candidate:applications' %}"
                           method="get"
