@@ -99,6 +99,7 @@ class TestDocumentView:
         response = api_client.get(_url(uuid4(), uuid4(), uuid4(), uuid4()))
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response["Clear-Site-Data"] == '"cache"'
 
     @pytest.mark.parametrize(
         "organisme_role,recrutement_role",
