@@ -67,6 +67,10 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 if private_hostname := os.environ.get("SCALINGO_PRIVATE_HOSTNAME", "").rstrip("."):
     ALLOWED_HOSTS.append("web." + private_hostname.split(".", 2)[2])
 SITE_ID = 1
+# SHA of the deployed commit, injected by Scalingo at runtime, empty locally.
+# Part of computed ETags, so a deploy that changes a response format never answers 304.
+# https://doc.scalingo.com/platform/app/environment#runtime-environment-variables
+DEPLOYED_VERSION = os.environ.get("CONTAINER_VERSION", "")
 
 # SESSIONS
 # ---------------------------------------

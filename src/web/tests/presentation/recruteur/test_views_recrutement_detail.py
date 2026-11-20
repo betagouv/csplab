@@ -30,6 +30,7 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.django_apps.tag.models import CandidatureTagModel, TagModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -60,6 +61,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
+from infrastructure.factories.tag.tag_django_factory import CandidatureTagDjangoFactory
 from presentation.commons.pagination import TaillePageNumberPagination
 
 fake = Faker()
@@ -794,11 +796,26 @@ def _read_by_current_agent(recrutement, candidature, agent):
     )
 
 
+def _tag_candidature(recrutement, candidature, agent):
+    CandidatureTagDjangoFactory(candidature=candidature)
+
+
+def _untag_candidature(recrutement, candidature, agent):
+    CandidatureTagModel.objects.filter(candidature=candidature).delete()
+
+
+def _rename_tag(recrutement, candidature, agent):
+    tag = TagModel.objects.get(candidatures_liaisons__candidature=candidature)
+    tag.name = "Renommée"
+    tag.save()
+
+
 @pytest.fixture(name="list_with_candidature")
 def list_with_candidature_fixture(recrutement_liste):
     etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
     candidature = CandidatureDjangoFactory(etape=etape)
     CandidatureDjangoFactory(etape=etape)
+    CandidatureTagDjangoFactory(candidature=candidature)
     ConversationDjangoFactory(
         candidature=candidature, with_message=True, with_message__par_candidat=True
     )
@@ -833,6 +850,9 @@ class TestRecrutementListeConditionalGet:
             _reorder_etapes,
             _message_from_candidat,
             _read_by_current_agent,
+            _tag_candidature,
+            _untag_candidature,
+            _rename_tag,
         ],
     )
     def test_returns_200_after_a_change(
