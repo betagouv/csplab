@@ -32,6 +32,7 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     AgentOrganismeSerializer,
@@ -71,7 +72,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeAgentsView(SessionApiMixin, APIView):
+class OrganismeAgentsView(ConditionalGetMixin, SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()

@@ -41,6 +41,7 @@ from domain.recruteur.errors.recrutement_agent_errors import (
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     RecrutementAgentRoleSerializer,
     RecrutementAgentSerializer,
@@ -82,7 +83,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class RecrutementAgentsView(SessionApiMixin, ListAPIView):
+class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = RecrutementAgentSerializer
 
     def get_queryset(self):
