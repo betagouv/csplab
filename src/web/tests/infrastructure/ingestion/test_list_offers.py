@@ -393,8 +393,8 @@ def offers_by_country_fixture(db):
         "belgium": OfferDjangoFactory(
             reference="test-belgium",
             country="BEL",
-            region="11",
-            department="75",
+            region=None,
+            department=None,
         ),
     }
 
