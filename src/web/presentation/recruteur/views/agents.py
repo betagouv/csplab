@@ -13,7 +13,6 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import AgentSerializer, CreateAgentSerializer
 
 
@@ -31,7 +30,7 @@ from presentation.recruteur.serializers import AgentSerializer, CreateAgentSeria
         },
     ),
 )
-class AgentsView(ConditionalGetMixin, SessionApiMixin, APIView):
+class AgentsView(SessionApiMixin, APIView):
     def post(self, request: Request) -> Response:
         serializer = CreateAgentSerializer(data=request.data)
         if not serializer.is_valid():

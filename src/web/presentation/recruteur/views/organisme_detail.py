@@ -244,7 +244,7 @@ class MotifsRefusOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
         201: EtapeRecrutementSerializer(many=True),
     },
 )
-class InitEtapesRecrutementOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
+class InitEtapesRecrutementOrganismeView(SessionApiMixin, APIView):
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = initialize_organisme_etapes(

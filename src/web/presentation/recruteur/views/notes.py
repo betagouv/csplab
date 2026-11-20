@@ -49,7 +49,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class NoteBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
+class NoteBaseView(SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(
             exc,
@@ -112,7 +112,7 @@ class NoteBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
         },
     ),
 )
-class CandidatureNotesView(NoteBaseView, ListAPIView):
+class CandidatureNotesView(ConditionalGetMixin, NoteBaseView, ListAPIView):
     serializer_class = NoteSerializer
     pagination_class = TaillePageNumberPagination
 
