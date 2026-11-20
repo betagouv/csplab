@@ -3,6 +3,12 @@
 {% block page_title %}
     Connexion
 {% endblock page_title %}
+{% block notice %}
+    {{ block.super }}
+    {% if unknown_account %}
+        {% include "partials/_notice_unknown_account.html" %}
+    {% endif %}
+{% endblock notice %}
 {% block main %}
     <div class="fr-container fr-py-10v fr-py-md-14v">
         <div class="fr-grid-row fr-grid-row--center">
@@ -43,3 +49,6 @@
         </div>
     </div>
 {% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/notice.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}
