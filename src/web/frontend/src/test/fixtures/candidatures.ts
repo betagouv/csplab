@@ -40,6 +40,7 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
         date_soumission: '2025-06-10T09:15:00Z',
         date_derniere_activite: '2025-06-11T10:00:00Z',
         unread_conversations: 0,
+        tags: [],
         candidat: CANDIDAT_ALICE,
       },
       {
@@ -47,6 +48,7 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
         date_soumission: '2025-06-12T09:15:00Z',
         date_derniere_activite: '2025-06-12T10:00:00Z',
         unread_conversations: 0,
+        tags: [],
         candidat: CANDIDAT_BRUNO,
       },
     ],

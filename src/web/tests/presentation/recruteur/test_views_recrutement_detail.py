@@ -28,6 +28,7 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.tag.models import CandidatureTagModel, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -56,6 +57,10 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
+)
+from infrastructure.factories.tag.tag_django_factory import (
+    CandidatureTagDjangoFactory,
+    TagDjangoFactory,
 )
 from presentation.commons.pagination import TaillePageNumberPagination
 
@@ -93,6 +98,7 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     + 1  # recrutement belongs to organisme
     + 2  # pagination: count + page
     + 1  # etapes
+    + 1  # prefetch tags_liaisons (tag via select_related)
 )
 
 
@@ -482,6 +488,7 @@ class TestRecrutementListeView:
                         "nom": etape.nom,
                         "categorie": "ENTREE",
                     },
+                    "tags": [],
                 }
             ],
             "etapes": _etapes_attendues(recrutement_liste),
@@ -730,12 +737,49 @@ class TestRecrutementListeView:
         self, authenticated_client, recrutement_liste, django_assert_num_queries
     ):
         etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
-        CandidatureDjangoFactory.create_batch(5, etape=etape)
+        for candidature in CandidatureDjangoFactory.create_batch(5, etape=etape):
+            CandidatureTagDjangoFactory.create_batch(3, candidature=candidature)
 
         with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_lists_each_candidature_tags_in_pose_order(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        tagged = CandidatureDjangoFactory(etape=etape)
+        untagged = CandidatureDjangoFactory(etape=etape)
+        CandidatureModel.objects.filter(pk=untagged.pk).update(
+            created_at=datetime.now(tz=timezone.utc) + timedelta(days=1)
+        )
+        alpha = TagDjangoFactory(
+            organisme=recrutement_liste.organisme,
+            name="Alpha",
+            color=TagColor.ROUGE,
+        )
+        bravo = TagDjangoFactory(
+            organisme=recrutement_liste.organisme,
+            name="Bravo",
+            color=TagColor.VERT,
+        )
+        CandidatureTagDjangoFactory(candidature=tagged, tag=alpha)
+        bravo_pose = CandidatureTagDjangoFactory(candidature=tagged, tag=bravo)
+        CandidatureTagModel.objects.filter(pk=bravo_pose.pk).update(
+            created_at=datetime.now(tz=timezone.utc) - timedelta(minutes=1)
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [c["tags"] for c in response.json()["results"]] == [
+            [
+                {"uuid": str(bravo.id), "name": "Bravo", "color": "vert"},
+                {"uuid": str(alpha.id), "name": "Alpha", "color": "rouge"},
+            ],
+            [],
+        ]
 
 
 class TestRecrutementCandidaturesEtapeView:

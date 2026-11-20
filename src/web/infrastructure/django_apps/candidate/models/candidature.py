@@ -6,11 +6,12 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.tag.mixins import TaggedModelMixin, TaggedQuerySet
 from infrastructure.django_apps.users.fields import candidat_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class CandidatureQuerySet(models.QuerySet):
+class CandidatureQuerySet(TaggedQuerySet):
     def received(self) -> "CandidatureQuerySet":
         return self.exclude(statut=StatutCandidature.INITIAL.value)
 
@@ -67,7 +68,7 @@ class CandidatureQuerySet(models.QuerySet):
         ).prefetch_related("etape__recrutement__etapes")
 
 
-class CandidatureModel(BaseDatedModel):
+class CandidatureModel(TaggedModelMixin, BaseDatedModel):
     candidat = candidat_fk(related_name="candidatures")
     statut = models.CharField(
         max_length=20,

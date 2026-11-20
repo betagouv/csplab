@@ -30,7 +30,9 @@ def list_candidatures_et_etapes(
     etapes = recrutement_etapes(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
-    candidatures = CandidatureModel.objects.by_recrutement(recrutement_id).annotate(
-        unread_conversations=unread_conversations_count(utilisateur.username)
+    candidatures = (
+        CandidatureModel.objects.by_recrutement(recrutement_id)
+        .with_tags()
+        .annotate(unread_conversations=unread_conversations_count(utilisateur.username))
     )
     return candidatures, etapes
