@@ -1,9 +1,7 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
-import type { EtapesRecrutementType } from '@/features/etapes-recrutement/composables/useEtapesRecrutement'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { CANDIDATURE_PANEL_TAB_LABELS } from '@/features/candidatures/constants/candidature'
-import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
 import { RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_TAB_LABELS } from '@/features/recrutements/constants/recrutement'
 import { redirectHome } from './home'
@@ -134,11 +132,8 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: 'etapes',
             name: ORGANISME_TAB_ROUTE_NAMES.etapes,
-            component: () => import('@/features/etapes-recrutement/components/EtapesRecrutementSection.vue'),
-            props: ({ params }) => ({
-              params: { type: 'organisme', organismeUuid: String(params.organismeUuid) } satisfies EtapesRecrutementType,
-              texts: ETAPES_TEXTS_ORGANISME,
-            }),
+            component: () => import('@/features/etapes-recrutement/views/OrganismeEtapesView.vue'),
+            props: true,
             meta: organismeTabMeta('etapes'),
           },
           {
