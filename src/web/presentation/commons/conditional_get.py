@@ -1,7 +1,7 @@
 import hashlib
-import os
 from collections.abc import Callable
 
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseBase
 from django.template.response import SimpleTemplateResponse
 from django.utils.cache import (
@@ -12,8 +12,6 @@ from django.utils.cache import (
 from django.utils.http import quote_etag
 from rest_framework import status
 from rest_framework.request import Request
-
-DEPLOYED_VERSION = os.environ.get("CONTAINER_VERSION", "")
 
 
 class ConditionalGetMixin:
@@ -45,7 +43,9 @@ class ConditionalGetMixin:
 
 
 def _etag(request: Request, version: object) -> str:
-    key = repr((DEPLOYED_VERSION, request.user.pk, request.get_full_path(), version))
+    key = repr(
+        (settings.DEPLOYED_VERSION, request.user.pk, request.get_full_path(), version)
+    )
     return quote_etag(hashlib.sha256(key.encode()).hexdigest())
 
 

@@ -9,6 +9,7 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.messagerie.models import unread_conversations_count
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -18,7 +19,7 @@ def list_candidatures(
     organisme_id: UUID,
     recrutement_id: UUID,
     utilisateur: UserModel,
-) -> tuple[RecrutementModel, QuerySet[CandidatureModel]]:
+) -> tuple[RecrutementModel, QuerySet[CandidatureModel], QuerySet[EtapeModel]]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
@@ -38,4 +39,5 @@ def list_candidatures(
         .with_tags()
         .annotate(unread_conversations=unread_conversations_count(utilisateur.username))
     )
-    return recrutement, candidatures
+    etapes = EtapeModel.objects.filter(recrutement=recrutement)
+    return recrutement, candidatures, etapes

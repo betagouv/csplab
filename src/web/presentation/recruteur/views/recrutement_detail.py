@@ -32,7 +32,10 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
-from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
+from infrastructure.django_apps.recruteur.models.etape import (
+    EtapeModel,
+    etapes_ordonnees,
+)
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
@@ -105,9 +108,10 @@ class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     pagination_class = PaginationSchemaDuSerializer
     recrutement: RecrutementModel
     candidatures: QuerySet[CandidatureModel]
+    etapes: QuerySet[EtapeModel]
 
     def list(self, request: Request, *args, **kwargs) -> HttpResponseBase:
-        self.recrutement, self.candidatures = list_candidatures(
+        self.recrutement, self.candidatures, self.etapes = list_candidatures(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             utilisateur=request.user,
@@ -124,7 +128,7 @@ class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     def get_paginated_response(self, data: Sequence[dict]) -> Response:
         response = super().get_paginated_response(data)
         response.data["etapes"] = EtapeRecrutementModelSerializer(
-            etapes_ordonnees(self.recrutement), many=True
+            etapes_ordonnees(self.recrutement, self.etapes), many=True
         ).data
         return response
 
