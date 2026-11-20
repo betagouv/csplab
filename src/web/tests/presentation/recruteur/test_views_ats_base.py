@@ -19,3 +19,13 @@ class TestATSBase:
     def test_base_view_sets_csrf_cookie(self, db, client: Client):
         response = client.get("/ats/")
         assert "csrftoken" in response.cookies
+
+    def test_base_view_sets_the_shape(self, db, client: Client, settings):
+        settings.UI_SHAPE = "rounded"
+        response = client.get("/ats/")
+        assert 'data-csp-shape="rounded"' in response.content.decode()
+
+    def test_base_view_sets_no_shape_by_default(self, db, client: Client, settings):
+        settings.UI_SHAPE = ""
+        response = client.get("/ats/")
+        assert "data-csp-shape" not in response.content.decode()

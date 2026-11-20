@@ -19,9 +19,19 @@ function applyTheme(theme: string) {
   document.documentElement.setAttribute('data-fr-theme', theme)
 }
 
+function applyShape(shape: string) {
+  if (shape === 'rounded') {
+    document.documentElement.setAttribute('data-csp-shape', shape)
+  }
+  else {
+    document.documentElement.removeAttribute('data-csp-shape')
+  }
+}
+
 const preview: Preview = {
   initialGlobals: {
     theme: 'light',
+    shape: 'dsfr',
   },
   globalTypes: {
     theme: {
@@ -36,10 +46,23 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    shape: {
+      description: 'Thème de rayons',
+      toolbar: {
+        title: 'Thème de rayons',
+        icon: 'component',
+        items: [
+          { value: 'dsfr', title: 'DSFR strict' },
+          { value: 'rounded', title: 'Arrondi' },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
+      applyShape(context.globals.shape ?? 'dsfr')
       return { components: { story }, template: '<story />' }
     },
   ],

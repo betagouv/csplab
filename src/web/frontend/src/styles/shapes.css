@@ -1,0 +1,11 @@
+/* Rounded radius theme, set by data-csp-shape='rounded' outside production */
+:root[data-csp-shape='rounded'] {
+  --csp-action-radius: 0.25rem;
+  --csp-menu-item-radius: 0.25rem;
+  --csp-surface-radius: 0.375rem;
+  --csp-nav-radius: 0.375rem;
+  --csp-raised-radius: 0.375rem;
+  --csp-overlap-radius: 0.375rem;
+  --csp-region-radius: 0.5rem;
+  --csp-lifted-radius: 0.5rem;
+}
