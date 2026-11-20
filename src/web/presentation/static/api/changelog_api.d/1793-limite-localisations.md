@@ -1,4 +1,5 @@
 ---
+titre: "Offres : 50 lieux au plus par offre, sans doublon"
 type: non_retrocompatible
 date: 2026-11-04
 pr: 2263

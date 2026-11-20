@@ -1,4 +1,5 @@
 ---
+titre: "Offres : la présentation de l'employeur peut être vide"
 type: modifie
 date: 2026-10-05
 pr: 1727

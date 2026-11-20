@@ -1,4 +1,5 @@
 ---
+titre: "Archivage des offres : 503 si l'offre reste dans l'index de recherche"
 type: modifie
 date: 2026-10-14
 pr: 1955

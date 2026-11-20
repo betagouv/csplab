@@ -1,4 +1,5 @@
 ---
+titre: "Organismes : nouvelle liste paginée et filtrable"
 type: ajoute
 date: 2026-10-22
 pr: 2055

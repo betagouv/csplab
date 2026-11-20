@@ -1,4 +1,5 @@
 ---
+titre: "Comptes partenaires : jetons révocables et compte désactivable"
 type: ajoute
 date: 2026-11-18
 pr: 2332

@@ -1,4 +1,5 @@
 ---
+titre: "Changelog : page filtrable et formats Markdown, JSON et Atom"
 type: ajoute
 date: 2026-11-05
 pr: 2298

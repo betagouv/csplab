@@ -1,4 +1,5 @@
 ---
+titre: "Métiers : champs `actif` et `referentiel`, nouveaux filtres"
 type: ajoute
 date: 2026-11-18
 pr: 2351

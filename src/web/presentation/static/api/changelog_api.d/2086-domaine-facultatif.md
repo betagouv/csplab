@@ -1,4 +1,5 @@
 ---
+titre: "Offres : le domaine devient facultatif, déduit du métier"
 type: modifie
 date: 2026-10-28
 pr: 2086

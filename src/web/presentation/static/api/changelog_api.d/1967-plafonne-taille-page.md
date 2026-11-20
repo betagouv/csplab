@@ -1,4 +1,5 @@
 ---
+titre: "Listes paginées : taille plafonnée à 1000"
 type: modifie
 date: 2026-10-15
 pr: 1967

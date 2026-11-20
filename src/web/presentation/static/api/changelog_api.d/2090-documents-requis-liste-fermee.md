@@ -1,4 +1,5 @@
 ---
+titre: "Offres : documents requis choisis dans une liste fermée"
 type: non_retrocompatible
 date: 2026-10-28
 pr: 2091

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : la date de fin de publication est enregistrée"
 type: ajoute
 date: 2026-10-19
 pr: 1990
