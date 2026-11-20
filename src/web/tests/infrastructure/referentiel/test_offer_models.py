@@ -40,3 +40,31 @@ def test_duplicate_localisation_abroad_is_rejected(db):
         transaction.atomic(),
     ):
         OfferDjangoFactory(localisations=[berlin, berlin])
+
+
+@pytest.mark.parametrize(
+    "country, region, department",
+    [
+        ("str", "84", "01"),
+        ("DEU", "84", None),
+        ("FRA", None, None),
+        ("FRA", "84", None),
+    ],
+)
+def test_localisation_with_subdivision_inconsistent_with_country_is_rejected(
+    db, country, region, department
+):
+    localisation = {
+        "area": "EU",
+        "country": country,
+        "region": region,
+        "department": department,
+        "label": "",
+    }
+    with (
+        pytest.raises(
+            IntegrityError, match="offer_localisations_subdivision_in_france_only"
+        ),
+        transaction.atomic(),
+    ):
+        OfferDjangoFactory(localisations=[localisation])

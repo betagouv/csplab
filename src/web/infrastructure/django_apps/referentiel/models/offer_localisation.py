@@ -90,6 +90,13 @@ class OfferLocalisationModel(BaseDatedModel):
                 nulls_distinct=False,
             ),
             models.CheckConstraint(
+                condition=Q(
+                    country="FRA", region__isnull=False, department__isnull=False
+                )
+                | (~Q(country="FRA") & Q(region__isnull=True, department__isnull=True)),
+                name="offer_localisations_subdivision_in_france_only",
+            ),
+            models.CheckConstraint(
                 condition=Q(latitude__isnull=True)
                 | Q(latitude__gte=-90, latitude__lte=90),
                 name="offer_localisations_latitude_range",
