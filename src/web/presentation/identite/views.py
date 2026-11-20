@@ -102,7 +102,9 @@ class ProconnectCallbackView(View):
     ) -> HttpResponseBase:
         request.session[UNKNOWN_ACCOUNT_SESSION_KEY] = True
         if id_token:
-            return redirect(build_proconnect_logout_url(request, id_token))
+            return redirect(
+                build_proconnect_logout_url(request, id_token, settings.LOGIN_URL)
+            )
         return redirect(settings.LOGIN_URL)
 
     def _oauth_failure(self, request: HttpRequest) -> HttpResponseBase:
@@ -117,7 +119,11 @@ class ProconnectLogoutView(View):
         id_token = request.session.get("oidc_id_token")
         logout(request)
         if id_token:
-            return redirect(build_proconnect_logout_url(request, id_token))
+            return redirect(
+                build_proconnect_logout_url(
+                    request, id_token, settings.LOGOUT_REDIRECT_URL
+                )
+            )
         return redirect(settings.LOGOUT_REDIRECT_URL)
 
 

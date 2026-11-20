@@ -74,6 +74,7 @@ class TestProconnectCallbackView:
             "La connexion avec ProConnect a échoué" in message for message in messages
         )
 
+    @override_settings(LOGOUT_REDIRECT_URL="pages:home")
     def test_callback_unknown_email_ends_proconnect_session_and_flags_the_notice(
         self, db, client, monkeypatch
     ):

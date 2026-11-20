@@ -17,10 +17,8 @@ CLAIMS_IDENTITE = (
 )
 
 
-def build_proconnect_logout_url(request, id_token: str) -> str:
-    post_logout_redirect_uri = request.build_absolute_uri(
-        reverse(settings.LOGOUT_REDIRECT_URL)
-    )
+def build_proconnect_logout_url(request, id_token: str, post_logout_url: str) -> str:
+    post_logout_redirect_uri = request.build_absolute_uri(reverse(post_logout_url))
     params = {
         "id_token_hint": id_token,
         "post_logout_redirect_uri": post_logout_redirect_uri,
