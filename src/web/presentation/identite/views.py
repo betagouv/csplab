@@ -122,12 +122,16 @@ class ProconnectLogoutView(View):
         id_token = request.session.get("oidc_id_token")
         logout(request)
         if id_token:
-            return redirect(
+            response = redirect(
                 build_proconnect_logout_url(
                     request, id_token, settings.LOGOUT_REDIRECT_URL
                 )
             )
-        return redirect(settings.LOGOUT_REDIRECT_URL)
+        else:
+            response = redirect(settings.LOGOUT_REDIRECT_URL)
+        # API responses are cached as private, no-cache: purge them on shared devices
+        response["Clear-Site-Data"] = '"cache"'
+        return response
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
