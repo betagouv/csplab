@@ -19,11 +19,11 @@ import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { agentSearchKeys, formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
+import AttachAgentForm from '../components/AttachAgentForm.vue'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_FIELD_LABEL, ROLE_LABELS, ROLE_OPTIONS } from '../constants/organisme'
-import AttachAgentForm from './AttachAgentForm.vue'
 
 const props = defineProps<{
   organismeUuid: string

@@ -127,7 +127,7 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: '',
             name: ORGANISME_TAB_ROUTE_NAMES.membres,
-            component: () => import('@/features/organismes/components/OrganismeAgentsSection.vue'),
+            component: () => import('@/features/organismes/views/OrganismeAgentsView.vue'),
             props: true,
             meta: organismeTabMeta('membres'),
           },
