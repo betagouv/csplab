@@ -23,15 +23,15 @@ export const RECRUTEMENTS_TAB_ROUTE_NAMES = {
 
 export const RECRUTEMENT_ETAPES_ROUTE_NAME = 'recrutement-etapes-recrutement'
 
-export const CANDIDATURES_VIEW_ROUTE_NAMES = {
+export const CANDIDATURES_LAYOUT_ROUTE_NAMES = {
   kanban: 'recrutement-candidatures-kanban',
   liste: 'recrutement-candidatures',
 } as const
 
-export type CandidaturesViewName = keyof typeof CANDIDATURES_VIEW_ROUTE_NAMES
+export type CandidaturesLayoutName = keyof typeof CANDIDATURES_LAYOUT_ROUTE_NAMES
 
 export const RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES = {
-  'candidatures': CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+  'candidatures': CANDIDATURES_LAYOUT_ROUTE_NAMES.kanban,
   'activites-et-taches': 'recrutement-activites',
   'equipe': 'recrutement-equipe',
 } as const
@@ -63,7 +63,7 @@ export type CandidaturePanelRouteNames = ReturnType<typeof panelRouteNames>
 export const CANDIDATURE_PANEL_ROUTE_NAMES = {
   kanban: panelRouteNames('recrutement-candidature'),
   liste: panelRouteNames('recrutement-liste-candidature'),
-} as const satisfies Record<CandidaturesViewName, CandidaturePanelRouteNames>
+} as const satisfies Record<CandidaturesLayoutName, CandidaturePanelRouteNames>
 
 export function organismeHomeLocation(organismeUuid: string): RouteLocationRaw {
   return { name: ORGANISME_HOME_ROUTE_NAME, params: { organismeUuid } }
@@ -81,6 +81,6 @@ export function recrutementsListLocation(
 
 declare module 'vue-router' {
   interface RouteMeta {
-    candidaturesView?: CandidaturesViewName
+    candidaturesLayout?: CandidaturesLayoutName
   }
 }

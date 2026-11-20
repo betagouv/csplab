@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CandidaturePanelTabKey } from '../constants/candidature'
 import type { MotifRefus } from '../types'
-import type { CandidaturesViewName } from '@/router/names'
+import type { CandidaturesLayoutName } from '@/router/names'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -93,11 +93,11 @@ const tabsWithIndicators = computed(() => TABS.map(tab =>
     ? { ...tab, indicator: 'Conversations non lues' }
     : tab,
 ))
-const { view, names: panelRouteNames, parentName } = useCandidaturePanelRoutes()
+const { layout, names: panelRouteNames, parentName } = useCandidaturePanelRoutes()
 const SEQUENCE_LABELS = {
   kanban: 'Navigation entre les candidatures de l\'étape',
   liste: 'Navigation entre les candidatures de la liste',
-} as const satisfies Record<CandidaturesViewName, string>
+} as const satisfies Record<CandidaturesLayoutName, string>
 const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.value.tabs, 'candidature')
 
 useDocumentTitle(
@@ -339,7 +339,7 @@ function handleUpdateOpen(open: boolean): void {
         :position="position ? position.index + 1 : null"
         :total="position?.total ?? 0"
         item-label="Candidature"
-        :label="SEQUENCE_LABELS[view]"
+        :label="SEQUENCE_LABELS[layout]"
         :previous-disabled="!position?.previousUuid"
         :next-disabled="!position?.nextUuid"
         @previous="goPrevious"

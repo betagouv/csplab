@@ -9,7 +9,7 @@ import { RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_TAB_LABELS } from '@/feature
 import { redirectHome } from './home'
 import {
   CANDIDATURE_PANEL_ROUTE_NAMES,
-  CANDIDATURES_VIEW_ROUTE_NAMES,
+  CANDIDATURES_LAYOUT_ROUTE_NAMES,
   HOME_ROUTE_NAME,
   NOT_FOUND_ROUTE_NAME,
   ORGANISME_HOME_ROUTE_NAME,
@@ -74,18 +74,18 @@ const recrutementRoutes: RouteRecordRaw[] = [
         children: [
           {
             path: '',
-            name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+            name: CANDIDATURES_LAYOUT_ROUTE_NAMES.kanban,
             component: () => import('@/features/candidatures/views/CandidaturesKanbanView.vue'),
             props: recrutementProps,
-            meta: { candidaturesView: 'kanban' },
+            meta: { candidaturesLayout: 'kanban' },
             children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.kanban),
           },
           {
             path: 'liste',
-            name: CANDIDATURES_VIEW_ROUTE_NAMES.liste,
+            name: CANDIDATURES_LAYOUT_ROUTE_NAMES.liste,
             component: () => import('@/features/candidatures/views/CandidaturesListeView.vue'),
             props: candidatureProps,
-            meta: { candidaturesView: 'liste' },
+            meta: { candidaturesLayout: 'liste' },
             children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.liste),
           },
         ],

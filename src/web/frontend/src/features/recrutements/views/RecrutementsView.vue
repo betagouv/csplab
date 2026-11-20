@@ -27,7 +27,7 @@ import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentLabel } from '@/features/agents/format'
 import { homeBreadcrumbItem, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
-import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
+import { CANDIDATURES_LAYOUT_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -76,7 +76,7 @@ const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 function openOffre(recrutementUuid: string) {
   void router.push({
-    name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+    name: CANDIDATURES_LAYOUT_ROUTE_NAMES.kanban,
     params: { organismeUuid: props.organismeUuid, recrutementUuid },
   })
 }
