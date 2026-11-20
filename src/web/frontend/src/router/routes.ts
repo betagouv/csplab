@@ -144,7 +144,7 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: 'etiquettes',
             name: ORGANISME_TAB_ROUTE_NAMES.tags,
-            component: () => import('@/features/tags/components/TagsSection.vue'),
+            component: () => import('@/features/tags/views/TagsView.vue'),
             props: true,
             meta: organismeTabMeta('tags'),
           },

@@ -9,10 +9,10 @@ import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize, quote } from '@/utils/format'
+import TagForm from '../components/TagForm.vue'
+import TagList from '../components/TagList.vue'
 import { useTags } from '../composables/useTags'
 import { TAG_CATEGORIES, TAG_CATEGORY_TEXTS } from '../constants/tag'
-import TagForm from './TagForm.vue'
-import TagList from './TagList.vue'
 
 const props = defineProps<{
   organismeUuid: string
