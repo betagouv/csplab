@@ -18,8 +18,8 @@ from domain.value_objects.talentsoft_credential import TalentsoftCredential
 
 DEFAULT_EVENTS = ["vacancy_new", "vacancy_update", "vacancy_deleted", "vacancy_status"]
 CALLBACK_URLS = {
-    "prod": "https://csplab-ingestion.osc-fr1.scalingo.io/webhooks/talentsoft",
-    "demo": "https://csplab-ingestion-demo.osc-fr1.scalingo.io/webhooks/talentsoft",
+    "prod": "https://csplab.beta.gouv.fr/webhooks/talentsoft",
+    "demo": "https://demo.csplab.incubateur.net/webhooks/talentsoft",
 }
 TIMEOUT_SECONDS = 30
 
