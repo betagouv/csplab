@@ -6,6 +6,9 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.etape_actions import (
+    set_recrutement_etapes_authorized_actions,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import (
@@ -86,4 +89,10 @@ def initialize_recrutement_etapes(
             ressource_kind="Recrutement",
             event_name="RecrutementEtapesReinitialisees",
         )
+    set_recrutement_etapes_authorized_actions(
+        nouvelles,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+        utilisateur=utilisateur,
+    )
     return nouvelles

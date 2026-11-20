@@ -60,3 +60,36 @@ def test_without_the_right_to_modify_no_etape_has_actions(nb_en_cours):
     assert authorized_actions_of_etapes(categories, can_update=False) == [
         [] for _ in categories
     ]
+
+
+def test_an_etape_with_candidatures_cannot_be_deleted():
+    categories = [
+        Categorie.ENTREE,
+        Categorie.EN_COURS,
+        Categorie.EN_COURS,
+        Categorie.REFUS,
+        Categorie.ACCEPTE,
+    ]
+
+    actions = authorized_actions_of_etapes(
+        categories, can_update=True, nb_candidatures=[0, 3, 0, 0, 0]
+    )
+
+    assert actions[1] == ["edit_etape", "insert_etape_before", "insert_etape_after"]
+    assert actions[2] == EN_COURS_ACTIONS
+
+
+def test_two_en_cours_etapes_without_candidatures_can_both_be_deleted():
+    categories = [
+        Categorie.ENTREE,
+        Categorie.EN_COURS,
+        Categorie.EN_COURS,
+        Categorie.REFUS,
+        Categorie.ACCEPTE,
+    ]
+
+    actions = authorized_actions_of_etapes(
+        categories, can_update=True, nb_candidatures=[0, 0, 0, 0, 0]
+    )
+
+    assert actions[1:3] == [EN_COURS_ACTIONS, EN_COURS_ACTIONS]
