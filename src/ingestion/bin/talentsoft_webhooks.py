@@ -203,6 +203,13 @@ def _ask_non_empty(prompt: Prompt, question: str) -> str:
             return answer
 
 
+def _ask_secret(secret_prompt: Prompt, question: str) -> str:
+    while True:
+        secret = secret_prompt(question).strip()
+        if secret:
+            return secret
+
+
 def choose_credential(
     prompt: Prompt,
     credentials: list[TalentsoftCredential],
@@ -220,7 +227,7 @@ def choose_credential(
         )
     base_url = _ask_non_empty(prompt, "URL de l'instance : ")
     client_id = _ask_non_empty(prompt, "Client ID back : ")
-    client_secret = _ask_non_empty(secret_prompt, "Client secret back : ")
+    client_secret = _ask_secret(secret_prompt, "Client secret back : ")
     return Instance(base_url=base_url, client_id=client_id), client_secret
 
 
