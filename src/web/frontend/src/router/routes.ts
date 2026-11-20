@@ -99,7 +99,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
       {
         path: 'equipe',
         name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe,
-        component: () => import('@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'),
+        component: () => import('@/features/equipe-recrutement/views/EquipeRecrutementView.vue'),
         props: true,
         meta: recrutementTabMeta('equipe'),
       },

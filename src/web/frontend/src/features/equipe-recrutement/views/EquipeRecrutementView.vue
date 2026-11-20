@@ -21,11 +21,11 @@ import { useRecrutementDetail } from '@/features/recrutements/composables/useRec
 import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
+import AddTeamMemberForm from '../components/AddTeamMemberForm.vue'
 import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS, RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
-import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
