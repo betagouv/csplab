@@ -101,6 +101,9 @@ select = [
     "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
     "PLR0917", # too many positionnal arguments
 ]
+"bin/talentsoft_webhooks.py" = [
+    "T201", # interactive script: prompts and summary go to stdout
+]
 "**/tests/*" = [
     "S101", # use of assert
     "S105", # hardcoded passwords (acceptable for test fixtures)

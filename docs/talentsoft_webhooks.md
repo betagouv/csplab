@@ -9,58 +9,26 @@ By default, the mechanism to call peers to inform them of any change **is trigge
 - [API](https://developers.cegid.com/api-details#api=cegid-talentsoft-recruiting-customer&product=cegid-talentsoft#webhooks) (see "Webhooks" endpoints)
 - [Webhooks](https://developers.cegid.com/docreference/BusinessUnits/Recruiting-developer-portal/webhooks/_index.html)
 
-## Subscribing to events
+## Creating and deleting webhooks
 
-The following script can be used to subscribe to `vacancy_*` events.
-
-⚠️ Make a note of the various `hookId`! We need these IDs if we need to delete hooks.
+Use the interactive script:
 
 ```sh
-set -e
-
-cd src/ingestion
-
-CALLBACK_URL="https://csplab-worker.osc-fr1.scalingo.io/webhooks/talentsoft"
-EVENTS=(vacancy_new vacancy_update vacancy_deleted vacancy_status)
-
-# Get an OAuth token
-TOKEN=$(curl -s -d "client_id=${TALENTSOFT_BACK_CLIENT_ID}&client_secret=${TALENTSOFT_BACK_CLIENT_SECRET}&grant_type=client_credentials&scope=Customer" -X POST "${TALENTSOFT_BACK_BASE_URL}api/token" | jq -r '.access_token')
-
-# Subscribe $CALLBACK_URL to these events
-for event in "${EVENTS[@]}"; do
-    echo "Registering $event…"
-    RESPONSE=$(curl -s -w "\n%{http_code}" \
-      -H "Authorization: Bearer ${TOKEN}" \
-      -H "Content-Type: application/json" \
-      -d "{\"event\": \"${event}\", \"callbackUrl\": \"${CALLBACK_URL}\", \"pingUrl\": \"${CALLBACK_URL}\"}" \
-      -X POST "${TALENTSOFT_BACK_BASE_URL}api/system/v1/webhooks")
-    HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-    BODY=$(echo "$RESPONSE" | sed '$d')
-    HOOK_ID=$(echo "$BODY" | jq -r '.data.hookId')
-    echo "HTTP $HTTP_CODE — hookId: $HOOK_ID"
-    [[ "$HTTP_CODE" =~ ^2 ]] || { echo "Failed for $event, stopping."; exit 1; }
-done
+mise run ingestion:talentsoft:webhooks
 ```
 
-## Deleting a hook
+It asks for:
 
-The following script can be used to unregister a webhook by its `hookId`.
+1. the action: create or delete webhooks;
+2. the Talentsoft instance, among the `back` credentials of `TALENTSOFT_CREDENTIALS` (loaded from Scaleway, see `env.d/ingestion-example`), or other credentials typed by hand (the client secret is not echoed);
+3. to create: the callback URL (prod, demo or another URL) and the events, `vacancy_new vacancy_update vacancy_deleted vacancy_status` by default;
+4. to delete: the `hookId`s to delete, separated by spaces, commas or new lines.
 
-```sh
-set -e
+Nothing is sent to Talentsoft before a final confirmation.
 
-cd src/ingestion
+The script then prints a summary to copy into Vaultwarden: date, instance, client ID, callback URL and the `hookId` of each event. Keep it: these `hookId`s are needed to delete webhooks later. If a creation fails, the script stops, the webhooks already created stay active, and their `hookId`s are still printed in the summary. After a deletion, update the Vaultwarden entry from the summary of deleted `hookId`s.
 
-HOOK_ID="<hookId>"
+The script calls these endpoints, with a token from `POST {base_url}api/token` (`client_credentials` grant, `Customer` scope):
 
-# Get an OAuth token
-TOKEN=$(curl -s -d "client_id=${TALENTSOFT_BACK_CLIENT_ID}&client_secret=${TALENTSOFT_BACK_CLIENT_SECRET}&grant_type=client_credentials&scope=Customer" -X POST "${TALENTSOFT_BACK_BASE_URL}api/token" | jq -r '.access_token')
-
-# Delete the webhook
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -X DELETE "${TALENTSOFT_BACK_BASE_URL}api/system/v1/webhooks/${HOOK_ID}")
-echo "HTTP $HTTP_CODE"
-[[ "$HTTP_CODE" =~ ^2 ]] || { echo "Failed to delete hookId ${HOOK_ID}."; exit 1; }
-echo "Deleted hookId ${HOOK_ID}."
-```
+- `POST {base_url}api/system/v1/webhooks` with `{"event", "callbackUrl", "pingUrl"}`, which returns `data.hookId`;
+- `DELETE {base_url}api/system/v1/webhooks/{hookId}`.
