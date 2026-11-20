@@ -1,7 +1,8 @@
 import type { KanbanCard } from '../types'
-import { screen } from '@testing-library/vue'
+import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import { TAG_SENIOR, TAG_TO_RECALL } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import CandidatureKanbanCard from './CandidatureKanbanCard.vue'
 
@@ -21,10 +22,10 @@ const CANDIDATURE: KanbanCard = {
   candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
 }
 
-function renderCard(route: string) {
+function renderCard(route: string, candidature: KanbanCard = CANDIDATURE) {
   return renderWithApp(CandidatureKanbanCard, {
     route,
-    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column', canChangeEtape: true },
+    props: { candidature, boardId: 'board', columnId: 'column', canChangeEtape: true },
   })
 }
 
@@ -40,6 +41,19 @@ describe('candidatureKanbanCard', () => {
     await user.keyboard('{Enter}')
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
+  })
+
+  it('shows the tags of the candidature under the date', async () => {
+    await renderCard(KANBAN_PATH, { ...CANDIDATURE, tags: [TAG_TO_RECALL, TAG_SENIOR] })
+
+    const tags = within(screen.getByRole('list', { name: 'Étiquettes d\'Alice Dupont' }))
+    expect(tags.getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['À rappeler', 'Profil senior'])
+  })
+
+  it('shows no tag list on a candidature without tags', async () => {
+    await renderCard(KANBAN_PATH)
+
+    expect(screen.queryByRole('list', { name: 'Étiquettes d\'Alice Dupont' })).not.toBeInTheDocument()
   })
 
   it('marks the card of the open candidature as current', async () => {

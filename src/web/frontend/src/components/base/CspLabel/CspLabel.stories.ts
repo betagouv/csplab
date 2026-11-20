@@ -10,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['label', 'color', 'size', 'bordered', 'clickable', 'dismissLabel'],
+      include: ['label', 'color', 'size', 'bordered', 'outlined', 'dot', 'clickable', 'dismissLabel'],
     },
     docs: {
       description: {
@@ -41,6 +41,16 @@ const meta = {
       description: 'Filet de 1 px, de la couleur de la pastille à 26 % d\'opacité.',
       table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
     },
+    outlined: {
+      control: { type: 'boolean' },
+      description: 'Fond transparent et filet gris, sans la couleur de la palette.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    dot: {
+      control: { type: 'boolean' },
+      description: 'Pastille de couleur devant le libellé.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
     clickable: {
       control: { type: 'boolean' },
       description: 'Affiche l\'étiquette comme un bouton, avec ses états de survol, d\'appui et de focus. Quand le libellé seul ne décrit pas l\'action, on donne le nom accessible par `aria-label`.',
@@ -57,6 +67,8 @@ const meta = {
     color: 'blue',
     size: 'sm',
     bordered: true,
+    outlined: false,
+    dot: true,
     clickable: false,
   },
 }
