@@ -27,6 +27,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.tag.models import CandidatureTagModel, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
@@ -948,3 +949,36 @@ class TestRecrutementCandidaturesEtapeViewDbVerified:
 
         candidature.refresh_from_db()
         assert str(candidature.etape_id) == str(cible.id)
+
+    def test_returns_404_when_recrutement_not_in_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory()
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            reverse(
+                "recruteur:organisme_recrutement_candidatures_etape",
+                kwargs={
+                    "organisme_uuid": organisme.id,
+                    "recrutement_uuid": recrutement.offre_id,
+                },
+            ),
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "error": RecrutementInexistant(recrutement.offre_id).message
+        }
+        candidature.refresh_from_db()
+        assert candidature.etape_id == origine.id
+        assert not AuditLogModel.objects.exists()
