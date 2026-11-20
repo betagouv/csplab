@@ -13,7 +13,7 @@ import {
   HOME_ROUTE_NAME,
   NOT_FOUND_ROUTE_NAME,
   ORGANISME_HOME_ROUTE_NAME,
-  ORGANISME_SECTION_ROUTE_NAMES,
+  ORGANISME_NAV_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
   RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES,
@@ -117,7 +117,7 @@ const organismeRoutes: RouteRecordRaw[] = [
   { path: 'accueil', name: ORGANISME_HOME_ROUTE_NAME, component: HomeView, props: true },
   {
     path: '',
-    name: ORGANISME_SECTION_ROUTE_NAMES.parametres,
+    name: ORGANISME_NAV_ROUTE_NAMES.parametres,
     children: [
       {
         path: '',
@@ -154,7 +154,7 @@ const organismeRoutes: RouteRecordRaw[] = [
   },
   {
     path: 'recrutements',
-    name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
+    name: ORGANISME_NAV_ROUTE_NAMES.recrutements,
     children: [
       { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true, meta: recrutementsTabMeta('actifs') },
       { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true, meta: recrutementsTabMeta('archives') },

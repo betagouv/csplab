@@ -5,7 +5,7 @@ export const NOT_FOUND_ROUTE_NAME = 'not-found'
 export const ORGANISMES_ROUTE_NAME = 'organismes'
 export const ORGANISME_HOME_ROUTE_NAME = 'organisme-home'
 
-export const ORGANISME_SECTION_ROUTE_NAMES = {
+export const ORGANISME_NAV_ROUTE_NAMES = {
   parametres: 'organisme-parametres',
   recrutements: 'organisme-recrutements',
 } as const

@@ -2,7 +2,7 @@ import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
 import { HOME_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import {
   ORGANISME_HOME_ROUTE_NAME,
-  ORGANISME_SECTION_ROUTE_NAMES,
+  ORGANISME_NAV_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
   RECRUTEMENTS_TAB_ROUTE_NAMES,
@@ -29,7 +29,7 @@ function recrutementsItem(organismeUuid: string, label: string): NavItem {
     label,
     to: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
     params: { organismeUuid },
-    match: [ORGANISME_SECTION_ROUTE_NAMES.recrutements],
+    match: [ORGANISME_NAV_ROUTE_NAMES.recrutements],
   }
 }
 
@@ -39,7 +39,7 @@ function parametresItem(organismeUuid: string): NavItem {
     label: 'Paramètres de l\'organisme',
     to: ORGANISME_TAB_ROUTE_NAMES.membres,
     params: { organismeUuid },
-    match: [ORGANISME_SECTION_ROUTE_NAMES.parametres],
+    match: [ORGANISME_NAV_ROUTE_NAMES.parametres],
   }
 }
 
