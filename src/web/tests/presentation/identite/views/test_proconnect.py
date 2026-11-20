@@ -203,6 +203,7 @@ class TestProconnectLogoutView:
         assert response.status_code == status.HTTP_302_FOUND
         assert response.url == reverse("identite:login")
         assert "_auth_user_id" not in client.session
+        assert response["Clear-Site-Data"] == '"cache"'
 
     def test_redirects_to_proconnect_end_session_when_oidc_session(
         self, db, client, test_user
@@ -223,3 +224,4 @@ class TestProconnectLogoutView:
             in response.url
         )
         assert "_auth_user_id" not in client.session
+        assert response["Clear-Site-Data"] == '"cache"'

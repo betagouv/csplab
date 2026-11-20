@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler, status
 
 from application.exceptions import ApplicationError
+from infrastructure.authentication.session_authentication import SESSION_AUTH_SCHEME
 from infrastructure.exceptions.exceptions import InfrastructureError
 from infrastructure.gateways.shared.logger import LoggerService
 
@@ -16,7 +17,10 @@ infrastructure_logger = logger_service.get_logger("INFRASTRUCTURE")
 def custom_exception_handler(exc, context):
     # Handle our custom exceptions with layer-specific logging
     if not isinstance(exc, (DomainError, ApplicationError, InfrastructureError)):
-        return exception_handler(exc, context)
+        response = exception_handler(exc, context)
+        if response is not None and _is_session_unauthorized(response):
+            response["Clear-Site-Data"] = '"cache"'
+        return response
 
     error_type = getattr(exc, "error_type", exc.__class__.__name__)
 
@@ -43,3 +47,10 @@ def custom_exception_handler(exc, context):
         response_data["details"] = exc.details
 
     return Response(response_data, status=status_code)
+
+
+def _is_session_unauthorized(response: Response) -> bool:
+    return (
+        response.status_code == status.HTTP_401_UNAUTHORIZED
+        and response.get("WWW-Authenticate") == SESSION_AUTH_SCHEME
+    )
