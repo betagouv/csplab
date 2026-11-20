@@ -144,6 +144,7 @@ function startConversation(): void {
   grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
   min-height: 0;
   border: 1px solid var(--csp-surface-border-color);
+  border-radius: var(--csp-surface-radius);
 }
 
 .messages-section__pane {

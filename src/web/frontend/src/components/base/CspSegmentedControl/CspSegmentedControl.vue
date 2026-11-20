@@ -116,7 +116,7 @@ const groupName = props.name ?? useId()
 
 .csp-segmented__elements {
   display: flex;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   box-shadow: inset 0 0 0 1px var(--csp-control-border-color);
 }
 
@@ -142,7 +142,7 @@ const groupName = props.name ?? useId()
   gap: var(--csp-space-2);
   width: 100%;
   padding: var(--csp-segmented-padding);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   font-size: var(--csp-segmented-font-size);
   font-weight: 500;
   line-height: 1.5rem;
@@ -156,7 +156,7 @@ const groupName = props.name ?? useId()
   transition: background-color var(--csp-motion-duration-state);
   position: absolute;
   inset: var(--csp-space-1);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   z-index: -1;
 }
 

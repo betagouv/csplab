@@ -188,6 +188,7 @@ async function send(): Promise<void> {
   min-height: 0;
   overflow-y: auto;
   border: 1px solid var(--csp-surface-border-color);
+  border-radius: var(--csp-surface-radius);
 }
 
 .new-conversation__header {

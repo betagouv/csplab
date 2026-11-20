@@ -220,7 +220,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height, 20rem);
   background-color: var(--background-overlap-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-overlap-radius);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-overlap-shadow);

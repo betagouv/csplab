@@ -157,6 +157,7 @@ const page = defineModel<number>('page', { required: true })
   height: 2rem;
   padding: 0 var(--csp-space-1);
   border: none;
+  border-radius: var(--csp-action-radius);
   background: none;
   font-size: var(--csp-font-size-sm);
   font-weight: 500;

@@ -3,6 +3,7 @@
   align-items: center;
   gap: var(--csp-menu-item-gap);
   padding: var(--csp-menu-item-padding);
+  border-radius: var(--csp-menu-item-radius);
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);

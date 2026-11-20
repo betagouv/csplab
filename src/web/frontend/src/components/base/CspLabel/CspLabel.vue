@@ -84,7 +84,7 @@ const colorStyle = computed(() => ({
   align-items: stretch;
   min-width: 0;
   max-width: 100%;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-badge-radius);
   background-color: var(--csp-label-background);
   color: var(--csp-label-text);
   font-size: var(--csp-label-font-size);
