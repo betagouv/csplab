@@ -11,6 +11,7 @@ from bin.talentsoft_webhooks import (
     DEFAULT_EVENTS,
     CreationResult,
     DeletionResult,
+    Instance,
     creation_summary,
     deletion_summary,
     parse_hook_ids,
@@ -26,6 +27,7 @@ FRONT_SECRET = "front-secret"
 BACK = TalentsoftCredential(
     client_id="back-id", client_secret=BACK_SECRET, base_url=BASE_URL, role="back"
 )
+INSTANCE = Instance(base_url=BASE_URL, client_id="back-id")
 FRONT = TalentsoftCredential(
     client_id="front-id", client_secret=FRONT_SECRET, base_url=BASE_URL, role="front"
 )
@@ -146,7 +148,7 @@ def test_parse_hook_ids_accepts_commas_spaces_and_newlines():
 
 def test_creation_summary():
     summary = creation_summary(
-        BACK,
+        INSTANCE,
         "https://callback",
         CreationResult(hook_ids={"vacancy_new": "hook-1"}),
         date(2026, 11, 20),
@@ -161,12 +163,11 @@ def test_creation_summary():
         "hookIds :",
         "  vacancy_new : hook-1",
     ]
-    assert BACK_SECRET not in summary
 
 
 def test_deletion_summary_without_deleted_hook():
     summary = deletion_summary(
-        BACK,
+        INSTANCE,
         DeletionResult(deleted=[], failed={"hook-1": "erreur"}),
         date(2026, 11, 20),
     )
