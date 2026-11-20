@@ -293,6 +293,20 @@ class OrganismeAgentQuerySet(models.QuerySet):
     def active(self) -> "OrganismeAgentQuerySet":
         return self.filter(date_revocation__isnull=True)
 
+    def revoked(self) -> "OrganismeAgentQuerySet":
+        return self.filter(date_revocation__isnull=False)
+
+    def by_organisme(self, organisme_id: UUID) -> "OrganismeAgentQuerySet":
+        return self.filter(organisme_id=organisme_id)
+
+    def any_status_by_organisme_and_agent(
+        self, organisme_id: UUID, agent_id: UUID
+    ) -> "OrganismeAgentQuerySet":
+        return self.filter(organisme_id=organisme_id, agent_id=agent_id)
+
+    def with_agent_profile(self) -> "OrganismeAgentQuerySet":
+        return self.select_related("agent__utilisateur")
+
     def by_agent(self, agent_id) -> "OrganismeAgentQuerySet":
         return self.active().filter(
             agent_id=agent_id, organisme__supprime_le__isnull=True

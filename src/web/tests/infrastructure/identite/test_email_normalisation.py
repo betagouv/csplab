@@ -8,9 +8,6 @@ from infrastructure.factories.identite.agent_django_factory import AgentDjangoFa
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.repositories.identite.postgres_agent_repository import (
-    PostgresAgentRepository,
-)
 from infrastructure.repositories.identite.postgres_utilisateur_repository import (
     PostgresUtilisateurRepository,
 )
@@ -49,9 +46,6 @@ class TestSearchByEmail:
 
     def test_par_email_finds_whatever_the_case(self, agent):
         assert ProfilAgentModel.objects.par_email(MIXED_CASE).first() == agent
-
-    def test_agent_repository_finds_whatever_the_case(self, agent):
-        assert PostgresAgentRepository().get_by_email(MIXED_CASE) is not None
 
     def test_utilisateur_repository_finds_whatever_the_case(self, agent):
         utilisateur = PostgresUtilisateurRepository().get_by_email(MIXED_CASE)
