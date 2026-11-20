@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import UUID, uuid4
 
 import pytest
@@ -13,9 +13,11 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
     MotifRefusRequis,
+    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -44,9 +46,6 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
     ConversationLectureDjangoFactory,
     MessageDjangoFactory,
-)
-from infrastructure.factories.recruteur.candidature_recruteur_factory import (
-    CandidatureRecruteurFactory,
 )
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -77,8 +76,6 @@ ORGANISME_UUID = fake.uuid4()
 RECRUTEMENT_UUID = "aaaaaaaa-0001-0001-0001-000000000001"
 UNKNOWN_RECRUTEMENT_UUID = fake.uuid4()
 
-CANDIDATURE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
-
 RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
     "recruteur:organisme_recrutement_candidatures_etape",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
@@ -103,19 +100,16 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
 )
 
 
-@pytest.fixture
-def container():
-    with patch(
-        "presentation.recruteur.views.recrutement_detail.recruteur_container"
-    ) as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
-
-
 def _detail_url(organisme_id, recrutement_id) -> str:
     return reverse(
         "recruteur:organisme_recrutement",
+        kwargs={"organisme_uuid": organisme_id, "recrutement_uuid": recrutement_id},
+    )
+
+
+def _etape_url(organisme_id, recrutement_id) -> str:
+    return reverse(
+        "recruteur:organisme_recrutement_candidatures_etape",
         kwargs={"organisme_uuid": organisme_id, "recrutement_uuid": recrutement_id},
     )
 
@@ -783,6 +777,51 @@ class TestRecrutementListeView:
         ]
 
 
+def _recrutement_et_candidatures(
+    test_user,
+    nombre=2,
+    organisme_role=AgentOrganismeRole.SUPERVISEUR,
+    recrutement_role=None,
+):
+    agent, organisme = create_organisme_with_agent(
+        role=organisme_role, utilisateur=test_user
+    )
+    if recrutement_role is None:
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+    else:
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=recrutement_role.value,
+        )
+    origine = EtapeModel.objects.get(
+        recrutement=recrutement, categorie=CategorieEtapeRecrutement.ENTREE.value
+    )
+    cible = EtapeModel.objects.filter(
+        recrutement=recrutement, categorie=CategorieEtapeRecrutement.EN_COURS.value
+    ).first()
+    candidatures = CandidatureDjangoFactory.create_batch(nombre, etape=origine)
+    return organisme, recrutement, origine, cible, candidatures
+
+
+def _corps(etape_id, candidature_ids, motif_refus=None) -> dict:
+    corps = {
+        "etape_cible_uuid": str(etape_id),
+        "candidatures": [{"candidature_uuid": str(c)} for c in candidature_ids],
+    }
+    if motif_refus is not None:
+        corps["motif_refus"] = motif_refus
+    return corps
+
+
+def _audit() -> list[tuple]:
+    return list(
+        AuditLogModel.objects.order_by("occurred_at").values_list(
+            "ressource_kind", "ressource_id", "event_name", "utilisateur_id"
+        )
+    )
+
+
 class TestRecrutementCandidaturesEtapeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.patch(
@@ -792,32 +831,42 @@ class TestRecrutementCandidaturesEtapeView:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_echoes_candidatures_as_reussites(self, container, authenticated_client):
-        candidatures = CandidatureRecruteurFactory.create_entity_batch(3)
-        mock_usecase = container.change_etape_candidatures_usecase.return_value
-        mock_usecase.execute.return_value = {
-            "successes": candidatures,
-            "failures": [],
-        }
+    def test_echoes_candidatures_as_reussites(self, authenticated_client, test_user):
+        organisme, recrutement, _, cible, candidatures = _recrutement_et_candidatures(
+            test_user, nombre=3
+        )
 
         response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={
-                "etape_cible_uuid": fake.uuid4(),
-                "candidatures": [
-                    {
-                        "candidature_uuid": str(c.entity_id),
-                    }
-                    for c in candidatures
-                ],
-            },
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(cible.id, [c.id for c in candidatures]),
             format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["reussites"] == [str(c.entity_id) for c in candidatures]
+        assert sorted(data["reussites"]) == sorted(str(c.id) for c in candidatures)
         assert data["echecs"] == []
+        assert set(
+            CandidatureModel.objects.filter(
+                pk__in=[c.id for c in candidatures]
+            ).values_list("etape_id", flat=True)
+        ) == {cible.id}
+        assert _audit() == [
+            (
+                "CandidatureRecruteur",
+                UUID(reussite),
+                "CandidatureEtapeModifiee",
+                test_user.username,
+            )
+            for reussite in data["reussites"]
+        ] + [
+            (
+                "Recrutement",
+                recrutement.pk,
+                "EtapeCandidaturesChangees",
+                test_user.username,
+            )
+        ]
 
     def test_requires_etape_cible_uuid(self, authenticated_client):
         response = authenticated_client.patch(
@@ -828,67 +877,77 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.parametrize(
-        ("entity_id", "domain_error"),
+        ("inconnu", "domain_error"),
         [
-            pytest.param(
-                ORGANISME_UUID,
-                OrganismeNexistePas,
-                id="organisme",
-            ),
-            pytest.param(
-                RECRUTEMENT_UUID,
-                RecrutementInexistant,
-                id="recrutement",
-            ),
-            pytest.param(
-                CANDIDATURE_UUID,
-                CandidatureInexistante,
-                id="candidature",
-            ),
+            pytest.param("organisme", OrganismeNexistePas, id="organisme"),
+            pytest.param("recrutement", RecrutementInexistant, id="recrutement"),
+            pytest.param("candidature", CandidatureInexistante, id="candidature"),
         ],
     )
     def test_returns_404_for_unknown(
-        self, container, authenticated_client, entity_id, domain_error
+        self, authenticated_client, test_user, inconnu, domain_error
     ):
-        mock_usecase = container.change_etape_candidatures_usecase.return_value
-        mock_usecase.execute.side_effect = domain_error(entity_id)
+        organisme, recrutement, origine, cible, candidatures = (
+            _recrutement_et_candidatures(test_user)
+        )
+        entity_id = uuid4()
+        organisme_id = entity_id if inconnu == "organisme" else organisme.id
+        recrutement_id = entity_id if inconnu == "recrutement" else recrutement.pk
+        candidature_ids = [c.id for c in candidatures]
+        if inconnu == "candidature":
+            candidature_ids.append(entity_id)
 
         response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
+            _etape_url(organisme_id, recrutement_id),
+            data=_corps(cible.id, candidature_ids),
             format="json",
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": domain_error(entity_id).message}
+        message = domain_error(
+            str(entity_id) if inconnu == "organisme" else entity_id
+        ).message
+        assert response.json() == {"error": message}
+        assert set(CandidatureModel.objects.values_list("etape_id", flat=True)) == {
+            origine.id
+        }
+        assert not AuditLogModel.objects.exists()
 
-    def test_returns_400_for_unknown_etape(self, container, authenticated_client):
-        mock_usecase = container.change_etape_candidatures_usecase.return_value
-        uuid = fake.uuid4()
-        mock_usecase.execute.side_effect = RecrutementEtapeInexistante(
-            uuid, RECRUTEMENT_UUID
+    def test_returns_400_for_unknown_etape(self, authenticated_client, test_user):
+        organisme, recrutement, origine, _, candidatures = _recrutement_et_candidatures(
+            test_user
         )
+        etape_id = uuid4()
 
         response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(etape_id, [c.id for c in candidatures]),
             format="json",
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {
-            "error": RecrutementEtapeInexistante(uuid, RECRUTEMENT_UUID).message
+            "error": RecrutementEtapeInexistante(etape_id, recrutement.pk).message
         }
+        assert set(CandidatureModel.objects.values_list("etape_id", flat=True)) == {
+            origine.id
+        }
+        assert not AuditLogModel.objects.exists()
 
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        mock_usecase = container.change_etape_candidatures_usecase.return_value
-        mock_usecase.execute.side_effect = Exception("unexpected")
-
-        response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
-            format="json",
+    def test_returns_500_on_unexpected_error(self, authenticated_client, test_user):
+        organisme, recrutement, _, cible, candidatures = _recrutement_et_candidatures(
+            test_user
         )
+
+        with patch.object(
+            AuditLogWriter, "log_action", side_effect=Exception("unexpected")
+        ):
+            response = authenticated_client.patch(
+                _etape_url(organisme.id, recrutement.pk),
+                data=_corps(cible.id, [c.id for c in candidatures]),
+                format="json",
+            )
+
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
 
@@ -905,51 +964,142 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_returns_400_when_motif_refus_required(
-        self, container, authenticated_client
+        self, authenticated_client, test_user
     ):
-        mock_usecase = container.change_etape_candidatures_usecase.return_value
-        uuid = fake.uuid4()
-        mock_usecase.execute.side_effect = MotifRefusRequis(uuid)
+        organisme, recrutement, origine, _, candidatures = _recrutement_et_candidatures(
+            test_user
+        )
+        refus = EtapeModel.objects.get(
+            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
+        )
 
         response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(refus.id, [c.id for c in candidatures]),
             format="json",
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {"error": MotifRefusRequis(uuid).message}
+        assert response.json() == {"error": MotifRefusRequis(refus.id).message}
+        assert set(CandidatureModel.objects.values_list("etape_id", flat=True)) == {
+            origine.id
+        }
+        assert not AuditLogModel.objects.exists()
 
-
-class TestRecrutementCandidaturesEtapeViewDbVerified:
-    def test_moves_candidature_and_persists_it(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
+    @pytest.mark.parametrize(
+        ("organisme_role", "recrutement_role"),
+        [
+            pytest.param(
+                AgentOrganismeRole.SUPERVISEUR,
+                AgentRecrutementRole.RESPONSABLE,
+                id="superviseur_responsable",
+            ),
+            pytest.param(
+                AgentOrganismeRole.SUPERVISEUR,
+                AgentRecrutementRole.CONTRIBUTEUR,
+                id="superviseur_contributeur",
+            ),
+            pytest.param(
+                AgentOrganismeRole.AGENT,
+                AgentRecrutementRole.RESPONSABLE,
+                id="agent_responsable",
+            ),
+            pytest.param(
+                AgentOrganismeRole.AGENT,
+                AgentRecrutementRole.RECRUTEUR,
+                id="agent_recruteur",
+            ),
+        ],
+    )
+    def test_authorized_roles_move_candidatures(
+        self, authenticated_client, test_user, organisme_role, recrutement_role
+    ):
+        organisme, recrutement, _, cible, candidatures = _recrutement_et_candidatures(
+            test_user,
+            organisme_role=organisme_role,
+            recrutement_role=recrutement_role,
         )
-        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
-        candidature = CandidatureDjangoFactory(etape=origine)
 
         response = authenticated_client.patch(
-            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
-            data={
-                "etape_cible_uuid": str(cible.id),
-                "candidatures": [{"candidature_uuid": str(candidature.id)}],
-            },
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(cible.id, [c.id for c in candidatures]),
             format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["reussites"] == [str(candidature.id)]
-        assert data["echecs"] == []
+        assert set(CandidatureModel.objects.values_list("etape_id", flat=True)) == {
+            cible.id
+        }
 
-        candidature.refresh_from_db()
-        assert str(candidature.etape_id) == str(cible.id)
+    def test_persists_motif_refus(self, authenticated_client, test_user):
+        organisme, recrutement, _, _, candidatures = _recrutement_et_candidatures(
+            test_user
+        )
+        refus = EtapeModel.objects.get(
+            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
+        )
 
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(refus.id, [c.id for c in candidatures], motif_refus="autre"),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert set(CandidatureModel.objects.values_list("etape_id", "motif_refus")) == {
+            (refus.id, "autre")
+        }
+
+    def test_reports_candidature_of_another_recrutement_as_echec(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, _, cible, (candidature,) = _recrutement_et_candidatures(
+            test_user, nombre=1
+        )
+        autre_recrutement = RecrutementDjangoFactory(organisme=organisme)
+        autre_origine = EtapeModel.objects.get(
+            recrutement=autre_recrutement,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
+        )
+        etrangere = CandidatureDjangoFactory(etape=autre_origine)
+
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(cible.id, [candidature.id, etrangere.id]),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "reussites": [str(candidature.id)],
+            "echecs": [
+                {
+                    "candidature_uuid": str(etrangere.id),
+                    "raison": RecrutementCandidatureInexistante(etrangere.id).message,
+                }
+            ],
+        }
+        etrangere.refresh_from_db()
+        assert etrangere.etape_id == autre_origine.id
+        assert [kind for kind, *_ in _audit()] == [
+            "CandidatureRecruteur",
+            "Recrutement",
+        ]
+
+    def test_refuses_access_before_checking_the_recrutement(self, authenticated_client):
+        organisme = OrganismeDjangoFactory()
+
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, uuid4()),
+            data=_corps(uuid4(), [uuid4()]),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+
+
+class TestRecrutementCandidaturesEtapeViewDbVerified:
     def test_returns_404_when_recrutement_not_in_organisme(
         self, authenticated_client, test_user
     ):
@@ -979,6 +1129,46 @@ class TestRecrutementCandidaturesEtapeViewDbVerified:
         assert response.json() == {
             "error": RecrutementInexistant(recrutement.offre_id).message
         }
+        candidature.refresh_from_db()
+        assert candidature.etape_id == origine.id
+        assert not AuditLogModel.objects.exists()
+
+    @pytest.mark.parametrize(
+        "organisme_role",
+        [
+            pytest.param(None, id="sans_role_organisme"),
+            pytest.param(AgentOrganismeRole.AGENT, id="agent_contributeur"),
+        ],
+    )
+    def test_returns_403_when_not_authorized(
+        self, authenticated_client, test_user, organisme_role
+    ):
+        if organisme_role is None:
+            organisme = OrganismeDjangoFactory()
+            recrutement = RecrutementDjangoFactory(organisme=organisme)
+        else:
+            agent, organisme = create_organisme_with_agent(
+                role=organisme_role, utilisateur=test_user
+            )
+            recrutement = RecrutementDjangoFactory(
+                organisme=organisme,
+                agent_link__agent=agent,
+                agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+            )
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, recrutement.offre_id),
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
         candidature.refresh_from_db()
         assert candidature.etape_id == origine.id
         assert not AuditLogModel.objects.exists()
