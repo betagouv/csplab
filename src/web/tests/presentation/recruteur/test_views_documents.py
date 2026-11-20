@@ -3,6 +3,7 @@ from uuid import uuid4
 import factory
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from domain.recruteur.value_objects.roles import (
@@ -163,6 +164,32 @@ class TestDocumentView:
         assert second.status_code == status.HTTP_304_NOT_MODIFIED
         assert second.content == b""
         assert set(second["Cache-Control"].split(", ")) == {"private", "no-cache"}
+
+    def test_revoked_agent_gets_404_instead_of_304(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        liaison = RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=test_user.profil_agent,
+            role=AgentRecrutementRole.RECRUTEUR.value,
+        )
+        candidature = CandidatureDjangoFactory(
+            etape=EtapeDjangoFactory(recrutement=recrutement)
+        )
+        document = DocumentDjangoFactory(candidature=candidature)
+        url = _url(organisme.id, recrutement.pk, candidature.pk, document.pk)
+        first = authenticated_client.get(url)
+        liaison.date_revocation = timezone.now()
+        liaison.save()
+
+        second = authenticated_client.get(url, HTTP_IF_NONE_MATCH=first["ETag"])
+
+        assert first.status_code == status.HTTP_200_OK
+        assert second.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
