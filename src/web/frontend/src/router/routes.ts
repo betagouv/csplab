@@ -29,7 +29,6 @@ const recrutementTabMeta = tabMetaFor(RECRUTEMENT_DETAIL_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const HomeView = () => import('@/features/home/views/HomeView.vue')
-const RecrutementsView = () => import('@/features/recrutements/views/RecrutementsView.vue')
 const CandidaturePanelView = () => import('@/features/candidatures/views/CandidaturePanelView.vue')
 
 function paramsAsProps(...names: string[]) {
@@ -156,8 +155,27 @@ const organismeRoutes: RouteRecordRaw[] = [
     path: 'recrutements',
     name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
     children: [
-      { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true, meta: recrutementsTabMeta('actifs') },
-      { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true, meta: recrutementsTabMeta('archives') },
+      {
+        path: '',
+        component: () => import('@/features/recrutements/views/RecrutementsView.vue'),
+        props: true,
+        children: [
+          {
+            path: '',
+            name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
+            component: () => import('@/features/recrutements/views/RecrutementsActifsView.vue'),
+            props: true,
+            meta: recrutementsTabMeta('actifs'),
+          },
+          {
+            path: 'archives',
+            name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives,
+            component: () => import('@/features/recrutements/views/RecrutementsArchivesView.vue'),
+            props: true,
+            meta: recrutementsTabMeta('archives'),
+          },
+        ],
+      },
       { path: `:recrutementUuid${UUID}`, children: recrutementRoutes },
     ],
   },
