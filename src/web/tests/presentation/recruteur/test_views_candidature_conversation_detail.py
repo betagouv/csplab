@@ -244,6 +244,8 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_200_OK
+        assert not response.has_header("ETag")
+        assert set(response["Cache-Control"].split(", ")) == {"private", "no-store"}
         results = response.json()["results"]
         assert len(results) == NB_MESSAGES
         assert set(results[0].keys()) == {

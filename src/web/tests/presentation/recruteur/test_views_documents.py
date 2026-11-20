@@ -145,6 +145,26 @@ class TestDocumentView:
         assert response["Content-Disposition"] == 'inline; filename="test.pdf"'
         assert response["X-Frame-Options"] == "SAMEORIGIN"
 
+    def test_browser_is_told_not_to_store_the_document(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        candidature = CandidatureDjangoFactory(
+            etape=EtapeDjangoFactory(recrutement=recrutement)
+        )
+        document = DocumentDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.get(
+            _url(organisme.id, recrutement.pk, candidature.pk, document.pk)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert not response.has_header("ETag")
+        assert set(response["Cache-Control"].split(", ")) == {"private", "no-store"}
+
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
     )
