@@ -6,6 +6,9 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.etape_actions import (
+    set_etapes_authorized_actions,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
@@ -41,4 +44,5 @@ def initialize_organisme_etapes(
             ressource_kind="OrganismeRecruteur",
             event_name="OrganismeEtapesInitialises",
         )
+    set_etapes_authorized_actions(organisme, utilisateur=utilisateur)
     return organisme
