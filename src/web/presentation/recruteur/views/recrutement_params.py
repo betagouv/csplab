@@ -150,7 +150,7 @@ class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class InitRecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
+class InitRecrutementEtapeView(SessionApiMixin, APIView):
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:

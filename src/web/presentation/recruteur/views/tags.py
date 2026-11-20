@@ -30,7 +30,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class TagBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
+class TagBaseView(SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(
             exc,
@@ -81,7 +81,7 @@ class TagBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
         },
     ),
 )
-class OrganismeTagsView(TagBaseView, ListAPIView):
+class OrganismeTagsView(ConditionalGetMixin, TagBaseView, ListAPIView):
     serializer_class = TagDetailSerializer
 
     def get_queryset(self):

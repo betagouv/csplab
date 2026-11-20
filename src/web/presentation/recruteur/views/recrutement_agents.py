@@ -204,7 +204,7 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
         },
     ),
 )
-class RecrutementsResponsableView(ConditionalGetMixin, SessionApiMixin, APIView):
+class RecrutementsResponsableView(SessionApiMixin, APIView):
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = SetRecrutementsResponsableSerializer(data=request.data)
         if not serializer.is_valid():
