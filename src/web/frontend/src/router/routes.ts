@@ -134,7 +134,7 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: 'etapes',
             name: ORGANISME_TAB_ROUTE_NAMES.etapes,
-            component: () => import('@/features/etapes-recrutement/components/EtapesRecrutementList.vue'),
+            component: () => import('@/features/etapes-recrutement/components/EtapesRecrutementSection.vue'),
             props: ({ params }) => ({
               params: { type: 'organisme', organismeUuid: String(params.organismeUuid) } satisfies EtapesRecrutementType,
               texts: ETAPES_TEXTS_ORGANISME,
