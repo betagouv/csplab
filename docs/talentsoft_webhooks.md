@@ -11,6 +11,14 @@ By default, the mechanism to call peers to inform them of any change **is trigge
 
 ## Creating and deleting webhooks
 
+### Prerequisites
+
+Before creating webhooks for an instance, its back credentials must already be configured on both services, otherwise every webhook received is rejected:
+
+- **web**: a `Source` of type `TALENTSOFT` (Django admin) whose `client_id_back` is the client ID of the webhooks. Ingestion loads the sources from web at startup only: restart ingestion after adding or changing one. Without it, ingestion answers `403 Invalid client_id`.
+- **ingestion**: an entry `{"client_id", "client_secret", "base_url", "role": "back"}` in `TALENTSOFT_CREDENTIALS` (Scaleway secret), used to verify the webhook signatures. Without it, ingestion answers `500 TalentSoft credentials not configured`. The script also lists the instances from these credentials.
+
+
 Use the interactive script:
 
 ```sh
