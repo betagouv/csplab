@@ -1,14 +1,10 @@
 #!/usr/bin/env python
-"""Interactively subscribes a callback URL to Talentsoft webhook events, or
-deletes webhooks by hookId, then prints a summary to paste into Vaultwarden.
-
-See docs/talentsoft_webhooks.md.
+"""Interactively creates or deletes Talentsoft webhooks, then prints a summary
+to paste into Vaultwarden. See docs/talentsoft_webhooks.md.
 """
 
 import getpass
 import sys
-from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import date
 
 import httpx
@@ -17,301 +13,116 @@ from api.config import get_settings
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
 
 DEFAULT_EVENTS = ["vacancy_new", "vacancy_update", "vacancy_deleted", "vacancy_status"]
-CALLBACK_URLS = {
-    "prod": "https://csplab.beta.gouv.fr/webhooks/talentsoft",
-    "demo": "https://demo.csplab.incubateur.net/webhooks/talentsoft",
-}
-TIMEOUT_SECONDS = 30
-
-Prompt = Callable[[str], str]
+CALLBACK_URLS = [
+    "https://csplab.beta.gouv.fr/webhooks/talentsoft",
+    "https://demo.csplab.incubateur.net/webhooks/talentsoft",
+]
 
 
-class TalentsoftWebhookError(Exception):
-    pass
+def ask(question: str) -> str:
+    while not (answer := input(question).strip()):
+        pass
+    return answer
 
 
-@dataclass(frozen=True)
-class Instance:
-    base_url: str
-    client_id: str
-
-
-@dataclass(frozen=True)
-class Session:
-    instance: Instance
-    token: str
-
-
-@dataclass(frozen=True)
-class CreationResult:
-    hook_ids: dict[str, str]
-    error: str | None = None
-
-
-@dataclass(frozen=True)
-class DeletionResult:
-    deleted: list[str]
-    failed: dict[str, str]
-
-
-def _url(base_url: str, path: str) -> str:
-    return f"{base_url.rstrip('/')}/{path}"
-
-
-def authenticate(
-    client: httpx.Client, instance: Instance, client_secret: str
-) -> Session:
-    response = client.post(
-        _url(instance.base_url, "api/token"),
-        data={
-            "client_id": instance.client_id,
-            "client_secret": client_secret,
-            "grant_type": "client_credentials",
-            "scope": "Customer",
-        },
-    )
-    if response.is_error:
-        raise TalentsoftWebhookError(
-            f"Token refusé (HTTP {response.status_code}) : {response.text}"
-        )
-    return Session(instance=instance, token=response.json()["access_token"])
-
-
-def create_webhook(
-    client: httpx.Client, base_url: str, token: str, event: str, callback_url: str
-) -> str:
-    response = client.post(
-        _url(base_url, "api/system/v1/webhooks"),
-        headers={"Authorization": f"Bearer {token}"},
-        json={"event": event, "callbackUrl": callback_url, "pingUrl": callback_url},
-    )
-    if response.is_error:
-        raise TalentsoftWebhookError(
-            f"Création de {event} refusée (HTTP {response.status_code}) : "
-            f"{response.text}"
-        )
-    return response.json()["data"]["hookId"]
-
-
-def delete_webhook(
-    client: httpx.Client, base_url: str, token: str, hook_id: str
-) -> None:
-    response = client.delete(
-        _url(base_url, f"api/system/v1/webhooks/{hook_id}"),
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    if response.is_error:
-        raise TalentsoftWebhookError(
-            f"Suppression refusée (HTTP {response.status_code}) : {response.text}"
-        )
-
-
-def create_webhooks(
-    client: httpx.Client, session: Session, events: list[str], callback_url: str
-) -> CreationResult:
-    hook_ids: dict[str, str] = {}
-    for event in events:
-        try:
-            hook_ids[event] = create_webhook(
-                client, session.instance.base_url, session.token, event, callback_url
-            )
-        except TalentsoftWebhookError as error:
-            return CreationResult(hook_ids=hook_ids, error=str(error))
-    return CreationResult(hook_ids=hook_ids)
-
-
-def delete_webhooks(
-    client: httpx.Client, session: Session, hook_ids: list[str]
-) -> DeletionResult:
-    deleted: list[str] = []
-    failed: dict[str, str] = {}
-    for hook_id in hook_ids:
-        try:
-            delete_webhook(client, session.instance.base_url, session.token, hook_id)
-            deleted.append(hook_id)
-        except TalentsoftWebhookError as error:
-            failed[hook_id] = str(error)
-    return DeletionResult(deleted=deleted, failed=failed)
-
-
-def _summary_block(lines: list[str]) -> str:
-    separator = "-" * 72
-    return "\n".join([separator, *lines, separator])
-
-
-def creation_summary(
-    instance: Instance,
-    callback_url: str,
-    result: CreationResult,
-    today: date,
-) -> str:
-    lines = [
-        "Webhooks Talentsoft",
-        f"Créés le : {today.isoformat()}",
-        f"Instance : {instance.base_url}",
-        f"Client ID back : {instance.client_id}",
-        f"Callback URL : {callback_url}",
-        "hookIds :",
-        *(f"  {event} : {hook_id}" for event, hook_id in result.hook_ids.items()),
-    ]
-    if not result.hook_ids:
-        lines.append("  (aucun)")
-    return _summary_block(lines)
-
-
-def deletion_summary(instance: Instance, result: DeletionResult, today: date) -> str:
-    lines = [
-        "Webhooks Talentsoft",
-        f"Supprimés le : {today.isoformat()}",
-        f"Instance : {instance.base_url}",
-        "hookIds :",
-        *(f"  {hook_id}" for hook_id in result.deleted),
-    ]
-    if not result.deleted:
-        lines.append("  (aucun)")
-    if result.failed:
-        lines.append("Échecs :")
-        lines.extend(
-            f"  {hook_id} : {error}" for hook_id, error in result.failed.items()
-        )
-    return _summary_block(lines)
-
-
-def parse_hook_ids(raw: str) -> list[str]:
-    return [token for token in raw.replace(",", " ").split() if token]
-
-
-def _choose(prompt: Prompt, question: str, options: list[str]) -> int:
+def choose(question: str, options: list[str]) -> int:
     print(question)
     for index, option in enumerate(options, start=1):
         print(f"  {index}. {option}")
     while True:
-        answer = prompt("Choix : ").strip()
+        answer = input("Choix : ").strip()
         if answer.isdigit() and 1 <= int(answer) <= len(options):
             return int(answer) - 1
-        print(f"Saisir un nombre entre 1 et {len(options)}.")
 
 
-def _confirm(prompt: Prompt, question: str) -> bool:
-    return prompt(f"{question} [o/N] ").strip().lower() in {"o", "oui", "y", "yes"}
+def choose_instance(credentials: list[TalentsoftCredential]) -> tuple[str, str, str]:
+    back = [c for c in credentials if c.role == "back"]
+    options = [f"{c.base_url} (client_id {c.client_id})" for c in back]
+    index = choose("Instance Talentsoft :", [*options, "Saisir d'autres identifiants"])
+    if index < len(back):
+        return back[index].base_url, back[index].client_id, back[index].client_secret
+    base_url = ask("URL de l'instance : ")
+    client_id = ask("Client ID back : ")
+    client_secret = getpass.getpass("Client secret back : ").strip()
+    return base_url, client_id, client_secret
 
 
-def _ask_non_empty(prompt: Prompt, question: str) -> str:
-    while True:
-        answer = prompt(question).strip()
-        if answer:
-            return answer
+def check(response: httpx.Response, action: str) -> httpx.Response:
+    if response.is_error:
+        raise RuntimeError(f"{action} : HTTP {response.status_code} {response.text}")
+    return response
 
 
-def _ask_secret(secret_prompt: Prompt, question: str) -> str:
-    while True:
-        secret = secret_prompt(question).strip()
-        if secret:
-            return secret
+def main(client: httpx.Client, credentials: list[TalentsoftCredential]) -> int:
+    creating = choose("Action :", ["Créer des webhooks", "Supprimer des webhooks"]) == 0
+    base_url, client_id, client_secret = choose_instance(credentials)
+    api_url = f"{base_url.rstrip('/')}/api"
+    summary = [f"Instance : {base_url}", f"Client ID back : {client_id}"]
 
-
-def choose_credential(
-    prompt: Prompt,
-    credentials: list[TalentsoftCredential],
-    secret_prompt: Prompt = getpass.getpass,
-) -> tuple[Instance, str]:
-    back_credentials = [c for c in credentials if c.role == "back"]
-    options = [f"{c.base_url} (client_id {c.client_id})" for c in back_credentials]
-    options.append("Saisir d'autres identifiants")
-    index = _choose(prompt, "Instance Talentsoft (identifiants back) :", options)
-    if index < len(back_credentials):
-        credential = back_credentials[index]
-        return (
-            Instance(base_url=credential.base_url, client_id=credential.client_id),
-            credential.client_secret,
+    if creating:
+        index = choose("URL de callback :", [*CALLBACK_URLS, "Autre URL"])
+        callback_url = (
+            CALLBACK_URLS[index]
+            if index < len(CALLBACK_URLS)
+            else ask("URL de callback : ")
         )
-    base_url = _ask_non_empty(prompt, "URL de l'instance : ")
-    client_id = _ask_non_empty(prompt, "Client ID back : ")
-    client_secret = _ask_secret(secret_prompt, "Client secret back : ")
-    return Instance(base_url=base_url, client_id=client_id), client_secret
+        events = input(f"Événements [{' '.join(DEFAULT_EVENTS)}] : ").split()
+        targets = events or DEFAULT_EVENTS
+        summary += [f"Créés le : {date.today()}", f"Callback URL : {callback_url}"]
+    else:
+        targets = ask("hookIds à supprimer : ").replace(",", " ").split()
+        summary += [f"Supprimés le : {date.today()}"]
 
-
-def choose_callback_url(prompt: Prompt) -> str:
-    environments = list(CALLBACK_URLS)
-    options = [f"{env} : {CALLBACK_URLS[env]}" for env in environments]
-    options.append("Autre URL")
-    index = _choose(prompt, "URL de callback :", options)
-    if index < len(environments):
-        return CALLBACK_URLS[environments[index]]
-    return _ask_non_empty(prompt, "URL de callback : ")
-
-
-def choose_events(prompt: Prompt) -> list[str]:
-    answer = prompt(
-        f"Événements, séparés par des espaces [{' '.join(DEFAULT_EVENTS)}] : "
-    ).strip()
-    return answer.split() if answer else list(DEFAULT_EVENTS)
-
-
-def run_creation(
-    prompt: Prompt, client: httpx.Client, instance: Instance, client_secret: str
-) -> int:
-    callback_url = choose_callback_url(prompt)
-    events = choose_events(prompt)
-    print(f"\nAbonner {callback_url}\nà {', '.join(events)}\nsur {instance.base_url}.")
-    if not _confirm(prompt, "Confirmer ?"):
+    action = "Créer" if creating else "Supprimer"
+    print(f"\n{action} {', '.join(targets)} sur {base_url}")
+    if input("Confirmer ? [o/N] ").strip().lower() not in {"o", "oui"}:
         print("Abandon.")
         return 0
-    session = authenticate(client, instance, client_secret)
-    result = create_webhooks(client, session, events, callback_url)
-    if result.error:
-        print(f"\n❌ {result.error}")
-        print("Arrêt : les webhooks déjà créés restent actifs.")
-    print("\n📋 À copier dans Vaultwarden :")
-    print(creation_summary(instance, callback_url, result, date.today()))
-    return 1 if result.error else 0
 
-
-def run_deletion(
-    prompt: Prompt, client: httpx.Client, instance: Instance, client_secret: str
-) -> int:
-    hook_ids = parse_hook_ids(
-        _ask_non_empty(prompt, "hookIds à supprimer, séparés par des espaces : ")
-    )
-    print(f"\nSupprimer {', '.join(hook_ids)}\nsur {instance.base_url}.")
-    if not _confirm(prompt, "Confirmer ?"):
-        print("Abandon.")
-        return 0
-    session = authenticate(client, instance, client_secret)
-    result = delete_webhooks(client, session, hook_ids)
-    print("\n📋 À reporter dans Vaultwarden :")
-    print(deletion_summary(instance, result, date.today()))
-    return 1 if result.failed else 0
-
-
-def run(
-    prompt: Prompt,
-    client: httpx.Client,
-    credentials: list[TalentsoftCredential],
-    secret_prompt: Prompt = getpass.getpass,
-) -> int:
-    action = _choose(
-        prompt, "Action :", ["Créer des webhooks", "Supprimer des webhooks"]
-    )
-    instance, client_secret = choose_credential(prompt, credentials, secret_prompt)
+    summary.append("hookIds :")
+    failed = False
     try:
-        if action == 0:
-            return run_creation(prompt, client, instance, client_secret)
-        return run_deletion(prompt, client, instance, client_secret)
-    except TalentsoftWebhookError as error:
-        print(f"\n❌ {error}")
-        return 1
+        token_response = client.post(
+            f"{api_url}/token",
+            data={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "grant_type": "client_credentials",
+                "scope": "Customer",
+            },
+        )
+        token = check(token_response, "Token").json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        for target in targets:
+            if creating:
+                response = client.post(
+                    f"{api_url}/system/v1/webhooks",
+                    headers=headers,
+                    json={
+                        "event": target,
+                        "callbackUrl": callback_url,
+                        "pingUrl": callback_url,
+                    },
+                )
+                hook_id = check(response, target).json()["data"]["hookId"]
+                summary.append(f"  {target} : {hook_id}")
+            else:
+                url = f"{api_url}/system/v1/webhooks/{target}"
+                check(client.delete(url, headers=headers), target)
+                summary.append(f"  {target}")
+    except RuntimeError as error:
+        failed = True
+        print(f"\n❌ {error}\nArrêt : les opérations précédentes sont conservées.")
 
-
-def main() -> int:
-    credentials = get_settings().talentsoft_credentials
-    with httpx.Client(timeout=TIMEOUT_SECONDS) as client:
-        return run(input, client, credentials)
+    separator = "-" * 72
+    print("\n📋 À copier dans Vaultwarden :")
+    print("\n".join([separator, "Webhooks Talentsoft", *summary, separator]))
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())
+        with httpx.Client(timeout=30) as http_client:
+            sys.exit(main(http_client, get_settings().talentsoft_credentials))
     except (KeyboardInterrupt, EOFError):
-        print("\nAbandon.")
-        sys.exit(1)
+        sys.exit("\nAbandon.")
