@@ -48,10 +48,13 @@ class LoginView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["next"] = _safe_next_url(self.request, self.request.GET.get("next"))
         context["unknown_account"] = self.request.session.pop(
             UNKNOWN_ACCOUNT_SESSION_KEY, False
         )
+        next_url = self.request.GET.get("next")
+        if context["unknown_account"]:
+            next_url = self.request.session.get(LOGIN_NEXT_SESSION_KEY)
+        context["next"] = _safe_next_url(self.request, next_url)
         return context
 
 

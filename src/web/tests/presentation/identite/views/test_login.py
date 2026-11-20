@@ -3,7 +3,10 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
 from rest_framework import status
 
-from presentation.identite.views import UNKNOWN_ACCOUNT_SESSION_KEY
+from presentation.identite.views import (
+    LOGIN_NEXT_SESSION_KEY,
+    UNKNOWN_ACCOUNT_SESSION_KEY,
+)
 
 
 class TestLoginView:
@@ -59,6 +62,26 @@ class TestLoginView:
         )
         assertContains(response, "Essayer avec un autre courriel")
         assertNotContains(client.get(reverse("identite:login")), "Impossible d'accéder")
+
+    def test_unknown_account_notice_keeps_the_requested_page(self, db, client):
+        session = client.session
+        session[UNKNOWN_ACCOUNT_SESSION_KEY] = True
+        session[LOGIN_NEXT_SESSION_KEY] = "/recruteur/offres"
+        session.save()
+
+        response = client.get(reverse("identite:login"))
+
+        assert response.context["next"] == "/recruteur/offres"
+        assertContains(response, "?next=%2Frecruteur%2Foffres")
+
+    def test_login_page_ignores_a_stale_next_without_unknown_account(self, db, client):
+        session = client.session
+        session[LOGIN_NEXT_SESSION_KEY] = "/recruteur/offres"
+        session.save()
+
+        response = client.get(reverse("identite:login"))
+
+        assert response.context["next"] is None
 
     def test_post_is_not_allowed(self, db, client):
         response = client.post(
