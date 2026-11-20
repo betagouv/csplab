@@ -148,7 +148,7 @@ class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementCandidaturesEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
+class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
