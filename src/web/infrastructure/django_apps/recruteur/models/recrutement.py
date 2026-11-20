@@ -7,7 +7,6 @@ from django.db.models import (
     Max,
     OuterRef,
     Prefetch,
-    Q,
     Subquery,
     Value,
     When,
@@ -42,25 +41,63 @@ def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subque
     )
 
 
+def _related_model(model: type[models.Model], name: str) -> type[models.Model]:
+    return model._meta.get_field(name).related_model  # type: ignore[return-value]
+
+
+def _version_of(
+    queryset: models.QuerySet, recrutement_path: str, **aggregates
+) -> Subquery:
+    return Subquery(
+        queryset.filter(**{recrutement_path: OuterRef("pk")})
+        .order_by()
+        .values(recrutement_path)
+        .annotate(version=JSONObject(**aggregates))
+        .values("version")
+    )
+
+
 class RecrutementQuerySet(models.QuerySet):
     def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
 
     def with_list_version(self, utilisateur_id) -> "RecrutementQuerySet":
-        candidatures = "etapes__candidatures"
-        conversations = f"{candidatures}__conversations"
-        lectures = f"{conversations}__lectures"
+        conversation_model = _related_model(CandidatureModel, "conversations")
+        message_model = _related_model(conversation_model, "messages")
+        lecture_model = _related_model(conversation_model, "lectures")
+        candidature_tag_model = _related_model(CandidatureModel, "tags_liaisons")
+        by_conversation = "conversation__candidature__etape__recrutement"
         return self.annotate(
             list_version=JSONObject(
                 updated_at=F("updated_at"),
-                etapes=Count("etapes", distinct=True),
-                etapes_updated_at=Max("etapes__updated_at"),
-                candidatures=Count(candidatures, distinct=True),
-                candidatures_updated_at=Max(f"{candidatures}__updated_at"),
-                last_message_at=Max(f"{conversations}__messages__created_at"),
-                read_at=Max(
-                    f"{lectures}__read_at",
-                    filter=Q(**{f"{lectures}__utilisateur": utilisateur_id}),
+                etapes=_version_of(
+                    EtapeModel.objects.all(),
+                    "recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                candidatures=_version_of(
+                    CandidatureModel.objects.all(),
+                    "etape__recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                messages=_version_of(
+                    message_model._default_manager.all(),
+                    by_conversation,
+                    created_at=Max("created_at"),
+                ),
+                lectures=_version_of(
+                    lecture_model._default_manager.filter(utilisateur=utilisateur_id),
+                    by_conversation,
+                    read_at=Max("read_at"),
+                ),
+                tags=_version_of(
+                    candidature_tag_model._default_manager.all(),
+                    "candidature__etape__recrutement",
+                    count=Count("pk"),
+                    created_at=Max("created_at"),
+                    tag_updated_at=Max("tag__updated_at"),
                 ),
             )
         )
