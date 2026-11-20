@@ -45,6 +45,7 @@ NOMBRE_REQUETES_ATTENDU = (
 def test_unauthenticated_access(api_client):
     response = api_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert "Clear-Site-Data" not in response
 
 
 def test_authenticated_access(jwt_client):
