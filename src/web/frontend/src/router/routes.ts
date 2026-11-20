@@ -99,7 +99,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
       {
         path: 'equipe',
         name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe,
-        component: () => import('@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'),
+        component: () => import('@/features/equipe-recrutement/views/EquipeRecrutementView.vue'),
         props: true,
         meta: recrutementTabMeta('equipe'),
       },
@@ -127,7 +127,7 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: '',
             name: ORGANISME_TAB_ROUTE_NAMES.membres,
-            component: () => import('@/features/organismes/components/OrganismeAgentsSection.vue'),
+            component: () => import('@/features/organismes/views/OrganismeAgentsView.vue'),
             props: true,
             meta: organismeTabMeta('membres'),
           },
@@ -144,7 +144,7 @@ const organismeRoutes: RouteRecordRaw[] = [
           {
             path: 'etiquettes',
             name: ORGANISME_TAB_ROUTE_NAMES.tags,
-            component: () => import('@/features/tags/components/TagsSection.vue'),
+            component: () => import('@/features/tags/views/TagsView.vue'),
             props: true,
             meta: organismeTabMeta('tags'),
           },

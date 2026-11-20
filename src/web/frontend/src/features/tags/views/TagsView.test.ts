@@ -7,7 +7,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { TAG_SYNTHESIS, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
-import TagsSection from './TagsSection.vue'
+import TagsView from './TagsView.vue'
 
 vi.mock('../api', () => ({
   getTags: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('../api', () => ({
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
 const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(TagsSection, { organismeUuid: ORGANISME_UUID })),
+  setup: () => () => h(CspToaster, null, () => h(TagsView, { organismeUuid: ORGANISME_UUID })),
 })
 
 function block(title: string) {
@@ -40,7 +40,7 @@ async function openDrawerFrom(title: string) {
   return user
 }
 
-describe('tagsSection', () => {
+describe('tagsView', () => {
   beforeEach(() => {
     vi.mocked(getTags).mockReset().mockResolvedValue(TAGS)
     vi.mocked(createTag).mockReset()

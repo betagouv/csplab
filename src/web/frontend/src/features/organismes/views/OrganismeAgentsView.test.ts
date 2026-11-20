@@ -8,7 +8,7 @@ import { AGENT_ORGANISME, AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getOrganismeAgents, setAgentRole, updateAgentRole } from '../api'
-import OrganismeAgentsSection from './OrganismeAgentsSection.vue'
+import OrganismeAgentsView from './OrganismeAgentsView.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
@@ -23,7 +23,7 @@ vi.mock('@/features/agents/api', () => ({
 }))
 
 const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(OrganismeAgentsSection, { organismeUuid: MTE_UUID })),
+  setup: () => () => h(CspToaster, null, () => h(OrganismeAgentsView, { organismeUuid: MTE_UUID })),
 })
 
 async function renderSection() {
@@ -32,7 +32,7 @@ async function renderSection() {
   return result
 }
 
-describe('organismeAgentsSection', () => {
+describe('organismeAgentsView', () => {
   beforeEach(() => {
     vi.mocked(getOrganismeAgents).mockReset().mockResolvedValue([AGENT_ORGANISME])
     vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
