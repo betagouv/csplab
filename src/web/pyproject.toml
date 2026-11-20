@@ -43,6 +43,8 @@ dependencies = [
     "authlib>=1.7.2",
     "markdown-it-py>=4.2.0",
     "nh3>=0.3.7",
+    "wagtail>=8.1,<9.0",
+    "pillow>=11.0",
 ]
 
 [build-system]

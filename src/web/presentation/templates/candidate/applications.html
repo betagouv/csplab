@@ -1,0 +1,125 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Suivi des candidatures
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
+            <h1 class="fr-col fr-mb-0">Bonjour {{ first_name }}</h1>
+            <a class="fr-btn fr-btn--secondary" href="{% url 'pages:offers' %}">Trouver une offre</a>
+        </div>
+        <p class="fr-text--sm fr-mb-6w">
+            Suivez l'avancement de vos candidatures en temps réel, triez les offres qui vous intéressent et échangez avec les recruteurs.
+        </p>
+        <h2 class="fr-h4 fr-mb-4w">Suivi des candidatures</h2>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-md-3">
+                <nav class="fr-sidemenu fr-sidemenu--sticky-full-height"
+                     role="navigation"
+                     aria-label="Filtrer mes candidatures">
+                    <ul class="fr-sidemenu__list">
+                        {% for filter in filters %}
+                            <li class="fr-sidemenu__item{% if filter.active %} fr-sidemenu__item--active{% endif %}">
+                                <a class="fr-sidemenu__link"
+                                   href="{{ filter.url }}"
+                                   {% if filter.active %}aria-current="page"{% endif %}>
+                                    {{ filter.label }}
+                                    <span class="fr-ml-auto">{{ filter.count }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+            <div class="fr-col-12 fr-col-md-9">
+                <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
+                    <p class="fr-col fr-text--sm fr-mb-0">{{ items|length }} opportunité{{ items|length|pluralize }}</p>
+                    <button type="button"
+                            class="fr-btn fr-btn--tertiary fr-btn--sm fr-icon-filter-line fr-btn--icon-left"
+                            aria-expanded="false"
+                            aria-controls="applications-filters">
+                        Filtres{% if active_filters %} ({{ active_filters }}){% endif %}
+                    </button>
+                </div>
+                <div class="fr-collapse fr-mb-2w"
+                     id="applications-filters">
+                    <form action="{% url 'candidate:applications' %}"
+                          method="get"
+                          class="fr-p-2w csplab-application">
+                        {% if current_status %}<input type="hidden" name="statut" value="{{ current_status }}">{% endif %}
+                        <div class="fr-checkbox-group fr-checkbox-group--sm">
+                            <input type="checkbox"
+                                   id="filter-unread"
+                                   name="non_lues"
+                                   value="1"
+                                   {% if only_unread %}checked{% endif %}>
+                            <label class="fr-label" for="filter-unread">Avec des conversations non lues</label>
+                        </div>
+                        <button type="submit" class="fr-btn fr-btn--sm fr-mt-2w">Appliquer</button>
+                    </form>
+                </div>
+                {% for item in items %}
+                    {% if item.kind == "saved" and item.status == "archivee" %}
+                        <div class="csplab-application fr-background-alt--grey fr-p-2w fr-mb-2w">
+                            <h3 class="fr-text--md fr-text--bold fr-mb-0">{{ item.title }}</h3>
+                            <p class="fr-text--sm fr-mb-0">{{ item.employer }}</p>
+                            <p class="fr-text--xs fr-icon-calendar-line fr-btn--icon-left fr-mb-0 fr-mt-1v">
+                                Désactivée depuis le {{ item.since }}
+                            </p>
+                        </div>
+                    {% elif item.kind == "saved" %}
+                        <div class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w">
+                            <div class="fr-grid-row fr-grid-row--middle">
+                                <span class="fr-icon-thumb-up-fill fr-mr-2w" aria-hidden="true"></span>
+                                <div class="fr-col">
+                                    <h3 class="fr-text--md fr-text--bold fr-mb-0">
+                                        <a href="{% if item.favorite %}{% url 'pages:offer_detail' item.id %}{% else %}{% url 'candidate:saved_offer' item.id %}{% endif %}"
+                                           data-drawer-open>{{ item.title }}</a>
+                                    </h3>
+                                    <p class="fr-text--sm fr-mb-0">{{ item.employer }}</p>
+                                </div>
+                                <span class="fr-link fr-link--icon-right fr-icon-arrow-right-s-line">Postuler</span>
+                            </div>
+                            <button type="button"
+                                    class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-star-fill fr-btn--icon-right csplab-offer__favorite fr-mt-1v"
+                                    hx-post="{% if item.favorite %}{% url 'candidate:favorite_remove' item.id %}{% else %}{% url 'candidate:saved_offer_remove' item.id %}{% endif %}"
+                                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                                Retirer des favoris
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w">
+                            <div class="fr-grid-row fr-grid-row--middle">
+                                <div class="fr-col">
+                                    <p class="fr-text--sm fr-mb-0">{{ item.employer }}</p>
+                                    <h3 class="fr-text--md fr-text--bold fr-mb-1w">
+                                        <a href="{% url 'candidate:application_detail' item.id %}{% if item.unread %}?conversations=1{% endif %}">{{ item.title }}</a>
+                                    </h3>
+                                    <p class="fr-badge fr-badge--sm fr-badge--info fr-badge--no-icon fr-mb-0">
+                                        {% for key, status in statuses.items %}
+                                            {% if key == item.status %}{{ status.label }}{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </div>
+                                <span class="fr-icon-arrow-right-s-line" aria-hidden="true"></span>
+                            </div>
+                            {% if item.unread %}
+                                <hr class="fr-mt-2w fr-pb-1w" />
+                                <p class="fr-text--xs fr-icon-mail-fill fr-btn--icon-left fr-mb-0">
+                                    {{ item.unread }} conversation non lue
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <p>Aucune candidature dans cette catégorie.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

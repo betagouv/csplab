@@ -10,6 +10,10 @@
       "description": "Database of the review app",
       "value": "$SCALINGO_POSTGRESQL_URL"
     },
+    "WEB_ADMIN_OTP_REQUIRED": {
+      "description": "Disable the OTP on the admins of the review app",
+      "value": "false"
+    },
     "WEB_REDIS_URL": {
       "description": "Redis of the review app",
       "value": "$SCALINGO_REDIS_URL"
@@ -34,6 +38,6 @@
     }
   ],
   "scripts": {
-    "first-deploy": "bash bin/postdeploy.sh && DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas"
+    "first-deploy": "bash bin/postdeploy.sh && DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas && DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_editorial"
   }
 }

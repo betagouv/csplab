@@ -1,0 +1,94 @@
+<dialog class="csplab-drawer csplab-drawer--wide"
+        data-drawer
+        aria-labelledby="document-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters fr-mb-2w">
+                <div class="fr-col">
+                    <h2 id="document-title" class="fr-h4 fr-mb-1v">{{ document.title }}</h2>
+                    <p class="fr-text--sm fr-mb-0">{{ document.filename }} · {{ application.title }}, {{ application.employer }}</p>
+                </div>
+                <div class="fr-col-12 fr-col-md-auto">
+                    <button type="button"
+                            class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line fr-btn--icon-left">
+                        Télécharger
+                    </button>
+                </div>
+            </div>
+            <div class="csplab-document{% if slug == 'cv' %} csplab-document--cv{% endif %}">
+                {% if slug == "cv" %}
+                    <div class="fr-grid-row">
+                        <div class="fr-col-12 fr-col-sm-8 fr-p-3w">
+                            <h3 class="fr-h4">Instructeur administratif (8 années d'expérience)</h3>
+                            <h4 class="fr-h6 csplab-document__section">À propos de moi</h4>
+                            <p class="fr-text--sm">
+                                Je souhaite mettre mon expérience de l'instruction de dossiers en collectivité au service d'une administration d'État. Rigoureux et attaché à la qualité de service rendue aux usagers, j'aime travailler en équipe et fiabiliser les procédures.
+                            </p>
+                            <h4 class="fr-h6 csplab-document__section">Expériences professionnelles</h4>
+                            <p class="fr-text--sm fr-mb-1w">
+                                <strong>09/2021 – aujourd'hui : Instructeur administratif</strong>, Mairie de Mérignac
+                            </p>
+                            <ul class="fr-text--sm">
+                                <li>Instruction de 1 200 dossiers d'urbanisme par an, dans le respect des délais réglementaires.</li>
+                                <li>Relation avec les usagers et les services instructeurs.</li>
+                                <li>Suivi des recours gracieux et contentieux.</li>
+                            </ul>
+                            <p class="fr-text--sm fr-mb-1w">
+                                <strong>10/2018 – 08/2021 : Agent administratif</strong>, Conseil départemental de la Gironde
+                            </p>
+                            <ul class="fr-text--sm">
+                                <li>Accueil et orientation du public, traitement des demandes d'aides.</li>
+                                <li>Gestion du courrier et mise à jour de la base de suivi des dossiers.</li>
+                            </ul>
+                            <h4 class="fr-h6 csplab-document__section">Compétences</h4>
+                            <ul class="fr-text--sm">
+                                <li>Instruction de dossiers, droit administratif</li>
+                                <li>Rédaction de courriers et de notes</li>
+                                <li>Suite bureautique, logiciels métiers (Cart@ds, Droit des sols)</li>
+                            </ul>
+                        </div>
+                        <div class="fr-col-12 fr-col-sm-4 fr-p-3w fr-background-alt--blue-france">
+                            <div class="csplab-document__avatar fr-mb-3w"></div>
+                            <h4 class="fr-h6 csplab-document__section">Formation</h4>
+                            <p class="fr-text--sm fr-mb-1w">
+                                <strong>09/2018 :</strong> Licence Droit, économie, gestion, Université de Bordeaux
+                            </p>
+                            <p class="fr-text--sm">
+                                <strong>07/2015 :</strong> Baccalauréat ES, lycée Montaigne, Bordeaux
+                            </p>
+                            <h4 class="fr-h6 csplab-document__section">Contact</h4>
+                            <p class="fr-text--sm fr-mb-0">{{ candidate_name }}</p>
+                            <p class="fr-text--sm fr-mb-0">33000 Bordeaux</p>
+                            <p class="fr-text--sm fr-mb-0">06 12 34 56 78</p>
+                            <p class="fr-text--sm">jean.dapel@exemple.fr</p>
+                            <h4 class="fr-h6 csplab-document__section">Langues</h4>
+                            <p class="fr-text--sm">Français (langue maternelle), anglais (B2)</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="fr-text--sm fr-mb-0">{{ candidate_name }}</p>
+                    <p class="fr-text--sm fr-mb-0">12 rue des Frères Portmann</p>
+                    <p class="fr-text--sm fr-mb-4w">33000 Bordeaux</p>
+                    <p class="fr-text--sm fr-mb-4w" style="text-align:right">Bordeaux, le 5 mai 2026</p>
+                    <p>
+                        <strong>Objet : candidature au poste d'{{ application.title|lower }}</strong>
+                    </p>
+                    <p>Madame, Monsieur,</p>
+                    <p>
+                        Instructeur administratif depuis huit ans au sein de collectivités territoriales, j'ai instruit chaque année plus d'un millier de dossiers dans le respect des délais réglementaires. Cette expérience m'a appris la rigueur, le sens du service et l'écoute des usagers.
+                    </p>
+                    <p>
+                        Je souhaite aujourd'hui mettre ces compétences au service de {{ application.employer }}, dont les missions et l'engagement auprès de ses usagers répondent à mon attachement au service public.
+                    </p>
+                    <p>
+                        Disponible pour un entretien, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                    </p>
+                    <p>{{ candidate_name }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</dialog>

@@ -1,0 +1,9 @@
+<button type="button"
+        class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm {% if offer.id in favorites %}fr-icon-star-fill{% else %}fr-icon-star-line{% endif %} fr-btn--icon-right csplab-offer__favorite"
+        aria-pressed="{% if offer.id in favorites %}true{% else %}false{% endif %}"
+        hx-post="{% url 'pages:offer_favorite' offer.id %}"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-target="this"
+        hx-swap="outerHTML">
+    {% if offer.id in favorites %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
+</button>

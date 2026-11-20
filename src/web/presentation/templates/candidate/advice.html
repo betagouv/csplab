@@ -1,0 +1,88 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags editorial_tags %}
+{% block page_title %}
+    Conseils aux candidats
+{% endblock page_title %}
+{% block meta_description %}
+    Des conseils pratiques pour préparer votre candidature dans la fonction publique.
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <section class="fr-background-alt--grey">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--middle">
+                <div class="fr-col-12 fr-col-md-7 fr-py-5w">
+                    <h1 class="fr-mb-0">Conseils aux candidats</h1>
+                </div>
+                <div class="fr-col-12 fr-col-md-5 fr-py-2w">
+                    <img class="fr-responsive-img"
+                         src="{% static hero_image %}"
+                         alt="" />
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="fr-container fr-py-6w">
+        <form action="{% url 'candidate:advice' %}" method="get" role="search">
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
+                <div class="fr-col-12 fr-col-md-5">
+                    <div class="fr-input-group">
+                        <label class="fr-label" for="advice-query">Rechercher par mot clé</label>
+                        <input class="fr-input"
+                               type="search"
+                               id="advice-query"
+                               name="q"
+                               value="{{ query }}">
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-4">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="advice-theme">Contenu personnalisé</label>
+                        <select class="fr-select" id="advice-theme" name="theme">
+                            <option value="">Tous les conseils</option>
+                            {% for value, label in themes.items %}
+                                <option value="{{ value }}" {% if value == theme %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-3">
+                    <button class="fr-btn fr-icon-search-line fr-btn--icon-left" type="submit">Rechercher</button>
+                </div>
+            </div>
+            <p class="fr-mt-2w">
+                <a class="fr-link fr-icon-delete-line fr-link--icon-left"
+                   href="{% url 'candidate:advice' %}">Effacer tous les filtres</a>
+            </p>
+        </form>
+    </section>
+    <section class="fr-background-alt--blue-france fr-py-6w">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--gutters">
+                {% for item in advice %}
+                    <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+                        <div class="fr-card fr-enlarge-link">
+                            <div class="fr-card__body">
+                                <div class="fr-card__content">
+                                    <h2 class="fr-card__title">
+                                        <a href="{{ item.url }}">{{ item.title }}</a>
+                                    </h2>
+                                    <p class="fr-card__desc">{{ item.text }}</p>
+                                </div>
+                            </div>
+                            <div class="fr-card__header">
+                                <div class="fr-card__img">
+                                    <img class="fr-responsive-img"
+                                         src="{{ item.display_image|image_src }}"
+                                         alt="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="fr-col-12">Aucun conseil ne correspond à votre recherche.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock main %}

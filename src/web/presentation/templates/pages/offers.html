@@ -1,0 +1,169 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Offres d'emploi
+{% endblock page_title %}
+{% block meta_description %}
+    Recherchez parmi les offres d'emploi de la fonction publique.
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <section class="fr-container fr-pb-4w">
+        <h1 class="fr-mb-4w">Nos offres</h1>
+        <form action="{% url 'pages:offers' %}" method="get" role="search">
+            <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--bottom">
+                <div class="fr-col-12 fr-col-md-8">
+                    <div class="fr-input-group">
+                        <label class="fr-label" for="offers-q">Taper un métier, mot-clé ou référence</label>
+                        <input class="fr-input"
+                               type="search"
+                               id="offers-q"
+                               name="q"
+                               value="{{ query }}"
+                               placeholder="infirmière">
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-4">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="offers-lieu">Localisation</label>
+                        <select class="fr-select" id="offers-lieu" name="lieu">
+                            <option value="">Toute la France</option>
+                            {% for region in regions %}
+                                <option value="{{ region }}" {% if region == location %}selected{% endif %}>{{ region }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="fr-grid-row fr-grid-row--gutters fr-mt-1w">
+                <div class="fr-col-12 fr-col-md-4">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="offers-domaine">Domaine</label>
+                        <select class="fr-select" id="offers-domaine" name="domaine">
+                            <option value="">Tous les domaines</option>
+                            {% for item in domains %}
+                                <option value="{{ item }}" {% if item == domain %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-4">
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="offers-structure">Structure</label>
+                        <select class="fr-select" id="offers-structure" name="structure">
+                            <option value="">Toutes les fonctions publiques</option>
+                            {% for item in versants %}
+                                <option value="{{ item }}" {% if item == versant %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="fr-col-12 fr-col-md-4">
+                    <div class="fr-toggle fr-mt-4w">
+                        <input type="checkbox"
+                               class="fr-toggle__input"
+                               id="offers-teletravail"
+                               name="teletravail"
+                               value="1"
+                               {% if telework %}checked{% endif %}>
+                        <label class="fr-toggle__label"
+                               for="offers-teletravail"
+                               data-fr-checked-label="Activé"
+                               data-fr-unchecked-label="Désactivé">Télétravail possible</label>
+                    </div>
+                </div>
+            </div>
+            <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters fr-mt-2w">
+                <div class="fr-col-12 fr-col-md-6">
+                    <a class="fr-link fr-icon-delete-line fr-link--icon-left"
+                       href="{% url 'pages:offers' %}">Effacer tous les filtres</a>
+                </div>
+                <div class="fr-col-12 fr-col-md-6">
+                    <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--right">
+                        <li>
+                            <a class="fr-btn fr-btn--secondary fr-icon-notification-3-line fr-btn--icon-left"
+                               href="{% url 'candidate:alert_edit' %}?creation=1&amp;q={{ query|urlencode }}&amp;lieu={{ location|urlencode }}"
+                               data-drawer-open>Créer une alerte</a>
+                        </li>
+                        <li>
+                            <button class="fr-btn fr-icon-search-line fr-btn--icon-left" type="submit">Rechercher</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </section>
+    <section class="fr-background-alt--blue-france fr-py-6w">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters fr-mb-3w">
+                <div class="fr-col">
+                    <h2 class="fr-h5 fr-mb-0">
+                        {{ total }} offre{{ total|pluralize }} d'emploi trouvée{{ total|pluralize }}
+                    </h2>
+                </div>
+                <div class="fr-col-auto">
+                    <button type="button"
+                            class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-rss-line fr-btn--icon-right">
+                        Flux RSS
+                    </button>
+                </div>
+            </div>
+            {% for offer in offers %}
+                <div class="csplab-offer fr-enlarge-link fr-mb-3w">
+                    <div class="csplab-offer__logo">
+                        <span>{{ offer.versant }}</span>
+                    </div>
+                    <div class="csplab-offer__body">
+                        <p class="fr-tag fr-tag--sm fr-mb-1w">{{ offer.domain }}</p>
+                        <h3 class="fr-h6 fr-mb-1w">
+                            <a href="{% url 'pages:offer_detail' offer.id %}" data-drawer-open>{{ offer.title }}</a>
+                        </h3>
+                        <p class="fr-text--xs fr-mb-1v">
+                            <span class="fr-icon-map-pin-2-line fr-icon--sm" aria-hidden="true"></span>
+                            {{ offer.place }}
+                            &nbsp;&nbsp;
+                            <span class="fr-icon-file-line fr-icon--sm" aria-hidden="true"></span>
+                            {{ offer.versant }}
+                        </p>
+                        <p class="fr-text--xs fr-mb-1v">
+                            <span class="fr-icon-user-line fr-icon--sm" aria-hidden="true"></span>
+                            {{ offer.employer }}
+                        </p>
+                        <p class="fr-text--xs fr-mb-2w">
+                            <span class="fr-icon-calendar-line fr-icon--sm" aria-hidden="true"></span>
+                            En ligne depuis le {{ offer.since|date:"j F Y" }}
+                        </p>
+                        {% include "pages/components/_favorite_button.html" %}
+                    </div>
+                </div>
+            {% empty %}
+                <p>Aucune offre ne correspond à votre recherche.</p>
+            {% endfor %}
+            {% if offers.paginator.num_pages > 1 %}
+                <nav role="navigation" class="fr-pagination" aria-label="Pagination">
+                    <ul class="fr-pagination__list">
+                        <li>
+                            <a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label"
+                               {% if offers.has_previous %}href="?{% if page_query %}{{ page_query }}&{% endif %}page={{ offers.previous_page_number }}"{% else %}aria-disabled="true" role="link"{% endif %}>Page précédente</a>
+                        </li>
+                        {% for number in offers.paginator.page_range %}
+                            <li>
+                                <a class="fr-pagination__link"
+                                   href="?{% if page_query %}{{ page_query }}&{% endif %}page={{ number }}"
+                                   {% if number == offers.number %}aria-current="page"{% endif %}
+                                   title="Page {{ number }}">{{ number }}</a>
+                            </li>
+                        {% endfor %}
+                        <li>
+                            <a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--lg-label"
+                               {% if offers.has_next %}href="?{% if page_query %}{{ page_query }}&{% endif %}page={{ offers.next_page_number }}"{% else %}aria-disabled="true" role="link"{% endif %}>Page suivante</a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </section>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

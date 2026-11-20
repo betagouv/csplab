@@ -1,0 +1,59 @@
+<dialog class="csplab-drawer"
+        data-drawer
+        aria-labelledby="offer-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <ul class="fr-tags-group fr-mb-1w">
+                <li>
+                    <p class="fr-badge fr-badge--sm fr-badge--no-icon">{{ offer.domain }}</p>
+                </li>
+            </ul>
+            <h2 id="offer-title" class="fr-h4 fr-mb-1v">{{ offer.title }}</h2>
+            <p class="fr-text--lead fr-mb-2w">{{ offer.employer }}</p>
+            <ul class="fr-tags-group fr-mb-3w">
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-map-pin-2-line fr-tag--icon-left">{{ offer.place }}</p>
+                </li>
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-file-line fr-tag--icon-left">{{ offer.versant }}</p>
+                </li>
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-calendar-line fr-tag--icon-left">
+                        En ligne depuis le {{ offer.since|date:"j F Y" }}
+                    </p>
+                </li>
+                {% if offer.telework %}
+                    <li>
+                        <p class="fr-tag fr-tag--sm">Télétravail possible</p>
+                    </li>
+                {% endif %}
+            </ul>
+            <h3 class="fr-h6">Missions</h3>
+            <ul class="fr-mb-3w">
+                {% for mission in missions %}<li>{{ mission }}</li>{% endfor %}
+            </ul>
+            <h3 class="fr-h6">Profil recherché</h3>
+            <ul class="fr-mb-3w">
+                {% for item in profile %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+            <h3 class="fr-h6">Conditions</h3>
+            <p class="fr-mb-3w">Rémunération selon grille indiciaire. Télétravail selon l'organisation du service.</p>
+            <p class="fr-mb-2w">{% include "pages/components/_favorite_button.html" %}</p>
+            <ul class="fr-btns-group fr-btns-group--inline-md">
+                <li>
+                    <a class="fr-btn"
+                       href="{% url 'candidate:cv_upload' %}">Postuler</a>
+                </li>
+                <li>
+                    <a class="fr-btn fr-btn--secondary"
+                       href="https://choisirleservicepublic.gouv.fr/"
+                       target="_blank"
+                       rel="noopener noreferrer">Voir l'offre sur Choisir le service public<span class="fr-sr-only">- nouvelle fenêtre</span></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</dialog>
