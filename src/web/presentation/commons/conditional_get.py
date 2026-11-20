@@ -42,6 +42,18 @@ class ConditionalGetMixin:
         return response
 
 
+class NoStoreMixin:
+    def finalize_response(
+        self, request: Request, response: HttpResponseBase, *args, **kwargs
+    ) -> HttpResponseBase:
+        response = super().finalize_response(  # type: ignore[misc]
+            request, response, *args, **kwargs
+        )
+        if request.method == "GET":
+            patch_cache_control(response, private=True, no_store=True)
+        return response
+
+
 def _etag(request: Request, version: object) -> str:
     key = repr(
         (settings.DEPLOYED_VERSION, request.user.pk, request.get_full_path(), version)

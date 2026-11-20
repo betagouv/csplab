@@ -206,6 +206,8 @@ class TestListConversations:
         )
 
         assert response.status_code == status.HTTP_200_OK
+        assert not response.has_header("ETag")
+        assert set(response["Cache-Control"].split(", ")) == {"private", "no-store"}
         body = response.json()
         assert body["count"] == NB_CONVERSATIONS
         results = body["results"]
