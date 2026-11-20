@@ -7,6 +7,9 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.etape_actions import (
+    set_recrutement_etapes_authorized_actions,
+)
 from application.recruteur.errors.application_errors_recruteur import (
     RecrutementEtapeIncoherents,
 )
@@ -126,6 +129,12 @@ def update_recrutement_etapes(
             ressource_kind="Recrutement",
             event_name="RecrutementEtapesMisesAJour",
         )
+    set_recrutement_etapes_authorized_actions(
+        finales,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+        utilisateur=utilisateur,
+    )
     return finales
 
 

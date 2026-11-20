@@ -69,6 +69,18 @@ RECRUTEMENT_LISTE_URL = reverse(
 
 ETAPE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
 
+EN_COURS_ACTIONS = [
+    "edit_etape",
+    "delete_etape",
+    "insert_etape_before",
+    "insert_etape_after",
+]
+UNIQUE_EN_COURS_ACTIONS = [
+    "edit_etape",
+    "insert_etape_before",
+    "insert_etape_after",
+]
+
 
 def _etapes_payload(etapes) -> list[dict]:
     return [
@@ -140,9 +152,94 @@ class TestGetRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
-            {"uuid": str(reception.id), "nom": "Réception", "categorie": "ENTREE"},
-            {"uuid": str(entretien.id), "nom": "Entretien", "categorie": "EN_COURS"},
-            {"uuid": str(refus.id), "nom": "Refus", "categorie": "REFUS"},
+            {
+                "uuid": str(reception.id),
+                "nom": "Réception",
+                "categorie": "ENTREE",
+                "etape_actions": ["insert_etape_after"],
+            },
+            {
+                "uuid": str(entretien.id),
+                "nom": "Entretien",
+                "categorie": "EN_COURS",
+                "etape_actions": UNIQUE_EN_COURS_ACTIONS,
+            },
+            {
+                "uuid": str(refus.id),
+                "nom": "Refus",
+                "categorie": "REFUS",
+                "etape_actions": ["insert_etape_before"],
+            },
+        ]
+
+    def test_etapes_carry_their_actions_by_categorie(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = EtapeDjangoFactory(
+            recrutement=recrutement, nom="Second", categorie="en_cours"
+        )
+        recrutement_accepte = EtapeDjangoFactory(
+            recrutement=recrutement, nom="Recrutement", categorie="accepte"
+        )
+        recrutement.ordre_etapes = [
+            str(e.id)
+            for e in (reception, entretien, second, refus, recrutement_accepte)
+        ]
+        recrutement.save(update_fields=["ordre_etapes"])
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert [(e["categorie"], e["etape_actions"]) for e in response.json()] == [
+            ("ENTREE", ["insert_etape_after"]),
+            ("EN_COURS", EN_COURS_ACTIONS),
+            ("EN_COURS", EN_COURS_ACTIONS),
+            ("REFUS", ["insert_etape_before"]),
+            ("ACCEPTE", []),
+        ]
+
+    def test_etape_with_candidatures_cannot_be_deleted(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = EtapeDjangoFactory(
+            recrutement=recrutement, nom="Second", categorie="en_cours"
+        )
+        recrutement.ordre_etapes = [
+            str(e.id) for e in (reception, entretien, second, refus)
+        ]
+        recrutement.save(update_fields=["ordre_etapes"])
+        CandidatureDjangoFactory(etape=entretien)
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert [e["etape_actions"] for e in response.json()[1:3]] == [
+            UNIQUE_EN_COURS_ACTIONS,
+            EN_COURS_ACTIONS,
+        ]
+
+    def test_agent_responsable_gets_the_actions_of_the_etapes(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT, utilisateur=test_user
+        )
+        recrutement, *_ = _recrutement_with_etapes(
+            organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert [e["etape_actions"] for e in response.json()] == [
+            ["insert_etape_after"],
+            UNIQUE_EN_COURS_ACTIONS,
+            ["insert_etape_before"],
         ]
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
@@ -590,6 +687,7 @@ class TestInitRecrutementEtapeView:
             ("Accueil", "ENTREE"),
             ("Recrutement", "ACCEPTE"),
         ]
+        assert [e["etape_actions"] for e in data] == [["insert_etape_after"], []]
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in data]
         assert sorted(str(e.id) for e in recrutement.etapes.all()) == sorted(
@@ -802,11 +900,11 @@ class TestUpdateRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()[:3] == [
-            {"uuid": str(e.id), "nom": e.nom, "categorie": c}
-            for e, c in (
-                (reception, "ENTREE"),
-                (entretien, "EN_COURS"),
-                (refus, "REFUS"),
+            {"uuid": str(e.id), "nom": e.nom, "categorie": c, "etape_actions": a}
+            for e, c, a in (
+                (reception, "ENTREE", ["insert_etape_after"]),
+                (entretien, "EN_COURS", UNIQUE_EN_COURS_ACTIONS),
+                (refus, "REFUS", ["insert_etape_before"]),
             )
         ]
         nouvelle = response.json()[3]
@@ -815,6 +913,30 @@ class TestUpdateRecrutementEtapesView:
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in response.json()]
         assert EtapeModel.objects.get(id=nouvelle["uuid"]).categorie == "accepte"
+
+    def test_response_actions_reflect_the_final_etapes(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        payload = [
+            _item(reception),
+            _item(entretien),
+            _item(second),
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert [e["etape_actions"] for e in response.json()[1:3]] == [
+            EN_COURS_ACTIONS,
+            EN_COURS_ACTIONS,
+        ]
 
     def test_renames_and_reorders_etapes_and_logs_them(
         self, authenticated_client, test_user

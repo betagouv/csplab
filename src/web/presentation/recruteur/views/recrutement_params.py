@@ -36,8 +36,7 @@ from domain.recruteur.value_objects.etape_data import EtapeData
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.serializers import (
-    EtapeRecrutementModelSerializer,
-    EtapeRecrutementSerializer,
+    EtapeRecrutementActionsSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
@@ -47,7 +46,7 @@ from presentation.recruteur.serializers import (
         summary="Étapes d'un recrutement",
         tags=["recruteur"],
         responses={
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeRecrutementActionsSerializer(many=True),
             401: TokenErrorSerializer,
             403: GenericErrorSerializer,
             404: GenericErrorSerializer,
@@ -59,7 +58,7 @@ from presentation.recruteur.serializers import (
         tags=["recruteur"],
         request=UpdateEtapeRecrutementSerializer(many=True),
         responses={
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeRecrutementActionsSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             403: GenericErrorSerializer,
@@ -78,7 +77,7 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(serializer.data)
         except OrganismePermissionError as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
@@ -115,7 +114,7 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
                 utilisateur=request.user,
                 etapes=etapes_data,
             )
-            out_serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            out_serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(out_serializer.data)
         except (
             RecrutementEtapeIncoherents,
@@ -142,7 +141,7 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
     tags=["recruteur"],
     request=None,
     responses={
-        201: EtapeRecrutementSerializer(many=True),
+        201: EtapeRecrutementActionsSerializer(many=True),
         401: TokenErrorSerializer,
         403: GenericErrorSerializer,
         404: GenericErrorSerializer,
@@ -159,7 +158,7 @@ class InitRecrutementEtapeView(SessionApiMixin, APIView):
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except SupressionEtapeImpossible as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
