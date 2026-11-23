@@ -11,6 +11,7 @@ from application.recruteur.services.get_candidature import CandidatureDetail
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.etape_action import EtapeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -174,7 +175,14 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
 class EtapeOrganismeSerializer(EtapeRecrutementSerializer):
     uuid = serializers.UUIDField(source="entity_id")
     categorie = serializers.SerializerMethodField()
+    etape_actions = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=[(action.value, action.value) for action in EtapeAction]
+        ),
+        read_only=True,
+    )
 
+    @extend_schema_field(serializers.ChoiceField(choices=CATEGORIE_ETAPE_CHOICES))
     def get_categorie(self, etape: dict) -> str:
         return CategorieEtapeRecrutement(etape["categorie"]).name
 

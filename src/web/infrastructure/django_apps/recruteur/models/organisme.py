@@ -170,6 +170,7 @@ class OrganismeModel(BaseDatedModel):
             "Each item: {'entity_id': str, 'categorie': str, 'nom': str}"
         ),
     )
+    etapes_with_actions: list[dict]
 
     objects = OrganismeQuerySet.as_manager()
 
