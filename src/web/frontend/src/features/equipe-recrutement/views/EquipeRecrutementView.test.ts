@@ -12,7 +12,7 @@ import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser } from '@/test/render'
 import { server } from '@/test/server'
 import { addMembreEquipe, getEquipeRecrutement, updateMembreEquipe } from '../api'
-import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
+import EquipeRecrutementView from './EquipeRecrutementView.vue'
 
 vi.mock('../api', () => ({
   getEquipeRecrutement: vi.fn(),
@@ -34,7 +34,7 @@ const RECRUTEMENT_DETAIL_EQUIPE_GERABLE = {
 
 const Host = defineComponent({
   setup: () => () => h(CspToaster, null, () =>
-    h(EquipeRecrutementSection, { organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID })),
+    h(EquipeRecrutementView, { organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID })),
 })
 
 const EQUIPE_PATH = `/organismes/${MTE_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`
@@ -45,7 +45,7 @@ async function renderSection() {
   return result
 }
 
-describe('equipeRecrutementSection', () => {
+describe('equipeRecrutementView', () => {
   beforeEach(() => {
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE))
     vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([MEMBRE_EQUIPE])
