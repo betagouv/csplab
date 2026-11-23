@@ -140,9 +140,28 @@ class TestGetRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
-            {"uuid": str(reception.id), "nom": "Réception", "categorie": "ENTREE"},
-            {"uuid": str(entretien.id), "nom": "Entretien", "categorie": "EN_COURS"},
-            {"uuid": str(refus.id), "nom": "Refus", "categorie": "REFUS"},
+            {
+                "uuid": str(reception.id),
+                "nom": "Réception",
+                "categorie": "ENTREE",
+                "etape_actions": ["insert_etape_after"],
+            },
+            {
+                "uuid": str(entretien.id),
+                "nom": "Entretien",
+                "categorie": "EN_COURS",
+                "etape_actions": [
+                    "edit_etape",
+                    "insert_etape_before",
+                    "insert_etape_after",
+                ],
+            },
+            {
+                "uuid": str(refus.id),
+                "nom": "Refus",
+                "categorie": "REFUS",
+                "etape_actions": ["insert_etape_before"],
+            },
         ]
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
@@ -438,6 +457,55 @@ def _agent_with_recrutement_role(recrutement_role, test_user):
         organisme, agent_link__agent=agent, agent_link__role=recrutement_role.value
     )
     return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
+
+
+class TestGetRecrutementEtapesActions:
+    @pytest.mark.parametrize(
+        "arrange",
+        [
+            pytest.param(_superviseur, id="superviseur"),
+            pytest.param(_agent_responsable, id="agent_responsable"),
+            pytest.param(_staff_without_liaison, id="staff"),
+        ],
+    )
+    def test_each_role_gets_the_etape_actions_by_categorie(
+        self, authenticated_client, test_user, arrange
+    ):
+        organisme, recrutement, (reception, entretien, refus) = arrange(test_user)
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        accepte = EtapeDjangoFactory(
+            recrutement=recrutement, nom="Recrutement", categorie="accepte"
+        )
+        recrutement.ordre_etapes = [
+            str(e.id) for e in (reception, entretien, second, refus, accepte)
+        ]
+        recrutement.save(update_fields=["ordre_etapes"])
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [e["etape_actions"] for e in response.json()] == [
+            ["insert_etape_after"],
+            ["edit_etape", "delete_etape", "insert_etape_before", "insert_etape_after"],
+            ["edit_etape", "delete_etape", "insert_etape_before", "insert_etape_after"],
+            ["insert_etape_before"],
+            [],
+        ]
+
+    def test_etape_with_candidatures_has_no_delete_etape(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        CandidatureDjangoFactory(etape=second)
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        actions = {e["nom"]: e["etape_actions"] for e in response.json()}
+        assert "delete_etape" not in actions["Second"]
+        assert "delete_etape" in actions["Entretien"]
 
 
 def _agent_without_recrutement_role(test_user):

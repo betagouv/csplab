@@ -37,6 +37,7 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
+    EtapeRecrutementActionsSerializer,
     EtapeRecrutementModelSerializer,
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
@@ -48,7 +49,7 @@ from presentation.recruteur.serializers import (
         summary="Étapes d'un recrutement",
         tags=["recruteur"],
         responses={
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeRecrutementActionsSerializer(many=True),
             401: TokenErrorSerializer,
             403: GenericErrorSerializer,
             404: GenericErrorSerializer,
@@ -79,7 +80,7 @@ class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(serializer.data)
         except OrganismePermissionError as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
