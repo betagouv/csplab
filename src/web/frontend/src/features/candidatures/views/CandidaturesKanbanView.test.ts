@@ -152,8 +152,8 @@ describe('candidaturesKanbanView', () => {
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: [...actions] }))
     await renderKanbanPage()
 
-    const card = (await screen.findByRole('link', { name: 'Alice Dupont' })).closest('article')
-    await vi.waitFor(() => expect(card?.getAttribute('draggable') ?? null).toBe(draggable))
+    const card = await screen.findByRole('article', { name: 'Alice Dupont' })
+    await vi.waitFor(() => expect(card.getAttribute('draggable')).toBe(draggable))
   })
 
   it('asks for a motif before refusing a selection, and sends it', async () => {
