@@ -1,11 +1,8 @@
 import type { AssignationResponsablePayload, AssignationResponsableResultat, RecrutementDetail, RecrutementsActifs, RecrutementsArchives } from '@/features/recrutements/types'
-import type { paths } from '@/types/api'
-import { delay, HttpResponse } from 'msw'
-import { createOpenApiHttp } from 'openapi-msw'
+import { delay } from 'msw'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '@/test/fixtures/recrutements'
-
-const http = createOpenApiHttp<paths>()
+import { failure, http } from './http'
 
 const ACTIFS = '/recruteur/organismes/{organisme_uuid}/recrutements/actifs'
 const ARCHIVES = '/recruteur/organismes/{organisme_uuid}/recrutements/archives'
@@ -29,7 +26,7 @@ export function recrutementsActifs(results: RecrutementsActifs[] = RECRUTEMENTS_
 }
 
 export function recrutementsActifsFailure() {
-  return http.get(ACTIFS, ({ response }) => response.untyped(new HttpResponse(null, { status: 500 })))
+  return http.get(ACTIFS, ({ response }) => response.untyped(failure(500)))
 }
 
 export function recrutementsActifsPending() {
