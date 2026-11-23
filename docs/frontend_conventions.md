@@ -312,6 +312,7 @@ Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
 - `src/test/server.ts` starts the server with the default handlers of each migrated feature, and `src/test/setup.ts` resets them after each test.
 - The default handlers of a feature and the factories for other answers are in `src/test/handlers/<feature>.ts`.
 - A test that needs another answer passes a factory to `server.use(...)`.
+- A request without a handler fails the test.
 - ESLint refuses a `vi.mock` of the `api` module of a feature that has a file in `src/test/handlers/`.
 - In a feature without handlers, tests mock its API module with `vi.mock`.
 

@@ -16,6 +16,12 @@ vi.mock('@/api/utilisateur', async importOriginal => ({
   getMe: vi.fn(async () => makeUser([])),
 }))
 
+const unhandledRequests: string[] = []
+
+server.events.on('request:unhandled', ({ request }) => {
+  unhandledRequests.push(`${request.method} ${request.url}`)
+})
+
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
   Element.prototype.scrollIntoView = vi.fn()
@@ -38,6 +44,10 @@ afterEach(() => {
   server.resetHandlers()
   const { toasts, dismissToast } = useToast()
   toasts.value.forEach(toast => dismissToast(toast.id))
+  const requests = unhandledRequests.splice(0)
+  if (requests.length > 0) {
+    throw new Error(`Requests without a Mock Service Worker handler: ${requests.join(', ')}`)
+  }
 })
 
 afterAll(() => {
