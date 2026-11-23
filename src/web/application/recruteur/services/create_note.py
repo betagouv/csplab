@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -31,7 +31,7 @@ def create_note(
     utilisateur: UserModel,
     est_privee: bool = False,
 ) -> NoteModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.CREATE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -7,8 +7,8 @@ from faker import Faker
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
@@ -108,7 +108,7 @@ class TestListOrganismes:
                 for action in PermissionAction
                 if action
                 in {
-                    *OrganismePermissionService().authorized_actions_organisme(
+                    *PermissionService().authorized_actions_organisme(
                         AgentOrganismeRole.SUPERVISEUR,
                         utilisateur=UserModel(is_staff=True),
                         organisme_id=organisme.id,

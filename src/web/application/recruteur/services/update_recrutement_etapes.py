@@ -4,8 +4,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_etape_actions_of_recrutement,
@@ -45,7 +45,7 @@ def update_recrutement_etapes(
     utilisateur: UserModel,
     etapes: Sequence[EtapeData],
 ) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

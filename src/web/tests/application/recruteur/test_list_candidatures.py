@@ -3,8 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.list_candidatures import (
     list_candidatures,
@@ -89,16 +89,14 @@ def test_raises(scenario, expected_error):
 def test_raises_when_the_recrutement_disappears_after_the_permission_check():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     recrutement = RecrutementDjangoFactory(organisme=organisme)
-    can_execute = OrganismePermissionService.can_execute
+    can_execute = PermissionService.can_execute
 
     def can_execute_then_delete(self, **kwargs):
         can_execute(self, **kwargs)
         recrutement.delete()
 
     with (
-        patch.object(
-            OrganismePermissionService, "can_execute", can_execute_then_delete
-        ),
+        patch.object(PermissionService, "can_execute", can_execute_then_delete),
         pytest.raises(RecrutementInexistant),
     ):
         list_candidatures(

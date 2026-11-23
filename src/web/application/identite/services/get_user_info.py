@@ -1,8 +1,8 @@
 from typing import NamedTuple
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
@@ -25,7 +25,7 @@ class UtilisateurDetails(NamedTuple):
 
 
 def get_user_info(*, utilisateur: UserModel) -> UtilisateurDetails:
-    permissions = OrganismePermissionService()
+    permissions = PermissionService()
     liaisons = (
         OrganismeAgentModel.objects.by_agent(utilisateur.username)
         .with_organisme()

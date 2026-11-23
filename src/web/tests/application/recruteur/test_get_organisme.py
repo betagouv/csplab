@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.get_organisme import get_organisme
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -56,7 +56,7 @@ def test_raises_when_organisme_is_supprime_after_permission_check():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     _supprime(organisme)
 
-    with patch.object(OrganismePermissionService, "can_execute"):
+    with patch.object(PermissionService, "can_execute"):
         with pytest.raises(OrganismeNexistePas) as raised:
             get_organisme(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 

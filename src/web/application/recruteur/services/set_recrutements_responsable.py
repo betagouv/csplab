@@ -5,8 +5,8 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     attach_agent_to_organisme,
@@ -43,7 +43,7 @@ def set_recrutements_responsable(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> SetRecrutementsResponsableResult:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.SET_RECRUTEMENTS_RESPONSABLE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

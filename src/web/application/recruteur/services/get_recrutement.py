@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_recrutement_authorized_actions,
@@ -16,7 +16,7 @@ from infrastructure.django_apps.users.models import UserModel
 def get_recrutement(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> RecrutementModel:
-    role = OrganismePermissionService().can_execute(
+    role = PermissionService().can_execute(
         action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

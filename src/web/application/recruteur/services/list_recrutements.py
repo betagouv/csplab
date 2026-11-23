@@ -3,8 +3,8 @@ from uuid import UUID
 
 from django.db.models import Case, IntegerField, QuerySet, Value, When
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_recrutement_authorized_actions,
@@ -23,7 +23,7 @@ from infrastructure.django_apps.users.models import UserModel
 def _agent_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> RecrutementQuerySet:
-    role = OrganismePermissionService().can_execute(
+    role = PermissionService().can_execute(
         action=PermissionAction.LIST_RECRUTEMENTS,
         organisme_id=organisme_id,
         utilisateur=utilisateur,

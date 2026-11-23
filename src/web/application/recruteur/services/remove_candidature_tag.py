@@ -3,8 +3,8 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
@@ -31,7 +31,7 @@ def remove_candidature_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.MANAGE_TAG_ON_APPLICATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

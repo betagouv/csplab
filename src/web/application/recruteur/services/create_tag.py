@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import IntegrityError, transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.permission_action import PermissionAction
@@ -24,7 +24,7 @@ def create_tag(
     category: TagCategory,
     color: TagColor = TagColor.BLEU,
 ) -> TagModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.CREATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -1,8 +1,8 @@
 from typing import NamedTuple
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_recrutement,
@@ -42,7 +42,7 @@ def get_candidature(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> CandidatureDetail:
-    role = OrganismePermissionService().can_execute(
+    role = PermissionService().can_execute(
         action=PermissionAction.GET_CANDIDATURE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

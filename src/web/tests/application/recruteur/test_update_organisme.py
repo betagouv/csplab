@@ -4,8 +4,8 @@ from uuid import uuid4
 import pytest
 from referentiel.value_objects.verse import Verse
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.update_organisme import update_organisme
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -36,9 +36,7 @@ def _update(organisme_id, utilisateur):
     )
 
 
-@patch.object(
-    OrganismePermissionService, "can_execute", side_effect=OperationOrganismeRefusee()
-)
+@patch.object(PermissionService, "can_execute", side_effect=OperationOrganismeRefusee())
 def test_checks_permission_before_writing(can_execute):
     organisme = OrganismeDjangoFactory()
     utilisateur = UtilisateurDjangoFactory(is_staff=False)
@@ -55,7 +53,7 @@ def test_checks_permission_before_writing(can_execute):
     assert not AuditLogModel.objects.exists()
 
 
-@patch.object(OrganismePermissionService, "can_execute", new=Mock())
+@patch.object(PermissionService, "can_execute", new=Mock())
 def test_raises_when_organisme_disappears_after_permission_check():
     organisme_id = uuid4()
 

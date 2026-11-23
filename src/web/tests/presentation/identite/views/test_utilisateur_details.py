@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
@@ -42,7 +42,7 @@ def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
         "nom": organisme.nom,
         "authorized_actions": [
             action.value
-            for action in OrganismePermissionService().authorized_actions_organisme(
+            for action in PermissionService().authorized_actions_organisme(
                 role,
                 utilisateur=utilisateur,
                 organisme_id=organisme.id,

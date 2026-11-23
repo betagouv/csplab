@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_etape_actions_of_organisme,
@@ -15,7 +15,7 @@ from infrastructure.django_apps.users.models import UserModel
 def get_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().can_execute(
         action=PermissionAction.GET_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

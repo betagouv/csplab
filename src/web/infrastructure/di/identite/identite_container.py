@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -28,4 +28,4 @@ class IdentiteContainer(containers.DeclarativeContainer):
     )
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
 
-    organisme_permission_service = providers.Factory(OrganismePermissionService)
+    organisme_permission_service = providers.Factory(PermissionService)
