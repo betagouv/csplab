@@ -8,3 +8,7 @@ class BaseDatedModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+def related_model(model: type[models.Model], name: str) -> type[models.Model]:
+    return model._meta.get_field(name).related_model  # type: ignore[return-value]

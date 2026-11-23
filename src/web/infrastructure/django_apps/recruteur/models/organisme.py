@@ -14,7 +14,7 @@ from domain.recruteur.value_objects.etape_data import EtapeData
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.django_apps.users.fields import agent_fk
-from infrastructure.django_apps.utils.models import BaseDatedModel
+from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 SEUIL_RECHERCHE = 3
 _SIRET_PARTIEL = re.compile(r"[\d ]+")
@@ -46,12 +46,12 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(pk__in=organisme_ids)
 
     def with_counts(self) -> "OrganismeQuerySet":
-        recrutement_model = self.model._meta.get_field("recrutements").related_model
+        recrutement_model = related_model(self.model, "recrutements")
         agents = OrganismeAgentModel.objects.filter(organisme_id=OuterRef("pk"))
         return self.annotate(
             number_agents=_count_subquery(agents.active()),
             number_published_offers=_count_subquery(
-                recrutement_model.objects.filter(
+                recrutement_model._default_manager.filter(
                     organisme_id=OuterRef("pk"), offre__archived_at__isnull=True
                 )
             ),
