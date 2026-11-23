@@ -3,24 +3,19 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
-import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
+import { agentCreation } from '@/test/handlers/agents'
+import { server } from '@/test/server'
 import { useAddAgentToOrganisme } from './useAddAgentToOrganisme'
 import { useOrganismeAgents } from './useOrganismeAgents'
 
 const mockGetOrganismeAgents = vi.fn()
-const mockSearchAgentByEmail = vi.fn()
 const mockSetAgentRole = vi.fn()
-const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
   getOrganismeAgents: (...args: unknown[]) => mockGetOrganismeAgents(...args),
   setAgentRole: (...args: unknown[]) => mockSetAgentRole(...args),
   updateAgentRole: vi.fn(),
-}))
-
-vi.mock('@/features/agents/api', () => ({
-  createAgent: (...args: unknown[]) => mockCreateAgent(...args),
-  searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
@@ -52,7 +47,8 @@ describe('useAddAgentToOrganisme', () => {
   })
 
   it('attaches the found agent and refetches the list', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(AGENT_RECHERCHE)
+    const onCreation = vi.fn()
+    server.use(agentCreation(undefined, onCreation))
     mockSetAgentRole.mockResolvedValue({})
     const { search, add } = mountAjoutMembre()
     await flush()
@@ -61,7 +57,7 @@ describe('useAddAgentToOrganisme', () => {
     await add('agent')
     await flush()
 
-    expect(mockCreateAgent).not.toHaveBeenCalled()
+    expect(onCreation).not.toHaveBeenCalled()
     expect(mockSetAgentRole).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       agent_id: AGENT_RECHERCHE.uuid,
       role: 'agent',

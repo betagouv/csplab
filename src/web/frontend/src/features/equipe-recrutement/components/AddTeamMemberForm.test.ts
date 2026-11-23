@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { setupUser } from '@/test/render'
 import { RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 import AddTeamMemberForm from './AddTeamMemberForm.vue'

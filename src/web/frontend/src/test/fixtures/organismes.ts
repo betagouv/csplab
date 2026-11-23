@@ -1,5 +1,4 @@
 import type { OrganismeRead } from '@/api/organismes'
-import type { AgentRecherche } from '@/features/agents/types'
 import type { AgentOrganisme, OrganismesList } from '@/features/organismes/types'
 
 export const AGENT_UUID = 'bbbbbbbb-0001-0001-0001-000000000001'
@@ -14,14 +13,6 @@ export const AGENT_ORGANISME: AgentOrganisme = {
   role: 'agent',
   date_derniere_activite: null,
   date_creation_compte: '2026-01-01T00:00:00Z',
-}
-
-export const AGENT_RECHERCHE: AgentRecherche = {
-  uuid: AGENT_UUID,
-  email: 'jeanne.dupont@example.gouv.fr',
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Responsable recrutement',
 }
 
 export const ORGANISME: OrganismesList = {
