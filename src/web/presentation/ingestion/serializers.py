@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+import pycountry
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -50,6 +51,17 @@ from presentation.commons.serializers import (
 )
 
 LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
+
+ISO_639_1_CODES = frozenset(
+    language.alpha_2.upper()
+    for language in pycountry.languages
+    if hasattr(language, "alpha_2")
+)
+MAX_SPECIALISATIONS_PER_OFFER = 20
+INVALID_LANGUAGE_CODE = (
+    "Code de langue invalide, un code ISO 639-1 sur 2 lettres est attendu (ex. EN)."
+)
+DUPLICATE_LANGUAGE = "Chaque langue ne peut être citée qu'une fois."
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -1109,13 +1121,19 @@ class LanguageInputSerializer(serializers.Serializer):
     iso_code = serializers.CharField(
         max_length=2,
         help_text="Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`), "
-        "conservé tel quel.",
+        "enregistré en majuscules (`en` devient `EN`).",
     )
     niveau = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in LanguageLevel],
         help_text="Niveau attendu selon le cadre européen commun de référence "
         "pour les langues (CECRL), de `A1` à `C2`.",
     )
+
+    def validate_iso_code(self, value):
+        iso_code = value.upper()
+        if iso_code not in ISO_639_1_CODES:
+            raise serializers.ValidationError(INVALID_LANGUAGE_CODE)
+        return iso_code
 
 
 class CriteriaInputSerializer(serializers.Serializer):
@@ -1130,13 +1148,18 @@ class CriteriaInputSerializer(serializers.Serializer):
         help_text="Niveau d'expérience attendu.",
     )
     specialisations = serializers.ListField(
-        child=serializers.CharField(),
+        child=serializers.CharField(max_length=255),
+        max_length=MAX_SPECIALISATIONS_PER_OFFER,
         required=False,
-        help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`).",
+        help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`) "
+        f"de 255 caractères au plus. Au plus {MAX_SPECIALISATIONS_PER_OFFER} "
+        "spécialisations ; les doublons sont retirés, dans l'ordre reçu.",
     )
     diplome = serializers.CharField(
+        max_length=255,
         required=False,
-        help_text="Diplôme exigé, en texte libre. Indiquez de préférence l'un des "
+        help_text="Diplôme exigé, en texte libre, de 255 caractères au plus. "
+        "Indiquez de préférence l'un des "
         "libellés du référentiel des diplômes d'État, à l'identique. Liste "
         "indicative, toute autre valeur reste acceptée :\n\n"
         + "\n".join(f"- `{d.label}`" for d in TALENTSOFT_STATE_DIPLOMAS),
@@ -1162,8 +1185,18 @@ class CriteriaInputSerializer(serializers.Serializer):
     langues = LanguageInputSerializer(
         many=True,
         required=False,
-        help_text="Langues attendues, chacune avec son niveau.",
+        help_text="Langues attendues, chacune avec son niveau. Chaque langue ne "
+        "peut être citée qu'une fois.",
     )
+
+    def validate_specialisations(self, value):
+        return list(dict.fromkeys(value))
+
+    def validate_langues(self, value):
+        iso_codes = [langue["iso_code"] for langue in value]
+        if len(iso_codes) != len(set(iso_codes)):
+            raise serializers.ValidationError(DUPLICATE_LANGUAGE)
+        return value
 
     def validate_documents_requis(self, value):
         if len(value) != len(set(value)):
@@ -1199,6 +1232,7 @@ class ConditionsInputSerializer(serializers.Serializer):
         help_text=f"Date de fin du contrat. {_DATE_HELP_TEXT}",
     )
     duree_contrat = serializers.CharField(
+        max_length=100,
         allow_blank=True,
         required=False,
         help_text="Durée du contrat, en texte libre (ex. `3 ans`).",
