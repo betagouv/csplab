@@ -496,6 +496,26 @@ def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
     assert offer.organisme_id is None
 
 
+def test_blank_siret_without_talentsoft_organisme_is_rejected_with_api_key(
+    api_key_client, source
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        organisation={"nom": "Mairie", "siret": ""},
+    )
+
+    response = api_key_client.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.json()["errors"][0]["error"] == {
+        "organisation": {"siret": [MISSING_SIRET]}
+    }
+    assert not OfferModel.objects.exists()
+
+
 def test_contacts_are_sorted_by_role_with_deduplicated_emails(
     authenticated_client_with_source,
 ):

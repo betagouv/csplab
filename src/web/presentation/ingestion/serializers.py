@@ -996,9 +996,9 @@ class OrganismeInputSerializer(OrganismeSerializer):
 
     def validate(self, data):
         if not data["siret"]:
-            # Only the CSPLab ingestion service may send an offer without SIRET:
-            # Talentsoft does not provide it.
-            if not self.context.get("allow_talentsoft_organisme", False):
+            # Talentsoft provides no SIRET: the ingestion service, the only one
+            # allowed to send a Talentsoft organisme, identifies it instead.
+            if not data.get("talentsoft_organisme_entity_code"):
                 raise serializers.ValidationError({"siret": [MISSING_SIRET]})
             return data
         organisme_id = (
