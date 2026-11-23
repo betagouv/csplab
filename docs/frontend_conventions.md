@@ -298,12 +298,12 @@ export const useCandidatsStore = defineStore('candidats', () => {
 [ADR-012](./ADR/ADR-012-frontend-testing-strategy.md) sets what to test and at which level. When writing a test:
 
 - Find an element by its role and accessible name (`findByRole`, `getByRole`), as a screen reader does.
-- ESLint applies the Vue rules of `eslint-plugin-testing-library` to the tests and refuses a skipped test, a test without assertion and an `expect` inside a condition.
 - Interact through `setupUser()` from `src/test/render.ts`.
 - Assert what is displayed, the route and the arguments of the API call. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
+- ESLint applies the Vue rules of `eslint-plugin-testing-library` to the tests and refuses a skipped test, a test without assertion, an `expect` inside a condition, an `expect` outside a test and an `expect` without a matcher.
 
 Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
 
