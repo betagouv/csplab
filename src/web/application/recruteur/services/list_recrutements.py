@@ -23,20 +23,20 @@ from infrastructure.django_apps.users.models import UserModel
 def _agent_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> RecrutementQuerySet:
-    role = PermissionService().can_execute(
+    organisme_role = PermissionService().can_execute(
         action=PermissionAction.LIST_RECRUTEMENTS,
         organisme_id=organisme_id,
         utilisateur=utilisateur,
     )
-    if role is None:
+    if organisme_role is None:
         raise OperationOrganismeRefusee()
     recrutements = (
         RecrutementModel.objects.by_organisme(organisme_id)
         .with_offre()
         .with_role_of(utilisateur.username)
-        .with_organisme_role(role)
+        .with_organisme_role(organisme_role)
     )
-    if role == AgentOrganismeRole.SUPERVISEUR:
+    if organisme_role == AgentOrganismeRole.SUPERVISEUR:
         return recrutements
     return recrutements.by_agent(utilisateur.username)
 
