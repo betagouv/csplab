@@ -6,6 +6,7 @@ from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_etapes,
     authorized_actions_of_organisme,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement as Categorie,
 )
@@ -18,6 +19,7 @@ from infrastructure.factories.identite.utilisateur_django_factory import (
 )
 
 ACTIONS_DU_RESPONSABLE = {"search_agent", "create_agent"}
+ACTION = OrganismeAction.UPDATE_ORGANISME_STEPS
 
 
 def _actions_of_agent(organisme_ids_responsable, organisme_id):
@@ -61,6 +63,22 @@ def test_without_the_right_to_modify_no_etape_has_actions(organisme, nb_en_cours
 
     assert authorized_actions_of_etapes(
         categories,
+        action=ACTION,
         organisme_id=organisme.id,
         utilisateur=UtilisateurDjangoFactory(),
     ) == [[] for _ in categories]
+
+
+def test_an_etape_with_candidatures_cannot_be_deleted(organisme, staff):
+    categories = [Categorie.ENTREE, Categorie.EN_COURS, Categorie.EN_COURS]
+
+    actions = authorized_actions_of_etapes(
+        categories,
+        action=ACTION,
+        organisme_id=organisme.id,
+        utilisateur=staff,
+        nb_candidatures=[0, 3, 0],
+    )
+
+    assert "delete_etape" not in actions[1]
+    assert "delete_etape" in actions[2]
