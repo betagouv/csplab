@@ -15,18 +15,6 @@ from infrastructure.django_apps.users.models import UserModel
 organisme_permissions = OrganismePermissionService()
 
 
-def authorized_actions_of(
-    organisme_role: AgentOrganismeRole,
-    recrutement_role: AgentRecrutementRole | None,
-) -> list[str]:
-    return [
-        action.value
-        for action in _permissions.authorized_actions_recrutement(
-            organisme_role, recrutement_role=recrutement_role
-        )
-    ]
-
-
 def authorized_actions_of_organisme(
     role: AgentOrganismeRole,
     organisme_id: UUID,
@@ -46,9 +34,23 @@ def authorized_actions_of_organisme(
     return [action.value for action in OrganismeAction if action in actions]
 
 
-def set_authorized_actions(recrutement: RecrutementModel) -> None:
-    recrutement_role = recrutement.recrutement_role  # type: ignore[attr-defined]
-    recrutement.authorized_actions = authorized_actions_of(  # type: ignore[attr-defined]
+def authorized_actions_of_recrutement(
+    organisme_role: AgentOrganismeRole,
+    recrutement_role: str | None,
+) -> list[str]:
+    return [
+        action.value
+        for action in organisme_permissions.authorized_actions_recrutement(
+            organisme_role,
+            recrutement_role=(
+                AgentRecrutementRole(recrutement_role) if recrutement_role else None
+            ),
+        )
+    ]
+
+
+def set_recrutement_authorized_actions(recrutement: RecrutementModel) -> None:
+    recrutement.authorized_actions = authorized_actions_of_recrutement(  # type: ignore[attr-defined]
         AgentOrganismeRole(recrutement.organisme_role),  # type: ignore[attr-defined]
-        AgentRecrutementRole(recrutement_role) if recrutement_role else None,
+        recrutement.recrutement_role,  # type: ignore[attr-defined]
     )

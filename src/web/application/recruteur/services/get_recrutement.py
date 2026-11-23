@@ -4,7 +4,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
-    set_authorized_actions,
+    set_recrutement_authorized_actions,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.organisme_action import OrganismeAction
@@ -35,5 +35,5 @@ def get_recrutement(
         )
     except RecrutementModel.DoesNotExist as error:
         raise RecrutementInexistant(recrutement_id) from error
-    set_authorized_actions(recrutement)
+    set_recrutement_authorized_actions(recrutement)
     return recrutement
