@@ -2,6 +2,8 @@ from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import SessionAuthentication
 
+SESSION_AUTH_SCHEME = "Session"
+
 
 class SessionApiAuthentication(SessionAuthentication):
     """Session authentication that answers 401 (not 403) when not authenticated.
@@ -16,7 +18,7 @@ class SessionApiAuthentication(SessionAuthentication):
     """
 
     def authenticate_header(self, request):
-        return "Session"
+        return SESSION_AUTH_SCHEME
 
 
 class SessionApiAuthenticationScheme(OpenApiAuthenticationExtension):
