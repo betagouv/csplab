@@ -35,7 +35,6 @@ from application.ingestion.usecases.get_offers_by_source import (
 from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
 from domain.candidate.repositories.cv_metadata_repository_interface import (
@@ -374,28 +373,6 @@ def list_offers_usecase():
     return ListOffersUsecase(
         offers_repository=offers_repo,
         logger=logger,
-    )
-
-
-@pytest.fixture
-def upsert_offers_usecase():
-    logger = MagicMock()
-    offers_repo = cast(
-        IIngestionOffersRepository,
-        create_interface_aware_mock(IIngestionOffersRepository),
-    )
-    user_source_repo = cast(
-        IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
-    )
-    utilisateur_repo = cast(
-        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
-    )
-
-    return UpsertOffersUsecase(
-        offers_repository=offers_repo,
-        logger=logger,
-        user_source_repository=user_source_repo,
-        utilisateur_repository=utilisateur_repo,
     )
 
 
