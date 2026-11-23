@@ -1,10 +1,9 @@
 import { screen } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { getCandidatureListe } from '@/features/candidatures/api'
-import { CANDIDATURE_LISTE, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
-import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
+import { KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
+import { MEMBRE_EQUIPE, SECOND_MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { equipe } from '@/test/handlers/equipe-recrutement'
@@ -12,25 +11,14 @@ import { recrutementDetail, recrutementDetailPending, recrutementsActifs } from 
 import { renderWithApp, setupUser } from '@/test/render'
 import { server } from '@/test/server'
 
-vi.mock('@/features/candidatures/api', () => ({
-  getCandidatureListe: vi.fn(),
-  patchEtapeCandidatures: vi.fn(),
-  getMotifsRefus: vi.fn(),
-}))
-
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
-const AUTRE_MEMBRE = { ...MEMBRE_EQUIPE, uuid: 'bbbbbbbb-0004-0004-0004-000000000004', email: 'paul.bernard@example.gouv.fr' }
 const RECRUTEMENT_DETAIL_AVEC_EQUIPE = {
   ...RECRUTEMENT_DETAIL,
   authorized_actions: ['list_recrutement_agents' as const, 'add_recrutement_agent' as const],
 }
 
 describe('recrutementView', () => {
-  beforeEach(() => {
-    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-  })
-
   it('names the document after the tab and the recrutement', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
@@ -95,10 +83,10 @@ describe('recrutementView', () => {
     const { router } = await renderWithApp(RouterView, { route: EQUIPE_PATH })
     await screen.findByText(MEMBRE_EQUIPE.email)
 
-    server.use(equipe([AUTRE_MEMBRE], requested))
+    server.use(equipe([SECOND_MEMBRE_EQUIPE], requested))
     await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${OTHER_RECRUTEMENT_UUID}/equipe`)
 
-    expect(await screen.findByText(AUTRE_MEMBRE.email)).toBeInTheDocument()
+    expect(await screen.findByText(SECOND_MEMBRE_EQUIPE.email)).toBeInTheDocument()
     expect(screen.queryByText(MEMBRE_EQUIPE.email)).not.toBeInTheDocument()
     expect(requested).toHaveBeenCalledWith(ORGANISME_UUID, OTHER_RECRUTEMENT_UUID)
   })

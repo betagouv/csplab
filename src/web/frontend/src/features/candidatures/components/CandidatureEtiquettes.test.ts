@@ -1,20 +1,18 @@
 import type { TagSummary } from '@/features/tags/types'
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SENIOR, TAG_TO_RECALL } from '@/test/fixtures/tags'
+import {
+  candidatureTagAddition,
+  candidatureTagAdditionFailure,
+  candidatureTagRemoval,
+  candidatureTagRemovalFailure,
+} from '@/test/handlers/candidatures'
 import { tags } from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import { addCandidatureTag, removeCandidatureTag } from '../api'
 import CandidatureEtiquettes from './CandidatureEtiquettes.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  addCandidatureTag: vi.fn(),
-  removeCandidatureTag: vi.fn(),
-}))
 
 function renderEtiquettes(props: { tags: TagSummary[], editable: boolean }) {
   return renderWithApp(withToaster(CandidatureEtiquettes, { candidature: CANDIDATURE_PARAMS, ...props }))
@@ -30,7 +28,8 @@ async function openPicker(candidatureTags: TagSummary[] = []) {
 
 describe('candidatureEtiquettes', () => {
   it('offers only the candidature tags of the organisme and adds one in a click', async () => {
-    vi.mocked(addCandidatureTag).mockResolvedValue()
+    const added = vi.fn()
+    server.use(candidatureTagAddition(added))
     const { user, picker } = await openPicker([TAG_TO_RECALL])
 
     const list = await within(picker).findByRole('list', { name: 'Étiquettes' })
@@ -38,7 +37,7 @@ describe('candidatureEtiquettes', () => {
 
     await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Profil senior' }))
 
-    expect(addCandidatureTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, tagUuid: TAG_SENIOR.uuid })
+    await vi.waitFor(() => expect(added).toHaveBeenCalledWith(CANDIDATURE_PARAMS.candidatureUuid, TAG_SENIOR.uuid))
   })
 
   it('says when the organisme has no candidature tag', async () => {
@@ -49,13 +48,14 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('removes a tag without confirmation', async () => {
-    vi.mocked(removeCandidatureTag).mockResolvedValue()
+    const removed = vi.fn()
+    server.use(candidatureTagRemoval(removed))
     const user = setupUser()
     await renderEtiquettes({ tags: [TAG_TO_RECALL], editable: true })
 
     await user.click(screen.getByRole('button', { name: 'Retirer l\'étiquette À rappeler' }))
 
-    expect(removeCandidatureTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, tagUuid: TAG_TO_RECALL.uuid })
+    await vi.waitFor(() => expect(removed).toHaveBeenCalledWith(CANDIDATURE_PARAMS.candidatureUuid, TAG_TO_RECALL.uuid))
   })
 
   it('shows the tags without add or remove controls to a user who cannot manage them', async () => {
@@ -67,7 +67,7 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('keeps the picker open and says so when a tag cannot be added', async () => {
-    vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureTagAdditionFailure(500))
     const { user, picker } = await openPicker()
 
     await user.click(await within(picker).findByRole('button', { name: 'Ajouter l\'étiquette Profil senior' }))
@@ -77,17 +77,20 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('treats a tag already on the candidature as added', async () => {
-    vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(409, 'Conflict', undefined))
+    const requested = vi.fn()
+    server.use(candidatureTagAdditionFailure(409, requested))
     const { user, picker } = await openPicker()
 
-    await user.click(await within(picker).findByRole('button', { name: 'Ajouter l\'étiquette Profil senior' }))
+    const button = await within(picker).findByRole('button', { name: 'Ajouter l\'étiquette Profil senior' })
+    await user.click(button)
 
-    await vi.waitFor(() => expect(addCandidatureTag).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(requested).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(button).toBeEnabled())
     expect(screen.queryByText('L\'ajout de l\'étiquette a échoué')).not.toBeInTheDocument()
   })
 
   it('says when a tag cannot be removed', async () => {
-    vi.mocked(removeCandidatureTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureTagRemovalFailure(500))
     const user = setupUser()
     await renderEtiquettes({ tags: [TAG_TO_RECALL], editable: true })
 
@@ -97,7 +100,7 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('warns and closes the picker when the tag was deleted meanwhile', async () => {
-    vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
+    server.use(candidatureTagAdditionFailure(404))
     const { user, picker } = await openPicker()
 
     await user.click(await within(picker).findByRole('button', { name: 'Ajouter l\'étiquette Profil senior' }))

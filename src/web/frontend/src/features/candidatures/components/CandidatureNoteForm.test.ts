@@ -2,16 +2,11 @@ import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
-import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
+import { noteCreation, noteCreationFailure } from '@/test/handlers/candidatures'
 import { setupUser, withToaster } from '@/test/render'
-import { createCandidatureNote } from '../api'
+import { server } from '@/test/server'
 import CandidatureNoteForm from './CandidatureNoteForm.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  createCandidatureNote: vi.fn(),
-}))
 
 function renderForm() {
   render(withToaster(CandidatureNoteForm, { candidature: CANDIDATURE_PARAMS }), {
@@ -34,7 +29,8 @@ describe('candidatureNoteForm', () => {
   })
 
   it('saves the note with its visibility, empties the form and confirms', async () => {
-    vi.mocked(createCandidatureNote).mockResolvedValue()
+    const sent = vi.fn()
+    server.use(noteCreation(sent))
     const user = setupUser()
     const { field, submit } = renderForm()
     const privee = screen.getByRole('checkbox', { name: 'Note privée' })
@@ -43,14 +39,14 @@ describe('candidatureNoteForm', () => {
     await user.click(privee)
     await user.click(submit)
 
-    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: true })
     await vi.waitFor(() => expect(field).toHaveValue(''))
     expect(privee).not.toBeChecked()
     expect(await screen.findByRole('heading', { name: 'Note enregistrée' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(CANDIDATURE_ALICE, { message: 'Profil solide', est_privee: true })
   })
 
   it('keeps the note when the save fails', async () => {
-    vi.mocked(createCandidatureNote).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(noteCreationFailure(500))
     const user = setupUser()
     const { field, submit } = renderForm()
 

@@ -1,28 +1,11 @@
-import type { Activite } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
-import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { ACTIVITE, CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { candidatureActivites, candidatureActivitesFailure } from '@/test/handlers/candidatures'
 import { renderWithApp } from '@/test/render'
-import { getCandidatureActivites } from '../api'
+import { server } from '@/test/server'
 import CandidatureActivites from './CandidatureActivites.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  getCandidatureActivites: vi.fn(),
-}))
-
-function activite(overrides: Partial<Activite>): Activite {
-  return {
-    utilisateur_id: 'eeeeeeee-0001-0001-0001-000000000001',
-    utilisateur_prenom: 'Marie',
-    utilisateur_nom: 'Dupont',
-    occurred_at: '2026-09-29T10:00:00',
-    event_name: 'NoteAjoutee',
-    ...overrides,
-  }
-}
 
 function renderActivites() {
   return renderWithApp(CandidatureActivites, {
@@ -40,50 +23,49 @@ describe('candidatureActivites', () => {
     vi.useRealTimers()
   })
 
-  it('lists the latest activities with their author and age', async () => {
-    const results = [
-      activite({}),
-      activite({ event_name: 'CandidatureEtapeModifiee', utilisateur_prenom: 'Paul', utilisateur_nom: 'Bernard' }),
-      activite({ event_name: 'CandidatureRecue', utilisateur_prenom: '', utilisateur_nom: '' }),
-    ]
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 3, results })
+  it('lists the three latest activities with their author and age', async () => {
+    const requested = vi.fn()
+    server.use(candidatureActivites([
+      ACTIVITE,
+      { ...ACTIVITE, event_name: 'CandidatureEtapeModifiee', utilisateur_prenom: 'Paul', utilisateur_nom: 'Bernard' },
+      { ...ACTIVITE, event_name: 'CandidatureRecue', utilisateur_prenom: '', utilisateur_nom: '' },
+    ], requested))
     await renderActivites()
 
     const list = await screen.findByRole('list')
-    const [note, etape, reception] = within(list).getAllByRole('listitem').map(item => within(item))
-    expect(note!.getByText('Note ajoutée')).toBeInTheDocument()
-    expect(note!.getByText('par Marie Dupont')).toBeInTheDocument()
-    expect(note!.getByText('il y a 2 heures')).toBeInTheDocument()
-    expect(etape!.getByText('Étape modifiée')).toBeInTheDocument()
-    expect(etape!.getByText('par Paul Bernard')).toBeInTheDocument()
-    expect(reception!.getByText('Candidature reçue')).toBeInTheDocument()
-    expect(reception!.queryByText(/^par /)).not.toBeInTheDocument()
-    expect(getCandidatureActivites).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, limit: 3 })
+    const [note, etape, reception] = within(list).getAllByRole('listitem')
+    expect(within(note).getByText('Note ajoutée')).toBeInTheDocument()
+    expect(within(note).getByText('par Marie Dupont')).toBeInTheDocument()
+    expect(within(note).getByText('il y a 2 heures')).toBeInTheDocument()
+    expect(within(etape).getByText('Étape modifiée')).toBeInTheDocument()
+    expect(within(etape).getByText('par Paul Bernard')).toBeInTheDocument()
+    expect(within(reception).getByText('Candidature reçue')).toBeInTheDocument()
+    expect(within(reception).queryByText(/^par /)).not.toBeInTheDocument()
+    expect(requested).toHaveBeenCalledWith(CANDIDATURE_ALICE, '3')
   })
 
   it('links to the full activity history of the candidature', async () => {
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, results: [] })
     await renderActivites()
 
     expect(screen.getByRole('link', { name: 'Voir tout' })).toHaveAttribute('href', `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/historique`)
+    await screen.findByText('La candidature n\'a aucune activité')
   })
 
   it('names an unknown activity with a generic label', async () => {
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 1, results: [activite({ event_name: 'TagPose' })] })
+    server.use(candidatureActivites([{ ...ACTIVITE, event_name: 'TagPose' }]))
     await renderActivites()
 
     expect(await screen.findByText('Activité')).toBeInTheDocument()
   })
 
   it('says when the candidature has no activity', async () => {
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, results: [] })
     await renderActivites()
 
     expect(await screen.findByText('La candidature n\'a aucune activité')).toBeInTheDocument()
   })
 
   it('shows an error when the activities cannot be loaded', async () => {
-    vi.mocked(getCandidatureActivites).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureActivitesFailure(500))
     await renderActivites()
 
     expect(await screen.findByText('Les activités n\'ont pas pu être chargées.')).toBeInTheDocument()
