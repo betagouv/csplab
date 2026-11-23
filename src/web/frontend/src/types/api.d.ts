@@ -937,6 +937,13 @@ export interface components {
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };
+        EtapeRecrutementActions: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            readonly categorie: components["schemas"]["CategorieEnum"];
+            readonly etape_actions: components["schemas"]["EtapeActionsEnum"][];
+        };
         EtapeRecrutementModel: {
             /** Format: uuid */
             uuid: string;
@@ -5118,7 +5125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeRecrutementActions"][];
                 };
             };
             401: {
