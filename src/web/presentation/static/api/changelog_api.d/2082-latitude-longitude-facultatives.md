@@ -1,4 +1,5 @@
 ---
+titre: "Offres : latitude et longitude facultatives"
 type: corrige
 date: 2026-10-26
 pr: 2082

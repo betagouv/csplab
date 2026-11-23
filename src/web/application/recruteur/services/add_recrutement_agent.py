@@ -15,6 +15,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -32,13 +33,15 @@ def add_recrutement_agent(
     role: str,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    OrganismePermissionService().can_execute(
+    permissions = OrganismePermissionService()
+    demandeur_role = permissions.can_execute(
         action=OrganismeAction.ADD_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
 
+    permissions.check_role_grantable(demandeur_role=demandeur_role, role=role)
     agent = get_profil_agent(agent_id)
 
     contexte = RecrutementAgentService(
@@ -46,6 +49,8 @@ def add_recrutement_agent(
     )
     contexte.check_recrutement_belongs_to_organisme()
     contexte.check_agent_not_active_member(agent_id)
+    if demandeur_role != AgentOrganismeRole.SUPERVISEUR:
+        contexte.check_agent_not_revoked_from_organisme(agent_id)
 
     with transaction.atomic():
         attach_agent_to_organisme(

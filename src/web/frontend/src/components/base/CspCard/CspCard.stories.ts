@@ -190,7 +190,7 @@ export const WithStartAndEnd: Story = {
           display: inline-flex;
           align-items: center;
           padding: 0.125rem 0.5rem;
-          border-radius: 0.25rem;
+          border-radius: var(--csp-badge-radius);
           font-size: 0.75rem;
           background-color: var(--background-alt-blue-france);
           color: var(--text-action-high-blue-france);

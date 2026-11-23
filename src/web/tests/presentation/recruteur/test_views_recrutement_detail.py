@@ -12,6 +12,7 @@ from rest_framework import serializers, status
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
@@ -27,11 +28,19 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.django_apps.tag.models import (
+    CandidatureTagModel,
+    TagColor,
+    TagModel,
+)
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
@@ -56,6 +65,10 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
+)
+from infrastructure.factories.tag.tag_django_factory import (
+    CandidatureTagDjangoFactory,
+    TagDjangoFactory,
 )
 from presentation.commons.pagination import TaillePageNumberPagination
 
@@ -90,9 +103,10 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
-    + 1  # recrutement belongs to organisme
+    + 1  # recrutement with list version
     + 2  # pagination: count + page
     + 1  # etapes
+    + 1  # prefetch tags_liaisons (tag via select_related)
 )
 
 
@@ -326,6 +340,53 @@ class TestRecrutementDetailView:
             AgentOrganismeRole.SUPERVISEUR, None
         )
 
+    def test_only_superviseur_and_staff_can_grant_responsable(
+        self, api_client, authenticated_client, test_user
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=agent,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        url = _detail_url(organisme.id, recrutement.pk)
+
+        agent_responsable = authenticated_client.get(url).json()["authorized_actions"]
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        staff = api_client.get(url).json()["authorized_actions"]
+
+        assert "grant_recrutement_responsable" not in agent_responsable
+        assert "grant_recrutement_responsable" in staff
+
+    @pytest.mark.parametrize(
+        ("organisme_role", "recrutement_role", "expose"),
+        [
+            (AgentOrganismeRole.SUPERVISEUR, None, True),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE, True),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR, False),
+        ],
+    )
+    def test_exposes_manage_tag_on_member_to_superviseur_and_responsable(
+        self, authenticated_client, test_user, organisme_role, recrutement_role, expose
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=organisme_role, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        if recrutement_role is not None:
+            RecrutementAgentDjangoFactory(
+                recrutement=recrutement, agent=agent, role=recrutement_role.value
+            )
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = response.json()["authorized_actions"]
+        assert ("manage_tag_on_member" in actions) is expose
+
     def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
@@ -435,6 +496,7 @@ class TestRecrutementListeView:
                         "nom": etape.nom,
                         "categorie": "ENTREE",
                     },
+                    "tags": [],
                 }
             ],
             "etapes": _etapes_attendues(recrutement_liste),
@@ -683,12 +745,232 @@ class TestRecrutementListeView:
         self, authenticated_client, recrutement_liste, django_assert_num_queries
     ):
         etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
-        CandidatureDjangoFactory.create_batch(5, etape=etape)
+        for candidature in CandidatureDjangoFactory.create_batch(5, etape=etape):
+            CandidatureTagDjangoFactory.create_batch(3, candidature=candidature)
 
         with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_lists_each_candidature_tags_in_pose_order(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        tagged = CandidatureDjangoFactory(etape=etape)
+        untagged = CandidatureDjangoFactory(etape=etape)
+        CandidatureModel.objects.filter(pk=untagged.pk).update(
+            created_at=datetime.now(tz=timezone.utc) + timedelta(days=1)
+        )
+        alpha = TagDjangoFactory(
+            organisme=recrutement_liste.organisme,
+            name="Alpha",
+            color=TagColor.ROUGE,
+        )
+        bravo = TagDjangoFactory(
+            organisme=recrutement_liste.organisme,
+            name="Bravo",
+            color=TagColor.VERT,
+        )
+        CandidatureTagDjangoFactory(candidature=tagged, tag=alpha)
+        bravo_pose = CandidatureTagDjangoFactory(candidature=tagged, tag=bravo)
+        CandidatureTagModel.objects.filter(pk=bravo_pose.pk).update(
+            created_at=datetime.now(tz=timezone.utc) - timedelta(minutes=1)
+        )
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [c["tags"] for c in response.json()["results"]] == [
+            [
+                {"uuid": str(bravo.id), "name": "Bravo", "color": "vert"},
+                {"uuid": str(alpha.id), "name": "Alpha", "color": "rouge"},
+            ],
+            [],
+        ]
+
+
+UNCHANGED_LIST_QUERY_COUNT = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # version of the list
+)
+
+
+def _modify_candidature(recrutement, candidature, agent):
+    candidature.updated_by_recruteur = datetime.now(timezone.utc)
+    candidature.save()
+
+
+def _change_etape(recrutement, candidature, agent):
+    candidature.etape = EtapeModel.objects.filter(recrutement=recrutement).last()
+    candidature.save()
+
+
+def _add_candidature(recrutement, candidature, agent):
+    CandidatureDjangoFactory(etape=candidature.etape)
+
+
+def _delete_another_candidature(recrutement, candidature, agent):
+    CandidatureModel.objects.exclude(pk=candidature.pk).delete()
+
+
+def _rename_etape(recrutement, candidature, agent):
+    etape = candidature.etape
+    etape.nom = "Étape renommée"
+    etape.save()
+
+
+def _reorder_etapes(recrutement, candidature, agent):
+    recrutement.ordre_etapes = list(reversed(recrutement.ordre_etapes))
+    recrutement.save()
+
+
+def _message_from_candidat(recrutement, candidature, agent):
+    MessageDjangoFactory(
+        conversation=ConversationDjangoFactory(candidature=candidature),
+        par_candidat=True,
+    )
+
+
+def _read_by_current_agent(recrutement, candidature, agent):
+    message = candidature.conversations.get().messages.get()
+    mark_as_read(
+        conversation_id=message.conversation_id,
+        utilisateur=agent,
+        read_up_to=message.created_at,
+    )
+
+
+def _tag_candidature(recrutement, candidature, agent):
+    CandidatureTagDjangoFactory(candidature=candidature)
+
+
+def _untag_candidature(recrutement, candidature, agent):
+    CandidatureTagModel.objects.filter(candidature=candidature).delete()
+
+
+def _rename_tag(recrutement, candidature, agent):
+    tag = TagModel.objects.get(candidatures_liaisons__candidature=candidature)
+    tag.name = "Renommée"
+    tag.save()
+
+
+@pytest.fixture(name="list_with_candidature")
+def list_with_candidature_fixture(recrutement_liste):
+    etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+    candidature = CandidatureDjangoFactory(etape=etape)
+    CandidatureDjangoFactory(etape=etape)
+    CandidatureTagDjangoFactory(candidature=candidature)
+    ConversationDjangoFactory(
+        candidature=candidature, with_message=True, with_message__par_candidat=True
+    )
+    return recrutement_liste, candidature
+
+
+@pytest.mark.django_db
+class TestRecrutementListeConditionalGet:
+    def test_returns_304_without_loading_the_list(
+        self, authenticated_client, list_with_candidature, django_assert_num_queries
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        with django_assert_num_queries(UNCHANGED_LIST_QUERY_COUNT):
+            second = authenticated_client.get(
+                RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+            )
+
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+        assert second.content == b""
+        assert second["ETag"] == first["ETag"]
+        assert set(second["Cache-Control"].split(", ")) == {"private", "no-cache"}
+
+    @pytest.mark.parametrize(
+        "change",
+        [
+            _modify_candidature,
+            _change_etape,
+            _add_candidature,
+            _delete_another_candidature,
+            _rename_etape,
+            _reorder_etapes,
+            _message_from_candidat,
+            _read_by_current_agent,
+            _tag_candidature,
+            _untag_candidature,
+            _rename_tag,
+        ],
+    )
+    def test_returns_200_after_a_change(
+        self, authenticated_client, list_with_candidature, test_user, change
+    ):
+        recrutement, candidature = list_with_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        change(recrutement, candidature, test_user)
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+        assert second["ETag"] != first["ETag"]
+
+    def test_reading_by_another_agent_keeps_the_list_unchanged(
+        self, authenticated_client, list_with_candidature
+    ):
+        _, candidature = list_with_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        message = candidature.conversations.get().messages.get()
+        ConversationLectureDjangoFactory(
+            conversation=message.conversation, read_at=message.created_at
+        )
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+
+    def test_etag_depends_on_the_query_string(
+        self, authenticated_client, list_with_candidature
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL + "?taille=1", HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+
+    def test_etag_depends_on_the_user(
+        self, authenticated_client, list_with_candidature
+    ):
+        recrutement, _ = list_with_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        other = OrganismeAgentDjangoFactory(
+            organisme=recrutement.organisme,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
+        ).agent.utilisateur
+        authenticated_client.force_login(other)
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+
+    def test_checks_permissions_before_answering_304(
+        self, authenticated_client, list_with_candidature, test_user
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        OrganismeAgentModel.objects.filter(agent_id=test_user.username).delete()
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_403_FORBIDDEN
 
 
 class TestRecrutementCandidaturesEtapeView:
@@ -857,3 +1139,36 @@ class TestRecrutementCandidaturesEtapeViewDbVerified:
 
         candidature.refresh_from_db()
         assert str(candidature.etape_id) == str(cible.id)
+
+    def test_returns_404_when_recrutement_not_in_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory()
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            reverse(
+                "recruteur:organisme_recrutement_candidatures_etape",
+                kwargs={
+                    "organisme_uuid": organisme.id,
+                    "recrutement_uuid": recrutement.offre_id,
+                },
+            ),
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "error": RecrutementInexistant(recrutement.offre_id).message
+        }
+        candidature.refresh_from_db()
+        assert candidature.etape_id == origine.id
+        assert not AuditLogModel.objects.exists()

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : un organisme Talentsoft inconnu ne rejette que son offre"
 type: corrige
 date: 2026-10-27
 pr: 2069

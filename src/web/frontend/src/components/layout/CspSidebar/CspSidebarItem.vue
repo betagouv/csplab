@@ -68,6 +68,7 @@ const { showLabels } = useSidebar()
   align-items: center;
   justify-content: center;
   gap: var(--sidebar-leading-gap);
+  border-radius: var(--csp-nav-radius);
   width: var(--sidebar-item-size);
   height: var(--sidebar-item-size);
   padding: 0;

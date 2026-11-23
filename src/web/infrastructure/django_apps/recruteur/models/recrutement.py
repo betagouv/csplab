@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from django.db import models
 from django.db.models import (
     BooleanField,
@@ -13,7 +11,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, JSONObject
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -26,11 +24,9 @@ from infrastructure.django_apps.candidate.models.candidature import CandidatureM
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.tag.mixins import TaggedModelMixin, TaggedQuerySet
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
-
-if TYPE_CHECKING:
-    from infrastructure.django_apps.tag.models import TagModel
 
 
 def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subquery:
@@ -45,9 +41,66 @@ def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subque
     )
 
 
+def _related_model(model: type[models.Model], name: str) -> type[models.Model]:
+    return model._meta.get_field(name).related_model  # type: ignore[return-value]
+
+
+def _version_of(
+    queryset: models.QuerySet, recrutement_path: str, **aggregates
+) -> Subquery:
+    return Subquery(
+        queryset.filter(**{recrutement_path: OuterRef("pk")})
+        .order_by()
+        .values(recrutement_path)
+        .annotate(version=JSONObject(**aggregates))
+        .values("version")
+    )
+
+
 class RecrutementQuerySet(models.QuerySet):
     def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
+
+    def with_list_version(self, utilisateur_id) -> "RecrutementQuerySet":
+        conversation_model = _related_model(CandidatureModel, "conversations")
+        message_model = _related_model(conversation_model, "messages")
+        lecture_model = _related_model(conversation_model, "lectures")
+        candidature_tag_model = _related_model(CandidatureModel, "tags_liaisons")
+        by_conversation = "conversation__candidature__etape__recrutement"
+        return self.annotate(
+            list_version=JSONObject(
+                updated_at=F("updated_at"),
+                etapes=_version_of(
+                    EtapeModel.objects.all(),
+                    "recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                candidatures=_version_of(
+                    CandidatureModel.objects.all(),
+                    "etape__recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                messages=_version_of(
+                    message_model._default_manager.all(),
+                    by_conversation,
+                    created_at=Max("created_at"),
+                ),
+                lectures=_version_of(
+                    lecture_model._default_manager.filter(utilisateur=utilisateur_id),
+                    by_conversation,
+                    read_at=Max("read_at"),
+                ),
+                tags=_version_of(
+                    candidature_tag_model._default_manager.all(),
+                    "candidature__etape__recrutement",
+                    count=Count("pk"),
+                    created_at=Max("created_at"),
+                    tag_updated_at=Max("tag__updated_at"),
+                ),
+            )
+        )
 
     def with_organisme(self) -> "RecrutementQuerySet":
         return self.select_related("organisme")
@@ -189,6 +242,8 @@ class RecrutementModel(models.Model):
 
     objects = RecrutementQuerySet.as_manager()
 
+    list_version: dict
+
     class Meta:
         db_table = "recrutement"
         verbose_name = "Recrutement"
@@ -198,7 +253,7 @@ class RecrutementModel(models.Model):
         return str(self.offre)
 
 
-class RecrutementAgentQuerySet(models.QuerySet):
+class RecrutementAgentQuerySet(TaggedQuerySet):
     def active(self) -> "RecrutementAgentQuerySet":
         return self.filter(date_revocation__isnull=True)
 
@@ -242,19 +297,8 @@ class RecrutementAgentQuerySet(models.QuerySet):
     ) -> "RecrutementAgentQuerySet":
         return self.filter(agent_id=agent_id, recrutement_id__in=recrutement_ids)
 
-    def with_tags(self) -> "RecrutementAgentQuerySet":
-        liaison_model = self.model._meta.get_field("tags_liaisons").related_model
-        return self.prefetch_related(
-            Prefetch(
-                "tags_liaisons",
-                queryset=liaison_model.objects.select_related("tag").order_by(
-                    "created_at", "id"
-                ),
-            )
-        )
 
-
-class RecrutementAgentModel(BaseDatedModel):
+class RecrutementAgentModel(TaggedModelMixin, BaseDatedModel):
     recrutement = models.ForeignKey(
         RecrutementModel,
         on_delete=models.CASCADE,
@@ -288,7 +332,3 @@ class RecrutementAgentModel(BaseDatedModel):
     @property
     def nom(self) -> str:
         return self.agent.utilisateur.get_full_name() or self.agent.utilisateur.email
-
-    @property
-    def tags(self) -> list["TagModel"]:
-        return [liaison.tag for liaison in self.tags_liaisons.all()]

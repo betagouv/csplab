@@ -1,4 +1,5 @@
 ---
+titre: "Offres : toutes les catégories envoyées sont enregistrées"
 type: modifie
 date: 2026-10-28
 pr: 2108

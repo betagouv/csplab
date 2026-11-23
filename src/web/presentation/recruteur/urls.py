@@ -42,6 +42,10 @@ from presentation.recruteur.views.organismes import (
 from presentation.recruteur.views.organismes_recherche import (
     OrganismesRechercheView,
 )
+from presentation.recruteur.views.recrutement_agent_tags import (
+    RecrutementAgentTagDetailView,
+    RecrutementAgentTagsView,
+)
 from presentation.recruteur.views.recrutement_agents import (
     RecrutementAgentsView,
     RecrutementsResponsableView,
@@ -171,6 +175,16 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/parametres/agents",
         RecrutementAgentsView.as_view(),
         name="organisme_recrutement_parametres_agents",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/agents/<uuid:agent_uuid>/tags",
+        RecrutementAgentTagsView.as_view(),
+        name="recrutement_agent_tags",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/agents/<uuid:agent_uuid>/tags/<uuid:tag_uuid>",
+        RecrutementAgentTagDetailView.as_view(),
+        name="recrutement_agent_tag",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes",

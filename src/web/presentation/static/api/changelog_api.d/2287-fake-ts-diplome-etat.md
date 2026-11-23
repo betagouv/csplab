@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : diplôme d'État exigé au format Talentsoft"
 type: modifie
 date: 2026-11-04
 pr: 2290

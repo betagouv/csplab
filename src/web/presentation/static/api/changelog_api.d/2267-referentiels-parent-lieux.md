@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : lieux des référentiels rattachés à leur parent"
 type: non_retrocompatible
 date: 2026-11-04
 pr: 2270

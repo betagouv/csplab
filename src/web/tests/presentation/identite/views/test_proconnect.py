@@ -13,6 +13,7 @@ from infrastructure.authentication.proconnect_client import (
     END_SESSION_ENDPOINT,
     oauth,
 )
+from presentation.identite.views import UNKNOWN_ACCOUNT_SESSION_KEY
 
 
 class TestProconnectLoginView:
@@ -69,9 +70,12 @@ class TestProconnectCallbackView:
         assert response.status_code == status.HTTP_302_FOUND
         assert response.url == "/utilisateur/connexion"
         messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("Aucun compte ProConnect" in message for message in messages)
+        assert any(
+            "La connexion avec ProConnect a échoué" in message for message in messages
+        )
 
-    def test_callback_unknown_email_shows_error_message_and_redirects_to_login(
+    @override_settings(LOGOUT_REDIRECT_URL="pages:home")
+    def test_callback_unknown_email_ends_proconnect_session_and_flags_the_notice(
         self, db, client, monkeypatch
     ):
         monkeypatch.setattr(
@@ -87,9 +91,32 @@ class TestProconnectCallbackView:
         response = client.get(reverse("identite:proconnect_callback"))
 
         assert response.status_code == status.HTTP_302_FOUND
+        expected_logout_url = f"{settings.PROCONNECT_BASE_URL}{END_SESSION_ENDPOINT}"
+        assert response.url.startswith(expected_logout_url)
+        assert "id_token_hint=fake-id-token" in response.url
+        assert (
+            "post_logout_redirect_uri=http%3A%2F%2Ftestserver%2Futilisateur%2Fconnexion"
+            in response.url
+        )
+        assert client.session[UNKNOWN_ACCOUNT_SESSION_KEY] is True
+        assert list(get_messages(response.wsgi_request)) == []
+
+    def test_callback_unknown_email_without_id_token_flags_the_notice(
+        self, db, client, monkeypatch
+    ):
+        monkeypatch.setattr(
+            oauth.proconnect, "authorize_access_token", MagicMock(return_value={})
+        )
+        monkeypatch.setattr(
+            "presentation.identite.views.fetch_userinfo_claims",
+            MagicMock(return_value={"email": "unknown@example.com"}),
+        )
+
+        response = client.get(reverse("identite:proconnect_callback"))
+
+        assert response.status_code == status.HTTP_302_FOUND
         assert response.url == "/utilisateur/connexion"
-        messages = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("Aucun compte ProConnect" in message for message in messages)
+        assert client.session[UNKNOWN_ACCOUNT_SESSION_KEY] is True
 
     def test_callback_matching_user_logs_in_and_redirects(
         self, db, client, monkeypatch, test_user
@@ -176,6 +203,7 @@ class TestProconnectLogoutView:
         assert response.status_code == status.HTTP_302_FOUND
         assert response.url == reverse("identite:login")
         assert "_auth_user_id" not in client.session
+        assert response["Clear-Site-Data"] == '"cache"'
 
     def test_redirects_to_proconnect_end_session_when_oidc_session(
         self, db, client, test_user
@@ -196,3 +224,4 @@ class TestProconnectLogoutView:
             in response.url
         )
         assert "_auth_user_id" not in client.session
+        assert response["Clear-Site-Data"] == '"cache"'

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : le titre long devient facultatif"
 type: modifie
 date: 2026-11-03
 pr: 2229

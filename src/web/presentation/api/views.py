@@ -26,6 +26,7 @@ from presentation.api.changelog_api import (
     TYPE_LABELS,
     Filters,
     Fragment,
+    TypeChangement,
     assemble,
     changelog_markdown,
     entry_html,
@@ -173,6 +174,7 @@ class ChangelogJsonView(_PublicDocumentationView):
 
 
 ATOM_ID_PREFIX = "tag:csplab.beta.gouv.fr:changelog-api"
+BREAKING_TYPES = {TypeChangement.NON_RETROCOMPATIBLE, TypeChangement.RETIRE}
 
 
 class ChangelogFeed(Feed):
@@ -198,7 +200,10 @@ class ChangelogFeed(Feed):
         return self.filters.apply(published_fragments())
 
     def item_title(self, fragment: Fragment) -> str:
-        return f"{TYPE_LABELS[fragment.type]} : {', '.join(fragment.routes)}"
+        title = fragment.titre.replace("`", "")
+        if fragment.type in BREAKING_TYPES:
+            return f"⚠️ {title}"
+        return title
 
     def item_description(self, fragment: Fragment) -> str:
         return entry_html(fragment)

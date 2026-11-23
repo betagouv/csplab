@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : compétences attendues en Markdown et en HTML"
 type: ajoute
 date: 2026-11-02
 pr: 2157

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : un département d'outre-mer n'est plus accepté comme pays"
 type: non_retrocompatible
 date: 2026-11-05
 pr: 2313

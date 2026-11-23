@@ -1,6 +1,9 @@
 from uuid import UUID
 
-from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
+from domain.recruteur.errors.organisme_agent_errors import (
+    AgentNonRattache,
+    AgentOrganismeRevoque,
+)
 from domain.recruteur.errors.recrutement_agent_errors import (
     AgentDejaMembreRecrutement,
     AgentNonMembreRecrutement,
@@ -42,16 +45,27 @@ class RecrutementAgentService:
         ).exists():
             raise AgentNonRattache(self.organisme_id, agent_id)
 
+    def check_agent_not_revoked_from_organisme(self, agent_id: UUID) -> None:
+        if OrganismeAgentModel.objects.revoked_by_organisme_and_agent(
+            self.organisme_id, agent_id
+        ).exists():
+            raise AgentOrganismeRevoque(self.organisme_id, agent_id)
+
     def check_agent_not_active_member(self, agent_id: UUID) -> None:
         if RecrutementAgentModel.objects.by_recrutement_and_agent(
             self.recrutement_id, agent_id
         ).exists():
             raise AgentDejaMembreRecrutement(self.recrutement_id, agent_id)
 
-    def get_active_member(self, agent_id: UUID) -> RecrutementAgentModel:
+    def get_active_member(
+        self, agent_id: UUID, *, for_update: bool = False
+    ) -> RecrutementAgentModel:
+        membres = RecrutementAgentModel.objects.by_recrutement_and_agent(
+            self.recrutement_id, agent_id
+        )
+        if for_update:
+            membres = membres.select_for_update()
         try:
-            return RecrutementAgentModel.objects.by_recrutement_and_agent(
-                self.recrutement_id, agent_id
-            ).get()
+            return membres.get()
         except RecrutementAgentModel.DoesNotExist as error:
             raise AgentNonMembreRecrutement(self.recrutement_id, agent_id) from error

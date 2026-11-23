@@ -1,9 +1,13 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.services.list_candidatures import (
-    list_candidatures_et_etapes,
+    list_candidatures,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -75,8 +79,30 @@ def test_raises(scenario, expected_error):
     agent, organisme_id, recrutement_id = scenario()
 
     with pytest.raises(expected_error):
-        list_candidatures_et_etapes(
+        list_candidatures(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
+            utilisateur=agent.utilisateur,
+        )
+
+
+def test_raises_when_the_recrutement_disappears_after_the_permission_check():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    can_execute = OrganismePermissionService.can_execute
+
+    def can_execute_then_delete(self, **kwargs):
+        can_execute(self, **kwargs)
+        recrutement.delete()
+
+    with (
+        patch.object(
+            OrganismePermissionService, "can_execute", can_execute_then_delete
+        ),
+        pytest.raises(RecrutementInexistant),
+    ):
+        list_candidatures(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
             utilisateur=agent.utilisateur,
         )

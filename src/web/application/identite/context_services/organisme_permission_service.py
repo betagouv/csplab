@@ -11,6 +11,9 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.errors.recrutement_agent_errors import (
+    RoleRecrutementNonAutorise,
+)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -134,7 +137,17 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR}
+    ),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
 }
+
+_ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR: frozenset[str] = frozenset(
+    {AgentRecrutementRole.RECRUTEUR.value, AgentRecrutementRole.CONTRIBUTEUR.value}
+)
 
 # -------------------------------------
 # Authorisations niveau Recrutement
@@ -267,6 +280,8 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     OrganismeAction.MANAGE_TAG_ON_APPLICATION: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
+    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE: frozenset(),
+    OrganismeAction.MANAGE_TAG_ON_MEMBER: frozenset({AgentRecrutementRole.RESPONSABLE}),
 }
 
 
@@ -288,6 +303,16 @@ def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
 
 
 class OrganismePermissionService:
+    def check_role_grantable(
+        self, *, demandeur_role: AgentOrganismeRole | None, role: str
+    ) -> None:
+        if (
+            demandeur_role
+            not in _ROLES_REQUIS[OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE]
+            and role not in _ROLES_ATTRIBUABLES_PAR_NON_SUPERVISEUR
+        ):
+            raise RoleRecrutementNonAutorise(role)
+
     def can_execute(
         self,
         *,

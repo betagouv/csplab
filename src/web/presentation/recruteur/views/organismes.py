@@ -23,6 +23,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
@@ -53,7 +54,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismesView(SessionApiMixin, ListAPIView):
+class OrganismesView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = OrganismesListSerializer
     pagination_class = TaillePageNumberPagination
 

@@ -14,7 +14,10 @@ from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
-from domain.recruteur.errors.recrutement_errors import RecrutementError
+from domain.recruteur.errors.recrutement_errors import (
+    RecrutementError,
+    RecrutementInexistant,
+)
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
 )
@@ -66,6 +69,8 @@ class ChangeEtapeCandidaturesUsecase(
             utilisateur=command.utilisateur,
             recrutement_id=command.recrutement_id,
         )
+        if recrutement.organisme_id != command.organisme_id:
+            raise RecrutementInexistant(command.recrutement_id)
         return recrutement, candidatures_recruteur
 
     def execute(

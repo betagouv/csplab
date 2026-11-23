@@ -26,6 +26,18 @@ describe('cspLabel', () => {
     expect(labelRoot()).not.toHaveClass('csp-label--bordered')
   })
 
+  it('shows a dot by default, and none when dot is false', async () => {
+    const { rerender } = render(CspLabel, { props: { label: 'Libellé' } })
+    expect(labelRoot().querySelector('.csp-label__dot')).not.toBeNull()
+    await rerender({ label: 'Libellé', dot: false })
+    expect(labelRoot().querySelector('.csp-label__dot')).toBeNull()
+  })
+
+  it('draws a neutral outline when outlined', () => {
+    render(CspLabel, { props: { label: 'Libellé', outlined: true } })
+    expect(labelRoot()).toHaveClass('csp-label--outlined')
+  })
+
   it('renders a button when clickable', async () => {
     const { emitted } = render(CspLabel, { props: { label: 'Libellé', clickable: true }, attrs: { 'aria-label': 'Modifier Libellé' } })
     const button = screen.getByRole('button', { name: 'Modifier Libellé' })

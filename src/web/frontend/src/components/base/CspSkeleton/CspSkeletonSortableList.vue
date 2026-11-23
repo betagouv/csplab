@@ -84,7 +84,7 @@ withDefaults(defineProps<CspSkeletonSortableListProps>(), {
   align-items: center;
   gap: var(--csp-space-3);
   padding: var(--csp-space-3) var(--csp-space-4);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-raised-radius);
   box-shadow: inset 0 0 0 1px var(--csp-raised-border-color);
   background-color: var(--csp-raised-background);
 }

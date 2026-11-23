@@ -32,6 +32,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
       <CspCard
         v-for="card in cards"
         :key="card"
+        class="csp-skeleton-kanban__card"
         as="div"
         size="sm"
       >
@@ -71,6 +72,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   padding: var(--csp-kanban-column-padding);
   background-color: var(--csp-region-background);
   box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
+  border-radius: var(--csp-kanban-column-radius);
   border-top: var(--csp-kanban-column-accent-width) solid var(--csp-kanban-column-accent-color);
 }
 
@@ -80,6 +82,10 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   :deep(.csp-skeleton) {
     background: var(--csp-neutral-background);
   }
+}
+
+.csp-card.csp-skeleton-kanban__card {
+  --csp-card-radius: var(--csp-raised-radius);
 }
 
 .csp-skeleton-kanban__card-meta {

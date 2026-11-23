@@ -5,9 +5,13 @@ import pytest
 from django.db import OperationalError, connections
 from django.db.models.sql.subqueries import DeleteQuery
 
+from application.recruteur.services.add_candidature_tag import add_candidature_tag
 from application.recruteur.services.add_note_tag import add_note_tag
 from application.recruteur.services.create_tag import create_tag
 from application.recruteur.services.delete_tag import delete_tag
+from application.recruteur.services.remove_candidature_tag import (
+    remove_candidature_tag,
+)
 from application.recruteur.services.remove_note_tag import remove_note_tag
 from application.recruteur.services.update_tag import update_tag
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -145,6 +149,57 @@ def test_remove_note_tag_rolls_back_when_audit_log_fails(db):
         )
 
     assert NoteTagModel.objects.filter(pk=pose.pk).exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_add_candidature_tag_rolls_back_when_audit_log_fails(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    tag = TagDjangoFactory(organisme=organisme, category=TagCategory.CANDIDATURE)
+
+    with pytest.raises(RuntimeError):
+        add_candidature_tag(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            tag_id=tag.id,
+            utilisateur=agent.utilisateur,
+        )
+
+    assert not CandidatureTagModel.objects.filter(
+        candidature=candidature, tag=tag
+    ).exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_remove_candidature_tag_rolls_back_when_audit_log_fails(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    pose = CandidatureTagDjangoFactory(
+        candidature=candidature,
+        tag=TagDjangoFactory(organisme=organisme, category=TagCategory.CANDIDATURE),
+    )
+
+    with pytest.raises(RuntimeError):
+        remove_candidature_tag(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            tag_id=pose.tag_id,
+            utilisateur=agent.utilisateur,
+        )
+
+    assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
 
 
 # transactional_db : le fixture `db` ouvre une transaction autour du test, qui

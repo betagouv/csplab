@@ -65,7 +65,7 @@ const isDisabled = computed(() => props.disabled || !props.content)
 
   max-width: 16rem;
   padding: var(--csp-space-1) var(--csp-space-2);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-overlap-radius);
   background-color: var(--csp-tooltip-bg);
   color: var(--csp-tooltip-text);
   font-size: var(--csp-font-size-xs);

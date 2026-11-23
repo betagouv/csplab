@@ -29,6 +29,7 @@ from domain.recruteur.errors.organisme_agent_errors import (
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     AgentOrganismeSerializer,
     SetAgentRoleOnOrganismeSerializer,
@@ -67,7 +68,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeAgentsView(SessionApiMixin, APIView):
+class OrganismeAgentsView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             agents = list_organisme_agents(

@@ -63,7 +63,7 @@ const tableColumns = computed(() =>
     columnHelper.accessor((row: TRow) => col.accessor?.(row) ?? '', {
       id: col.id,
       enableSorting: col.sortable ?? false,
-      meta: { align: col.align, width: col.width, wrapHeader: col.wrapHeader, label: col.header, cellComponent: col.cellComponent },
+      meta: { align: col.align, width: col.width, minWidth: col.minWidth, wrapHeader: col.wrapHeader, label: col.header, cellComponent: col.cellComponent },
     }),
   ),
 )
@@ -207,8 +207,9 @@ function columnAlign(column: Column<TRow, unknown>): CspTableAlign | undefined {
   return column.columnDef.meta?.align
 }
 
-function columnWidth(column: Column<TRow, unknown>): string | undefined {
-  return column.columnDef.meta?.width
+function columnStyle(column: Column<TRow, unknown>): { width?: string, minWidth?: string } {
+  const { width, minWidth } = column.columnDef.meta ?? {}
+  return { width, minWidth }
 }
 
 function columnLabel(column: Column<TRow, unknown>): string {
@@ -321,7 +322,7 @@ function onActivate(id: string): void {
               class="csp-table__th"
               :class="[alignClass(columnAlign(header.column), 'th'), { 'csp-table__th--wrap': header.column.columnDef.meta?.wrapHeader }]"
               :aria-sort="header.column.getCanSort() ? ariaSort(header.column) : undefined"
-              :style="columnWidth(header.column) ? { width: columnWidth(header.column) } : undefined"
+              :style="columnStyle(header.column)"
             >
               <slot
                 :name="`header-${header.column.id}`"
@@ -400,7 +401,7 @@ function onActivate(id: string): void {
               :key="cell.id"
               class="csp-table__td"
               :class="alignClass(columnAlign(cell.column), 'td')"
-              :style="columnWidth(cell.column) ? { width: columnWidth(cell.column) } : undefined"
+              :style="columnStyle(cell.column)"
             >
               <slot
                 :name="`cell-${cell.column.id}`"
@@ -457,6 +458,7 @@ function onActivate(id: string): void {
 .csp-table-wrapper {
   width: 100%;
   border: 1px solid var(--csp-surface-border-color);
+  border-radius: var(--csp-surface-radius);
   background: var(--csp-surface-background);
   overflow: hidden;
 

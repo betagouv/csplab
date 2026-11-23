@@ -14,7 +14,7 @@ src/
 │
 ├── features/               # Business modules (self-contained) — business views & components ONLY
 │   ├── recrutements/
-│   │   ├── views/          # Route-level pages (*View.vue)
+│   │   ├── views/          # Screens mounted by the router (*View.vue)
 │   │   ├── components/     # Feature-specific components
 │   │   ├── composables/    # Feature-specific hooks
 │   │   ├── stores/         # Feature Pinia stores (if needed)
@@ -102,7 +102,7 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 - `router/routes.ts` holds the whole route tree. Nesting follows the URL: a parent without component groups its children under a path prefix.
 - Route names live in `router/names.ts`. Views, components and the navigation import names from there.
 - A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
-- When the tabs of a page are different route components, they are child routes: the page renders `<router-view />` in the `tab` slot of `CspPageContainer`, a single panel shared by all tabs that stays mounted from one tab to the next, and the route tree mounts the tab's component: a view, or a component from the `components/` folder of the tab's feature, which can differ from the page's feature. A tab whose state must survive a visit to another tab is named in the `include` of a `KeepAlive` keyed by the page's entity (`RecrutementView`).
+- A routed tab is always a child route that mounts its own view, which can belong to another feature than its parent. The parent renders `<router-view />` and never picks the tab content itself; a page renders it in the `tab` slot of `CspPageContainer`, a single panel shared by all tabs that stays mounted from one tab to the next. The sub-routes of a tab (`notes/nouvelle`, `messages/:conversationUuid`) are child routes of that tab. A tab whose state must survive a visit to another tab is named in the `include` of a `KeepAlive` keyed by the page's entity (`RecrutementView`).
 - A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes. A props function can also build the props of a tab component; each built prop value uses `satisfies` with its prop type so that vue-tsc checks it.
 - A route-level view sets the document title with `useDocumentTitle`, from the most specific part to the most general (`Notes - Alice Dupont`). It calls `useHead` from [`@unhead/vue`](https://unhead.unjs.io/docs/vue/head/api/composables/use-head); `App.vue` adds the site name through `titleTemplate`.
 
@@ -117,7 +117,6 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
       props: paramsAsProps('organismeUuid', 'recrutementUuid'),
       children: [
         { path: 'activites', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES['activites-et-taches'], component: ActivitesTachesView },
-        { path: 'equipe', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe, component: EquipeRecrutementSection, props: true },
       ],
     },
   ],
@@ -166,10 +165,22 @@ function handleSave() {
 
 ### Component Naming
 
-| Type                 | Convention       | Example                           |
-| -------------------- | ---------------- | --------------------------------- |
-| Page/View            | `*View.vue`      | `CandidatListView.vue`            |
-| UI ingredient        | `Csp` prefix     | `CspButton.vue`, `CspCandidatCard.vue` |
+A **screen** is a component mounted by the router. It lives in the `views/` folder of its feature and its name ends with `View`. Its role depends on its place in the route tree:
+
+- **Page**: mounted by a route under the shell, renders `CspPageContainer` (`RecrutementView`).
+- **Tab**: mounted by a child route in the `<router-view>` of a page or a panel, chosen by tabs or by a selector such as kanban / list (`ActivitesTachesView`).
+- **Panel**: mounted by a child route that opens a `CspDrawer` over the page, which stays mounted underneath (`CandidaturePanelView`).
+
+A page or a panel sets the document title, a tab does not. A screen does not render another screen, except through `<router-view>` and except the error pages of `views/` (`ForbiddenView`, `NotFoundView`), which a page renders instead of its content.
+
+Any other feature component lives in `components/` and its name never ends with `View`. Common shapes have their suffix:
+
+- `Section`: a non-routed block of a screen.
+- `Dialog`, `Drawer`, `Popover`: a container a screen opens.
+- `Form`: a form placed in a drawer, a popover or a dialog.
+- `List`, `Card`, `Column`, `Cell`: an item of a list, a table or a kanban.
+
+A component with no listed shape keeps a name that says what it does (`CandidaturesToolbar`, `TagPicker`).
 
 The `Csp` prefix is reserved for UI "ingredients" and design system components. This includes both generic components (base UI) and business-specific UI components (e.g., a card, a specialized input). It does NOT apply to full pages/views or technical utility components (like error boundaries).
 

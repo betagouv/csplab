@@ -213,7 +213,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-shrink: 0;
   padding: 0;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--csp-nav-radius);
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;

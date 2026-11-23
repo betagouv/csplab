@@ -25,6 +25,7 @@ class OrganismeAction(Enum):
     ADD_RECRUTEMENT_AGENT = "add_recrutement_agent"
     UPDATE_RECRUTEMENT_AGENT = "update_recrutement_agent"
     REVOKE_RECRUTEMENT_AGENT = "revoke_recrutement_agent"
+    GRANT_RECRUTEMENT_RESPONSABLE = "grant_recrutement_responsable"
     SET_RECRUTEMENTS_RESPONSABLE = "set_recrutements_responsable"
     GET_MOTIFS_REFUS = "get_motifs_refus"
     READ_DOCUMENT = "read_document"
@@ -42,3 +43,4 @@ class OrganismeAction(Enum):
     UPDATE_TAG = "update_tag"
     DELETE_TAG = "delete_tag"
     MANAGE_TAG_ON_APPLICATION = "manage_tag_on_application"
+    MANAGE_TAG_ON_MEMBER = "manage_tag_on_member"

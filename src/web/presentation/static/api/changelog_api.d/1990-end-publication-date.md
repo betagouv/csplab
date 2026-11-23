@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : `endPublicationDate` reprend la fin de publication"
 type: modifie
 date: 2026-10-19
 pr: 1990

@@ -97,6 +97,7 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
   background-color: var(--csp-callout-bg);
   border: 1px solid var(--csp-callout-border);
   border-left: none;
+  border-radius: var(--csp-surface-radius);
   color: var(--csp-callout-text);
 
   &::before {
@@ -106,6 +107,7 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
     left: 0;
     bottom: -1px;
     width: 4px;
+    border-radius: var(--csp-surface-radius) 0 0 var(--csp-surface-radius);
     background-color: var(--csp-callout-accent);
   }
 }

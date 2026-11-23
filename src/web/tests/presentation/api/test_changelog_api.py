@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from datetime import date
+from pathlib import Path
 from textwrap import dedent
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.http import QueryDict
 from django.urls import reverse
+from django.utils.safestring import SafeString
 from rest_framework import status
 
 from infrastructure.authentication.rate_throttle import DocumentationRateThrottle
@@ -17,6 +19,7 @@ from presentation.api.changelog_api import (
     TYPE_LABELS,
     TYPES,
     Filters,
+    Fragment,
     FragmentError,
     assemble,
     check_added_fragment,
@@ -28,6 +31,7 @@ from presentation.api.changelog_api import (
     published_fragments,
     route_errors,
     set_date,
+    title_html,
 )
 from presentation.api.serializers import ChangelogEntrySerializer
 from presentation.api.views import ChangelogJsonView
@@ -36,9 +40,14 @@ from presentation.pages.views import _BADGES
 TODAY = date(2026, 10, 27)
 
 
-def write_fragment(tmp_path, name, *, header, body="Un changement."):
+def write_fragment(
+    tmp_path, name, *, header, body="Un changement.", titre="Offres : un titre"
+):
+    header = dedent(header).strip()
+    if titre is not None:
+        header = f'titre: "{titre}"\n{header}'
     path = tmp_path / name
-    path.write_text(f"---\n{dedent(header).strip()}\n---\n\n{dedent(body).strip()}\n")
+    path.write_text(f"---\n{header}\n---\n\n{dedent(body).strip()}\n")
     return path
 
 
@@ -70,6 +79,7 @@ class TestParseFragment:
 
         result = parse_fragment(path)
 
+        assert result.titre == "Offres : un titre"
         assert result.type == "non_retrocompatible"
         assert result.date == date(2026, 10, 27)
         assert result.pr == 2085  # noqa: PLR2004
@@ -125,6 +135,41 @@ class TestParseFragment:
 
         with pytest.raises(FragmentError, match=message):
             parse_fragment(path)
+
+    @pytest.mark.parametrize(
+        "titre, message",
+        [
+            (None, "`titre` est obligatoire"),
+            ("  ", "`titre` est obligatoire"),
+            ("Offres : " + "x" * 72, "`titre` dépasse 80 caractères"),
+            ("Offres sans ressource en tête", "suivie de ` : `"),
+            (" : sans ressource", "suivie de ` : `"),
+            ("Offres : `localisation devient une liste", "backtick non refermé"),
+            ("Offres : **50** lieux au plus", "ni `*`"),
+            ("Offres : voir [le guide](https://example.com)", "ni `\\*`, ni `\\[`"),
+            ("Offres : <img src=x onerror=alert(1)>", "ni `\\*`, ni `\\[`"),
+            ("Offres : 50 lieux]", "ni `\\*`, ni `\\[`"),
+            ("Offres : 50 lieux\\nau plus", "ni `\\*`, ni `\\[`"),
+            ("Offres : POST /api/v1/offres/creer_modifier", "ne cite pas de route"),
+        ],
+    )
+    def test_invalid_title(self, tmp_path, titre, message):
+        path = write_fragment(
+            tmp_path,
+            "f.md",
+            header="type: ajoute\ndate: 2026-10-27\npr: 1",
+            titre=titre,
+        )
+
+        with pytest.raises(FragmentError, match=message):
+            parse_fragment(path)
+
+    def test_accepts_a_field_name_in_backticks(self, tmp_path):
+        result = fragment(
+            tmp_path, titre="fake-ts : `salaryRange` devient un objet codé"
+        )
+
+        assert result.titre == "fake-ts : `salaryRange` devient un objet codé"
 
     @pytest.mark.parametrize(
         "body, message",
@@ -214,6 +259,7 @@ class TestAssemble:
         assert (
             "Cassé 2. ([PR #2](https://github.com/betagouv/csplab/pull/2))\n\n"
             "> **Compatibilité**\n>\n> Compat 2.\n>\n> - Point.\n\n"
+            "**Offres : un titre**\n\n"
             "Cassé 3. ([PR #3](https://github.com/betagouv/csplab/pull/3))\n\n"
             "> **Compatibilité**\n>\n> Compat 3."
         ) in markdown
@@ -232,18 +278,19 @@ class TestAssemble:
 
         assert "pull/1))\n\n> **Compatibilité**\n>\n> Compat." in assemble([result])
 
-    def test_keeps_consecutive_bullet_lists_tight(self, tmp_path):
+    def test_starts_each_entry_with_its_title(self, tmp_path):
         fragments = [
-            fragment(tmp_path, "a.md", pr=1, body="- Premier."),
-            fragment(tmp_path, "b.md", pr=2, body="- Second."),
-            fragment(tmp_path, "c.md", pr=3, body="Un paragraphe."),
+            fragment(tmp_path, "a.md", pr=1, titre="Offres : premier", body="- Un."),
+            fragment(tmp_path, "b.md", pr=2, titre="Offres : second", body="- Deux."),
         ]
 
         markdown = assemble(fragments)
 
-        assert "- Premier. ([PR #1]" in markdown
-        assert "pull/1))\n- Second. ([PR #2]" in markdown
-        assert "pull/2))\n\nUn paragraphe." in markdown
+        assert (
+            "### Ajouté\n\n**Offres : premier**\n\n- Un. ([PR #1]"
+            "(https://github.com/betagouv/csplab/pull/1))\n\n"
+            "**Offres : second**\n\n- Deux. ([PR #2]"
+        ) in markdown
 
     def test_published_fragments_are_valid(self):
         assert assemble(load_fragments()).count("## 2026-") >= 1
@@ -258,6 +305,32 @@ class TestAssemble:
         markdown = assemble([], note="Changements filtrés : type ajouté.")
 
         assert "Changements filtrés : type ajouté.\n\nAucun changement" in markdown
+
+
+@pytest.mark.parametrize(
+    "titre, html",
+    [
+        ("fake-ts : `salaryRange` codé", "fake-ts : <code>salaryRange</code> codé"),
+        ("`<b>` <b>gras</b>", "<code>&lt;b&gt;</code> &lt;b&gt;gras&lt;/b&gt;"),
+        ("[lien](https://example.com)", "[lien](https://example.com)"),
+        ("![image](https://example.com/p.png)", "![image](https://example.com/p.png)"),
+        ('" onmouseover="x', "&quot; onmouseover=&quot;x"),
+    ],
+)
+def test_title_html_only_renders_code_spans(titre, html):
+    result = Fragment(
+        path=Path("f.md"),
+        titre=titre,
+        type="ajoute",
+        date=TODAY,
+        pr=1,
+        liens=(),
+        entry="Un changement.",
+        subsections=(),
+    )
+
+    assert title_html(result) == html
+    assert isinstance(title_html(result), SafeString)
 
 
 def test_ordered_by_date_then_type_then_pr(tmp_path):
@@ -280,6 +353,7 @@ def test_changelog_entry_serializer(tmp_path):
     context = {"page_url": "https://csplab.fr/pages/changelog_api"}
     assert ChangelogEntrySerializer(result, context=context).data == {
         "id": "2219-null",
+        "titre": "Offres : un titre",
         "date": "2026-10-27",
         "type": "ajoute",
         "libelle_type": "Ajouté",
@@ -450,6 +524,7 @@ def test_set_date_only_changes_the_date(tmp_path):
         "f.md",
         header="type: ajoute\ndate: 2026-10-01  # date de merge\npr: 1",
         body="date: 2026-10-01 dans le corps.",
+        titre=None,
     )
 
     set_date(path, TODAY)
@@ -637,9 +712,33 @@ class TestChangelogFeed:
         assert len(entries) == len(expected)
         link = entries[0].find(f"{self.ATOM}link").get("href")
         assert link == f"http://testserver/pages/changelog_api#{expected[0].slug}"
-        assert entries[0].find(f"{self.ATOM}title").text.startswith("Retiré : ")
         entry_id = entries[0].find(f"{self.ATOM}id").text
         assert entry_id == f"tag:csplab.beta.gouv.fr:changelog-api:{expected[0].slug}"
+
+    def _titles(self, client, type_: str) -> list[str]:
+        response = client.get(reverse("api:changelog_atom"), {"type": type_})
+        feed = ET.fromstring(response.content)  # noqa: S314
+        entries = feed.iter(f"{self.ATOM}entry")
+        return [e.findtext(f"{self.ATOM}title", default="") for e in entries]
+
+    def test_strips_backticks_from_the_title(self, db, client):
+        assert (
+            "Offres : référence générée par CSPLab avec la valeur auto"
+            in self._titles(client, "ajoute")
+        )
+
+    def test_flags_breaking_changes_in_the_title(self, db, client):
+        assert (
+            "⚠️ Offres : champs du contrat renommés, type_contrat change de sens"
+            in self._titles(client, "non_retrocompatible")
+        )
+
+    def test_flags_removals_in_the_title(self, db, client):
+        title = (
+            "⚠️ Offres : conditions.complements retiré, "
+            "doublon de description.complements"
+        )
+        assert self._titles(client, "retire") == [title]
 
     def test_rejects_an_invalid_filter(self, db, client):
         response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})

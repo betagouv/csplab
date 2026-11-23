@@ -8,12 +8,20 @@ export function formatCandidatName(candidat: Candidat): string {
   return formatPersonName(candidat)
 }
 
+function formatOfCandidat(candidat: Candidat): string {
+  const name = formatCandidatName(candidat)
+  const preposition = /^[aeiouyhàâéèêëîïôûü]/i.test(name) ? 'd\'' : 'de '
+  return `${preposition}${name}`
+}
+
+export function formatCandidatTagsLabel(candidat: Candidat): string {
+  return `Étiquettes ${formatOfCandidat(candidat)}`
+}
+
 export function formatEtapeChangeTitle(candidats: Candidat[], etapeNom: string): string {
   const [candidat] = candidats
   if (candidats.length === 1 && candidat) {
-    const name = formatCandidatName(candidat)
-    const preposition = /^[aeiouyhàâéèêëîïôûü]/i.test(name) ? 'd\'' : 'de '
-    return `La candidature ${preposition}${name} est passée à l'étape ${etapeNom}`
+    return `La candidature ${formatOfCandidat(candidat)} est passée à l'étape ${etapeNom}`
   }
   return `${candidats.length} candidatures sont passées à l'étape ${etapeNom}`
 }
