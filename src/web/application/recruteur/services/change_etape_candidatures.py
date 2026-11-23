@@ -49,6 +49,7 @@ def change_etape_candidatures(
             recrutement = (
                 RecrutementModel.objects.active_by_id(recrutement_id)
                 .filter(organisme_id=organisme_id)
+                .select_for_update(of=("self",), no_key=True)
                 .get()
             )
         except RecrutementModel.DoesNotExist as error:

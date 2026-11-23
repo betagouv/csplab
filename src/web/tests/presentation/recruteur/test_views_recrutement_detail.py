@@ -934,6 +934,29 @@ class TestRecrutementCandidaturesEtapeView:
         }
         assert not AuditLogModel.objects.exists()
 
+    def test_returns_400_for_etape_outside_ordre_etapes(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, origine, _, candidatures = _recrutement_et_candidatures(
+            test_user
+        )
+        hors_ordre = EtapeDjangoFactory(recrutement=recrutement)
+
+        response = authenticated_client.patch(
+            _etape_url(organisme.id, recrutement.pk),
+            data=_corps(hors_ordre.id, [c.id for c in candidatures]),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": RecrutementEtapeInexistante(hors_ordre.id, recrutement.pk).message
+        }
+        assert set(CandidatureModel.objects.values_list("etape_id", flat=True)) == {
+            origine.id
+        }
+        assert not AuditLogModel.objects.exists()
+
     def test_returns_500_on_unexpected_error(self, authenticated_client, test_user):
         organisme, recrutement, _, cible, candidatures = _recrutement_et_candidatures(
             test_user

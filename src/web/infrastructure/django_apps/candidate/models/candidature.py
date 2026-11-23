@@ -70,8 +70,8 @@ class CandidatureQuerySet(TaggedQuerySet):
     ) -> "CandidatureQuerySet":
         return (
             self.filter(id__in=candidature_ids)
-            .select_for_update()
-            .select_related("candidat", "etape__recrutement__offre")
+            .select_related("etape")
+            .select_for_update(of=("self",))
         )
 
     def with_detail(self) -> "CandidatureQuerySet":

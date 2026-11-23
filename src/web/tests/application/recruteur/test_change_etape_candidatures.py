@@ -1,6 +1,8 @@
 from unittest.mock import patch
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from application.recruteur.services.change_etape_candidatures import (
     change_etape_candidatures,
@@ -58,3 +60,31 @@ def test_rolls_back_every_write_when_the_last_audit_log_fails(db):
         CandidatureModel.objects.values_list("etape_id", "updated_by_recruteur")
     ) == {(origine.id, None)}
     assert not AuditLogModel.objects.exists()
+
+
+def test_locks_the_recrutement_and_the_candidatures(db):
+    superviseur, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+    candidature = CandidatureDjangoFactory(etape=origine)
+
+    with CaptureQueriesContext(connection) as requetes:
+        change_etape_candidatures(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            utilisateur=superviseur.utilisateur,
+            etape_cible_id=cible.id,
+            candidature_ids=[candidature.id],
+        )
+
+    verrous = [
+        requete["sql"][requete["sql"].index(" FOR ") :]
+        for requete in requetes.captured_queries
+        if " FOR " in requete["sql"]
+    ]
+    assert sorted(verrous) == [
+        ' FOR NO KEY UPDATE OF "recrutement"',
+        ' FOR UPDATE OF "candidature"',
+    ]
