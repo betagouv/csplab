@@ -13,7 +13,7 @@ from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
-from infrastructure.django_apps.utils.models import BaseDatedModel
+from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 
 class OfferQuerySet(models.QuerySet):
@@ -55,8 +55,8 @@ class OfferQuerySet(models.QuerySet):
         )
 
     def _localisations(self):
-        localisation_model = self.model._meta.get_field("localisations").related_model
-        return localisation_model.objects.filter(offer=OuterRef("pk"))
+        localisation_model = related_model(self.model, "localisations")
+        return localisation_model._default_manager.filter(offer=OuterRef("pk"))
 
     def search(self, term: str) -> "OfferQuerySet":
         if not term:

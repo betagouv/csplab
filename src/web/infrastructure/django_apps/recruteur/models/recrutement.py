@@ -26,7 +26,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.tag.mixins import TaggedModelMixin, TaggedQuerySet
 from infrastructure.django_apps.users.fields import agent_fk
-from infrastructure.django_apps.utils.models import BaseDatedModel
+from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 
 def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subquery:
@@ -39,10 +39,6 @@ def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subque
         .annotate(valeur=aggregate)
         .values("valeur")
     )
-
-
-def _related_model(model: type[models.Model], name: str) -> type[models.Model]:
-    return model._meta.get_field(name).related_model  # type: ignore[return-value]
 
 
 def _version_of(
@@ -62,10 +58,10 @@ class RecrutementQuerySet(models.QuerySet):
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
 
     def with_list_version(self, utilisateur_id) -> "RecrutementQuerySet":
-        conversation_model = _related_model(CandidatureModel, "conversations")
-        message_model = _related_model(conversation_model, "messages")
-        lecture_model = _related_model(conversation_model, "lectures")
-        candidature_tag_model = _related_model(CandidatureModel, "tags_liaisons")
+        conversation_model = related_model(CandidatureModel, "conversations")
+        message_model = related_model(conversation_model, "messages")
+        lecture_model = related_model(conversation_model, "lectures")
+        candidature_tag_model = related_model(CandidatureModel, "tags_liaisons")
         by_conversation = "conversation__candidature__etape__recrutement"
         return self.annotate(
             list_version=JSONObject(
