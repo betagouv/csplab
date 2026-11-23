@@ -2,23 +2,12 @@ from datetime import datetime, timezone
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from django.db import DatabaseError
 from faker import Faker
-from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import (
     MultipleOffersFoundForReference,
     OfferDoesNotExist,
 )
-from referentiel.value_objects.area import GeographicalArea
-from referentiel.value_objects.category import Category
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
-from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_nature import OfferNature
-from referentiel.value_objects.region import Region
-from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.source_django_factory import (
@@ -30,7 +19,6 @@ from infrastructure.factories.ingestion.talentsoft_organisme_django_factory impo
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
@@ -94,254 +82,6 @@ def test_get_all_prefetches_localisations(db, repository, django_assert_num_quer
         results = repository.get_all()
 
     assert [len(offer.localisations) for offer in results] == [2, 2]
-
-
-class TestUpsertBatch:
-    def test_datetime_on_upsert(self, db, repository):
-        source = SourceDjangoFactory()
-        offer = OfferDjangoFactory(source=source)
-        offer_to_update = OfferDjangoFactory(source=source)
-        new_offer_entity = OfferFactory.create_entity(
-            source_id=_mapper.to_domain(offer).source_id
-        )
-
-        offers = [
-            _mapper.to_domain(offer_to_update),
-            new_offer_entity,
-        ]
-
-        timestamps = {
-            offer: (offer.created_at, offer.updated_at),
-            offer_to_update: (
-                offer_to_update.created_at,
-                offer_to_update.updated_at,
-            ),
-        }
-
-        assert not OfferModel.objects.filter(
-            reference=new_offer_entity.reference
-        ).exists()
-
-        repository.upsert_batch(offers)
-
-        created_at, updated_at = timestamps[offer]
-        offer.refresh_from_db()
-        assert offer.created_at == created_at
-        assert offer.updated_at == updated_at
-
-        created_at, updated_at = timestamps[offer_to_update]
-        offer_to_update.refresh_from_db()
-        assert offer_to_update.created_at == created_at
-        assert offer_to_update.updated_at > updated_at
-
-        assert OfferModel.objects.filter(reference=new_offer_entity.reference).exists()
-
-    def test_upsert_raises_error(self, db, repository):
-        with pytest.raises(DatabaseError):
-            repository.upsert_batch([{"dummy": "object"}])
-
-    def test_upsert_batch_with_empty_offers_list(self, db, repository):
-        result = repository.upsert_batch([])
-
-        assert result == {"created": 0, "updated": 0, "errors": [], "offres": []}
-
-    def test_multiple_offers_success(self, db, repository):
-        offers = OfferDjangoFactory.create_batch(2, source=SourceDjangoFactory())
-        entities = [_mapper.to_domain(offer) for offer in offers]
-        entities.append(OfferFactory.create_entity(source_id=entities[0].source_id))
-
-        result = repository.upsert_batch(entities)
-
-        assert result == {
-            "created": 1,
-            "updated": 2,
-            "errors": [],
-            "offres": [
-                {"reference": entities[0].reference, "statut": "updated"},
-                {"reference": entities[1].reference, "statut": "updated"},
-                {"reference": entities[2].reference, "statut": "created"},
-            ],
-        }
-
-        saved_by_reference = {
-            o.reference: o
-            for o in OfferModel.objects.filter(source_id=entities[0].source_id)
-        }
-
-        for entity in entities:
-            saved = saved_by_reference[entity.reference]
-            assert _mapper.to_domain(saved) == entity
-
-    def test_updated_datas_are_stored(self, db, repository):
-        offer = OfferDjangoFactory(
-            verse=Verse.FPT,
-            title="old title",
-            profile="old  profile",
-            mission="old mission",
-            categories=[Category.B],
-            offer_nature=OfferNature.CONTRACTUEL,
-            organization="old organization",
-            offer_url="https://fake.url/old",
-            code_emploi_csp="OLD001",
-            job_family_referential="RMFPv1",
-            functional_area_code="OLD",
-            area="EU",
-            country="FRA",
-            region="28",
-            department="14",
-            publication_date=datetime(2025, 5, 17, tzinfo=timezone.utc),
-            beginning_date=datetime(2025, 6, 17, tzinfo=timezone.utc),
-        )
-        now = datetime.now(timezone.utc)
-        entity = _mapper.to_domain(offer)
-        updated_fields = {
-            "verse": Verse.FPE,
-            "title": "title",
-            "profile": "profile",
-            "mission": "mission",
-            "categories": [Category.A],
-            "offer_nature": OfferNature.TITULAIRE_CONTRACTUEL,
-            "organization": "organization",
-            "offer_url": HttpUrl("https://fake.url/offer"),
-            "family_code": "NEW001",
-            "job_family_referential": "RMFPv2",
-            "functional_area_code": "NEW",
-            "localisations": [
-                Localisation(
-                    area=GeographicalArea("AM"),
-                    country=Country("FRA"),
-                    region=Region(code="03"),
-                    department=Department(code="973"),
-                )
-            ],
-            "publication_date": now,
-            "beginning_date": LimitDate(now),
-            "exercise_conditions": "Télétravail possible",
-            "service_description": "Service des ressources humaines",
-            "end_publication_date": now,
-            "application_deadline": now,
-            "job_vacancy_date": now,
-        }
-        for field, value in updated_fields.items():
-            setattr(entity, field, value)
-
-        result = repository.upsert_batch([entity])
-        assert result == {
-            "created": 0,
-            "updated": 1,
-            "errors": [],
-            "offres": [{"reference": entity.reference, "statut": "updated"}],
-        }
-
-        saved_offer = OfferModel.objects.get()
-        assert _mapper.to_domain(saved_offer) == entity
-
-    def test_upsert_offer_with_datetime_in_conditions(self, db, repository):
-        existing = OfferDjangoFactory()
-        source_id = existing.source_id
-
-        contract_start = datetime(2019, 8, 24, 14, 15, 22, tzinfo=timezone.utc)
-        contract_end = datetime(2019, 8, 24, 14, 15, 22, tzinfo=timezone.utc)
-        entity = OfferFactory.create_entity(source_id=source_id)
-        entity.conditions = {
-            "debut_contrat": contract_start,
-            "fin_contrat": contract_end,
-            "temps_travail": "TEMPS_PLEIN",
-        }
-
-        result = repository.upsert_batch([entity])
-
-        assert result == {
-            "created": 1,
-            "updated": 0,
-            "errors": [],
-            "offres": [{"reference": entity.reference, "statut": "created"}],
-        }
-        saved = OfferModel.objects.get(reference=entity.reference)
-        assert saved.conditions["debut_contrat"] == "2019-08-24T14:15:22Z"
-        assert saved.conditions["fin_contrat"] == "2019-08-24T14:15:22Z"
-
-    def test_upsert_unarchives_archived_offer(self, db, repository):
-        archived_offer = OfferDjangoFactory(archived_at=NOW)
-        assert archived_offer.archived_at is not None
-
-        entity = _mapper.to_domain(archived_offer)
-        entity.archived_at = None
-
-        result = repository.upsert_batch([entity])
-        assert result == {
-            "created": 0,
-            "updated": 1,
-            "errors": [],
-            "offres": [{"reference": entity.reference, "statut": "updated"}],
-        }
-
-        archived_offer.refresh_from_db()
-        assert archived_offer.archived_at is None
-
-    def test_existing_offer_is_matched_by_reference_and_source(self, db, repository):
-        existing = OfferDjangoFactory(reference="REF001", title="old title")
-        entity = OfferFactory.create_entity(
-            reference="REF001",
-            source_id=existing.source_id,
-            title="new title",
-        )
-
-        result = repository.upsert_batch([entity])
-
-        assert result == {
-            "created": 0,
-            "updated": 1,
-            "errors": [],
-            "offres": [{"reference": entity.reference, "statut": "updated"}],
-        }
-        saved = OfferModel.objects.get()
-        assert saved.id == existing.id
-        assert saved.title == "new title"
-
-    def test_same_reference_in_another_source_is_created(self, db, repository):
-        existing = OfferDjangoFactory(reference="REF001")
-        other_source = SourceDjangoFactory()
-        entity = OfferFactory.create_entity(
-            reference="REF001", source_id=other_source.source_id
-        )
-
-        result = repository.upsert_batch([entity])
-
-        assert result == {
-            "created": 1,
-            "updated": 0,
-            "errors": [],
-            "offres": [{"reference": entity.reference, "statut": "created"}],
-        }
-        assert set(
-            OfferModel.objects.filter(reference="REF001").values_list(
-                "source_id", flat=True
-            )
-        ) == {existing.source_id, other_source.source_id}
-
-    def test_batch_with_multiple_sources_raises(self, db, repository):
-        entities = [
-            OfferFactory.create_entity(source_id=SourceDjangoFactory().source_id),
-            OfferFactory.create_entity(source_id=SourceDjangoFactory().source_id),
-        ]
-
-        with pytest.raises(DatabaseError):
-            repository.upsert_batch(entities)
-
-        assert OfferModel.objects.count() == 0
-
-    def test_conflict_on_create_raises_instead_of_being_ignored(self, db, repository):
-        source_id = SourceDjangoFactory().source_id
-        entities = [
-            OfferFactory.create_entity(reference="REF001", source_id=source_id),
-            OfferFactory.create_entity(reference="REF001", source_id=source_id),
-        ]
-
-        with pytest.raises(DatabaseError):
-            repository.upsert_batch(entities)
-
-        assert OfferModel.objects.count() == 0
 
 
 class TestGetFilteredByGeo:
@@ -814,12 +554,3 @@ def test_mark_as_pending(db, repository):
 
     undesired_model_objects = OfferModel.objects.get(processing=True)
     assert undesired_model_objects.id == undesired_offer.id
-
-
-def test_multiple_offers_success(db, repository):
-    source = SourceDjangoFactory()
-    offers = OfferDjangoFactory.create_batch(2, source=source)
-    entities = [_mapper.to_domain(offer) for offer in offers]
-    entities.append(OfferFactory.create_entity(source_id=source.source_id))
-
-    repository.upsert_batch(entities)

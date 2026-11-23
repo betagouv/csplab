@@ -5,13 +5,12 @@ from config.app_config import AppConfig
 from domain.candidate.value_objects.opportunity_type import OpportunityType
 from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.factories.ingestion.source_django_factory import (
-    SourceDjangoFactory,
-)
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
@@ -50,14 +49,7 @@ def test_app_config(candidate_container):
 
 
 def test_execute_get_offer_details(db, candidate_container):
-    source = SourceDjangoFactory()
-    offer = OfferFactory.create_entity(
-        family_code="ERJUR011", source_id=source.source_id
-    )
-
-    offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([offer])
-
+    offer = OfferDjangoFactory(code_emploi_csp="ERJUR011")
     MetierDjangoFactory(offer_family_code="ERJUR011")
 
     usecase = candidate_container.get_opportunity_details_usecase()
@@ -67,4 +59,4 @@ def test_execute_get_offer_details(db, candidate_container):
 
     assert result_offer.id == offer.id
     assert len(result_metiers) == 1
-    assert result_metiers[0].offer_family_code == offer.family_code
+    assert result_metiers[0].offer_family_code == offer.code_emploi_csp

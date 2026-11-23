@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from domain.candidate.value_objects.opportunity_type import OpportunityType
@@ -21,8 +23,9 @@ def test_execute_get_offer_details(
     expected_metiers_count,
 ):
     offer = OfferFactory.create_entity(family_code=offer_family_code)
-    offer_repo = get_opportunity_details_usecase.offers_repository
-    offer_repo.upsert_batch([offer])
+    get_opportunity_details_usecase.offers_repository.get_by_id = MagicMock(
+        return_value=offer
+    )
 
     metier = MetierFactory.create_entity(offer_family_code=metier_family_code)
     metier_repo = get_opportunity_details_usecase.metiers_repository
