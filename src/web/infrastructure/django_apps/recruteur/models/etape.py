@@ -51,6 +51,12 @@ class EtapeModel(BaseDatedModel):
     def __str__(self) -> str:
         return str(self.recrutement)
 
+    @property
+    def motif_refus_required(self) -> bool:
+        return (
+            CategorieEtapeRecrutement(self.categorie) == CategorieEtapeRecrutement.REFUS
+        )
+
 
 def etapes_ordonnees(
     recrutement: "RecrutementModel", etapes: Iterable[EtapeModel] | None = None
