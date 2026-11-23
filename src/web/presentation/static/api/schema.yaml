@@ -7005,8 +7005,7 @@ components:
           type: string
           description: 'SIRET de l''organisme, à retrouver avec `GET /api/v1/organismes`
             (filtres `nom` et `siret`). L''offre est rattachée à cet organisme : un
-            SIRET invalide ou qui ne correspond à aucun organisme est refusé. Vide,
-            l''offre n''est rattachée à aucun organisme.'
+            SIRET vide, invalide ou qui ne correspond à aucun organisme est refusé.'
           maxLength: 14
         talentsoft_organisme_entity_code:
           type: string

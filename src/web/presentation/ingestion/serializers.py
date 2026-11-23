@@ -73,6 +73,7 @@ INVALID_LANGUAGE_CODE = (
 )
 DUPLICATE_LANGUAGE = "Chaque langue ne peut être citée qu'une fois."
 INVALID_SIRET = "SIRET invalide : 14 chiffres avec une clé de contrôle valide attendus."
+MISSING_SIRET = "SIRET obligatoire : retrouvez-le avec `GET /api/v1/organismes`."
 UNKNOWN_SIRET = (
     "Aucun organisme avec ce SIRET : retrouvez-le avec `GET /api/v1/organismes`."
 )
@@ -960,8 +961,7 @@ class OrganismeInputSerializer(OrganismeSerializer):
         allow_blank=True,
         help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
         "(filtres `nom` et `siret`). L'offre est rattachée à cet organisme : un "
-        "SIRET invalide ou qui ne correspond à aucun organisme est refusé. Vide, "
-        "l'offre n'est rattachée à aucun organisme.",
+        "SIRET vide, invalide ou qui ne correspond à aucun organisme est refusé.",
     )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
@@ -996,6 +996,10 @@ class OrganismeInputSerializer(OrganismeSerializer):
 
     def validate(self, data):
         if not data["siret"]:
+            # Only the CSPLab ingestion service may send an offer without SIRET:
+            # Talentsoft does not provide it.
+            if not self.context.get("allow_talentsoft_organisme", False):
+                raise serializers.ValidationError({"siret": [MISSING_SIRET]})
             return data
         organisme_id = (
             OrganismeModel.objects.not_supprimes()

@@ -12,13 +12,14 @@ contrôle puis ignoré, rattache désormais l'offre à l'organisme de ce SIRET, 
 renvoie `GET /api/v1/organismes`. Une offre est rejetée, et apparaît dans `errors`, si
 son SIRET :
 
+- est vide, avec le message « SIRET obligatoire : retrouvez-le avec
+  `GET /api/v1/organismes`. » ;
 - n'est pas composé de 14 chiffres avec une clé de contrôle valide, avec le message
   « SIRET invalide : 14 chiffres avec une clé de contrôle valide attendus. » ;
 - ne correspond à aucun organisme, avec le message « Aucun organisme avec ce SIRET :
   retrouvez-le avec `GET /api/v1/organismes`. ».
 
-Un SIRET vide reste accepté : l'offre n'est alors rattachée à aucun organisme.
-
 ### Compatibilité
 
-Reprenez le `siret` renvoyé par `GET /api/v1/organismes`, ou laissez le champ vide.
+Renseignez le `siret` renvoyé par `GET /api/v1/organismes` : un SIRET vide n'est plus
+accepté.

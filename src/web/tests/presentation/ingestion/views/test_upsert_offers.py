@@ -20,6 +20,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
 from infrastructure.factories.ingestion.offer_payload_factory import (
+    PAYLOAD_SIRET,
     PayloadOfferFactory,
     fake_datetime,
 )
@@ -40,6 +41,7 @@ from presentation.ingestion.serializers import (
     DUPLICATE_LANGUAGE,
     INVALID_LANGUAGE_CODE,
     INVALID_SIRET,
+    MISSING_SIRET,
     UNKNOWN_SIRET,
     ConditionsInputSerializer,
 )
@@ -251,6 +253,11 @@ def metier(db):
     return MetierDjangoFactory(
         offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
     )
+
+
+@pytest.fixture(autouse=True)
+def organisme(db):
+    return OrganismeDjangoFactory(siret=PAYLOAD_SIRET)
 
 
 def _upserted_offers() -> list[OfferModel]:
@@ -485,6 +492,8 @@ def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
     assert response.json()["errors"] == []
     (offer,) = _upserted_offers()
     assert offer.talentsoft_organisme_entity_code_id == entity_code
+    # The ingestion service sends no SIRET: the offer has no organisme.
+    assert offer.organisme_id is None
 
 
 def test_contacts_are_sorted_by_role_with_deduplicated_emails(
@@ -1431,12 +1440,13 @@ def test_duplicate_localisations_are_rejected(authenticated_client_with_source):
 @pytest.mark.parametrize(
     "siret,expected_error",
     [
+        ("", MISSING_SIRET),
         ("1234567890123", INVALID_SIRET),
         ("1234567890123A", INVALID_SIRET),
         ("12345678901234", INVALID_SIRET),
         ("73282932000074", UNKNOWN_SIRET),
     ],
-    ids=["13-digits", "letter", "wrong-checksum", "unknown"],
+    ids=["blank", "13-digits", "letter", "wrong-checksum", "unknown"],
 )
 def test_invalid_or_unknown_siret_is_rejected(
     authenticated_client_with_source, siret, expected_error
@@ -1482,15 +1492,13 @@ def test_siret_of_a_deleted_organisme_is_rejected(authenticated_client_with_sour
 
 
 def test_offer_is_attached_to_the_organisme_of_its_siret(
-    authenticated_client_with_source,
+    authenticated_client_with_source, organisme
 ):
-    organisme = OrganismeDjangoFactory()
     other_organisme = OrganismeDjangoFactory()
 
     for siret, expected in (
         (organisme.siret, organisme),
         (other_organisme.siret, other_organisme),
-        ("", None),
     ):
         offer = {
             **MINIMAL_VALID_OFFER,
