@@ -4,7 +4,6 @@ import { RouterView } from 'vue-router'
 import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
 import { getOrganismeAgents } from '@/features/organismes/api'
 import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
@@ -12,6 +11,7 @@ import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
 import { AGENT_ORGANISME, ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { equipe } from '@/test/handlers/equipe-recrutement'
 import {
   recrutementDetail,
   recrutementsActifs,
@@ -19,10 +19,6 @@ import {
 } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-
-vi.mock('@/features/equipe-recrutement/api', () => ({
-  getEquipeRecrutement: vi.fn(),
-}))
 
 vi.mock('@/api/organismes', () => ({
   getOrganismeDetail: vi.fn(),
@@ -164,10 +160,11 @@ describe('recrutementsActifsView', () => {
   })
 
   it('shows the assigned responsable in the équipe of the recrutement', async () => {
-    vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValueOnce([]).mockResolvedValue([MEMBRE_EQUIPE])
     server.use(
+      equipe([]),
       recrutementsActifs([{ ...SECOND_RECRUTEMENT, uuid: RECRUTEMENT_UUID, responsables: [] }]),
       recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] }),
+      responsableAssignment({ reussites: [RECRUTEMENT_UUID], echecs: [] }, () => server.use(equipe([MEMBRE_EQUIPE]))),
     )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: EQUIPE_PATH })
