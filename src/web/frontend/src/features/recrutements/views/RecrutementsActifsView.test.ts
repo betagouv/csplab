@@ -1,10 +1,8 @@
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
-import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { getOrganismeAgents } from '@/features/organismes/api'
 import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
@@ -12,6 +10,7 @@ import { AGENT_ORGANISME, ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { equipe } from '@/test/handlers/equipe-recrutement'
+import { organismeAgents, organismeDetail } from '@/test/handlers/organismes'
 import {
   recrutementDetail,
   recrutementsActifs,
@@ -19,15 +18,6 @@ import {
 } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-
-vi.mock('@/api/organismes', () => ({
-  getOrganismeDetail: vi.fn(),
-}))
-
-vi.mock('@/features/organismes/api', async importOriginal => ({
-  ...await importOriginal<typeof import('@/features/organismes/api')>(),
-  getOrganismeAgents: vi.fn(),
-}))
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 const ORGANISME_PATH = `/organismes/${ORGANISME_UUID}`
@@ -179,9 +169,12 @@ describe('recrutementsActifsView', () => {
   })
 
   it('shows the assigned responsable among the agents of the organisme', async () => {
-    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: ORGANISME_UUID })
-    vi.mocked(getOrganismeAgents).mockReset().mockResolvedValueOnce([]).mockResolvedValue([AGENT_ORGANISME])
-    server.use(recrutementsActifs(SECOND_WITHOUT_RESPONSABLE))
+    server.use(
+      organismeDetail({ ...ORGANISME_DETAIL, uuid: ORGANISME_UUID }),
+      organismeAgents([]),
+      recrutementsActifs(SECOND_WITHOUT_RESPONSABLE),
+      responsableAssignment(undefined, () => server.use(organismeAgents([AGENT_ORGANISME]))),
+    )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: ORGANISME_PATH })
     await screen.findByText('0 compte utilisateur')
