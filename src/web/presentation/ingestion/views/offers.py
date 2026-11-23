@@ -20,10 +20,10 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
     GetOffersBySourceInput,
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
+from application.ingestion.services.upsert_offers import build_offer, upsert_offers
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -33,7 +33,6 @@ from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
-from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
     ARCHIVE_OFFER_EXAMPLES,
@@ -318,7 +317,6 @@ class OffersUpsertView(PublicApiMixin, APIView):
         valid_offers = []
         valid_indexes = []
         errors = []
-        offer_mapper = OfferInputMapper()
         jwt_authenticated = isinstance(request.user, UserModel)
 
         for index, offer_data in enumerate(request.data["offres"]):
@@ -339,9 +337,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 )
                 continue
             try:
-                valid_offers.append(
-                    offer_mapper.to_domain(serializer.validated_data, source_id)
-                )
+                valid_offers.append(build_offer(source_id, serializer.validated_data))
                 valid_indexes.append(index)
             except Exception as e:
                 errors.append(
@@ -353,12 +349,12 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 )
 
         unknown = unknown_generated_references(
-            source_id, [offer.reference for offer in valid_offers]
+            source_id, [pending.offer.reference for pending in valid_offers]
         )
         if unknown:
             kept = []
-            for index, offer in zip(valid_indexes, valid_offers, strict=True):
-                if offer.reference in unknown:
+            for index, pending in zip(valid_indexes, valid_offers, strict=True):
+                if pending.offer.reference in unknown:
                     errors.append(
                         {
                             "index": index,
@@ -367,21 +363,14 @@ class OffersUpsertView(PublicApiMixin, APIView):
                         }
                     )
                 else:
-                    kept.append((index, offer))
+                    kept.append((index, pending))
             valid_indexes = [index for index, _ in kept]
-            valid_offers = [offer for _, offer in kept]
+            valid_offers = [pending for _, pending in kept]
 
-        utilisateur_username = request.user.username if jwt_authenticated else None
         try:
-            usecase = container.upsert_offers_usecase()
-            result = usecase.execute(
-                UpsertOffersInput(
-                    source_id=source_id,
-                    offers=valid_offers,
-                    utilisateur_username=utilisateur_username,
-                )
+            result = upsert_offers(
+                source_id, valid_offers, request.user if jwt_authenticated else None
             )
-            result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
             offres = [
                 {
                     "index": index,
@@ -397,7 +386,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     "creees": result["created"],
                     "mises_a_jour": result["updated"],
                     "offres": offres,
-                    "errors": result["errors"],
+                    "errors": sorted(errors, key=lambda error: error["index"]),
                 },
                 status=status.HTTP_201_CREATED,
             )
