@@ -8,7 +8,7 @@ import { ETAPES_RECRUTEMENT } from '@/test/fixtures/etapes'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getEtapesOffre, initEtapesOffre, updateEtapesOffre } from '../api'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
-import EtapesRecrutementList from './EtapesRecrutementList.vue'
+import EtapesRecrutementSection from './EtapesRecrutementSection.vue'
 
 vi.mock('../api', () => ({
   getEtapesOffre: vi.fn(),
@@ -24,7 +24,7 @@ const ETAPES = ETAPES_RECRUTEMENT
 const REFUSAL_REASON = 'L\'étape cccc ne peut être supprimée car 3 candidatures sont en cours'
 
 const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(EtapesRecrutementList, {
+  setup: () => () => h(CspToaster, null, () => h(EtapesRecrutementSection, {
     params: { type: 'offre', organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID },
     texts: ETAPES_TEXTS_OFFRE,
   })),
@@ -72,7 +72,7 @@ async function addEtape(nom: string) {
   return user
 }
 
-describe('etapesRecrutementList', () => {
+describe('etapesRecrutementSection', () => {
   beforeEach(() => {
     vi.mocked(getEtapesOffre).mockReset().mockResolvedValue(ETAPES)
     vi.mocked(updateEtapesOffre).mockReset()

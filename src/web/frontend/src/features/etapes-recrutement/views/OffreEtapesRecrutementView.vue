@@ -11,7 +11,7 @@ import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcr
 import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 import { can } from '@/utils/authorizedActions'
 import ForbiddenView from '@/views/ForbiddenView.vue'
-import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
+import EtapesRecrutementSection from '../components/EtapesRecrutementSection.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
 const props = defineProps<{
@@ -64,7 +64,7 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
       v-else
       width="reading"
     >
-      <EtapesRecrutementList
+      <EtapesRecrutementSection
         :params="{ type: 'offre', organismeUuid, recrutementUuid }"
         :texts="ETAPES_TEXTS_OFFRE"
       />
