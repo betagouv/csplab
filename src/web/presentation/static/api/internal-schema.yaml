@@ -1138,7 +1138,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeOrganisme'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1257,7 +1257,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeOrganisme'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1372,7 +1372,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeOrganisme'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6853,6 +6853,18 @@ components:
       - taille
       - type
       - uuid
+    EtapeActionsEnum:
+      enum:
+      - edit_etape
+      - delete_etape
+      - insert_etape_before
+      - insert_etape_after
+      type: string
+      description: |-
+        * `edit_etape` - edit_etape
+        * `delete_etape` - delete_etape
+        * `insert_etape_before` - insert_etape_before
+        * `insert_etape_after` - insert_etape_after
     EtapeCandidatureDetail:
       type: object
       properties:
@@ -6862,6 +6874,28 @@ components:
         nom:
           type: string
       required:
+      - nom
+      - uuid
+    EtapeOrganisme:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        categorie:
+          allOf:
+          - $ref: '#/components/schemas/CategorieEnum'
+          readOnly: true
+        etape_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeActionsEnum'
+          readOnly: true
+      required:
+      - categorie
+      - etape_actions
       - nom
       - uuid
     EtapeRecrutement:
