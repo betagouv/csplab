@@ -20,4 +20,13 @@ describe('cspLabel', () => {
     expect(onClick).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: 'Modifier Libellé' })).toBeInTheDocument()
   })
+
+  it('puts the class and style of the caller on the element that wraps the label and its dismiss button', () => {
+    render(CspLabel, { props: { label: 'Libellé', dismissLabel: 'Retirer Libellé' }, attrs: { class: 'mise-en-page', style: 'margin: 4px' } })
+    // eslint-disable-next-line testing-library/no-node-access -- the wrapper has no role: it only lays out the label and its dismiss button
+    const wrapper = screen.getByRole('button', { name: 'Retirer Libellé' }).parentElement
+    expect(wrapper).toHaveClass('mise-en-page')
+    expect(wrapper).toHaveStyle({ margin: '4px' })
+    expect(wrapper).toContainElement(screen.getByText('Libellé'))
+  })
 })

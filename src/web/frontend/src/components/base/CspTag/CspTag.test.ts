@@ -87,6 +87,13 @@ describe('cspTagGroup', () => {
     return render(Host, { props: { groupProps } })
   }
 
+  it('applies the size of the group to every tag', () => {
+    renderGroup({ modelValue: [], size: 'sm' })
+    const tags = screen.getAllByRole('button')
+    expect(tags).toHaveLength(2)
+    tags.forEach(tag => expect(tag).toHaveClass('csp-tag--sm'))
+  })
+
   it('single mode: selecting a tag updates the v-model', async () => {
     const user = setupUser()
     const onUpdate = vi.fn()
