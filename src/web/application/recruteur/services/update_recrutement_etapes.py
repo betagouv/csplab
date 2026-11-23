@@ -14,7 +14,7 @@ from application.recruteur.errors.application_errors_recruteur import (
     RecrutementEtapeIncoherents,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
@@ -46,7 +46,7 @@ def update_recrutement_etapes(
     etapes: Sequence[EtapeData],
 ) -> list[EtapeModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+        action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

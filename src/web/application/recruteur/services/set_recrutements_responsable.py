@@ -13,7 +13,7 @@ from application.recruteur.context_services.organisme_agent_service import (
     get_profil_agent,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -44,7 +44,7 @@ def set_recrutements_responsable(
     utilisateur: UserModel,
 ) -> SetRecrutementsResponsableResult:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
+        action=PermissionAction.SET_RECRUTEMENTS_RESPONSABLE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

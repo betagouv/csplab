@@ -10,7 +10,7 @@ from application.recruteur.context_services.authorized_actions import (
     set_etape_actions_of_recrutement,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
     SupressionEtapeImpossible,
@@ -33,7 +33,7 @@ def initialize_recrutement_etapes(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[EtapeModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.INIT_RECRUTEMENT_ETAPES,
+        action=PermissionAction.INIT_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

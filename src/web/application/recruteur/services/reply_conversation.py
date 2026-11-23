@@ -14,7 +14,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.messagerie.models import (
     MessageDocumentModel,
@@ -37,7 +37,7 @@ def reply_conversation(
     utilisateur: UserModel,
 ) -> MessageModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.REPLY_CONVERSATION,
+        action=PermissionAction.REPLY_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

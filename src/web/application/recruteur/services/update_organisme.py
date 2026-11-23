@@ -10,7 +10,7 @@ from application.identite.context_services.organisme_permission_service import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -27,7 +27,7 @@ def update_organisme(
     gestion_ats: bool,
 ) -> OrganismeModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_ORGANISME,
+        action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

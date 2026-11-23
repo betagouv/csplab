@@ -8,7 +8,7 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
     OrganismePermissionError,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -41,7 +41,7 @@ def authorized_actions_of_organisme(
         ),
         *organisme_permissions.authorized_actions_staff_organisme(utilisateur),
     }
-    return [action.value for action in OrganismeAction if action in actions]
+    return [action.value for action in PermissionAction if action in actions]
 
 
 def authorized_actions_of_recrutement(
@@ -62,7 +62,7 @@ def authorized_actions_of_recrutement(
 def authorized_actions_of_etapes(
     categories: Sequence[CategorieEtapeRecrutement],
     *,
-    action: OrganismeAction,
+    action: PermissionAction,
     organisme_id: UUID,
     utilisateur: UserModel,
     recrutement_id: UUID | None = None,
@@ -105,7 +105,7 @@ def set_etape_actions_of_organisme(
     etapes = organisme.etapes or []
     actions = authorized_actions_of_etapes(
         [CategorieEtapeRecrutement(etape["categorie"]) for etape in etapes],
-        action=OrganismeAction.UPDATE_ORGANISME_STEPS,
+        action=PermissionAction.UPDATE_ORGANISME_STEPS,
         organisme_id=organisme.id,
         utilisateur=utilisateur,
     )
@@ -124,7 +124,7 @@ def set_etape_actions_of_recrutement(
 ) -> None:
     actions = authorized_actions_of_etapes(
         [CategorieEtapeRecrutement(etape.categorie) for etape in etapes],
-        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+        action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         organisme_id=organisme_id,
         utilisateur=utilisateur,
         recrutement_id=recrutement_id,

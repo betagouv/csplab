@@ -7,7 +7,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -19,7 +19,7 @@ def list_organisme_agents(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> QuerySet[OrganismeAgentModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_ORGANISME_AGENTS,
+        action=PermissionAction.LIST_ORGANISME_AGENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

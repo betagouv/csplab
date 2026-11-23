@@ -10,7 +10,7 @@ from application.identite.context_services.organisme_permission_service import (
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from domain.identite.value_objects.email import normalize_email
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.users.models import ProfilAgentModel, UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
@@ -21,7 +21,7 @@ def create_agent(
     *, email: str, organisme_id: UUID, utilisateur: UserModel
 ) -> ProfilAgentModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.CREATE_AGENT,
+        action=PermissionAction.CREATE_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

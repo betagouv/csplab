@@ -10,7 +10,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.tag_errors import TagNotOnMember
 from infrastructure.django_apps.tag.models import RecrutementAgentTagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -28,7 +28,7 @@ def remove_recrutement_agent_tag(
     utilisateur: UserModel,
 ) -> None:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.MANAGE_TAG_ON_MEMBER,
+        action=PermissionAction.MANAGE_TAG_ON_MEMBER,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

@@ -10,7 +10,7 @@ from application.recruteur.context_services.authorized_actions import (
     set_recrutement_authorized_actions,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.messagerie.models import unread_conversations_count
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -24,7 +24,7 @@ def _agent_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> RecrutementQuerySet:
     role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_RECRUTEMENTS,
+        action=PermissionAction.LIST_RECRUTEMENTS,
         organisme_id=organisme_id,
         utilisateur=utilisateur,
     )

@@ -7,7 +7,7 @@ from application.recruteur.context_services.authorized_actions import (
     set_recrutement_authorized_actions,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
@@ -17,7 +17,7 @@ def get_recrutement(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> RecrutementModel:
     role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT,
+        action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
