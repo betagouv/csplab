@@ -28,6 +28,7 @@ import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
+import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
 import CandidatureHistorique from '../components/CandidatureHistorique.vue'
 import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
@@ -67,6 +68,7 @@ const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candi
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
 const canChangeEtape = computed(() => can(candidature.value?.authorized_actions, 'change_etape_candidatures'))
+const canManageTags = computed(() => can(candidature.value?.authorized_actions, 'manage_tag_on_application'))
 const navigation = useCandidatureNavigation(() => props.candidatureUuid)
 const { position, goPrevious, goNext } = navigation
 
@@ -318,6 +320,11 @@ function handleUpdateOpen(open: boolean): void {
                 <CandidatureActivites
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
+                />
+                <CandidatureEtiquettes
+                  :candidature="candidatureParams"
+                  :tags="candidature.tags"
+                  :editable="canManageTags"
                 />
                 <CspSeparator v-show="!isNotesTab" />
                 <CandidatureNoteForm

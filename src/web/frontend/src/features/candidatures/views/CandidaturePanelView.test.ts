@@ -21,6 +21,7 @@ import {
   RECRUTEMENT_UUID,
   USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
+import { TAG_TO_RECALL } from '@/test/fixtures/tags'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { RoutesWithToasts, setupUser } from '@/test/render'
 import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getCandidatureNotes, getMotifsRefus, patchEtapeCandidatures } from '../api'
@@ -86,6 +87,33 @@ describe('candidaturePanelView', () => {
     expect(panel.getByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
     expect(panel.getByText('candidat@example.fr')).toBeInTheDocument()
     expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
+  })
+
+  it('lets a user who manages tags add one from the follow-up column', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      tags: [TAG_TO_RECALL],
+      authorized_actions: ['manage_tag_on_application'],
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const etiquettes = within(await suivi.findByRole('region', { name: 'Étiquettes' }))
+    expect(etiquettes.getByText('À rappeler')).toBeInTheDocument()
+    expect(etiquettes.getByRole('button', { name: 'Ajouter une étiquette à la candidature' })).toBeInTheDocument()
+  })
+
+  it('shows the tags of the candidature without the add button to a user who cannot manage them', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      tags: [TAG_TO_RECALL],
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const etiquettes = within(await suivi.findByRole('region', { name: 'Étiquettes' }))
+    expect(etiquettes.getByText('À rappeler')).toBeInTheDocument()
+    expect(etiquettes.queryByRole('button', { name: 'Ajouter une étiquette à la candidature' })).not.toBeInTheDocument()
   })
 
   it('shows why a refused candidature was refused in the follow-up column', async () => {

@@ -3,6 +3,7 @@ import type { CandidatureParams } from '@/api/params'
 import type { NavigationPredicate } from '@/composables/navigation/useUnsavedChanges'
 import { useId } from 'vue'
 import { useSubmitNewNote } from '../composables/useSubmitNewNote'
+import CandidatureAsideTitle from './CandidatureAsideTitle.vue'
 import CandidatureNoteEditor from './CandidatureNoteEditor.vue'
 
 const props = defineProps<{
@@ -23,12 +24,9 @@ const leavesCandidature: NavigationPredicate = (to, from) => to.params.candidatu
     class="candidature-note-form"
     :aria-labelledby="titleId"
   >
-    <h3
-      :id="titleId"
-      class="candidature-note-form__title"
-    >
+    <CandidatureAsideTitle :id="titleId">
       {{ TITLE }}
-    </h3>
+    </CandidatureAsideTitle>
     <CandidatureNoteEditor
       :label="TITLE"
       :submitting="creating"
@@ -44,10 +42,9 @@ const leavesCandidature: NavigationPredicate = (to, from) => to.params.candidatu
 </template>
 
 <style scoped lang="scss">
-.candidature-note-form__title {
-  margin: 0 0 var(--csp-space-3);
-  font-size: var(--csp-font-size-base);
-  font-weight: var(--csp-font-weight-bold);
-  color: var(--text-title-grey);
+.candidature-note-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-3);
 }
 </style>

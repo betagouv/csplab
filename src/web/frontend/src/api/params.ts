@@ -18,6 +18,10 @@ export interface TagParams extends OrganismeParams {
   tagUuid: string
 }
 
+export interface CandidatureTagParams extends CandidatureParams {
+  tagUuid: string
+}
+
 export interface DocumentParams extends CandidatureParams {
   documentUuid: string
 }
