@@ -23,7 +23,7 @@ def list_documents(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[DocumentModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_DOCUMENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -31,7 +31,7 @@ def delete_note(
     note_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.DELETE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

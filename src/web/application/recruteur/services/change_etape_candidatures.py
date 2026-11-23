@@ -35,7 +35,7 @@ def change_etape_candidatures(
     candidature_ids: Sequence[UUID],
     motif_refus: str | None = None,
 ) -> tuple[list[UUID], list[tuple[UUID, RecrutementCandidatureInexistante]]]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CHANGE_ETAPE_CANDIDATURES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

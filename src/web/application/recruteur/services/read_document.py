@@ -31,7 +31,7 @@ def read_document(
     document_id: UUID,
     utilisateur: UserModel,
 ) -> DocumentDownload:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.READ_DOCUMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

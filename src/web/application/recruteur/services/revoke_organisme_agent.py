@@ -23,7 +23,7 @@ def revoke_organisme_agent(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> OrganismeAgentModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.REVOKE_ORGANISME_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

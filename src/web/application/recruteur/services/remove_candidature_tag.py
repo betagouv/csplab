@@ -31,7 +31,7 @@ def remove_candidature_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.MANAGE_TAG_ON_APPLICATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

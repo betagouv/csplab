@@ -24,7 +24,7 @@ def update_organisme_agent(
     role: AgentOrganismeRole,
     utilisateur: UserModel,
 ) -> OrganismeAgentModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_ORGANISME_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

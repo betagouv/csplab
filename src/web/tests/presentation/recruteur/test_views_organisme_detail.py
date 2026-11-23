@@ -242,7 +242,7 @@ class TestOrganismeDetailView:
     ):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
 
-        with patch.object(PermissionService, "can_execute", side_effect=exception):
+        with patch.object(PermissionService, "authorize", side_effect=exception):
             response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status

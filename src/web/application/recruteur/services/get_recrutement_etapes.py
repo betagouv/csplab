@@ -31,7 +31,7 @@ def recrutement_etapes(*, organisme_id: UUID, recrutement_id: UUID) -> list[Etap
 def get_recrutement_etapes(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[EtapeModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

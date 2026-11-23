@@ -17,7 +17,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 
 
 def delete_tag(*, organisme_id: UUID, tag_id: UUID, utilisateur: UserModel) -> None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.DELETE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

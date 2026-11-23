@@ -56,7 +56,7 @@ def test_raises_when_organisme_is_supprime_after_permission_check():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     _supprime(organisme)
 
-    with patch.object(PermissionService, "can_execute"):
+    with patch.object(PermissionService, "authorize"):
         with pytest.raises(OrganismeNexistePas) as raised:
             get_organisme(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 

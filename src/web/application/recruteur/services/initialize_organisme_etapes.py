@@ -22,7 +22,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def initialize_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.INITIALIZE_ORGANISME_STEPS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

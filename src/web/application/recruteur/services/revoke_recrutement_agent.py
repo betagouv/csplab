@@ -28,7 +28,7 @@ def revoke_recrutement_agent(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -40,7 +40,7 @@ def revoke_recrutement_agent(
     )
     contexte.check_recrutement_belongs_to_organisme()
     # TODO : duplicate query — same OrganismeAgentModel table already queried inside
-    # PermissionService.can_execute() above (for the acting utilisateur rather
+    # PermissionService.authorize() above (for the acting utilisateur rather
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)

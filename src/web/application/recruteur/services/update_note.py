@@ -32,7 +32,7 @@ def update_note(
     utilisateur: UserModel,
     est_privee: bool | None = None,
 ) -> NoteModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -11,7 +11,7 @@ from infrastructure.django_apps.users.models import UserModel
 def list_motifs_refus(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> list[MotifRefus]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.GET_MOTIFS_REFUS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

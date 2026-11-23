@@ -25,7 +25,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def update_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel, etapes: Sequence[EtapeData]
 ) -> OrganismeModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_ORGANISME_STEPS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

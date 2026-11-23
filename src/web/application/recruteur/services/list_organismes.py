@@ -17,7 +17,7 @@ from infrastructure.django_apps.users.models import UserModel
 def list_organismes(
     *, utilisateur: UserModel, recherche: str | None = None
 ) -> QuerySet[OrganismeModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )

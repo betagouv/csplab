@@ -20,7 +20,7 @@ def list_candidatures(
     recrutement_id: UUID,
     utilisateur: UserModel,
 ) -> tuple[RecrutementModel, QuerySet[CandidatureModel], QuerySet[EtapeModel]]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -31,7 +31,7 @@ def create_note(
     utilisateur: UserModel,
     est_privee: bool = False,
 ) -> NoteModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -23,7 +23,7 @@ def list_conversations(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[ConversationModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_CONVERSATIONS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -161,7 +161,7 @@ class TestListRecrutements:
     def test_missing_organisme_role_is_refused(self, lister):
         agent, organisme = self._supervisor()
 
-        with patch.object(PermissionService, "can_execute", return_value=None):
+        with patch.object(PermissionService, "authorize", return_value=None):
             with pytest.raises(OperationOrganismeRefusee):
                 lister(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 

@@ -53,7 +53,7 @@ def read_conversation(
     conversation_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[MessageModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.READ_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

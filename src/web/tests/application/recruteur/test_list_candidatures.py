@@ -89,14 +89,14 @@ def test_raises(scenario, expected_error):
 def test_raises_when_the_recrutement_disappears_after_the_permission_check():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     recrutement = RecrutementDjangoFactory(organisme=organisme)
-    can_execute = PermissionService.can_execute
+    authorize = PermissionService.authorize
 
-    def can_execute_then_delete(self, **kwargs):
-        can_execute(self, **kwargs)
+    def authorize_then_delete(self, **kwargs):
+        authorize(self, **kwargs)
         recrutement.delete()
 
     with (
-        patch.object(PermissionService, "can_execute", can_execute_then_delete),
+        patch.object(PermissionService, "authorize", authorize_then_delete),
         pytest.raises(RecrutementInexistant),
     ):
         list_candidatures(

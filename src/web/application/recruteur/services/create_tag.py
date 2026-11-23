@@ -24,7 +24,7 @@ def create_tag(
     category: TagCategory,
     color: TagColor = TagColor.BLEU,
 ) -> TagModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

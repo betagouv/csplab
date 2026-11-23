@@ -31,7 +31,7 @@ def update_note_visibility(
     est_privee: bool,
     utilisateur: UserModel,
 ) -> NoteModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

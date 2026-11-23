@@ -36,7 +36,7 @@ def reply_conversation(
     documents: list[UploadedFile],
     utilisateur: UserModel,
 ) -> MessageModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.REPLY_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -27,7 +27,7 @@ def add_recrutement_agent_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.MANAGE_TAG_ON_MEMBER,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

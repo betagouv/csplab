@@ -775,7 +775,7 @@ class TestRecrutementListeView:
     ):
         with patch.object(
             PermissionService,
-            "can_execute",
+            "authorize",
             side_effect=Exception("unexpected"),
         ):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)

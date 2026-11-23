@@ -45,7 +45,7 @@ def update_recrutement_etapes(
     utilisateur: UserModel,
     etapes: Sequence[EtapeData],
 ) -> list[EtapeModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

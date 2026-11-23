@@ -16,7 +16,7 @@ from infrastructure.django_apps.users.models import UserModel
 def get_recrutement(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> RecrutementModel:
-    organisme_role = PermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

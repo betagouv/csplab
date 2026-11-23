@@ -35,7 +35,7 @@ def list_notes(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[NoteModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -82,7 +82,7 @@ def with_authorized_actions(
 def _actions_on_own_note(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[str]:
-    organisme_role = PermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -323,7 +323,7 @@ class PermissionService:
         ):
             raise RoleRecrutementNonAutorise(role)
 
-    def can_execute(
+    def authorize(
         self,
         *,
         action: PermissionAction,

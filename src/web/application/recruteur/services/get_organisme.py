@@ -17,7 +17,7 @@ from infrastructure.django_apps.users.models import UserModel
 def get_organisme(*, organisme_id: UUID, utilisateur: UserModel) -> OrganismeModel:
     role = cast(
         AgentOrganismeRole,
-        PermissionService().can_execute(
+        PermissionService().authorize(
             action=PermissionAction.GET_ORGANISME,
             utilisateur=utilisateur,
             organisme_id=organisme_id,

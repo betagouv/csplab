@@ -24,7 +24,7 @@ def update_tag(
     name: str,
     color: TagColor,
 ) -> TagModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

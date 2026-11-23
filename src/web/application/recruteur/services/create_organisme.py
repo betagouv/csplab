@@ -33,7 +33,7 @@ def create_organisme(
     localisation: Localisation | None = None,
     parent_id: UUID | None = None,
 ) -> OrganismeModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_ORGANISME,
         utilisateur=utilisateur,
     )

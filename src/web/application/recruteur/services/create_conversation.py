@@ -37,7 +37,7 @@ def create_conversation(
     documents: list[UploadedFile],
     utilisateur: UserModel,
 ) -> ConversationModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

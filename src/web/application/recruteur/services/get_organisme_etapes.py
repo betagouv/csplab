@@ -15,7 +15,7 @@ from infrastructure.django_apps.users.models import UserModel
 def get_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.GET_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -42,7 +42,7 @@ def get_candidature(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> CandidatureDetail:
-    organisme_role = PermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.GET_CANDIDATURE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

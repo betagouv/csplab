@@ -33,7 +33,7 @@ def add_note_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

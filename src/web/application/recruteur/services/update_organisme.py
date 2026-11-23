@@ -26,7 +26,7 @@ def update_organisme(
     versant: Verse,
     gestion_ats: bool,
 ) -> OrganismeModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

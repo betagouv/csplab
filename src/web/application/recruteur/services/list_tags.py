@@ -16,7 +16,7 @@ def list_tags(
     utilisateur: UserModel,
     category: TagCategory | None = None,
 ) -> QuerySet[TagModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_TAGS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

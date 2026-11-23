@@ -34,7 +34,7 @@ def add_recrutement_agent(
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
     permissions = PermissionService()
-    demandeur_role = permissions.can_execute(
+    demandeur_role = permissions.authorize(
         action=PermissionAction.ADD_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

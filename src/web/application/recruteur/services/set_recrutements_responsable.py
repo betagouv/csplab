@@ -43,7 +43,7 @@ def set_recrutements_responsable(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> SetRecrutementsResponsableResult:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.SET_RECRUTEMENTS_RESPONSABLE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

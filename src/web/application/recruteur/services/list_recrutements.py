@@ -23,7 +23,7 @@ from infrastructure.django_apps.users.models import UserModel
 def _agent_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> RecrutementQuerySet:
-    organisme_role = PermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.LIST_RECRUTEMENTS,
         organisme_id=organisme_id,
         utilisateur=utilisateur,

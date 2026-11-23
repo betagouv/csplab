@@ -10,7 +10,7 @@ from infrastructure.django_apps.users.models import ProfilAgentModel, UserModel
 def search_agent_by_email(
     *, organisme_id: UUID, utilisateur: UserModel, email: str
 ) -> ProfilAgentModel | None:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.SEARCH_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

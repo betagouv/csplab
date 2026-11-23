@@ -69,7 +69,7 @@ def authorized_actions_of_etapes(
     nb_candidatures: Sequence[int] | None = None,
 ) -> list[list[str]]:
     try:
-        permissions.can_execute(
+        permissions.authorize(
             action=action,
             utilisateur=utilisateur,
             organisme_id=organisme_id,

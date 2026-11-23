@@ -18,7 +18,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def list_organisme_agents(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> QuerySet[OrganismeAgentModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_ORGANISME_AGENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

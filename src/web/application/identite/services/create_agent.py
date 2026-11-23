@@ -20,7 +20,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def create_agent(
     *, email: str, organisme_id: UUID, utilisateur: UserModel
 ) -> ProfilAgentModel:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

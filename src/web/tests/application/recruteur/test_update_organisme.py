@@ -36,15 +36,15 @@ def _update(organisme_id, utilisateur):
     )
 
 
-@patch.object(PermissionService, "can_execute", side_effect=OperationOrganismeRefusee())
-def test_checks_permission_before_writing(can_execute):
+@patch.object(PermissionService, "authorize", side_effect=OperationOrganismeRefusee())
+def test_checks_permission_before_writing(authorize):
     organisme = OrganismeDjangoFactory()
     utilisateur = UtilisateurDjangoFactory(is_staff=False)
 
     with pytest.raises(OperationOrganismeRefusee):
         _update(organisme.id, utilisateur)
 
-    can_execute.assert_called_once_with(
+    authorize.assert_called_once_with(
         action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme.id,
@@ -53,7 +53,7 @@ def test_checks_permission_before_writing(can_execute):
     assert not AuditLogModel.objects.exists()
 
 
-@patch.object(PermissionService, "can_execute", new=Mock())
+@patch.object(PermissionService, "authorize", new=Mock())
 def test_raises_when_organisme_disappears_after_permission_check():
     organisme_id = uuid4()
 

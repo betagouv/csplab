@@ -32,7 +32,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def initialize_recrutement_etapes(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[EtapeModel]:
-    PermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.INIT_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
