@@ -13,6 +13,7 @@ from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 
@@ -102,6 +103,13 @@ class OfferModel(BaseDatedModel):
     talentsoft_organisme_entity_code = models.ForeignKey(
         TalentsoftOrganismeModel,
         to_field="entity_code",
+        on_delete=models.PROTECT,
+        related_name="offers",
+        null=True,
+        blank=True,
+    )
+    organisme = models.ForeignKey(
+        OrganismeModel,
         on_delete=models.PROTECT,
         related_name="offers",
         null=True,

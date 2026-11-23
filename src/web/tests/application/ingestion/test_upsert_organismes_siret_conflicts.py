@@ -27,6 +27,9 @@ from infrastructure.factories.ingestion.talentsoft_organisme_django_factory impo
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
     NoteTagDjangoFactory,
@@ -172,13 +175,14 @@ def test_dependents_are_moved_to_the_new_organisme():
     talentsoft = TalentsoftOrganismeDjangoFactory(organisme=gipcdg)
     child = OrganismeDjangoFactory(parent_id=gipcdg.id)
     tag = TagDjangoFactory(organisme=gipcdg)
+    offer = OfferDjangoFactory(organisme=gipcdg)
     dila_id = uuid4()
 
     result = _upsert(_data("DILA", "dila-1", entity_id=dila_id))
 
     assert result["created"] == 1
     assert not OrganismeModel.objects.filter(id=gipcdg.id).exists()
-    for model in (agent_link, recrutement, talentsoft, tag):
+    for model in (agent_link, recrutement, talentsoft, tag, offer):
         model.refresh_from_db()
         assert model.organisme_id == dila_id
     child.refresh_from_db()

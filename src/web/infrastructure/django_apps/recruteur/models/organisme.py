@@ -196,6 +196,7 @@ class OrganismeModel(BaseDatedModel):
         # The target may not exist yet: foreign keys are checked at commit.
         self._move_agents_to(target_id)
         self.recrutements.update(organisme_id=target_id)
+        self.offers.update(organisme_id=target_id)
         self.talentsoft_organismes.update(organisme_id=target_id)
         OrganismeModel.objects.filter(parent_id=self.pk).update(parent_id=target_id)
 
