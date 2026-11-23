@@ -403,7 +403,7 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `nom` | Obligatoire. Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes). |
-| `siret` | Obligatoire. **14 caractères maximum.** Le SIRET se retrouve avec [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. |
+| `siret` | Obligatoire, peut être vide. SIRET de l'organisme qui recrute : **14 chiffres**, clé de contrôle (Luhn) comprise. L'offre est rattachée à l'organisme de ce SIRET, à retrouver avec [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. Une offre dont le SIRET est invalide, ou ne correspond à aucun organisme, est rejetée. Vide, l'offre n'est rattachée à aucun organisme. |
 | `talentsoft_organisme_entity_code` | Réservé au service d'ingestion de CSPLab : ne pas envoyer ce champ. Une offre envoyée avec un jeton JWT qui le renseigne est rejetée. |
 
 #### Bloc « Profession » (`profession`) — obligatoire
@@ -930,7 +930,7 @@ Lieux dans l'API fake-ts : les objets codés `geographicalLocation`, `country`, 
 | `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1` (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : `customFields.description.customCodeTable1` contient la première catégorie (`clientCode` = `APLUS`, `A`, `B`, `C` ou `HORS_CATEGORIE`, `label` = son libellé, ex. « Catégorie A (cadre) »), `null` sans catégorie ; le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` : `CDD*`, `CDI`. API fake-ts : `clientCode` = `type_contrat` (`CDD`, `CDI`, `CDD_CDI`, `CONTRAT_PROJET`, `VACATION`), `label` = son libellé, `null` sans type de contrat. |
 | `titre_long` | Jamais renseigné par l'ingestion : Talentsoft n'a pas de titre long. |
-| `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
+| `organisation.siret` | Jamais renseigné par l'ingestion (vide) : l'offre n'est rattachée à aucun organisme ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |

@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
+from django.utils import timezone
 from faker import Faker
 from pydantic import HttpUrl
 from referentiel.value_objects.offer_conditions import JobVacancy
@@ -15,6 +16,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
     fake_datetime,
@@ -35,6 +39,8 @@ from presentation.commons.serializers import INVALID_COUNTRY_CODE
 from presentation.ingestion.serializers import (
     DUPLICATE_LANGUAGE,
     INVALID_LANGUAGE_CODE,
+    INVALID_SIRET,
+    UNKNOWN_SIRET,
     ConditionsInputSerializer,
 )
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
@@ -313,6 +319,7 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
     authenticated_client_with_source,
 ):
     offers_payload = [MINIMAL_VALID_OFFER, PARTIAL_VALID_OFFER, COMPLETE_VALID_OFFER]
+    OrganismeDjangoFactory(siret=COMPLETE_VALID_OFFER["organisation"]["siret"])
 
     response = authenticated_client_with_source.post(
         URL,
@@ -1419,6 +1426,84 @@ def test_duplicate_localisations_are_rejected(authenticated_client_with_source):
         }
     ]
     assert _upserted_offers() == []
+
+
+@pytest.mark.parametrize(
+    "siret,expected_error",
+    [
+        ("1234567890123", INVALID_SIRET),
+        ("1234567890123A", INVALID_SIRET),
+        ("12345678901234", INVALID_SIRET),
+        ("73282932000074", UNKNOWN_SIRET),
+    ],
+    ids=["13-digits", "letter", "wrong-checksum", "unknown"],
+)
+def test_invalid_or_unknown_siret_is_rejected(
+    authenticated_client_with_source, siret, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-SIRET", "versant": "FPT"},
+        organisation={"nom": "Mairie", "siret": siret},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-SIRET", "versant": "FPT"},
+            "error": {"organisation": {"siret": [expected_error]}},
+        }
+    ]
+    assert not OfferModel.objects.exists()
+
+
+def test_siret_of_a_deleted_organisme_is_rejected(authenticated_client_with_source):
+    organisme = OrganismeDjangoFactory(supprime_le=timezone.now())
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-SIRET", "versant": "FPT"},
+        organisation={"nom": organisme.nom, "siret": organisme.siret},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.json()["errors"][0]["error"] == {
+        "organisation": {"siret": [UNKNOWN_SIRET]}
+    }
+
+
+def test_offer_is_attached_to_the_organisme_of_its_siret(
+    authenticated_client_with_source,
+):
+    organisme = OrganismeDjangoFactory()
+    other_organisme = OrganismeDjangoFactory()
+
+    for siret, expected in (
+        (organisme.siret, organisme),
+        (other_organisme.siret, other_organisme),
+        ("", None),
+    ):
+        offer = {
+            **MINIMAL_VALID_OFFER,
+            "organisation": {"nom": "Mairie", "siret": siret},
+        }
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.json()["errors"] == []
+        assert OfferModel.objects.get(reference="REF-001").organisme == expected
 
 
 class TestOffersUpsertViewDbVerified:

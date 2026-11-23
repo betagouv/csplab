@@ -63,6 +63,7 @@ UPDATE_FIELDS = [
     "conditions",
     "contacts",
     "talentsoft_organisme_entity_code",
+    "organisme",
 ]
 
 

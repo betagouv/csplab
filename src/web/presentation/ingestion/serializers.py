@@ -31,6 +31,7 @@ from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
@@ -71,6 +72,10 @@ INVALID_LANGUAGE_CODE = (
     "Code de langue invalide, un code ISO 639-1 sur 2 lettres est attendu (ex. EN)."
 )
 DUPLICATE_LANGUAGE = "Chaque langue ne peut être citée qu'une fois."
+INVALID_SIRET = "SIRET invalide : 14 chiffres avec une clé de contrôle valide attendus."
+UNKNOWN_SIRET = (
+    "Aucun organisme avec ce SIRET : retrouvez-le avec `GET /api/v1/organismes`."
+)
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -954,7 +959,9 @@ class OrganismeInputSerializer(OrganismeSerializer):
         max_length=14,
         allow_blank=True,
         help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
-        "(filtres `nom` et `siret`).",
+        "(filtres `nom` et `siret`). L'offre est rattachée à cet organisme : un "
+        "SIRET invalide ou qui ne correspond à aucun organisme est refusé. Vide, "
+        "l'offre n'est rattachée à aucun organisme.",
     )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
@@ -977,6 +984,28 @@ class OrganismeInputSerializer(OrganismeSerializer):
                 f"Organisme Talentsoft inconnu : {value}."
             )
         return value
+
+    def validate_siret(self, value):
+        if not value:
+            return value
+        try:
+            SIRET(code=value)
+        except ValueError as e:
+            raise serializers.ValidationError(INVALID_SIRET) from e
+        return value
+
+    def validate(self, data):
+        if not data["siret"]:
+            return data
+        organisme_id = (
+            OrganismeModel.objects.not_supprimes()
+            .by_siret(data["siret"])
+            .values_list("id", flat=True)
+            .first()
+        )
+        if organisme_id is None:
+            raise serializers.ValidationError({"siret": [UNKNOWN_SIRET]})
+        return {**data, "organisme_id": organisme_id}
 
 
 class ProfessionInputSerializer(serializers.Serializer):
@@ -1518,6 +1547,7 @@ class OffersInputSerializer(serializers.Serializer):
                 "talentsoft_organisme_entity_code"
             )
             or None,
+            organisme_id=data["organisation"].get("organisme_id"),
             categories=[Category(category).value for category in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]).value,
             offer_url=data.get("url_offre") or None,
