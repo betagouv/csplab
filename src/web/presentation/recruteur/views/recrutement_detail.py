@@ -1,7 +1,9 @@
+from collections.abc import Sequence
+from functools import partial
 from uuid import UUID
 
 from django.db.models import QuerySet
-from django.http import Http404
+from django.http import Http404, HttpResponseBase
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
@@ -16,7 +18,7 @@ from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import (
-    list_candidatures_et_etapes,
+    list_candidatures,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -29,9 +31,14 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
-from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.etape import (
+    EtapeModel,
+    etapes_ordonnees,
+)
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PaginationSchemaDuSerializer
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
@@ -54,7 +61,7 @@ from presentation.recruteur.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class RecrutementDetailView(SessionApiMixin, APIView):
+class RecrutementDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
@@ -94,23 +101,32 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementListeView(SessionApiMixin, ListAPIView):
+class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
     pagination_class = PaginationSchemaDuSerializer
-    etapes: list[EtapeModel]
+    recrutement: RecrutementModel
+    candidatures: QuerySet[CandidatureModel]
+    etapes: QuerySet[EtapeModel]
 
-    def get_queryset(self) -> QuerySet[CandidatureModel]:
-        candidatures, self.etapes = list_candidatures_et_etapes(
+    def list(self, request: Request, *args, **kwargs) -> HttpResponseBase:
+        self.recrutement, self.candidatures, self.etapes = list_candidatures(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
-            utilisateur=self.request.user,
+            utilisateur=request.user,
         )
-        return candidatures
+        return self.respond_unless_unchanged(
+            request,
+            self.recrutement.list_version,
+            partial(super().list, request, *args, **kwargs),
+        )
 
-    def get_paginated_response(self, data: list) -> Response:
+    def get_queryset(self) -> QuerySet[CandidatureModel]:
+        return self.candidatures
+
+    def get_paginated_response(self, data: Sequence[dict]) -> Response:
         response = super().get_paginated_response(data)
         response.data["etapes"] = EtapeRecrutementModelSerializer(
-            self.etapes, many=True
+            etapes_ordonnees(self.recrutement, self.etapes), many=True
         ).data
         return response
 

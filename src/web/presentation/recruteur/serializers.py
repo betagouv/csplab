@@ -30,7 +30,10 @@ from infrastructure.django_apps.recruteur.models.etape import (
     etapes_ordonnees,
 )
 from infrastructure.django_apps.recruteur.models.note import NoteModel
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
@@ -481,19 +484,38 @@ class AgentSerializer(serializers.Serializer):
 # ---------------------------------------------------------------------------
 
 
-class AgentOrganismeSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="entity_id")
+class AgentOrganismeSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="agent_id")
     organisme_id = serializers.UUIDField()
-    nom = serializers.CharField()
-    prenom = serializers.CharField()
-    email = serializers.EmailField()
-    poste = serializers.CharField()
+    nom = serializers.CharField(source="agent.utilisateur.last_name")
+    prenom = serializers.CharField(source="agent.utilisateur.first_name")
+    email = serializers.EmailField(source="agent.utilisateur.email")
+    poste = serializers.CharField(source="agent.intitule_poste")
     role = serializers.ChoiceField(
         choices=[(r.value, r.value) for r in AgentOrganismeRole]
     )
-    date_derniere_activite = serializers.DateTimeField(allow_null=True)
-    date_creation_compte = serializers.DateTimeField()
+    date_derniere_activite = serializers.DateTimeField(
+        source="agent.utilisateur.last_login", allow_null=True
+    )
+    date_creation_compte = serializers.DateTimeField(
+        source="agent.utilisateur.date_joined"
+    )
     date_revocation = serializers.DateTimeField(required=False, allow_null=True)
+
+    class Meta:
+        model = OrganismeAgentModel
+        fields = [
+            "uuid",
+            "organisme_id",
+            "nom",
+            "prenom",
+            "email",
+            "poste",
+            "role",
+            "date_derniere_activite",
+            "date_creation_compte",
+            "date_revocation",
+        ]
 
 
 class SetAgentRoleOnOrganismeSerializer(serializers.Serializer):

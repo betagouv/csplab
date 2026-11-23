@@ -1,0 +1,71 @@
+import hashlib
+from collections.abc import Callable
+
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBase
+from django.template.response import SimpleTemplateResponse
+from django.utils.cache import (
+    get_conditional_response,
+    patch_cache_control,
+    set_response_etag,
+)
+from django.utils.http import quote_etag
+from rest_framework import status
+from rest_framework.request import Request
+
+
+class ConditionalGetMixin:
+    def finalize_response(
+        self, request: Request, response: HttpResponseBase, *args, **kwargs
+    ) -> HttpResponseBase:
+        response = super().finalize_response(  # type: ignore[misc]
+            request, response, *args, **kwargs
+        )
+        if request.method != "GET" or response.status_code not in (
+            status.HTTP_200_OK,
+            status.HTTP_304_NOT_MODIFIED,
+        ):
+            return response
+        patch_cache_control(response, private=True, no_cache=True)
+        if isinstance(response, SimpleTemplateResponse):
+            response.add_post_render_callback(
+                lambda rendered: _not_modified_if_unchanged(request, rendered)
+            )
+        return response
+
+    def respond_unless_unchanged(
+        self, request: Request, version: object, build: Callable[[], HttpResponseBase]
+    ) -> HttpResponseBase:
+        etag = _etag(request, version)
+        response = get_conditional_response(request, etag=etag) or build()
+        response["ETag"] = etag
+        return response
+
+
+class NoStoreMixin:
+    def finalize_response(
+        self, request: Request, response: HttpResponseBase, *args, **kwargs
+    ) -> HttpResponseBase:
+        response = super().finalize_response(  # type: ignore[misc]
+            request, response, *args, **kwargs
+        )
+        if request.method == "GET":
+            patch_cache_control(response, private=True, no_store=True)
+        return response
+
+
+def _etag(request: Request, version: object) -> str:
+    key = repr(
+        (settings.DEPLOYED_VERSION, request.user.pk, request.get_full_path(), version)
+    )
+    return quote_etag(hashlib.sha256(key.encode()).hexdigest())
+
+
+def _not_modified_if_unchanged(
+    request: Request, response: HttpResponse
+) -> HttpResponseBase | None:
+    if not response.has_header("ETag"):
+        set_response_etag(response)
+    return get_conditional_response(
+        request, etag=response.get("ETag"), response=response
+    )
