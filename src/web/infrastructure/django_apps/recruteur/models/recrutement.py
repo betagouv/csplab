@@ -11,7 +11,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, JSONObject
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -41,9 +41,66 @@ def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subque
     )
 
 
+def _related_model(model: type[models.Model], name: str) -> type[models.Model]:
+    return model._meta.get_field(name).related_model  # type: ignore[return-value]
+
+
+def _version_of(
+    queryset: models.QuerySet, recrutement_path: str, **aggregates
+) -> Subquery:
+    return Subquery(
+        queryset.filter(**{recrutement_path: OuterRef("pk")})
+        .order_by()
+        .values(recrutement_path)
+        .annotate(version=JSONObject(**aggregates))
+        .values("version")
+    )
+
+
 class RecrutementQuerySet(models.QuerySet):
     def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
+
+    def with_list_version(self, utilisateur_id) -> "RecrutementQuerySet":
+        conversation_model = _related_model(CandidatureModel, "conversations")
+        message_model = _related_model(conversation_model, "messages")
+        lecture_model = _related_model(conversation_model, "lectures")
+        candidature_tag_model = _related_model(CandidatureModel, "tags_liaisons")
+        by_conversation = "conversation__candidature__etape__recrutement"
+        return self.annotate(
+            list_version=JSONObject(
+                updated_at=F("updated_at"),
+                etapes=_version_of(
+                    EtapeModel.objects.all(),
+                    "recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                candidatures=_version_of(
+                    CandidatureModel.objects.all(),
+                    "etape__recrutement",
+                    count=Count("pk"),
+                    updated_at=Max("updated_at"),
+                ),
+                messages=_version_of(
+                    message_model._default_manager.all(),
+                    by_conversation,
+                    created_at=Max("created_at"),
+                ),
+                lectures=_version_of(
+                    lecture_model._default_manager.filter(utilisateur=utilisateur_id),
+                    by_conversation,
+                    read_at=Max("read_at"),
+                ),
+                tags=_version_of(
+                    candidature_tag_model._default_manager.all(),
+                    "candidature__etape__recrutement",
+                    count=Count("pk"),
+                    created_at=Max("created_at"),
+                    tag_updated_at=Max("tag__updated_at"),
+                ),
+            )
+        )
 
     def with_organisme(self) -> "RecrutementQuerySet":
         return self.select_related("organisme")
@@ -184,6 +241,8 @@ class RecrutementModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = RecrutementQuerySet.as_manager()
+
+    list_version: dict
 
     class Meta:
         db_table = "recrutement"
