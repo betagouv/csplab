@@ -26,6 +26,7 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.django_apps.messagerie.models import ConversationModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import (
     ConversationSerializer,
@@ -57,7 +58,7 @@ class ConversationPagination(PageNumberLimitPagination):
         },
     ),
 )
-class CandidatureConversationsView(SessionApiMixin, ListAPIView):
+class CandidatureConversationsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = ConversationSerializer
     pagination_class = ConversationPagination
     parser_classes = [MultiPartParser, FormParser]

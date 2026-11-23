@@ -38,6 +38,7 @@ from presentation.api.serializers import (
     TokenErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateNoteSerializer,
@@ -111,7 +112,7 @@ class NoteBaseView(SessionApiMixin, APIView):
         },
     ),
 )
-class CandidatureNotesView(NoteBaseView, ListAPIView):
+class CandidatureNotesView(ConditionalGetMixin, NoteBaseView, ListAPIView):
     serializer_class = NoteSerializer
     pagination_class = TaillePageNumberPagination
 

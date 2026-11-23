@@ -35,6 +35,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from domain.recruteur.value_objects.etape_data import EtapeData
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     EtapeRecrutementModelSerializer,
     EtapeRecrutementSerializer,
@@ -68,7 +69,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class RecrutementEtapeView(SessionApiMixin, APIView):
+class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
