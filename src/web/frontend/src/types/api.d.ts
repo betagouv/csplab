@@ -942,6 +942,7 @@ export interface components {
             uuid: string;
             nom: string;
             readonly categorie: components["schemas"]["CategorieEnum"];
+            readonly motif_refus_required: boolean;
             readonly etape_actions: components["schemas"]["EtapeActionsEnum"][];
         };
         EtapeRecrutementModel: {
@@ -949,6 +950,7 @@ export interface components {
             uuid: string;
             nom: string;
             readonly categorie: components["schemas"]["CategorieEnum"];
+            readonly motif_refus_required: boolean;
         };
         GenericError: {
             error: string;
@@ -1259,7 +1261,7 @@ export interface components {
             localisations: components["schemas"]["OffreLocalisation"][];
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
-            etapes: components["schemas"]["EtapeRecrutement"][];
+            etapes: components["schemas"]["EtapeRecrutementModel"][];
             /**
              * @description Rôle de l'utilisateur courant sur ce recrutement (null si aucun).
              *
