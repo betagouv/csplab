@@ -1,3 +1,6 @@
+from collections.abc import Sequence
+from uuid import UUID
+
 from django.db import models
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
@@ -61,6 +64,15 @@ class CandidatureQuerySet(TaggedQuerySet):
 
     def by_etape(self, etape_id) -> "CandidatureQuerySet":
         return self.filter(etape_id=etape_id).order_by("created_at")
+
+    def for_etape_change(
+        self, candidature_ids: Sequence[UUID]
+    ) -> "CandidatureQuerySet":
+        return (
+            self.filter(id__in=candidature_ids)
+            .select_related("etape")
+            .select_for_update(of=("self",))
+        )
 
     def with_detail(self) -> "CandidatureQuerySet":
         return self.select_related(

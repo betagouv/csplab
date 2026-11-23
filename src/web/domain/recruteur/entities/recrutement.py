@@ -1,22 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import List
+from datetime import datetime
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, mutate
-from referentiel.types import IBatchUpdate
+from ddd.aggregate_root import AggregateRoot
 
-from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.recrutement_errors import (
-    MotifRefusRequis,
-    RecrutementCandidatureInexistante,
-    RecrutementEtapeInexistante,
-)
-from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
-)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
@@ -54,46 +42,6 @@ class Recrutement(AggregateRoot):
             _candidat_recrute_id=candidat_recrute_id,
             _derniere_activite_le=derniere_activite_le,
         )
-
-    @mutate(EtapeCandidaturesChangees)
-    def changer_etapes_candidatures(
-        self,
-        candidatures: List[CandidatureRecruteur],
-        etape_cible_id: UUID,
-        motif_refus: str | None = None,
-    ) -> IBatchUpdate[CandidatureRecruteur, RecrutementCandidatureInexistante]:
-        etape_cible = next(
-            (etape for etape in self._etapes if etape.entity_id == etape_cible_id),
-            None,
-        )
-        if etape_cible is None:
-            raise RecrutementEtapeInexistante(
-                etape_id=etape_cible_id, recrutement_id=self.entity_id
-            )
-        if etape_cible.categorie == CategorieEtapeRecrutement.REFUS and not motif_refus:
-            raise MotifRefusRequis(etape_id=etape_cible_id)
-        successes: List[CandidatureRecruteur] = []
-        failures: List[tuple[UUID, RecrutementCandidatureInexistante]] = []
-        for candidature in candidatures:
-            if candidature.recrutement_id != self.entity_id:
-                failures.append(
-                    (
-                        candidature.entity_id,
-                        RecrutementCandidatureInexistante(
-                            candidature.entity_id,
-                        ),
-                    )
-                )
-            else:
-                candidature.changer_etape(
-                    etape_id=etape_cible_id, motif_refus=motif_refus
-                )
-                for event in candidature.collect_events():
-                    self.add_event(event)
-                successes.append(candidature)
-        # business rules about etapes order can be managed here
-        self._derniere_activite_le = datetime.now(tz=timezone.utc)
-        return {"successes": successes, "failures": failures}
 
     @property
     def offre_id(self) -> UUID:

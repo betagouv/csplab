@@ -1,296 +1,90 @@
-from contextlib import nullcontext
-from unittest.mock import Mock
-from uuid import uuid4
+from unittest.mock import patch
 
 import pytest
-from ddd.unit_of_work import IUnitOfWork
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.recruteur.services.change_etape_candidatures import (
+    change_etape_candidatures,
 )
-from application.recruteur.usecases.change_etape_candidatures import (
-    ChangeEtapeCandidaturesCommand,
-    ChangeEtapeCandidaturesUsecase,
-)
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
-from domain.recruteur.errors.recrutement_errors import (
-    MotifRefusRequis,
-    RecrutementCandidatureInexistante,
-    RecrutementEtapeInexistante,
-    RecrutementInexistant,
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
 )
-from domain.recruteur.events.candidature_events import CandidatureEtapeModifiee
-from domain.recruteur.events.recrutement_events import EtapeCandidaturesChangees
-from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
-    ICandidatureRecruteurRepository,
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
 )
-from domain.recruteur.repositories.recrutement_repository_interface import (
-    IRecrutementRepository,
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
 )
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-from infrastructure.factories.recruteur.candidature_recruteur_factory import (
-    CandidatureRecruteurFactory,
-)
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 
 
-@pytest.fixture(name="recrutement")
-def recrutement_fixture():
-    recrutement = RecrutementFactory.create_entity()
-    return recrutement
-
-
-@pytest.fixture(name="recrutement_repository")
-def recrutement_repository_fixture(recrutement):
-    repo = Mock(spec=IRecrutementRepository)
-    repo.get_by_id.return_value = recrutement
-    return repo
-
-
-@pytest.fixture(name="candidatures_recruteur")
-def candidatures_recruteur_fixture(recrutement):
-    return CandidatureRecruteurFactory.create_entity_batch(
-        3,
-        recrutement_id=recrutement.entity_id,
+def test_rolls_back_every_write_when_the_last_audit_log_fails(db):
+    superviseur, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
     )
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+    candidatures = CandidatureDjangoFactory.create_batch(2, etape=origine)
+    log_action = AuditLogWriter.log_action
+    appels = []
 
+    def echoue_au_dernier_appel(writer, **kwargs):
+        appels.append(kwargs["event_name"])
+        if kwargs["event_name"] == "EtapeCandidaturesChangees":
+            raise RuntimeError("audit log write failed")
+        log_action(writer, **kwargs)
 
-@pytest.fixture(name="candidatures_recruteur_changees")
-def candidatures_recruteur_changees_fixture(candidatures_recruteur, recrutement):
-    etape_cible_id = recrutement.etapes[-1].entity_id
-    return [
-        CandidatureRecruteurFactory.create_entity(
-            recrutement_id=c.recrutement_id,
-            etape_id=etape_cible_id,
+    with (
+        patch.object(AuditLogWriter, "log_action", new=echoue_au_dernier_appel),
+        pytest.raises(RuntimeError),
+    ):
+        change_etape_candidatures(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            utilisateur=superviseur.utilisateur,
+            etape_cible_id=cible.id,
+            candidature_ids=[candidature.id for candidature in candidatures],
         )
-        for c in candidatures_recruteur
+
+    assert appels == [
+        "CandidatureEtapeModifiee",
+        "CandidatureEtapeModifiee",
+        "EtapeCandidaturesChangees",
     ]
+    assert set(
+        CandidatureModel.objects.values_list("etape_id", "updated_by_recruteur")
+    ) == {(origine.id, None)}
+    assert not AuditLogModel.objects.exists()
 
 
-@pytest.fixture(name="candidature_recruteur_repository")
-def candidature_recruteur_repository_fixture(
-    candidatures_recruteur, candidatures_recruteur_changees
-):
-    repo = Mock(spec=ICandidatureRecruteurRepository)
-    repo.get_by_ids.return_value = candidatures_recruteur
-    repo.update_batch.return_value = {
-        "successes": candidatures_recruteur_changees,
-        "failures": [],
-    }
-
-    return repo
-
-
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
-    return service
-
-
-@pytest.fixture(name="unit_of_work")
-def unit_of_work_fixture():
-    uow = Mock(spec=IUnitOfWork)
-    uow.atomic.return_value = nullcontext()
-    return uow
-
-
-@pytest.fixture(name="usecase")
-def usecase_fixture(
-    recrutement_repository,
-    candidature_recruteur_repository,
-    permission_service,
-    unit_of_work,
-):
-    return ChangeEtapeCandidaturesUsecase(
-        candidature_recruteur_repository=candidature_recruteur_repository,
-        recrutement_repository=recrutement_repository,
-        permission_service=permission_service,
-        audit_log_writer=Mock(spec=AuditLogWriter),
-        unit_of_work=unit_of_work,
+def test_locks_the_recrutement_and_the_candidatures(db):
+    superviseur, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
     )
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+    candidature = CandidatureDjangoFactory(etape=origine)
 
-
-class TestChangeEtapeCandidaturesUsecase:
-    def test_echoes_all_candidatures_as_reussites(
-        self,
-        recrutement,
-        candidatures_recruteur,
-        candidatures_recruteur_changees,
-        usecase,
-    ):
-        command = ChangeEtapeCandidaturesCommand(
-            organisme_id=recrutement.organisme_id,
-            recrutement_id=recrutement.entity_id,
-            utilisateur=UtilisateurFactory.create_entity(),
-            etape_cible_id=recrutement.etapes[-1].entity_id,
-            candidatures=[
-                candidature.entity_id for candidature in candidatures_recruteur
-            ],
+    with CaptureQueriesContext(connection) as requetes:
+        change_etape_candidatures(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            utilisateur=superviseur.utilisateur,
+            etape_cible_id=cible.id,
+            candidature_ids=[candidature.id],
         )
 
-        resultat = usecase.execute(command)
-
-        assert resultat["successes"] == candidatures_recruteur_changees
-        assert resultat["failures"] == []
-
-        events = recrutement.collect_events()
-        assert len(events) == len(candidatures_recruteur_changees) + 1
-        assert sum(isinstance(e, CandidatureEtapeModifiee) for e in events) == len(
-            candidatures_recruteur_changees
-        )
-        assert sum(isinstance(e, EtapeCandidaturesChangees) for e in events) == 1
-
-        assert usecase.audit_log_writer.drain_events.call_count == 1
-
-    def test_raises_when_recrutement_not_found(
-        self, recrutement_repository, candidatures_recruteur, usecase
-    ):
-        recrutement_id = uuid4()
-        recrutement_repository.get_by_id.side_effect = RecrutementInexistant(
-            recrutement_id
-        )
-
-        with pytest.raises(RecrutementInexistant):
-            usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=uuid4(),
-                    recrutement_id=recrutement_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                    etape_cible_id=uuid4(),
-                    candidatures=[c.entity_id for c in candidatures_recruteur],
-                )
-            )
-
-    def test_raises_when_unauthorized(
-        self, permission_service, recrutement, candidatures_recruteur, usecase
-    ):
-        permission_service.can_execute.side_effect = AccesRecrutementRefuse(
-            recrutement.entity_id
-        )
-
-        with pytest.raises(
-            AccesRecrutementRefuse,
-            match=f"Rôle non autorisé sur le recrutement {recrutement.entity_id}",
-        ):
-            usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=recrutement.organisme_id,
-                    recrutement_id=recrutement.entity_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                    etape_cible_id=recrutement.etapes[1].entity_id,
-                    candidatures=[c.entity_id for c in candidatures_recruteur],
-                )
-            )
-
-    def test_raises_when_recrutement_id_does_not_belong_to_organisme(
-        self, recrutement, candidatures_recruteur, permission_service, usecase
-    ):
-        organisme_id = uuid4()
-        permission_service.can_execute.side_effect = OrganismeNexistePas(
-            str(organisme_id)
-        )
-        with pytest.raises(
-            OrganismeNexistePas,
-            match=(f"Organisme introuvable : {organisme_id}"),
-        ):
-            usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=organisme_id,
-                    recrutement_id=recrutement.entity_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                    etape_cible_id=recrutement.etapes[1].entity_id,
-                    candidatures=[c.entity_id for c in candidatures_recruteur],
-                )
-            )
-
-    def test_raises_when_target_etape_does_not_belong_to_recrutement(
-        self, recrutement, candidatures_recruteur, usecase
-    ):
-        etape_cible_id = uuid4()
-
-        with pytest.raises(
-            RecrutementEtapeInexistante,
-            match=f"Etape {etape_cible_id} inexistante pour ce recrutement"
-            f" {recrutement.entity_id}",
-        ):
-            usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=recrutement.organisme_id,
-                    recrutement_id=recrutement.entity_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                    etape_cible_id=etape_cible_id,
-                    candidatures=[c.entity_id for c in candidatures_recruteur],
-                )
-            )
-
-    def test_raises_when_moving_to_refus_etape_without_motif(
-        self, recrutement, candidatures_recruteur, usecase
-    ):
-        etape_refus_id = recrutement.etapes[-2].entity_id
-
-        with pytest.raises(MotifRefusRequis):
-            usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=recrutement.organisme_id,
-                    recrutement_id=recrutement.entity_id,
-                    utilisateur=UtilisateurFactory.create_entity(),
-                    etape_cible_id=etape_refus_id,
-                    candidatures=[c.entity_id for c in candidatures_recruteur],
-                )
-            )
-
-    def test_moves_to_refus_etape_with_motif(
-        self, recrutement, candidatures_recruteur, usecase
-    ):
-        etape_refus_id = recrutement.etapes[-2].entity_id
-
-        resultat = usecase.execute(
-            ChangeEtapeCandidaturesCommand(
-                organisme_id=recrutement.organisme_id,
-                recrutement_id=recrutement.entity_id,
-                utilisateur=UtilisateurFactory.create_entity(),
-                etape_cible_id=etape_refus_id,
-                candidatures=[c.entity_id for c in candidatures_recruteur],
-                motif_refus="autre",
-            )
-        )
-
-        assert resultat["failures"] == []
-
-    def test_return_results_with_domain_errors(
-        self, recrutement, candidature_recruteur_repository, usecase
-    ):
-        candidatures = CandidatureRecruteurFactory.create_entity_batch(
-            3, recrutement_id=uuid4()
-        )
-        candidature_recruteur_repository.get_by_ids.return_value = candidatures
-        candidature_recruteur_repository.update_batch.return_value = {
-            "successes": [],
-            "failures": [],
-        }
-        result = usecase.execute(
-            ChangeEtapeCandidaturesCommand(
-                organisme_id=recrutement.organisme_id,
-                recrutement_id=recrutement.entity_id,
-                utilisateur=UtilisateurFactory.create_entity(),
-                etape_cible_id=recrutement.etapes[1].entity_id,
-                candidatures=[c.entity_id for c in candidatures],
-            )
-        )
-        assert result["successes"] == []
-        assert [
-            (candidature_id, erreur.message)
-            for candidature_id, erreur in result["failures"]
-        ] == [
-            (
-                candidature.entity_id,
-                RecrutementCandidatureInexistante(
-                    candidature_id=candidature.entity_id,
-                ).message,
-            )
-            for candidature in candidatures
-        ]
+    verrous = [
+        requete["sql"][requete["sql"].index(" FOR ") :]
+        for requete in requetes.captured_queries
+        if " FOR " in requete["sql"]
+    ]
+    assert sorted(verrous) == [
+        ' FOR NO KEY UPDATE OF "recrutement"',
+        ' FOR UPDATE OF "candidature"',
+    ]

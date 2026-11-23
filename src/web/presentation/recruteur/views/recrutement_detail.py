@@ -11,14 +11,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.services.change_etape_candidatures import (
+    change_etape_candidatures,
+)
 from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import (
     list_candidatures,
-)
-from application.recruteur.usecases.change_etape_candidatures import (
-    ChangeEtapeCandidaturesCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -30,7 +30,6 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import (
     EtapeModel,
@@ -41,7 +40,6 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PaginationSchemaDuSerializer
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
@@ -159,16 +157,12 @@ class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
         200: ChangerEtapeResultatSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        403: GenericErrorSerializer,
         404: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
 )
 class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def patch(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
@@ -178,27 +172,29 @@ class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
 
         data = serializer.validated_data
         try:
-            usecase = self.container.change_etape_candidatures_usecase()
-            resultat = usecase.execute(
-                ChangeEtapeCandidaturesCommand(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    etape_cible_id=data["etape_cible_uuid"],
-                    candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
-                    motif_refus=data.get("motif_refus"),
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            reussites, echecs = change_etape_candidatures(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                utilisateur=request.user,
+                etape_cible_id=data["etape_cible_uuid"],
+                candidature_ids=[c["candidature_uuid"] for c in data["candidatures"]],
+                motif_refus=data.get("motif_refus"),
             )
             return Response(
                 ChangerEtapeResultatSerializer(
                     {
-                        "reussites": [c.entity_id for c in resultat["successes"]],
+                        "reussites": reussites,
                         "echecs": [
                             {"candidature_uuid": cid, "raison": reason}
-                            for cid, reason in resultat["failures"]
+                            for cid, reason in echecs
                         ],
                     }
                 ).data
+            )
+        except OrganismePermissionError:
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
             )
         except (
             OrganismeNexistePas,
