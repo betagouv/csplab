@@ -58,6 +58,8 @@ ISO_639_1_CODES = frozenset(
     if hasattr(language, "alpha_2")
 )
 MAX_SPECIALISATIONS_PER_OFFER = 20
+MAX_SPECIALISATION_LENGTH = 255
+MAX_DIPLOMA_LENGTH = 255
 INVALID_LANGUAGE_CODE = (
     "Code de langue invalide, un code ISO 639-1 sur 2 lettres est attendu (ex. EN)."
 )
@@ -1148,17 +1150,19 @@ class CriteriaInputSerializer(serializers.Serializer):
         help_text="Niveau d'expérience attendu.",
     )
     specialisations = serializers.ListField(
-        child=serializers.CharField(max_length=255),
+        child=serializers.CharField(max_length=MAX_SPECIALISATION_LENGTH),
         max_length=MAX_SPECIALISATIONS_PER_OFFER,
         required=False,
         help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`) "
-        f"de 255 caractères au plus. Au plus {MAX_SPECIALISATIONS_PER_OFFER} "
+        f"de {MAX_SPECIALISATION_LENGTH} caractères au plus. "
+        f"Au plus {MAX_SPECIALISATIONS_PER_OFFER} "
         "spécialisations ; les doublons sont retirés, dans l'ordre reçu.",
     )
     diplome = serializers.CharField(
-        max_length=255,
+        max_length=MAX_DIPLOMA_LENGTH,
         required=False,
-        help_text="Diplôme exigé, en texte libre, de 255 caractères au plus. "
+        help_text="Diplôme exigé, en texte libre, "
+        f"de {MAX_DIPLOMA_LENGTH} caractères au plus. "
         "Indiquez de préférence l'un des "
         "libellés du référentiel des diplômes d'État, à l'identique. Liste "
         "indicative, toute autre valeur reste acceptée :\n\n"
