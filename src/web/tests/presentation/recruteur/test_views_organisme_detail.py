@@ -80,15 +80,16 @@ MOTIFS_REFUS_URL = reverse(
 )
 
 ACTIONS_PAR_CATEGORIE = {
-    "ENTREE": ["insert_etape_after"],
+    "ENTREE": ["rename_etape", "insert_etape_after"],
     "EN_COURS": [
-        "edit_etape",
+        "rename_etape",
+        "move_etape",
         "delete_etape",
         "insert_etape_before",
         "insert_etape_after",
     ],
-    "REFUS": ["insert_etape_before"],
-    "ACCEPTE": [],
+    "REFUS": ["rename_etape", "insert_etape_before"],
+    "ACCEPTE": ["rename_etape"],
 }
 
 VALID_ETAPES_PAYLOAD = [
@@ -362,13 +363,13 @@ class TestEtapesRecrutementOrganismeView:
                 "uuid": "7f1d4c3a-1b2e-4c5d-8e9f-0a1b2c3d4e5f",
                 "nom": "Réception",
                 "categorie": "ENTREE",
-                "etape_actions": ["insert_etape_after"],
+                "etape_actions": ["rename_etape", "insert_etape_after"],
             },
             {
                 "uuid": "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
                 "nom": "Recrutement",
                 "categorie": "ACCEPTE",
-                "etape_actions": [],
+                "etape_actions": ["rename_etape"],
             },
         ]
 
@@ -392,12 +393,12 @@ class TestEtapesRecrutementOrganismeView:
         assert [
             (etape["categorie"], etape["etape_actions"]) for etape in response.json()
         ] == [
-            ("ENTREE", ["insert_etape_after"]),
+            ("ENTREE", ["rename_etape", "insert_etape_after"]),
             ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
             ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
             ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
-            ("REFUS", ["insert_etape_before"]),
-            ("ACCEPTE", []),
+            ("REFUS", ["rename_etape", "insert_etape_before"]),
+            ("ACCEPTE", ["rename_etape"]),
         ]
 
     def test_the_only_en_cours_etape_cannot_be_deleted(
@@ -417,7 +418,8 @@ class TestEtapesRecrutementOrganismeView:
         response = authenticated_client.get(ETAPES_URL)
 
         assert response.json()[1]["etape_actions"] == [
-            "edit_etape",
+            "rename_etape",
+            "move_etape",
             "insert_etape_before",
             "insert_etape_after",
         ]

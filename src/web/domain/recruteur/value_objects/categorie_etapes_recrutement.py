@@ -15,8 +15,14 @@ class CategorieEtapeRecrutement(Enum):
 
 
 ACTIONS_BY_CATEGORIE: dict[CategorieEtapeRecrutement, list[EtapeAction]] = {
-    CategorieEtapeRecrutement.ENTREE: [EtapeAction.INSERT_ETAPE_AFTER],
+    CategorieEtapeRecrutement.ENTREE: [
+        EtapeAction.RENAME_ETAPE,
+        EtapeAction.INSERT_ETAPE_AFTER,
+    ],
     CategorieEtapeRecrutement.EN_COURS: list(EtapeAction),
-    CategorieEtapeRecrutement.REFUS: [EtapeAction.INSERT_ETAPE_BEFORE],
-    CategorieEtapeRecrutement.ACCEPTE: [],
+    CategorieEtapeRecrutement.REFUS: [
+        EtapeAction.RENAME_ETAPE,
+        EtapeAction.INSERT_ETAPE_BEFORE,
+    ],
+    CategorieEtapeRecrutement.ACCEPTE: [EtapeAction.RENAME_ETAPE],
 }

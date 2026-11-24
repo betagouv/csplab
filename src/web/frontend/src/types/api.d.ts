@@ -911,13 +911,14 @@ export interface components {
             depose_le: string;
         };
         /**
-         * @description * `edit_etape` - edit_etape
+         * @description * `rename_etape` - rename_etape
+         *     * `move_etape` - move_etape
          *     * `delete_etape` - delete_etape
          *     * `insert_etape_before` - insert_etape_before
          *     * `insert_etape_after` - insert_etape_after
          * @enum {string}
          */
-        EtapeActionsEnum: "edit_etape" | "delete_etape" | "insert_etape_before" | "insert_etape_after";
+        EtapeActionsEnum: "rename_etape" | "move_etape" | "delete_etape" | "insert_etape_before" | "insert_etape_after";
         EtapeCandidatureDetail: {
             /** Format: uuid */
             uuid: string;

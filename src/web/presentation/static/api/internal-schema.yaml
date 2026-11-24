@@ -6855,13 +6855,15 @@ components:
       - uuid
     EtapeActionsEnum:
       enum:
-      - edit_etape
+      - rename_etape
+      - move_etape
       - delete_etape
       - insert_etape_before
       - insert_etape_after
       type: string
       description: |-
-        * `edit_etape` - edit_etape
+        * `rename_etape` - rename_etape
+        * `move_etape` - move_etape
         * `delete_etape` - delete_etape
         * `insert_etape_before` - insert_etape_before
         * `insert_etape_after` - insert_etape_after
