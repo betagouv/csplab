@@ -7967,6 +7967,23 @@ components:
       schema:
         type: integer
       description: Nombre de secondes à attendre avant de pouvoir réessayer.
+x-tagGroups:
+- name: Présentation
+  tags:
+  - changelog
+  - contact
+- name: Référence des routes
+  tags:
+  - token
+  - offres
+  - metiers
+  - organismes
+  - concours
+  - fake-ts
+  - talentsoft_organisme
+- name: Documentation en formats bruts
+  tags:
+  - documentation
 tags:
 - name: utilisateurs
   description: Gestion des utilisateurs

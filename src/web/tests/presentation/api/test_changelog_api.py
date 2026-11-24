@@ -16,6 +16,7 @@ from rest_framework import status
 from infrastructure.authentication.rate_throttle import DocumentationRateThrottle
 from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from presentation.api.changelog_api import (
+    REDOC_PREVIEW_SIZE,
     TYPE_LABELS,
     TYPES,
     Filters,
@@ -635,12 +636,23 @@ class TestPublicSchemaView:
 
         assert response.status_code == status.HTTP_200_OK
         changelog = next(t for t in response.json()["tags"] if t["name"] == "changelog")
-        assert changelog["x-displayName"] == "Changelog"
-        assert changelog["description"].startswith("Ce changelog liste")
-        assert (
-            "([PR #2084](https://github.com/betagouv/csplab/pull/2084)"
-            in (changelog["description"])
-        )
+        assert changelog["x-displayName"] == "Derniers changements"
+        description = changelog["description"]
+        assert description.startswith("Ce changelog liste")
+        latest = published_fragments()[0]
+        assert f"[PR #{latest.pr}]({latest.pr_url})" in description
+
+    def test_shows_only_the_latest_changes(self, db, client):
+        response = client.get(reverse("api:public_schema"))
+
+        changelog = next(t for t in response.json()["tags"] if t["name"] == "changelog")
+        description = changelog["description"]
+        fragments = published_fragments()
+        oldest = fragments[-1]
+        assert len(fragments) > REDOC_PREVIEW_SIZE
+        assert f"[PR #{oldest.pr}]({oldest.pr_url})" not in description
+        assert f"Les {len(fragments) - REDOC_PREVIEW_SIZE} précédents" in description
+        assert f"]({reverse('pages:api_changelog')})" in description
 
 
 class TestChangelogMarkdownView:

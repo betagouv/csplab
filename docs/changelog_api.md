@@ -10,7 +10,7 @@ Il est publié :
 | `/api/changelog.md` | Outils et agents : le changelog en Markdown, liens absolus |
 | `/api/changelog.json` | Outils et agents : une entrée par fragment, avec ses routes |
 | `/api/changelog.atom` | Flux Atom, une entrée par fragment |
-| Section « Changelog » de `/api/schema/redoc` | Intégrateurs, à côté de la référence |
+| Section « Changelog » de `/api/schema/redoc` | Intégrateurs, à côté de la référence : les 10 changements les plus récents, avec un lien vers la page |
 
 Les trois routes `/api/changelog.*` et la page acceptent les mêmes filtres : `type`
 (répétable), `route` (ex. `POST /api/v1/offres/creer_modifier`) et `depuis`

@@ -34,5 +34,9 @@ class TestRedocView:
 
         assert response.status_code == status.HTTP_200_OK
         assertTemplateUsed(response, "api/redoc.html")
-        assert response.context["title"] == "ReDoc"
         assert response.context["schema_url"] == reverse("api:public_schema")
+        content = response.content.decode()
+        assert reverse("pages:api_guide") in content
+        assert reverse("pages:api_changelog") in content
+        assert response.context["tchap_url"] in content
+        assert response.context["ticket_form_url"] in content

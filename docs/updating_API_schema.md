@@ -12,7 +12,7 @@ Régénérez le schéma quand vous :
 - modifiez les méthodes HTTP ou les permissions d'une vue ;
 - ajoutez ou modifiez un décorateur `@extend_schema`.
 
-Le tag `changelog` n'a pas de description dans `schema.yaml` : Redoc charge `/api/schema/public`, qui y ajoute le changelog assemblé à partir de `changelog_api.d/` (voir [changelog_api.md](changelog_api.md)). Le changelog est aussi publié sur `/pages/changelog_api` et en `/api/changelog.md`, `.json` et `.atom`, construits à partir des mêmes fragments : ajouter un fragment ne demande jamais de régénérer le schéma.
+Le tag `changelog` n'a pas de description dans `schema.yaml` : Redoc charge `/api/schema/public`, qui y ajoute les changements les plus récents assemblés à partir de `changelog_api.d/` (voir [changelog_api.md](changelog_api.md)). Le changelog est aussi publié sur `/pages/changelog_api` et en `/api/changelog.md`, `.json` et `.atom`, construits à partir des mêmes fragments : ajouter un fragment ne demande jamais de régénérer le schéma.
 
 Ces routes et `/api/guide.md` sont documentées sous le tag `documentation` (« Changelog et documentation » dans Redoc). Régénérez le schéma quand vous modifiez leur `@extend_schema`, leurs filtres ou `ChangelogSerializer`.
 

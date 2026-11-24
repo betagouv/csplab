@@ -1,0 +1,56 @@
+/* Neutralizes DSFR global element styles inside Redoc. */
+.csplab-redoc {
+    border-top: 1px solid var(--border-default-grey);
+}
+
+.csplab-redoc a:not([class]),
+.csplab-redoc a {
+    background-image: none;
+    text-decoration: none;
+}
+
+.csplab-redoc a:hover {
+    text-decoration: underline;
+}
+
+.csplab-redoc ul,
+.csplab-redoc ol {
+    --ul-start: 0;
+    --ol-start: 0;
+}
+
+.csplab-redoc li {
+    padding-bottom: 0;
+}
+
+.csplab-redoc button {
+    font-family: inherit;
+}
+
+.csplab-redoc table {
+    display: table;
+    width: auto;
+}
+
+.csplab-redoc .redoc-markdown blockquote {
+    border-left: 4px solid var(--border-default-blue-france);
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background-color: var(--background-alt-blue-france);
+    color: var(--text-default-grey);
+}
+
+.csplab-redoc .redoc-markdown blockquote p {
+    margin: 0;
+}
+
+.csplab-redoc .redoc-markdown h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.csplab-redoc .redoc-markdown h3 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    margin-top: 1.5rem;
+}
