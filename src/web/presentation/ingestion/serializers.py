@@ -77,6 +77,9 @@ MISSING_SIRET = "SIRET obligatoire : retrouvez-le avec `GET /api/v1/organismes`.
 UNKNOWN_SIRET = (
     "Aucun organisme avec ce SIRET : retrouvez-le avec `GET /api/v1/organismes`."
 )
+SIRET_WITH_TALENTSOFT_ORGANISME = (
+    "SIRET à laisser vide pour une offre rattachée à un organisme Talentsoft."
+)
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -995,6 +998,10 @@ class OrganismeInputSerializer(OrganismeSerializer):
         return value
 
     def validate(self, data):
+        if data["siret"] and data.get("talentsoft_organisme_entity_code"):
+            raise serializers.ValidationError(
+                {"siret": [SIRET_WITH_TALENTSOFT_ORGANISME]}
+            )
         if not data["siret"]:
             # Talentsoft provides no SIRET: the ingestion service, the only one
             # allowed to send a Talentsoft organisme, identifies it instead.

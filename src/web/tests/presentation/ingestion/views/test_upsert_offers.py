@@ -42,6 +42,7 @@ from presentation.ingestion.serializers import (
     INVALID_LANGUAGE_CODE,
     INVALID_SIRET,
     MISSING_SIRET,
+    SIRET_WITH_TALENTSOFT_ORGANISME,
     UNKNOWN_SIRET,
     ConditionsInputSerializer,
 )
@@ -494,6 +495,26 @@ def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
     assert offer.talentsoft_organisme_entity_code_id == entity_code
     # The ingestion service sends no SIRET: the offer has no organisme.
     assert offer.organisme_id is None
+
+
+def test_siret_with_talentsoft_organisme_is_rejected_with_api_key(
+    api_key_client, source
+):
+    offer = _offer_with_talentsoft_organisme(
+        TalentsoftOrganismeDjangoFactory().entity_code
+    )
+    offer["organisation"]["siret"] = PAYLOAD_SIRET
+
+    response = api_key_client.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.json()["errors"][0]["error"] == {
+        "organisation": {"siret": [SIRET_WITH_TALENTSOFT_ORGANISME]}
+    }
+    assert not OfferModel.objects.exists()
 
 
 def test_blank_siret_without_talentsoft_organisme_is_rejected_with_api_key(
