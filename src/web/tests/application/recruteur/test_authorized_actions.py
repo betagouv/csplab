@@ -10,12 +10,19 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement as Categorie,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
+    create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
 )
 
 ACTIONS_DU_RESPONSABLE = {"search_agent", "create_agent"}
@@ -52,6 +59,11 @@ def organisme(db):
     return OrganismeDjangoFactory()
 
 
+@pytest.fixture
+def staff():
+    return UtilisateurDjangoFactory(is_staff=True)
+
+
 @pytest.mark.parametrize("nb_en_cours", [1, 3])
 def test_without_the_right_to_modify_no_etape_has_actions(organisme, nb_en_cours):
     categories = [
@@ -82,3 +94,30 @@ def test_an_etape_with_candidatures_cannot_be_deleted(organisme, staff):
 
     assert "delete_etape" not in actions[1]
     assert "delete_etape" in actions[2]
+
+
+@pytest.mark.parametrize(
+    "recrutement_role",
+    [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
+)
+def test_agent_with_a_lower_recrutement_role_has_no_etape_actions(db, recrutement_role):
+    utilisateur = UtilisateurDjangoFactory()
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=utilisateur
+    )
+    recrutement = RecrutementDjangoFactory(
+        organisme=organisme,
+        etapes=[],
+        agent_link__agent=agent,
+        agent_link__role=recrutement_role.value,
+    )
+
+    actions = authorized_actions_of_etapes(
+        [Categorie.ENTREE, Categorie.EN_COURS],
+        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=utilisateur,
+    )
+
+    assert actions == [[], []]

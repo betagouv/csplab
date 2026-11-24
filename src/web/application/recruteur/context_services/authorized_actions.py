@@ -5,8 +5,8 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
     OperationOrganismeRefusee,
+    OrganismePermissionError,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -75,7 +75,7 @@ def authorized_actions_of_etapes(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
         )
-    except (AccesOrganismeRefuse, OperationOrganismeRefusee):
+    except (OrganismePermissionError, OperationOrganismeRefusee):
         return [[] for _ in categories]
     en_cours = categories.count(CategorieEtapeRecrutement.EN_COURS)
     nb_candidatures = nb_candidatures or [0] * len(categories)
