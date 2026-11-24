@@ -653,6 +653,9 @@ class TestPublicSchemaView:
         assert f"[PR #{oldest.pr}]({oldest.pr_url})" not in description
         assert f"Les {len(fragments) - REDOC_PREVIEW_SIZE} précédents" in description
         assert f"]({reverse('pages:api_changelog')})" in description
+        assert description.endswith(
+            f"[Voir le changelog complet]({reverse('pages:api_changelog')})\n"
+        )
 
 
 class TestChangelogMarkdownView:

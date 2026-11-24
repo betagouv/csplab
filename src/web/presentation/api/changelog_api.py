@@ -397,14 +397,15 @@ def changelog_preview_markdown() -> str:
     fragments = published_fragments()
     preview = fragments[:REDOC_PREVIEW_SIZE]
     older = len(fragments) - len(preview)
-    if not older:
-        return assemble(preview)
     page = reverse("pages:api_changelog")
+    footer = f"[Voir le changelog complet]({page})\n"
+    if not older:
+        return f"{assemble(preview)}\n{footer}"
     note = (
         f"> Seuls les {len(preview)} changements les plus récents sont affichés ici. "
         f"Les {older} précédents sont sur la [page du changelog]({page})."
     )
-    return assemble(preview, note=note)
+    return f"{assemble(preview, note=note)}\n{footer}"
 
 
 def cited_routes(fragments: Iterable[Fragment]) -> list[str]:
