@@ -4,8 +4,8 @@ from ddd.entity import Entity
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -37,7 +37,7 @@ def create_conversation(
     documents: list[UploadedFile],
     utilisateur: UserModel,
 ) -> ConversationModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -4,12 +4,12 @@ from uuid import UUID, uuid4
 import pytest
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
+from application.identite.context_services.permission_service import (
     _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS,
     _ROLES_RECRUTEMENT_REQUIS,
     _ROLES_REQUIS,
     _SANS_ROLE_RECRUTEMENT_REQUIS,
-    OrganismePermissionService,
+    PermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.entities.utilisateurs import Utilisateur
@@ -200,7 +200,7 @@ class TestSuperviseurEtStaffActions:
             role=AgentOrganismeRole.SUPERVISEUR
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -227,7 +227,7 @@ class TestSuperviseurEtStaffActions:
             demandeur_id = agent.utilisateur_id
 
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,  # type: ignore[arg-type]
                 utilisateur=utilisateur_de(demandeur_id),
@@ -247,7 +247,7 @@ class TestSuperviseurOuAgentSansRecrutementActions:
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=role)
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -261,7 +261,7 @@ class TestSuperviseurOuAgentSansRecrutementActions:
         organisme = OrganismeDjangoFactory()
 
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,  # type: ignore[arg-type]
                 utilisateur=utilisateur_de(uuid4()),
@@ -294,7 +294,7 @@ def test_revoked_liaison_is_denied(
     ).agent
 
     with pytest.raises(AccesOrganismeRefuse):
-        OrganismePermissionService().can_execute(
+        PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
@@ -321,7 +321,7 @@ def test_revocation_is_scoped_to_organisme(
         organisme_b, agent, AgentRecrutementRole.CONTRIBUTEUR
     )
 
-    result = OrganismePermissionService().can_execute(
+    result = PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT,
         organisme_id=organisme_b.id,  # type: ignore[arg-type]
         utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
@@ -330,7 +330,7 @@ def test_revocation_is_scoped_to_organisme(
 
     assert result == AgentOrganismeRole.AGENT
     with pytest.raises(AccesOrganismeRefuse):
-        OrganismePermissionService().can_execute(
+        PermissionService().authorize(
             action=PermissionAction.GET_RECRUTEMENT,
             organisme_id=organisme_a.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
@@ -350,7 +350,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -366,7 +366,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             role=AgentOrganismeRole.SUPERVISEUR
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -381,7 +381,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -394,7 +394,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -409,7 +409,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         )
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -426,7 +426,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             role=AgentOrganismeRole.SUPERVISEUR
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -443,7 +443,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             organisme, agent, AgentRecrutementRole.RESPONSABLE
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -471,7 +471,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             ).pk
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -484,7 +484,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -499,7 +499,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
         )
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -518,7 +518,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
             role=AgentOrganismeRole.SUPERVISEUR
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -532,7 +532,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -555,7 +555,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
             _attach_recrutement_role(organisme, agent, recrutement_role)
 
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -571,7 +571,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
         )
 
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -586,7 +586,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
         )
 
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -604,7 +604,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             role=AgentOrganismeRole.SUPERVISEUR
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -626,7 +626,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -653,7 +653,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             ).pk
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -666,7 +666,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -681,7 +681,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
         )
 
         with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -698,7 +698,7 @@ def test_role_on_a_recrutement_does_not_grant_access_to_another_one(
     autre_recrutement = RecrutementDjangoFactory(organisme=organisme)
 
     with pytest.raises(AccesRecrutementRefuse):
-        OrganismePermissionService().can_execute(
+        PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -713,7 +713,7 @@ class TestOrganismeExistenceGuard:
         organisme_id = uuid4()
 
         with pytest.raises(OrganismeNexistePas):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme_id,
                 utilisateur=utilisateur_de(uuid4()),
@@ -725,7 +725,7 @@ class TestOrganismeExistenceGuard:
         organisme_id = uuid4()
 
         with pytest.raises(OrganismeNexistePas):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme_id,
                 utilisateur=utilisateur_de(uuid4(), is_staff=True),
@@ -740,7 +740,7 @@ class TestOrganismeExistenceGuard:
         )
 
         with pytest.raises(OrganismeNexistePas):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id, is_staff=is_staff),
@@ -749,10 +749,10 @@ class TestOrganismeExistenceGuard:
 
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS)
 class TestStaffSeulementSansOrganismeActions:
-    def test_staff_can_execute(
+    def test_staff_is_authorized(
         self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             utilisateur=utilisateur_de(uuid4(), is_staff=True),
         )
@@ -762,12 +762,12 @@ class TestStaffSeulementSansOrganismeActions:
 
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS)
 class TestStaffSeulementAvecOrganismeActions:
-    def test_staff_can_execute(
+    def test_staff_is_authorized(
         self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme = OrganismeDjangoFactory()
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(uuid4(), is_staff=True),
@@ -781,7 +781,7 @@ class TestStaffSeulementAvecOrganismeActions:
         organisme = OrganismeDjangoFactory()
 
         with pytest.raises(OperationOrganismeRefusee):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme.id,  # type: ignore[arg-type]
                 utilisateur=utilisateur_de(uuid4()),
@@ -793,7 +793,7 @@ class TestStaffSeulementAvecOrganismeActions:
         organisme_id = uuid4()
 
         with pytest.raises(OrganismeNexistePas):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 organisme_id=organisme_id,
                 utilisateur=utilisateur_de(uuid4(), is_staff=True),
@@ -825,7 +825,7 @@ class TestStaffActsAsSuperviseur:
             else None
         )
 
-        result = OrganismePermissionService().can_execute(
+        result = PermissionService().authorize(
             action=action,
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(demandeur_id, is_staff=True),
@@ -838,7 +838,7 @@ class TestStaffActsAsSuperviseur:
         self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action,
                 utilisateur=utilisateur_de(uuid4(), is_staff=True),
             )
@@ -851,7 +851,7 @@ def test_superviseur_of_another_organisme_is_denied(
     organisme = OrganismeDjangoFactory()
 
     with pytest.raises(AccesOrganismeRefuse):
-        OrganismePermissionService().can_execute(
+        PermissionService().authorize(
             action=PermissionAction.GET_ORGANISME,
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),
@@ -876,9 +876,7 @@ class TestAuthorizedActions:
     )
     def test_user_authorized_actions(self, is_staff, expected):
         assert (
-            OrganismePermissionService().authorized_actions_user(
-                UserModel(is_staff=is_staff)
-            )
+            PermissionService().authorized_actions_user(UserModel(is_staff=is_staff))
             == expected
         )
 
@@ -891,14 +889,14 @@ class TestAuthorizedActions:
         self, is_staff, expected
     ):
         assert (
-            OrganismePermissionService().authorized_actions_staff_organisme(
+            PermissionService().authorized_actions_staff_organisme(
                 UserModel(is_staff=is_staff)
             )
             == expected
         )
 
     def test_agent_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().authorized_actions_organisme(
+        assert PermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
@@ -910,7 +908,7 @@ class TestAuthorizedActions:
         ]
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().authorized_actions_organisme(
+        assert PermissionService().authorized_actions_organisme(
             AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
@@ -922,7 +920,7 @@ class TestAuthorizedActions:
     def test_responsable_agent_also_gets_search_and_create_agent(self):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().authorized_actions_organisme(
+        assert PermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=organisme_id,
@@ -939,7 +937,7 @@ class TestAuthorizedActions:
     def test_staff_acts_as_superviseur(self, is_responsable):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().authorized_actions_organisme(
+        assert PermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=True),
             organisme_id=organisme_id,
@@ -956,20 +954,18 @@ class TestAuthorizedActions:
             (AgentOrganismeRole.AGENT, True),
         ],
     )
-    def test_every_exposed_action_is_accepted_by_can_execute(
-        self, role, is_responsable
-    ):
+    def test_every_exposed_action_is_accepted_by_authorize(self, role, is_responsable):
         agent, organisme = create_organisme_with_agent(role=role)
         if is_responsable:
             _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
 
-        for action in OrganismePermissionService().authorized_actions_organisme(
+        for action in PermissionService().authorized_actions_organisme(
             role,
             utilisateur=agent.utilisateur,
             organisme_id=organisme.id,
             organisme_ids_responsable={organisme.id} if is_responsable else set(),
         ):
-            OrganismePermissionService().can_execute(
+            PermissionService().authorize(
                 action=action, utilisateur=agent.utilisateur, organisme_id=organisme.id
             )
 
@@ -1094,7 +1090,7 @@ class TestAuthorizedActionsRecrutement:
     )
     def test_authorized_actions_recrutement(self, role, recrutement_role, expected):
         assert (
-            OrganismePermissionService().authorized_actions_recrutement(
+            PermissionService().authorized_actions_recrutement(
                 role, recrutement_role=recrutement_role
             )
             == expected
@@ -1108,13 +1104,13 @@ class TestAuthorizedActionsRecrutement:
     ):
         exposee = (
             PermissionAction.GRANT_RECRUTEMENT_RESPONSABLE
-            in OrganismePermissionService().authorized_actions_recrutement(
+            in PermissionService().authorized_actions_recrutement(
                 role, recrutement_role=AgentRecrutementRole.RESPONSABLE
             )
         )
 
         try:
-            OrganismePermissionService().check_role_grantable(
+            PermissionService().check_role_grantable(
                 demandeur_role=role, role=AgentRecrutementRole.RESPONSABLE.value
             )
             attribuable = True
@@ -1132,15 +1128,15 @@ class TestAuthorizedActionsRecrutement:
             AgentRecrutementRole.CONTRIBUTEUR,
         ],
     )
-    def test_actions_match_can_execute(self, recrutement_role):
+    def test_actions_match_authorize(self, recrutement_role):
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
-        authorized = OrganismePermissionService().authorized_actions_recrutement(
+        authorized = PermissionService().authorized_actions_recrutement(
             AgentOrganismeRole.AGENT, recrutement_role=recrutement_role
         )
 
         for action in RESPONSABLE_ACTIONS_RECRUTEMENT:
-            call = OrganismePermissionService().can_execute
+            call = PermissionService().authorize
             if action in authorized:
                 call(
                     action=action,

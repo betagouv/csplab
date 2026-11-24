@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     attach_agent_to_organisme,
@@ -33,8 +33,8 @@ def add_recrutement_agent(
     role: str,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    permissions = OrganismePermissionService()
-    demandeur_role = permissions.can_execute(
+    permissions = PermissionService()
+    demandeur_role = permissions.authorize(
         action=PermissionAction.ADD_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

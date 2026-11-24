@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_recrutement_authorized_actions,
@@ -16,13 +16,13 @@ from infrastructure.django_apps.users.models import UserModel
 def get_recrutement(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> RecrutementModel:
-    role = OrganismePermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
-    if role is None:
+    if organisme_role is None:
         raise OperationOrganismeRefusee()
     try:
         recrutement = (
@@ -30,7 +30,7 @@ def get_recrutement(
             .filter(organisme_id=organisme_id)
             .with_detail()
             .with_role_of(utilisateur.username)
-            .with_organisme_role(role)
+            .with_organisme_role(organisme_role)
             .get()
         )
     except RecrutementModel.DoesNotExist as error:

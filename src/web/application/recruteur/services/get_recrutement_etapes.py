@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     set_etape_actions_of_recrutement,
@@ -31,7 +31,7 @@ def recrutement_etapes(*, organisme_id: UUID, recrutement_id: UUID) -> list[Etap
 def get_recrutement_etapes(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.GET_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

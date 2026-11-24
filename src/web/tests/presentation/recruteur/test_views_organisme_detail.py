@@ -7,8 +7,8 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -52,7 +52,7 @@ ORGANISME_URL = reverse(
 
 
 def _authorized_actions(*, is_staff: bool) -> list[str]:
-    permissions = OrganismePermissionService()
+    permissions = PermissionService()
     utilisateur = UserModel(is_staff=is_staff)
     actions = {
         *permissions.authorized_actions_organisme(
@@ -242,9 +242,7 @@ class TestOrganismeDetailView:
     ):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
 
-        with patch.object(
-            OrganismePermissionService, "can_execute", side_effect=exception
-        ):
+        with patch.object(PermissionService, "authorize", side_effect=exception):
             response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status

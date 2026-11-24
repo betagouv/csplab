@@ -2,8 +2,8 @@ from collections.abc import Iterable
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_organisme,
@@ -17,7 +17,7 @@ from infrastructure.django_apps.users.models import UserModel
 def list_organismes(
     *, utilisateur: UserModel, recherche: str | None = None
 ) -> QuerySet[OrganismeModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )

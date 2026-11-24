@@ -5,8 +5,8 @@ from uuid import UUID, uuid4
 from django.db import DatabaseError
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -53,7 +53,7 @@ def read_conversation(
     conversation_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[MessageModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.READ_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

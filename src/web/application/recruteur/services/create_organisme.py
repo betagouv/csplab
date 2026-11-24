@@ -7,8 +7,8 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
@@ -33,7 +33,7 @@ def create_organisme(
     localisation: Localisation | None = None,
     parent_id: UUID | None = None,
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_ORGANISME,
         utilisateur=utilisateur,
     )

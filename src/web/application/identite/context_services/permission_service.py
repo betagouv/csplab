@@ -312,7 +312,7 @@ def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
     return utilisateur.entity_id
 
 
-class OrganismePermissionService:
+class PermissionService:
     def check_role_grantable(
         self, *, demandeur_role: AgentOrganismeRole | None, role: str
     ) -> None:
@@ -323,7 +323,7 @@ class OrganismePermissionService:
         ):
             raise RoleRecrutementNonAutorise(role)
 
-    def can_execute(
+    def authorize(
         self,
         *,
         action: PermissionAction,

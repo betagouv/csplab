@@ -4,8 +4,8 @@ from ddd.entity import Entity
 from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError, transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
@@ -20,7 +20,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def create_agent(
     *, email: str, organisme_id: UUID, utilisateur: UserModel
 ) -> ProfilAgentModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.CREATE_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

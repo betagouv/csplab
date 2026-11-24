@@ -1,8 +1,8 @@
 from collections.abc import Collection, Sequence
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -22,7 +22,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
 
-organisme_permissions = OrganismePermissionService()
+permissions = PermissionService()
 
 
 def authorized_actions_of_organisme(
@@ -33,13 +33,13 @@ def authorized_actions_of_organisme(
     organisme_ids_responsable: Collection[UUID],
 ) -> list[str]:
     actions = {
-        *organisme_permissions.authorized_actions_organisme(
+        *permissions.authorized_actions_organisme(
             role,
             utilisateur=utilisateur,
             organisme_id=organisme_id,
             organisme_ids_responsable=organisme_ids_responsable,
         ),
-        *organisme_permissions.authorized_actions_staff_organisme(utilisateur),
+        *permissions.authorized_actions_staff_organisme(utilisateur),
     }
     return [action.value for action in PermissionAction if action in actions]
 
@@ -50,7 +50,7 @@ def authorized_actions_of_recrutement(
 ) -> list[str]:
     return [
         action.value
-        for action in organisme_permissions.authorized_actions_recrutement(
+        for action in permissions.authorized_actions_recrutement(
             organisme_role,
             recrutement_role=(
                 AgentRecrutementRole(recrutement_role) if recrutement_role else None
@@ -69,7 +69,7 @@ def authorized_actions_of_etapes(
     nb_candidatures: Sequence[int] | None = None,
 ) -> list[list[str]]:
     try:
-        organisme_permissions.can_execute(
+        permissions.authorize(
             action=action,
             utilisateur=utilisateur,
             organisme_id=organisme_id,

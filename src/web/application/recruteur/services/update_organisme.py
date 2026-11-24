@@ -5,8 +5,8 @@ from django.db import transaction
 from django.utils import timezone
 from referentiel.value_objects.verse import Verse
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -26,7 +26,7 @@ def update_organisme(
     versant: Verse,
     gestion_ats: bool,
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

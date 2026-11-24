@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.list_recrutements import (
     list_actives_recrutements,
@@ -161,7 +161,7 @@ class TestListRecrutements:
     def test_missing_organisme_role_is_refused(self, lister):
         agent, organisme = self._supervisor()
 
-        with patch.object(OrganismePermissionService, "can_execute", return_value=None):
+        with patch.object(PermissionService, "authorize", return_value=None):
             with pytest.raises(OperationOrganismeRefusee):
                 lister(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 

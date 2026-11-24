@@ -4,8 +4,8 @@ from uuid import UUID
 import filetype
 from django.conf import settings
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
@@ -31,7 +31,7 @@ def read_document(
     document_id: UUID,
     utilisateur: UserModel,
 ) -> DocumentDownload:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.READ_DOCUMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

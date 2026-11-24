@@ -4,8 +4,8 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -31,7 +31,7 @@ def delete_note(
     note_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.DELETE_NOTE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

@@ -2,8 +2,8 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -23,7 +23,7 @@ def list_documents(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[DocumentModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_DOCUMENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

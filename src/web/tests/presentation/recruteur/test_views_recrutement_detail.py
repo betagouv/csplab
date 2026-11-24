@@ -9,8 +9,8 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import serializers, status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -122,7 +122,7 @@ def _etape_url(organisme_id, recrutement_id) -> str:
 
 
 def _authorized_actions(organisme_role, recrutement_role) -> list[str]:
-    permissions = OrganismePermissionService()
+    permissions = PermissionService()
     return [
         action.value
         for action in permissions.authorized_actions_recrutement(
@@ -774,8 +774,8 @@ class TestRecrutementListeView:
         self, authenticated_client, recrutement_liste
     ):
         with patch.object(
-            OrganismePermissionService,
-            "can_execute",
+            PermissionService,
+            "authorize",
             side_effect=Exception("unexpected"),
         ):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)

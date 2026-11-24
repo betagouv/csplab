@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import IntegrityError, transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     get_profil_agent,
@@ -27,7 +27,7 @@ def attach_organisme_agent(
     role: AgentOrganismeRole,
     utilisateur: UserModel,
 ) -> OrganismeAgentModel:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.ATTACH_ORGANISME_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

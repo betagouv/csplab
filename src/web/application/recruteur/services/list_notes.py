@@ -3,8 +3,8 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_recrutement,
@@ -35,7 +35,7 @@ def list_notes(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[NoteModel]:
-    OrganismePermissionService().can_execute(
+    PermissionService().authorize(
         action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -82,7 +82,7 @@ def with_authorized_actions(
 def _actions_on_own_note(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[str]:
-    organisme_role = OrganismePermissionService().can_execute(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

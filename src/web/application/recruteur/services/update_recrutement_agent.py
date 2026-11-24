@@ -3,8 +3,8 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
@@ -28,8 +28,8 @@ def update_recrutement_agent(
     role: str,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    permissions = OrganismePermissionService()
-    demandeur_role = permissions.can_execute(
+    permissions = PermissionService()
+    demandeur_role = permissions.authorize(
         action=PermissionAction.UPDATE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -43,7 +43,7 @@ def update_recrutement_agent(
     )
     contexte.check_recrutement_belongs_to_organisme()
     # TODO : duplicate query — same OrganismeAgentModel table already queried inside
-    # OrganismePermissionService.can_execute() above (for the acting utilisateur rather
+    # PermissionService.authorize() above (for the acting utilisateur rather
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)

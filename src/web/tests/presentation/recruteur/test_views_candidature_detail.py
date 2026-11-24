@@ -5,8 +5,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -171,7 +171,7 @@ class TestCandidatureDetailView:
 
         assert response.json()["authorized_actions"] == [
             action.value
-            for action in OrganismePermissionService().authorized_actions_recrutement(
+            for action in PermissionService().authorized_actions_recrutement(
                 AgentOrganismeRole.SUPERVISEUR, recrutement_role=None
             )
         ]
@@ -196,7 +196,7 @@ class TestCandidatureDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["authorized_actions"] == [
             action.value
-            for action in OrganismePermissionService().authorized_actions_recrutement(
+            for action in PermissionService().authorized_actions_recrutement(
                 AgentOrganismeRole.AGENT, recrutement_role=recrutement_role
             )
         ]
