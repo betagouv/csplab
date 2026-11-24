@@ -1,6 +1,7 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
 import type { CandidatureParams } from '@/api/params'
+import type { ConversationRouteNames } from '@/features/messages/types'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { CANDIDATURE_PANEL_TAB_LABELS } from '@/features/candidatures/constants/candidature'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
@@ -28,7 +29,6 @@ const recrutementTabMeta = tabMetaFor(RECRUTEMENT_DETAIL_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const HomeView = () => import('@/features/home/views/HomeView.vue')
-const CandidatureMessagesView = () => import('@/features/candidatures/views/CandidatureMessagesView.vue')
 
 function paramsAsProps(...names: string[]) {
   return ({ params }: RouteLocationNormalized) => Object.fromEntries(names.map(name => [name, params[name]]))
@@ -44,6 +44,13 @@ function candidatureTabProps({ params }: RouteLocationNormalized) {
       recrutementUuid: String(params.recrutementUuid),
       candidatureUuid: String(params.candidatureUuid),
     } satisfies CandidatureParams,
+  }
+}
+
+function conversationTabProps(route: RouteLocationNormalized) {
+  return {
+    ...candidatureTabProps(route),
+    conversationUuid: String(route.params.conversationUuid),
   }
 }
 
@@ -93,23 +100,23 @@ function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanel
         {
           path: 'messages',
           name: tabs.messages,
-          component: CandidatureMessagesView,
+          component: () => import('@/features/candidatures/views/CandidatureMessagesView.vue'),
           props: candidatureTabProps,
           meta: panelTabMeta('messages'),
-        },
-        {
-          path: 'messages/nouveau',
-          name: conversations.create,
-          component: CandidatureMessagesView,
-          props: candidatureTabProps,
-          meta: panelTabMeta('messages'),
-        },
-        {
-          path: `messages/:conversationUuid${UUID}`,
-          name: conversations.conversation,
-          component: CandidatureMessagesView,
-          props: candidatureTabProps,
-          meta: panelTabMeta('messages'),
+          children: [
+            {
+              path: 'nouveau',
+              name: conversations.create,
+              component: () => import('@/features/messages/views/NewConversationView.vue'),
+              props: route => ({ ...candidatureTabProps(route), routes: conversations satisfies ConversationRouteNames }),
+            },
+            {
+              path: `:conversationUuid${UUID}`,
+              name: conversations.conversation,
+              component: () => import('@/features/messages/views/ConversationView.vue'),
+              props: conversationTabProps,
+            },
+          ],
         },
       ],
     },

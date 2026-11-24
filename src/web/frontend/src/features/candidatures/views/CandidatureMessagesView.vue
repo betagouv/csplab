@@ -7,8 +7,6 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import ConversationsList from '@/features/messages/components/ConversationsList.vue'
-import ConversationThread from '@/features/messages/components/ConversationThread.vue'
-import NewConversationForm from '@/features/messages/components/NewConversationForm.vue'
 import { useConversations } from '@/features/messages/composables/useConversations'
 import { pluralize } from '@/utils/format'
 import { useCandidatureDetail } from '../composables/useCandidatureDetail'
@@ -38,7 +36,7 @@ const title = computed(() =>
 const isEmpty = computed(() => !showSkeleton.value && !error.value && conversations.value.length === 0)
 
 const route = useRoute()
-const openConversationUuid = computed(() => route.params.conversationUuid as string | undefined)
+const isConversationOpen = computed(() => route.name === names.value.conversations.conversation)
 const isCreatingConversation = computed(() => route.name === names.value.conversations.create)
 
 const router = useRouter()
@@ -52,11 +50,7 @@ function startConversation(): void {
 </script>
 
 <template>
-  <NewConversationForm
-    v-if="isCreatingConversation"
-    :candidature="candidature"
-    :routes="names.conversations"
-  />
+  <router-view v-if="isCreatingConversation" />
   <div
     v-else
     class="candidature-messages"
@@ -125,11 +119,7 @@ function startConversation(): void {
           />
         </template>
       </CspEmptyState>
-      <ConversationThread
-        v-else-if="openConversationUuid"
-        :candidature="candidature"
-        :conversation-uuid="openConversationUuid"
-      />
+      <router-view v-else-if="isConversationOpen" />
       <CspEmptyState
         v-else-if="!showSkeleton && !error"
         icon="ri:chat-3-line"

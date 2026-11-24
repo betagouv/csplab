@@ -1,9 +1,10 @@
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { CONVERSATION, MESSAGE, REPLY } from '@/test/fixtures/messages'
 import { conversations, conversationsFailure, reply } from '@/test/handlers/messages'
-import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { inRouterViewOf, renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import CandidatureMessagesView from './CandidatureMessagesView.vue'
 
@@ -11,7 +12,7 @@ const MESSAGES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages
 
 const AUTRE_CONVERSATION = { ...CONVERSATION, uuid: 'ffffffff-0001-0001-0001-000000000002', objet: 'Pièces justificatives' }
 
-const Host = withToaster(CandidatureMessagesView, { candidature: CANDIDATURE_PARAMS })
+const Host = inRouterViewOf(withToaster(CandidatureMessagesView, { candidature: CANDIDATURE_PARAMS }), CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.messages)
 
 function thread() {
   return within(screen.getByRole('region', { name: 'Fil de discussion' }))
@@ -25,6 +26,13 @@ describe('candidatureMessagesView', () => {
 
     expect(await screen.findByText('Impossible de charger les conversations')).toBeInTheDocument()
     expect(screen.queryByText('Aucune conversation pour le moment')).not.toBeInTheDocument()
+  })
+
+  it('replaces the conversations with the new conversation form', async () => {
+    await renderWithApp(Host, { route: `${MESSAGES_PATH}/nouveau` })
+
+    expect(await screen.findByRole('heading', { name: 'Créer une nouvelle conversation' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Conversations de la candidature' })).not.toBeInTheDocument()
   })
 
   it('shows the opened conversation as read once its messages are loaded', async () => {
