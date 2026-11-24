@@ -130,5 +130,5 @@ mémoire jusqu'au déploiement suivant.
 
 Les routes `/api/changelog.*` et `/api/guide.md` sont documentées dans Redoc, sous
 « Changelog et documentation ». Elles sont publiques, sans authentification, et limitées
-à 60 appels par minute et par adresse IP (`DocumentationRateThrottle`, taux
-`documentation`), que l'appelant envoie ou non un en-tête `Authorization`.
+par adresse IP (`DocumentationRateThrottle`, taux `documentation`), que l'appelant
+envoie ou non un en-tête `Authorization`.

@@ -35,10 +35,6 @@ Cette API est à l'usage exclusif des personnes autorisées.
 
 L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
 utilisateur.
-
-# Limitations
-
-L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 """
 
 CONCOURS_UPLOAD_DESCRIPTION = (
@@ -564,8 +560,6 @@ L'utilisation de cette API nécessite un token d'autorisation spécifique à cha
 utilisateur.
 
 # Limitations
-
-L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
 
 Le nombre d'offres transmises par appel à l'API est limité à 100.
 """
