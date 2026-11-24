@@ -26,7 +26,6 @@ import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { useConversations } from '@/features/messages/composables/useConversations'
 import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
-import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
 import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
@@ -43,6 +42,7 @@ import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../co
 import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
 import CandidatureCvView from './CandidatureCvView.vue'
+import CandidatureDocumentsView from './CandidatureDocumentsView.vue'
 import CandidatureHistoriqueView from './CandidatureHistoriqueView.vue'
 
 const props = defineProps<{
@@ -276,9 +276,9 @@ function handleUpdateOpen(open: boolean): void {
               </template>
               <template #documents>
                 <div class="candidature-panel__tab">
-                  <CandidatureDocuments
+                  <CandidatureDocumentsView
                     v-if="candidature"
-                    :candidature="candidatureParams"
+                    v-bind="candidatureParams"
                   />
                 </div>
               </template>
