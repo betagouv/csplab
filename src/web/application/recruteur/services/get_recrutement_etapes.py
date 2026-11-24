@@ -25,7 +25,7 @@ def recrutement_etapes(*, organisme_id: UUID, recrutement_id: UUID) -> list[Etap
         )
     except RecrutementModel.DoesNotExist as error:
         raise RecrutementInexistant(recrutement_id) from error
-    return etapes_ordonnees(recrutement)
+    return etapes_ordonnees(recrutement, recrutement.etapes.with_nb_candidatures())
 
 
 def get_recrutement_etapes(

@@ -144,14 +144,15 @@ class TestGetRecrutementEtapesView:
                 "uuid": str(reception.id),
                 "nom": "Réception",
                 "categorie": "ENTREE",
-                "etape_actions": ["insert_etape_after"],
+                "etape_actions": ["rename_etape", "insert_etape_after"],
             },
             {
                 "uuid": str(entretien.id),
                 "nom": "Entretien",
                 "categorie": "EN_COURS",
                 "etape_actions": [
-                    "edit_etape",
+                    "rename_etape",
+                    "move_etape",
                     "insert_etape_before",
                     "insert_etape_after",
                 ],
@@ -160,7 +161,7 @@ class TestGetRecrutementEtapesView:
                 "uuid": str(refus.id),
                 "nom": "Refus",
                 "categorie": "REFUS",
-                "etape_actions": ["insert_etape_before"],
+                "etape_actions": ["rename_etape", "insert_etape_before"],
             },
         ]
 
@@ -459,6 +460,15 @@ def _agent_with_recrutement_role(recrutement_role, test_user):
     return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
 
 
+EN_COURS_ACTIONS = [
+    "rename_etape",
+    "move_etape",
+    "delete_etape",
+    "insert_etape_before",
+    "insert_etape_after",
+]
+
+
 class TestGetRecrutementEtapesActions:
     @pytest.mark.parametrize(
         "arrange",
@@ -485,11 +495,11 @@ class TestGetRecrutementEtapesActions:
 
         assert response.status_code == status.HTTP_200_OK
         assert [e["etape_actions"] for e in response.json()] == [
-            ["insert_etape_after"],
-            ["edit_etape", "delete_etape", "insert_etape_before", "insert_etape_after"],
-            ["edit_etape", "delete_etape", "insert_etape_before", "insert_etape_after"],
-            ["insert_etape_before"],
-            [],
+            ["rename_etape", "insert_etape_after"],
+            EN_COURS_ACTIONS,
+            EN_COURS_ACTIONS,
+            ["rename_etape", "insert_etape_before"],
+            ["rename_etape"],
         ]
 
     def test_etape_with_candidatures_has_no_delete_etape(

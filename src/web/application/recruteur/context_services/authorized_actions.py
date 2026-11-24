@@ -122,18 +122,16 @@ def set_etape_actions_of_recrutement(
     recrutement_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    nb_candidatures = dict(
-        EtapeModel.objects.filter(pk__in=[etape.pk for etape in etapes])
-        .with_nb_candidatures()
-        .values_list("pk", "nb_candidatures")
-    )
     actions = authorized_actions_of_etapes(
         [CategorieEtapeRecrutement(etape.categorie) for etape in etapes],
         action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
         organisme_id=organisme_id,
         utilisateur=utilisateur,
         recrutement_id=recrutement_id,
-        nb_candidatures=[nb_candidatures[etape.pk] for etape in etapes],
+        nb_candidatures=[
+            etape.nb_candidatures  # type: ignore[attr-defined]
+            for etape in etapes
+        ],
     )
     for etape, etape_actions in zip(etapes, actions, strict=True):
         etape.etape_actions = etape_actions  # type: ignore[attr-defined]
