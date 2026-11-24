@@ -2,16 +2,13 @@
 import type { Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import { CATEGORIES } from '../../data/referentiels'
-import FieldRow from '../../shared/FieldRow.vue'
 import Panel from '../../shared/Panel.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { db, le, nouvelleOffre } from './store'
 
-// Créer une offre (MVP) : formulaire vide ou duplication d'une offre existante. Pas de fiche de poste (post-MVP).
+// Créer une offre (MVP) : on choisit seulement entre formulaire vide et duplication (retour Alice) ; tout le reste
+// se saisit dans les étapes du formulaire. Pas de fiche de poste (post-MVP).
 // Le créateur devient Responsable. La duplication remet à zéro le nombre de postes (1), toutes les dates et
 // les champs d'autorisation. La nouvelle offre démarre en brouillon.
 type Mode = 'manuel' | 'duplication'
@@ -24,10 +21,6 @@ const MODES: { id: Mode, titre: string, desc: string }[] = [
 ]
 const mode = ref<Mode | null>(props.mode ?? (props.offreId ? 'duplication' : null))
 const erreur = ref('')
-
-const manuel = ref({ intitule: '', localisation: '', categorie: '' })
-const OPTIONS_CATEGORIE = [{ value: 'aucune', label: 'Choisir' }, ...CATEGORIES]
-const categorieManuelle = computed({ get: () => manuel.value.categorie || 'aucune', set: (v: string) => (manuel.value.categorie = v === 'aucune' ? '' : v) })
 
 const offreSource = ref<string | null>(props.offreId ?? null)
 const offresReprenables = computed(() => db.offres.filter(o => o.etat !== 'archivee'))
@@ -46,8 +39,7 @@ function creer() {
       return
     }
   }
-  const saisie = mode.value === 'manuel' ? { titre: manuel.value.intitule.trim(), lieu: manuel.value.localisation.trim(), categorie: manuel.value.categorie } : undefined
-  const o = nouvelleOffre(undefined, mode.value, source, saisie)
+  const o = nouvelleOffre(undefined, mode.value, source)
   notifier(source ? `Offre ${o.id} créée par duplication. Nombre de postes, dates et champs d'autorisation remis à zéro.` : `Offre ${o.id} créée. Vous en êtes Responsable.`)
   aller({ nom: 'rediger', id: o.id })
 }
@@ -85,29 +77,7 @@ function creer() {
     </div>
 
     <Panel
-      v-if="mode === 'manuel'"
-      titre="Pour démarrer"
-      description="Vous compléterez tout le reste dans les étapes suivantes."
-    >
-      <FieldRow :cols="3">
-        <CspInput
-          v-model="manuel.intitule"
-          label="Intitulé de l'offre"
-        />
-        <CspInput
-          v-model="manuel.localisation"
-          label="Lieu"
-        />
-        <CspSelect
-          v-model="categorieManuelle"
-          label="Catégorie"
-          :options="OPTIONS_CATEGORIE"
-        />
-      </FieldRow>
-    </Panel>
-
-    <Panel
-      v-else-if="mode === 'duplication'"
+      v-if="mode === 'duplication'"
       titre="Choisir l'offre à dupliquer"
       description="Le contenu est copié. Le nombre de postes revient à 1 ; les dates et les champs d'autorisation sont vidés."
     >
