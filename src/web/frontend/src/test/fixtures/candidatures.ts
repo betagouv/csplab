@@ -63,7 +63,7 @@ export const CANDIDATURE_LISTE: RecrutementListe = {
   previous: null,
   results: KANBAN_COLUMNS.flatMap(({ uuid, nom, categorie, candidatures }) =>
     candidatures.map(candidature => ({ ...candidature, etape: { uuid, nom, categorie } }))),
-  etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
+  etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie, motif_refus_required: categorie === 'REFUS' })),
 }
 
 export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
@@ -102,7 +102,7 @@ export const RECRUTEMENT_DETAIL: RecrutementDetail = {
   }],
   organisme_recruteur: { nom: 'Ministère de la Transition Écologique', siret: '11000201100044' },
   categorie_offre: 'A',
-  etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
+  etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie, motif_refus_required: categorie === 'REFUS' })),
   recrutement_role: null,
   authorized_actions: ['change_etape_candidatures'],
 }

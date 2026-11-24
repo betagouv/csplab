@@ -303,10 +303,11 @@ class CategorieEtapeField(serializers.ChoiceField):
 class EtapeRecrutementModelSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
     categorie = CategorieEtapeField()
+    motif_refus_required = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = EtapeModel
-        fields = ["uuid", "nom", "categorie"]
+        fields = ["uuid", "nom", "categorie", "motif_refus_required"]
 
 
 class EtapeRecrutementActionsSerializer(EtapeRecrutementModelSerializer):
@@ -351,7 +352,7 @@ class OffreLocalisationSerializer(serializers.ModelSerializer):
         ]
 
 
-@extend_schema_field(EtapeRecrutementSerializer(many=True))
+@extend_schema_field(EtapeRecrutementModelSerializer(many=True))
 class EtapesOrdonneesField(serializers.Field):
     def get_attribute(self, instance: RecrutementModel) -> list[EtapeModel]:
         return etapes_ordonnees(instance)

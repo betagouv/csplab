@@ -17,9 +17,6 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
-)
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
@@ -73,10 +70,7 @@ def change_etape_candidatures(
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=recrutement_id
             )
-        if (
-            etape_cible.categorie == CategorieEtapeRecrutement.REFUS.value
-            and not motif_refus
-        ):
+        if etape_cible.motif_refus_required and not motif_refus:
             raise MotifRefusRequis(etape_id=etape_cible_id)
 
         reussites = [

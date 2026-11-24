@@ -144,12 +144,14 @@ class TestGetRecrutementEtapesView:
                 "uuid": str(reception.id),
                 "nom": "Réception",
                 "categorie": "ENTREE",
+                "motif_refus_required": False,
                 "etape_actions": ["rename_etape", "insert_etape_after"],
             },
             {
                 "uuid": str(entretien.id),
                 "nom": "Entretien",
                 "categorie": "EN_COURS",
+                "motif_refus_required": False,
                 "etape_actions": [
                     "rename_etape",
                     "move_etape",
@@ -161,6 +163,7 @@ class TestGetRecrutementEtapesView:
                 "uuid": str(refus.id),
                 "nom": "Refus",
                 "categorie": "REFUS",
+                "motif_refus_required": True,
                 "etape_actions": ["rename_etape", "insert_etape_before"],
             },
         ]
@@ -884,7 +887,13 @@ class TestUpdateRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()[:3] == [
-            {"uuid": str(e.id), "nom": e.nom, "categorie": c, "etape_actions": a}
+            {
+                "uuid": str(e.id),
+                "nom": e.nom,
+                "categorie": c,
+                "motif_refus_required": c == "REFUS",
+                "etape_actions": a,
+            }
             for e, c, a in (
                 (reception, "ENTREE", ["rename_etape", "insert_etape_after"]),
                 (

@@ -6927,6 +6927,9 @@ components:
           allOf:
           - $ref: '#/components/schemas/CategorieEnum'
           readOnly: true
+        motif_refus_required:
+          type: boolean
+          readOnly: true
         etape_actions:
           type: array
           items:
@@ -6935,6 +6938,7 @@ components:
       required:
       - categorie
       - etape_actions
+      - motif_refus_required
       - nom
       - uuid
     EtapeRecrutementModel:
@@ -6950,8 +6954,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/CategorieEnum'
           readOnly: true
+        motif_refus_required:
+          type: boolean
+          readOnly: true
       required:
       - categorie
+      - motif_refus_required
       - nom
       - uuid
     GenericError:
@@ -7594,7 +7602,7 @@ components:
         etapes:
           type: array
           items:
-            $ref: '#/components/schemas/EtapeRecrutement'
+            $ref: '#/components/schemas/EtapeRecrutementModel'
         recrutement_role:
           nullable: true
           description: |-

@@ -122,7 +122,7 @@ describe('candidaturesListeView', () => {
   })
 
   it('offers in the filters the stages of the list', async () => {
-    const etapeAjoutee = { uuid: 'eeeeeeee-0001-0001-0001-000000000009', nom: 'Visite', categorie: 'EN_COURS' as const }
+    const etapeAjoutee = { uuid: 'eeeeeeee-0001-0001-0001-000000000009', nom: 'Visite', categorie: 'EN_COURS' as const, motif_refus_required: false }
     vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, etapes: [...CANDIDATURE_LISTE.etapes, etapeAjoutee] })
     const user = setupUser()
     await renderListe()
