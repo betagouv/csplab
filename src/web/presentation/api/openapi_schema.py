@@ -50,6 +50,11 @@ _AUTHENTICATION_CALLERS = {
     ApiKeyAuthentication: Caller.API_KEY,
 }
 
+_CUMULATIVE_NOTE = (
+    "Les limites d'un même mode d'authentification se cumulent : "
+    "la première atteinte bloque l'appel."
+)
+
 _PERIODS = {"s": "seconde", "m": "minute", "h": "heure", "d": "jour"}
 
 
@@ -108,6 +113,9 @@ def rate_limits_markdown(view: APIView) -> str:
         "|---|---|---|",
         *(f"| {caller} | {rate} | {counted} |" for caller, rate, counted in rows),
     ]
+    callers = [caller for caller, _, _ in rows]
+    if len(set(callers)) < len(callers):
+        lines += ["", _CUMULATIVE_NOTE]
     return "\n".join(lines)
 
 

@@ -1881,6 +1881,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Upload et traitement d'un fichier CSV de concours GRECO
       tags:
       - concours
@@ -2100,6 +2102,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des métiers
       parameters:
       - in: query
@@ -2436,6 +2440,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des offres
       parameters:
       - in: query
@@ -3648,6 +3654,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Archiver une offre par référence
       tags:
       - offres
@@ -3848,6 +3856,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour une offre d'emploi
       tags:
       - offres
@@ -3999,6 +4009,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des offres d'une source
       parameters:
       - name: page
@@ -4591,6 +4603,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Supprimer des organismes
       tags:
       - organismes
@@ -4687,6 +4701,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour des organismes
       tags:
       - organismes
@@ -4783,6 +4799,8 @@ paths:
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour des organismes Talentsoft
       tags:
       - talentsoft_organisme

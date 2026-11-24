@@ -23,16 +23,23 @@ _RATES = {
 }
 
 
-def _table(*rows: str) -> str:
-    return "\n".join(
-        [
-            "**Limites d'appels**",
-            "",
-            "| Appel | Limite | Décompte |",
-            "|---|---|---|",
-            *rows,
-        ]
-    )
+_CUMULATIVE_NOTE = (
+    "Les limites d'un même mode d'authentification se cumulent : "
+    "la première atteinte bloque l'appel."
+)
+
+
+def _table(*rows: str, note: str | None = None) -> str:
+    lines = [
+        "**Limites d'appels**",
+        "",
+        "| Appel | Limite | Décompte |",
+        "|---|---|---|",
+        *rows,
+    ]
+    if note:
+        lines += ["", note]
+    return "\n".join(lines)
 
 
 class TestFormatRate:
@@ -57,6 +64,7 @@ class TestRateLimitsMarkdown:
             "| Avec une clé d'API | 70 000 appels par heure | par clé d'API |",
             "| Avec une clé d'API | 100 000 appels par jour | par clé d'API |",
             "| Authentification refusée | 10 appels par minute | par adresse IP |",
+            note=_CUMULATIVE_NOTE,
         )
 
     def test_api_key_only_view(self):
@@ -64,6 +72,7 @@ class TestRateLimitsMarkdown:
             "| Avec une clé d'API | 70 000 appels par heure | par clé d'API |",
             "| Avec une clé d'API | 100 000 appels par jour | par clé d'API |",
             "| Authentification refusée | 10 appels par minute | par adresse IP |",
+            note=_CUMULATIVE_NOTE,
         )
 
     def test_documentation_view(self):
