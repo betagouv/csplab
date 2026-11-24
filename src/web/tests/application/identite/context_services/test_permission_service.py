@@ -749,7 +749,7 @@ class TestOrganismeExistenceGuard:
 
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS)
 class TestStaffSeulementSansOrganismeActions:
-    def test_staff_can_execute(
+    def test_staff_is_authorized(
         self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         result = PermissionService().authorize(
@@ -762,7 +762,7 @@ class TestStaffSeulementSansOrganismeActions:
 
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS)
 class TestStaffSeulementAvecOrganismeActions:
-    def test_staff_can_execute(
+    def test_staff_is_authorized(
         self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme = OrganismeDjangoFactory()
