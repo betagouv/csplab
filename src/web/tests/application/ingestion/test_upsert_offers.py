@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from django.db import IntegrityError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
@@ -133,6 +134,23 @@ def test_generates_auto_references():
     ]
     assert not OfferModel.objects.filter(reference="auto").exists()
     assert OfferModel.objects.get(reference=f"CSP-{year}-000002").title == ("Troisième")
+
+
+def test_database_error_rolls_back_the_whole_batch():
+    source = SourceDjangoFactory()
+
+    with pytest.raises(IntegrityError):
+        upsert_offers(
+            source.source_id,
+            [
+                _pending(source, "REF-1"),
+                _pending(source, "REF-2"),
+                _pending(source, "REF-1"),
+            ],
+            user=IngestionApiKeyUser(),
+        )
+
+    assert not OfferModel.objects.exists()
 
 
 def test_user_without_the_source_is_refused(test_user):
