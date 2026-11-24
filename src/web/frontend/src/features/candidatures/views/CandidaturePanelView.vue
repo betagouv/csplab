@@ -22,14 +22,12 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { useConversations } from '@/features/messages/composables/useConversations'
 import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
 import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
-import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
 import EditMotifRefusDialog from '../components/EditMotifRefusDialog.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
@@ -41,9 +39,6 @@ import { useMotifRefusEdit } from '../composables/useMotifRefusEdit'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
-import CandidatureCvView from './CandidatureCvView.vue'
-import CandidatureDocumentsView from './CandidatureDocumentsView.vue'
-import CandidatureHistoriqueView from './CandidatureHistoriqueView.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -107,6 +102,7 @@ useDocumentTitle(
   () => candidature.value && formatCandidatName(candidature.value.candidat),
 )
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
+const isCvTab = computed(() => activeTab.value === 'candidature')
 const isMessagesTab = computed(() => activeTab.value === 'messages')
 const isNotesTab = computed(() => activeTab.value === 'notes')
 const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))
@@ -258,51 +254,12 @@ function handleUpdateOpen(open: boolean): void {
               fill
               class="candidature-panel__main"
             >
-              <template #candidature>
-                <div class="candidature-panel__tab candidature-panel__tab--cv">
-                  <CandidatureCvView
-                    v-if="candidature"
-                    v-bind="candidatureParams"
-                  />
-                </div>
-              </template>
-              <template #historique>
-                <div class="candidature-panel__tab">
-                  <CandidatureHistoriqueView
-                    v-if="candidature"
-                    v-bind="candidatureParams"
-                  />
-                </div>
-              </template>
-              <template #documents>
-                <div class="candidature-panel__tab">
-                  <CandidatureDocumentsView
-                    v-if="candidature"
-                    v-bind="candidatureParams"
-                  />
-                </div>
-              </template>
-
-              <template #notes>
-                <div class="candidature-panel__tab">
-                  <CandidatureNotes
-                    v-if="candidature"
-                    :candidature="candidatureParams"
-                    :routes="panelRouteNames.notes"
-                  />
-                </div>
-              </template>
-
-              <template #messages>
-                <div class="candidature-panel__tab">
-                  <MessagesSection
-                    v-if="candidature"
-                    :candidature="candidatureParams"
-                    :candidat-nom="formatCandidatName(candidature.candidat)"
-                    :routes="panelRouteNames.conversations"
-                  />
-                </div>
-              </template>
+              <div
+                class="candidature-panel__tab"
+                :class="{ 'candidature-panel__tab--cv': isCvTab }"
+              >
+                <router-view v-if="candidature" />
+              </div>
             </CspTabsPanels>
             <aside
               v-show="showAside"
