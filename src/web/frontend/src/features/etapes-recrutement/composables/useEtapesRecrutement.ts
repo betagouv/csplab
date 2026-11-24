@@ -3,6 +3,7 @@ import type { OrganismeParams, RecrutementParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import { recrutementKeys } from '@/api/queryKeys'
+import { can } from '@/utils/authorizedActions'
 import {
   initEtapesOffre,
   initEtapesRecrutement,
@@ -16,35 +17,11 @@ export type EtapesRecrutementType
     | { type: 'offre' } & RecrutementParams
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
-  return items.map((etape) => {
-    const payload: UpdateEtapeRecrutement = {
-      nom: etape.nom,
-      categorie: etape.categorie,
-    }
-    if (etape.uuid) {
-      payload.uuid = etape.uuid
-    }
-    return payload
-  })
+  return items.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie }))
 }
 
-function buildNouvelleEtape(nom: string): EtapeRecrutement {
-  return {
-    uuid: '',
-    nom,
-    categorie: 'EN_COURS',
-  }
-}
-
-function insertEtape(
-  etapes: EtapeRecrutement[],
-  nouvelle: EtapeRecrutement,
-): EtapeRecrutement[] {
-  const finalIndex = etapes.findIndex(
-    e => e.categorie === 'REFUS' || e.categorie === 'ACCEPTE',
-  )
-  const insertAt = finalIndex === -1 ? etapes.length : finalIndex
-  return [...etapes.slice(0, insertAt), nouvelle, ...etapes.slice(insertAt)]
+function buildNouvelleEtape(nom: string): UpdateEtapeRecrutement {
+  return { nom, categorie: 'EN_COURS' }
 }
 
 function resolveEtapesApi(params: EtapesRecrutementType) {
@@ -76,6 +53,11 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
 
   const etapes = computed(() => query.data.value ?? [])
 
+  const lastInsertableIndex = computed(() =>
+    etapes.value.map(etape => can(etape.etape_actions, 'insert_etape_after')).lastIndexOf(true),
+  )
+  const canAddEtape = computed(() => lastInsertableIndex.value !== -1)
+
   function applyFreshEtapes(fresh: EtapeRecrutement[]): void {
     queryCache.setQueryData(queryOptions.key, fresh)
     const etapesEntry = queryCache.get(queryOptions.key)
@@ -98,10 +80,6 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
   const saving = computed(() => update.isLoading.value || init.isLoading.value)
   const error = query.error
 
-  function isEtapeLocked(etape: EtapeRecrutement): boolean {
-    return etape.categorie !== 'EN_COURS'
-  }
-
   async function saveEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
     await update.mutateAsync(toUpdatePayload(nouvellesEtapes))
   }
@@ -111,17 +89,16 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
   }
 
   async function addEtape(nom: string): Promise<void> {
-    await saveEtapes(insertEtape(etapes.value, buildNouvelleEtape(nom)))
+    await addEtapeAt(nom, lastInsertableIndex.value + 1)
   }
 
   async function addEtapeAt(nom: string, index: number): Promise<void> {
-    const nouvelle = buildNouvelleEtape(nom)
-    const updated = [
-      ...etapes.value.slice(0, index),
-      nouvelle,
-      ...etapes.value.slice(index),
-    ]
-    await saveEtapes(updated)
+    const payload = toUpdatePayload(etapes.value)
+    await update.mutateAsync([
+      ...payload.slice(0, index),
+      buildNouvelleEtape(nom),
+      ...payload.slice(index),
+    ])
   }
 
   async function renameEtape(etapeUuid: string, nouveauNom: string): Promise<void> {
@@ -144,7 +121,7 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
     loading,
     saving,
     error,
-    isEtapeLocked,
+    canAddEtape,
     reorderEtapes,
     addEtape,
     addEtapeAt,

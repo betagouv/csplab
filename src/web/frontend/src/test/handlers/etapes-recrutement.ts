@@ -1,4 +1,6 @@
-import type { EtapeRecrutement, UpdateEtapeRecrutement } from '@/features/etapes-recrutement/types'
+import type { UpdateEtapeRecrutement } from '@/features/etapes-recrutement/types'
+import type { EtapeFixture } from '@/test/fixtures/etapes-recrutement'
+import type { EtapeAction } from '@/utils/authorizedActions'
 import { ETAPES } from '@/test/fixtures/etapes-recrutement'
 import { failure, http } from './http'
 
@@ -7,12 +9,25 @@ const ORGANISME_INIT_PATH = '/recruteur/organismes/{organisme_uuid}/parametres/e
 const OFFRE_ETAPES_PATH = '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes'
 const OFFRE_INIT_PATH = '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes/init'
 
-function withActions(etapes: EtapeRecrutement[]) {
-  return etapes.map(etape => ({ ...etape, motif_refus_required: etape.categorie === 'REFUS', etape_actions: [] }))
+type EtapeServie = EtapeFixture & { etape_actions?: EtapeAction[] }
+
+const ETAPE_ACTIONS_PAR_CATEGORIE: Record<EtapeFixture['categorie'], EtapeAction[]> = {
+  ENTREE: ['rename_etape', 'insert_etape_after'],
+  EN_COURS: ['rename_etape', 'move_etape', 'delete_etape', 'insert_etape_before', 'insert_etape_after'],
+  REFUS: ['rename_etape', 'insert_etape_before'],
+  ACCEPTE: ['rename_etape'],
+}
+
+function withActions(etapes: EtapeServie[]) {
+  return etapes.map(etape => ({
+    ...etape,
+    motif_refus_required: etape.categorie === 'REFUS',
+    etape_actions: etape.etape_actions ?? ETAPE_ACTIONS_PAR_CATEGORIE[etape.categorie],
+  }))
 }
 
 export function etapesOrganisme(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string) => void,
 ) {
   return http.get(ORGANISME_ETAPES_PATH, ({ params, response }) => {
@@ -22,7 +37,7 @@ export function etapesOrganisme(
 }
 
 export function etapesOrganismeUpdate(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string, payload: UpdateEtapeRecrutement[]) => void,
 ) {
   return http.put(ORGANISME_ETAPES_PATH, async ({ params, request, response }) => {
@@ -32,7 +47,7 @@ export function etapesOrganismeUpdate(
 }
 
 export function etapesOrganismeInit(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string) => void,
 ) {
   return http.post(ORGANISME_INIT_PATH, ({ params, response }) => {
@@ -42,7 +57,7 @@ export function etapesOrganismeInit(
 }
 
 export function etapesOffre(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string, recrutementUuid: string) => void,
 ) {
   return http.get(OFFRE_ETAPES_PATH, ({ params, response }) => {
@@ -52,7 +67,7 @@ export function etapesOffre(
 }
 
 export function etapesOffreUpdate(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string, recrutementUuid: string, payload: UpdateEtapeRecrutement[]) => void,
 ) {
   return http.patch(OFFRE_ETAPES_PATH, async ({ params, request, response }) => {
@@ -66,7 +81,7 @@ export function etapesOffreUpdateFailure(status: number, body?: Record<string, u
 }
 
 export function etapesOffreInit(
-  etapes: EtapeRecrutement[] = ETAPES,
+  etapes: EtapeServie[] = ETAPES,
   onRequest?: (organismeUuid: string, recrutementUuid: string) => void,
 ) {
   return http.post(OFFRE_INIT_PATH, ({ params, response }) => {

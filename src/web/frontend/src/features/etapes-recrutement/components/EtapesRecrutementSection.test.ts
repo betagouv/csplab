@@ -1,4 +1,5 @@
-import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
+import type { UpdateEtapeRecrutement } from '../types'
+import type { EtapeFixture } from '@/test/fixtures/etapes-recrutement'
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { ORGANISME_UUID, RECRUTEMENT_UUID } from '@/test/fixtures/candidatures'
@@ -20,7 +21,7 @@ const Host = withToaster(EtapesRecrutementSection, {
   texts: ETAPES_TEXTS_OFFRE,
 })
 
-const NOUVELLE: EtapeRecrutement = { uuid: 'ffffffff-0001-0001-0001-000000000006', nom: 'Test technique', categorie: 'EN_COURS' }
+const NOUVELLE: EtapeFixture = { uuid: 'ffffffff-0001-0001-0001-000000000006', nom: 'Test technique', categorie: 'EN_COURS' }
 const NOUVELLE_SAISIE: UpdateEtapeRecrutement = { nom: 'Test technique', categorie: 'EN_COURS' }
 
 const REFUSAL_REASON = 'L\'étape Entretien ne peut être supprimée car 3 candidatures sont en cours'
@@ -40,7 +41,7 @@ async function openSection() {
   return user
 }
 
-async function chooseAction(user: ReturnType<typeof setupUser>, etape: EtapeRecrutement, action: string) {
+async function chooseAction(user: ReturnType<typeof setupUser>, etape: EtapeFixture, action: string) {
   await user.click(screen.getByRole('button', { name: `Actions pour ${etape.nom}` }))
   await user.click(await screen.findByRole('menuitem', { name: action }))
 }
@@ -53,7 +54,7 @@ async function submitName(user: ReturnType<typeof setupUser>, nom: string, confi
   await user.click(within(dialog).getByRole('button', { name: confirm }))
 }
 
-async function confirmDeletion(user: ReturnType<typeof setupUser>, etape: EtapeRecrutement) {
+async function confirmDeletion(user: ReturnType<typeof setupUser>, etape: EtapeFixture) {
   await chooseAction(user, etape, 'Supprimer')
   const dialog = await screen.findByRole('dialog', { name: 'Supprimer l\'étape' })
   expect(dialog).toHaveTextContent(`Voulez-vous vraiment supprimer l'étape « ${etape.nom} » ? Cette action est irréversible.`)
@@ -187,15 +188,36 @@ describe('etapesRecrutementSection', () => {
     expect(displayedNoms()).toEqual(ETAPES.map(({ nom }) => nom))
   })
 
-  it.each([RECEPTION, REFUS])('allows only renaming the étape $nom', async (etape) => {
+  it.each([
+    { etape: RECEPTION, actions: ['Renommer', 'Ajouter une étape en dessous'] },
+    { etape: REFUS, actions: ['Renommer', 'Ajouter une étape au-dessus'] },
+    { etape: RECRUTEMENT, actions: ['Renommer'] },
+  ])('offers only the actions allowed on the étape $etape.nom', async ({ etape, actions }) => {
     const user = await openSection()
 
     await user.click(screen.getByRole('button', { name: `Actions pour ${etape.nom}` }))
 
-    expect(await screen.findByRole('menuitem', { name: 'Renommer' })).not.toHaveAttribute('aria-disabled', 'true')
-    for (const action of ['Ajouter une étape au-dessus', 'Ajouter une étape en dessous', 'Monter', 'Descendre', 'Supprimer']) {
-      expect(screen.getByRole('menuitem', { name: action })).toHaveAttribute('aria-disabled', 'true')
-    }
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map(item => item.textContent.trim())).toEqual(actions)
+  })
+
+  it('follows the actions the server allows rather than the catégorie of the étape', async () => {
+    server.use(etapesOffre(ETAPES.map(etape => etape === ENTRETIEN ? { ...etape, etape_actions: ['rename_etape', 'insert_etape_after'] } : etape)))
+    const user = await openSection()
+
+    await user.click(screen.getByRole('button', { name: `Actions pour ${ENTRETIEN.nom}` }))
+
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map(item => item.textContent.trim())).toEqual(['Renommer', 'Ajouter une étape en dessous'])
+  })
+
+  it('offers no action when the server allows none', async () => {
+    server.use(etapesOffre(ETAPES.map(etape => ({ ...etape, etape_actions: [] }))))
+    await renderWithApp(Host)
+
+    expect(await screen.findByText(RECEPTION.nom)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Actions pour/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ajouter une étape' })).not.toBeInTheDocument()
   })
 
   it('allows adding above or below, moving up and deleting the last étape in progress, and disables moving it down', async () => {
