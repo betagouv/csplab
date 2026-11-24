@@ -161,6 +161,11 @@ class OfferModel(BaseDatedModel):
                 condition=~Q(long_title=F("title")),
                 name="offer_long_title_differs_from_title",
             ),
+            models.CheckConstraint(
+                condition=Q(talentsoft_organisme_entity_code__isnull=True)
+                | Q(organisme__isnull=True),
+                name="offer_single_organisme_link",
+            ),
         ]
 
     def __str__(self) -> str:
