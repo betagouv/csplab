@@ -21,6 +21,9 @@ from application.ingestion.services.offer_references import format_reference
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from infrastructure.authentication.api_key_authentication import (
+    IngestionApiKeyUser,
+)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.referentiel.models.offer_localisation import (
     OfferLocalisationModel,
@@ -79,7 +82,6 @@ class PendingOffer:
 
 
 def build_offer(source_id: UUID, data: dict) -> PendingOffer:
-    """Unsaved offer built from the validated payload of `creer_modifier`."""
     description = data["description"]
     profession = data["profession"]
     publication = data["publication"]
@@ -152,14 +154,14 @@ def _localisation(data: dict) -> Localisation:
 
 
 def upsert_offers(
-    source_id: UUID, pending_offers: list[PendingOffer], user: UserModel | None
+    source_id: UUID,
+    pending_offers: list[PendingOffer],
+    user: UserModel | IngestionApiKeyUser,
 ) -> dict:
-    """Create or update offers of a source, matched by reference.
-
-    `user` is the JWT-authenticated user, who must be granted the source;
-    `None` for the ingestion service, authenticated by API key.
-    """
-    if user is not None and not user.sources.filter(source_id=source_id).exists():
+    if (
+        not isinstance(user, IngestionApiKeyUser)
+        and not user.sources.filter(source_id=source_id).exists()
+    ):
         raise SourceAuthorizationError({source_id})
     if not pending_offers:
         return {"created": 0, "updated": 0, "offres": []}

@@ -9,6 +9,9 @@ from application.ingestion.services.upsert_offers import build_offer, upsert_off
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from infrastructure.authentication.api_key_authentication import (
+    IngestionApiKeyUser,
+)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from infrastructure.factories.ingestion.source_django_factory import (
@@ -38,7 +41,7 @@ def test_creates_new_offers_and_updates_existing_ones():
             _pending(source_id, existing.reference, titre="Nouveau titre"),
             _pending(source_id, "REF-NEW"),
         ],
-        user=None,
+        user=IngestionApiKeyUser(),
     )
 
     assert result == {
@@ -84,7 +87,7 @@ def test_localisations_are_replaced_in_sent_order():
     upsert_offers(
         existing.source_id,
         [_pending(existing.source_id, existing.reference, localisation=localisations)],
-        user=None,
+        user=IngestionApiKeyUser(),
     )
 
     assert [
@@ -103,7 +106,7 @@ def test_unarchives_offer_and_makes_it_eligible_for_reindexing():
     upsert_offers(
         archived.source_id,
         [_pending(archived.source_id, archived.reference)],
-        user=None,
+        user=IngestionApiKeyUser(),
     )
 
     archived.refresh_from_db()
@@ -121,7 +124,7 @@ def test_generates_auto_references():
             _pending(source_id, "REF-1"),
             _pending(source_id, "auto", titre="Troisième"),
         ],
-        user=None,
+        user=IngestionApiKeyUser(),
     )
 
     year = datetime.now(ZoneInfo("Europe/Paris")).year

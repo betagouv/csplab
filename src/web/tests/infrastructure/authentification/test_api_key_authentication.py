@@ -11,14 +11,14 @@ from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
+    IngestionApiKeyUser,
     NonApiKeyUserRateThrottle,
-    _IngestionApiKeyUser,
 )
 from infrastructure.authentication.rejection import AuthRejectionRateThrottle
 from infrastructure.django_apps.commons.enums import Canal, Resultat
 from infrastructure.django_apps.commons.models import AuditLoginLogModel
 
-API_KEY_USER = _IngestionApiKeyUser()
+API_KEY_USER = IngestionApiKeyUser()
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ class TestApiKeyAuthenticationIpRestriction:
         request = self._make_request(rf, ip="192.168.1.42")
         result = auth.authenticate(request)
         assert result is not None
-        assert isinstance(result[0], _IngestionApiKeyUser)
+        assert isinstance(result[0], IngestionApiKeyUser)
 
     @patch("django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", [])
     def test_accepts_any_ip_when_no_restriction(self, rf):
@@ -84,7 +84,7 @@ class TestApiKeyAuthenticationIpRestriction:
         request.META["REMOTE_ADDR"] = "10.240.1.2"
         result = auth.authenticate(request)
         assert result is not None
-        assert isinstance(result[0], _IngestionApiKeyUser)
+        assert isinstance(result[0], IngestionApiKeyUser)
 
     @patch(
         "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["10.240.0.0/22"]
