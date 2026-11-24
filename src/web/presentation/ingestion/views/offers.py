@@ -368,9 +368,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             valid_offers = [pending for _, pending in kept]
 
         try:
-            result = upsert_offers(
-                source_id, valid_offers, request.user if jwt_authenticated else None
-            )
+            result = upsert_offers(source_id, valid_offers, request.user)
             offres = [
                 {
                     "index": index,
