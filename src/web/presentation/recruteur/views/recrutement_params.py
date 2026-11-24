@@ -38,8 +38,6 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     EtapeRecrutementActionsSerializer,
-    EtapeRecrutementModelSerializer,
-    EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
 )
 
@@ -61,7 +59,7 @@ from presentation.recruteur.serializers import (
         tags=["recruteur"],
         request=UpdateEtapeRecrutementSerializer(many=True),
         responses={
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeRecrutementActionsSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
             403: GenericErrorSerializer,
@@ -117,7 +115,7 @@ class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
                 utilisateur=request.user,
                 etapes=etapes_data,
             )
-            out_serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            out_serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(out_serializer.data)
         except (
             RecrutementEtapeIncoherents,
@@ -144,7 +142,7 @@ class RecrutementEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
     tags=["recruteur"],
     request=None,
     responses={
-        201: EtapeRecrutementSerializer(many=True),
+        201: EtapeRecrutementActionsSerializer(many=True),
         401: TokenErrorSerializer,
         403: GenericErrorSerializer,
         404: GenericErrorSerializer,
@@ -161,7 +159,7 @@ class InitRecrutementEtapeView(SessionApiMixin, APIView):
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
+            serializer = EtapeRecrutementActionsSerializer(etapes, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except SupressionEtapeImpossible as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})

@@ -5216,7 +5216,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeRecrutementActions"][];
                 };
             };
             400: {
@@ -5312,7 +5312,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeRecrutementActions"][];
                 };
             };
             401: {

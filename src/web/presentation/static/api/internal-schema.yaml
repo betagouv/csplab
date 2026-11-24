@@ -4896,7 +4896,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeRecrutementActions'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -5017,7 +5017,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeRecrutementActions'
           description: ''
           headers:
             X-RateLimit-Limit:

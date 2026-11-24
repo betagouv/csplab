@@ -668,6 +668,10 @@ class TestInitRecrutementEtapeView:
             ("Accueil", "ENTREE"),
             ("Recrutement", "ACCEPTE"),
         ]
+        assert [e["etape_actions"] for e in data] == [
+            ["rename_etape", "insert_etape_after"],
+            ["rename_etape"],
+        ]
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in data]
         assert sorted(str(e.id) for e in recrutement.etapes.all()) == sorted(
@@ -880,16 +884,26 @@ class TestUpdateRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()[:3] == [
-            {"uuid": str(e.id), "nom": e.nom, "categorie": c}
-            for e, c in (
-                (reception, "ENTREE"),
-                (entretien, "EN_COURS"),
-                (refus, "REFUS"),
+            {"uuid": str(e.id), "nom": e.nom, "categorie": c, "etape_actions": a}
+            for e, c, a in (
+                (reception, "ENTREE", ["rename_etape", "insert_etape_after"]),
+                (
+                    entretien,
+                    "EN_COURS",
+                    [
+                        "rename_etape",
+                        "move_etape",
+                        "insert_etape_before",
+                        "insert_etape_after",
+                    ],
+                ),
+                (refus, "REFUS", ["rename_etape", "insert_etape_before"]),
             )
         ]
         nouvelle = response.json()[3]
         assert nouvelle["nom"] == "Recrutement"
         assert nouvelle["categorie"] == "ACCEPTE"
+        assert nouvelle["etape_actions"] == ["rename_etape"]
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in response.json()]
         assert EtapeModel.objects.get(id=nouvelle["uuid"]).categorie == "accepte"
@@ -936,6 +950,30 @@ class TestUpdateRecrutementEtapesView:
             ),
         ]
         assert sorted(entries, key=str) == sorted(expected, key=str)
+
+    def test_patched_etapes_carry_their_actions(self, authenticated_client, test_user):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        CandidatureDjangoFactory(etape=second)
+        payload = [
+            _item(reception),
+            _item(entretien),
+            _item(second),
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = {e["nom"]: e["etape_actions"] for e in response.json()}
+        assert actions["Entretien"] == EN_COURS_ACTIONS
+        assert "delete_etape" not in actions["Second"]
+        assert "move_etape" in actions["Second"]
 
     def test_deletes_an_etape_without_candidatures(
         self, authenticated_client, test_user
