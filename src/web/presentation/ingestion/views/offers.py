@@ -23,7 +23,7 @@ from application.ingestion.interfaces.list_offers_input import GetFilteredOffers
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
-from application.ingestion.services.upsert_offers import build_offer, upsert_offers
+from application.ingestion.services.upsert_offers import upsert_offers
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -337,7 +337,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 )
                 continue
             try:
-                valid_offers.append(build_offer(source_id, serializer.validated_data))
+                valid_offers.append(serializer.to_pending_offer(source_id))
                 valid_indexes.append(index)
             except Exception as e:
                 errors.append(
