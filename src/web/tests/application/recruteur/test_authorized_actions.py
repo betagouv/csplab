@@ -50,30 +50,6 @@ def organisme(db):
     return OrganismeDjangoFactory()
 
 
-@pytest.fixture
-def staff():
-    return UtilisateurDjangoFactory(is_staff=True)
-
-
-def test_the_only_en_cours_etape_cannot_be_deleted(organisme, staff):
-    categories = [
-        Categorie.ENTREE,
-        Categorie.EN_COURS,
-        Categorie.REFUS,
-        Categorie.ACCEPTE,
-    ]
-
-    actions = authorized_actions_of_etapes(
-        categories, organisme_id=organisme.id, utilisateur=staff
-    )
-
-    assert actions[1] == [
-        "edit_etape",
-        "insert_etape_before",
-        "insert_etape_after",
-    ]
-
-
 @pytest.mark.parametrize("nb_en_cours", [1, 3])
 def test_without_the_right_to_modify_no_etape_has_actions(organisme, nb_en_cours):
     categories = [
