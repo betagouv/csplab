@@ -7,7 +7,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
 from infrastructure.django_apps.tag.models import TagColor, TagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -25,7 +25,7 @@ def update_tag(
     color: TagColor,
 ) -> TagModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_TAG,
+        action=PermissionAction.UPDATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

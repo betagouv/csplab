@@ -11,7 +11,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
 )
@@ -43,7 +43,7 @@ def get_candidature(
     utilisateur: UserModel,
 ) -> CandidatureDetail:
     role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_CANDIDATURE,
+        action=PermissionAction.GET_CANDIDATURE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

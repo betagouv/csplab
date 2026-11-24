@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.tag.models import TagCategory, TagModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -17,7 +17,7 @@ def list_tags(
     category: TagCategory | None = None,
 ) -> QuerySet[TagModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_TAGS,
+        action=PermissionAction.LIST_TAGS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

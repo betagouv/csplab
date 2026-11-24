@@ -11,7 +11,7 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -24,7 +24,7 @@ def list_documents(
     utilisateur: UserModel,
 ) -> QuerySet[DocumentModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_DOCUMENTS,
+        action=PermissionAction.LIST_DOCUMENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

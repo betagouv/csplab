@@ -16,7 +16,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -24,7 +24,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 from infrastructure.django_apps.users.models import UserModel
 
 _ACTIONS_SUR_SA_NOTE = frozenset(
-    {OrganismeAction.UPDATE_NOTE.value, OrganismeAction.DELETE_NOTE.value}
+    {PermissionAction.UPDATE_NOTE.value, PermissionAction.DELETE_NOTE.value}
 )
 
 
@@ -36,7 +36,7 @@ def list_notes(
     utilisateur: UserModel,
 ) -> QuerySet[NoteModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_NOTES,
+        action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
@@ -83,7 +83,7 @@ def _actions_on_own_note(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[str]:
     organisme_role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_NOTES,
+        action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

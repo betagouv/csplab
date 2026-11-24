@@ -11,7 +11,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -29,7 +29,7 @@ def revoke_recrutement_agent(
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+        action=PermissionAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

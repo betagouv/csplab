@@ -6,7 +6,7 @@ from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_etapes,
     authorized_actions_of_organisme,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement as Categorie,
 )
@@ -26,7 +26,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 
 ACTIONS_DU_RESPONSABLE = {"search_agent", "create_agent"}
-ACTION = OrganismeAction.UPDATE_ORGANISME_STEPS
+ACTION = PermissionAction.UPDATE_ORGANISME_STEPS
 
 
 def _actions_of_agent(organisme_ids_responsable, organisme_id):
@@ -114,7 +114,7 @@ def test_agent_with_a_lower_recrutement_role_has_no_etape_actions(db, recrutemen
 
     actions = authorized_actions_of_etapes(
         [Categorie.ENTREE, Categorie.EN_COURS],
-        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+        action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         utilisateur=utilisateur,

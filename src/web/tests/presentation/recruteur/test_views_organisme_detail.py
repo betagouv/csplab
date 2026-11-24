@@ -16,7 +16,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -63,7 +63,7 @@ def _authorized_actions(*, is_staff: bool) -> list[str]:
         ),
         *permissions.authorized_actions_staff_organisme(utilisateur),
     }
-    return [action.value for action in OrganismeAction if action in actions]
+    return [action.value for action in PermissionAction if action in actions]
 
 
 ETAPES_URL = reverse(

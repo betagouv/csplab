@@ -5,7 +5,7 @@ from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
 from rest_framework import serializers
 
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.etape_action import EtapeAction
 
 _country_adapter = TypeAdapter(Country)
@@ -65,7 +65,7 @@ def etape_actions_field() -> serializers.ListField:
 def authorized_actions_field() -> serializers.ListField:
     return serializers.ListField(
         child=serializers.ChoiceField(
-            choices=[(a.value, a.value) for a in OrganismeAction]
+            choices=[(action.value, action.value) for action in PermissionAction]
         ),
         read_only=True,
     )

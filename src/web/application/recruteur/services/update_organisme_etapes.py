@@ -12,7 +12,7 @@ from application.recruteur.context_services.authorized_actions import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.etapes_rules import valider_sequence_etapes
 from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -26,7 +26,7 @@ def update_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel, etapes: Sequence[EtapeData]
 ) -> OrganismeModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_ORGANISME_STEPS,
+        action=PermissionAction.UPDATE_ORGANISME_STEPS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

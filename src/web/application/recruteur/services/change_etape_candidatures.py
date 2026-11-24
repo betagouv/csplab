@@ -9,7 +9,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
     MotifRefusRequis,
@@ -36,7 +36,7 @@ def change_etape_candidatures(
     motif_refus: str | None = None,
 ) -> tuple[list[UUID], list[tuple[UUID, RecrutementCandidatureInexistante]]]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+        action=PermissionAction.CHANGE_ETAPE_CANDIDATURES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

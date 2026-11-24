@@ -10,7 +10,7 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementDocumentTypeNonAutorise,
 )
@@ -32,7 +32,7 @@ def read_document(
     utilisateur: UserModel,
 ) -> DocumentDownload:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.READ_DOCUMENT,
+        action=PermissionAction.READ_DOCUMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

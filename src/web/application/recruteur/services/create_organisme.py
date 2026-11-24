@@ -12,7 +12,7 @@ from application.identite.context_services.organisme_permission_service import (
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -34,7 +34,7 @@ def create_organisme(
     parent_id: UUID | None = None,
 ) -> OrganismeModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.CREATE_ORGANISME,
+        action=PermissionAction.CREATE_ORGANISME,
         utilisateur=utilisateur,
     )
     siret_code = SIRET(code=siret).code

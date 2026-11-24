@@ -7,7 +7,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.tag_errors import TagNotFound
 from infrastructure.django_apps.tag.models import TagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -18,7 +18,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 
 def delete_tag(*, organisme_id: UUID, tag_id: UUID, utilisateur: UserModel) -> None:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.DELETE_TAG,
+        action=PermissionAction.DELETE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

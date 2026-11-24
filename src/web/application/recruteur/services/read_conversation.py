@@ -14,7 +14,7 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.messagerie.models import (
     ConversationLectureModel,
     MessageModel,
@@ -54,7 +54,7 @@ def read_conversation(
     utilisateur: UserModel,
 ) -> QuerySet[MessageModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.READ_CONVERSATION,
+        action=PermissionAction.READ_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

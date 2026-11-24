@@ -13,7 +13,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
@@ -47,7 +47,7 @@ def test_checks_permission_before_writing(can_execute):
         _update(organisme.id, utilisateur)
 
     can_execute.assert_called_once_with(
-        action=OrganismeAction.UPDATE_ORGANISME,
+        action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme.id,
     )

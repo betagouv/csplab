@@ -10,7 +10,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
 )
@@ -32,7 +32,7 @@ def remove_candidature_tag(
     utilisateur: UserModel,
 ) -> None:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+        action=PermissionAction.MANAGE_TAG_ON_APPLICATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

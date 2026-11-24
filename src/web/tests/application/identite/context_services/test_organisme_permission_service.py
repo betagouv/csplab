@@ -19,7 +19,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementRefuse,
     OperationOrganismeRefusee,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_agent_errors import RoleRecrutementNonAutorise
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
@@ -41,71 +41,71 @@ pytestmark = pytest.mark.django_db
 
 
 STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
-    OrganismeAction.CREATE_ORGANISME,
-    OrganismeAction.LIST_ORGANISMES,
+    PermissionAction.CREATE_ORGANISME,
+    PermissionAction.LIST_ORGANISMES,
 ]
 
 STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS = [
-    OrganismeAction.UPDATE_ORGANISME,
+    PermissionAction.UPDATE_ORGANISME,
 ]
 
 SUPERVISEUR_ET_STAFF_ACTIONS = [
-    OrganismeAction.GET_ORGANISME,
-    OrganismeAction.INITIALIZE_ORGANISME_STEPS,
-    OrganismeAction.UPDATE_ORGANISME_STEPS,
-    OrganismeAction.LIST_ORGANISME_AGENTS,
-    OrganismeAction.ATTACH_ORGANISME_AGENT,
-    OrganismeAction.UPDATE_ORGANISME_AGENT,
-    OrganismeAction.REVOKE_ORGANISME_AGENT,
-    OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
-    OrganismeAction.CREATE_TAG,
-    OrganismeAction.UPDATE_TAG,
-    OrganismeAction.DELETE_TAG,
+    PermissionAction.GET_ORGANISME,
+    PermissionAction.INITIALIZE_ORGANISME_STEPS,
+    PermissionAction.UPDATE_ORGANISME_STEPS,
+    PermissionAction.LIST_ORGANISME_AGENTS,
+    PermissionAction.ATTACH_ORGANISME_AGENT,
+    PermissionAction.UPDATE_ORGANISME_AGENT,
+    PermissionAction.REVOKE_ORGANISME_AGENT,
+    PermissionAction.SET_RECRUTEMENTS_RESPONSABLE,
+    PermissionAction.CREATE_TAG,
+    PermissionAction.UPDATE_TAG,
+    PermissionAction.DELETE_TAG,
 ]
 
 SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.SEARCH_AGENT,
-    OrganismeAction.CREATE_AGENT,
+    PermissionAction.SEARCH_AGENT,
+    PermissionAction.CREATE_AGENT,
 ]
 
 SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.LIST_RECRUTEMENTS,
-    OrganismeAction.GET_MOTIFS_REFUS,
-    OrganismeAction.LIST_TAGS,
+    PermissionAction.LIST_RECRUTEMENTS,
+    PermissionAction.GET_MOTIFS_REFUS,
+    PermissionAction.LIST_TAGS,
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.GET_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE,
-    OrganismeAction.READ_DOCUMENT,
-    OrganismeAction.LIST_DOCUMENTS,
-    OrganismeAction.LIST_NOTES,
-    OrganismeAction.CREATE_NOTE,
-    OrganismeAction.UPDATE_NOTE,
-    OrganismeAction.DELETE_NOTE,
-    OrganismeAction.LIST_CONVERSATIONS,
-    OrganismeAction.READ_CONVERSATION,
-    OrganismeAction.CREATE_CONVERSATION,
-    OrganismeAction.REPLY_CONVERSATION,
+    PermissionAction.GET_RECRUTEMENT,
+    PermissionAction.GET_CANDIDATURE,
+    PermissionAction.READ_DOCUMENT,
+    PermissionAction.LIST_DOCUMENTS,
+    PermissionAction.LIST_NOTES,
+    PermissionAction.CREATE_NOTE,
+    PermissionAction.UPDATE_NOTE,
+    PermissionAction.DELETE_NOTE,
+    PermissionAction.LIST_CONVERSATIONS,
+    PermissionAction.READ_CONVERSATION,
+    PermissionAction.CREATE_CONVERSATION,
+    PermissionAction.REPLY_CONVERSATION,
 ]
 SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS = [
-    OrganismeAction.GET_RECRUTEMENT_ETAPES,
-    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
-    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
-    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
-    OrganismeAction.ADD_RECRUTEMENT_AGENT,
-    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
-    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-    OrganismeAction.MANAGE_TAG_ON_MEMBER,
+    PermissionAction.GET_RECRUTEMENT_ETAPES,
+    PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
+    PermissionAction.INIT_RECRUTEMENT_ETAPES,
+    PermissionAction.LIST_RECRUTEMENT_AGENTS,
+    PermissionAction.ADD_RECRUTEMENT_AGENT,
+    PermissionAction.UPDATE_RECRUTEMENT_AGENT,
+    PermissionAction.REVOKE_RECRUTEMENT_AGENT,
+    PermissionAction.MANAGE_TAG_ON_MEMBER,
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
-    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
-    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+    PermissionAction.CHANGE_ETAPE_CANDIDATURES,
+    PermissionAction.MANAGE_TAG_ON_APPLICATION,
 ]
 
 SUPERVISEUR_SEUL_AVEC_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
+    PermissionAction.GRANT_RECRUTEMENT_RESPONSABLE,
 ]
 
 SUPERVISEUR_ACTIONS = (
@@ -187,14 +187,14 @@ class TestActionsIntegrity:
         ]
         actions = [action for liste in cases for action in liste]
 
-        assert len(actions) == len(OrganismeAction)
-        assert set(actions) == set(OrganismeAction)
+        assert len(actions) == len(PermissionAction)
+        assert set(actions) == set(PermissionAction)
 
 
 @pytest.mark.parametrize("action", SUPERVISEUR_ET_STAFF_ACTIONS)
 class TestSuperviseurEtStaffActions:
     def test_superviseur_actions_allowed_superviseur_role(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -216,7 +216,7 @@ class TestSuperviseurEtStaffActions:
     def test_supreviseur_actions_reject_non_superviseur_role(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         role: AgentOrganismeRole | None,
     ) -> None:
         if role is None:
@@ -242,7 +242,7 @@ class TestSuperviseurOuAgentSansRecrutementActions:
     def test_allow_superviseur_and_agent(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         role: AgentOrganismeRole,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=role)
@@ -256,7 +256,7 @@ class TestSuperviseurOuAgentSansRecrutementActions:
         assert result == role
 
     def test_reject_no_role(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme = OrganismeDjangoFactory()
 
@@ -283,7 +283,7 @@ REVOKED_LIAISON_CASES = [
 @pytest.mark.parametrize(("action", "role"), REVOKED_LIAISON_CASES)
 def test_revoked_liaison_is_denied(
     utilisateur_de: ConstruireUtilisateur,
-    action: OrganismeAction,
+    action: PermissionAction,
     role: AgentOrganismeRole,
 ) -> None:
     organisme = OrganismeDjangoFactory()
@@ -322,7 +322,7 @@ def test_revocation_is_scoped_to_organisme(
     )
 
     result = OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT,
+        action=PermissionAction.GET_RECRUTEMENT,
         organisme_id=organisme_b.id,  # type: ignore[arg-type]
         utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
         recrutement_id=recrutement_b.pk,
@@ -331,7 +331,7 @@ def test_revocation_is_scoped_to_organisme(
     assert result == AgentOrganismeRole.AGENT
     with pytest.raises(AccesOrganismeRefuse):
         OrganismePermissionService().can_execute(
-            action=OrganismeAction.GET_RECRUTEMENT,
+            action=PermissionAction.GET_RECRUTEMENT,
             organisme_id=organisme_a.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
             recrutement_id=recrutement_a.pk,
@@ -344,7 +344,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
     def test_agent_with_recrutement_role_is_allowed(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         recrutement_role: AgentRecrutementRole,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -360,7 +360,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         assert result == AgentOrganismeRole.AGENT
 
     def test_superviseur_bypasses_recrutement_check(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -376,7 +376,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
         assert result == AgentOrganismeRole.SUPERVISEUR
 
     def test_agent_without_recrutement_role_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
@@ -389,7 +389,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
@@ -401,7 +401,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             )
 
     def test_agent_with_revoked_recrutement_role_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
@@ -420,7 +420,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS)
 class TestSuperviseurOuAgentAvecResponsableActions:
     def test_superviseur_bypasses_recrutement_check(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -436,7 +436,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
         assert result == AgentOrganismeRole.SUPERVISEUR
 
     def test_agent_with_responsable_role_is_allowed(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
@@ -459,7 +459,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
     def test_agent_without_responsable_role_is_denied(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         recrutement_role: AgentRecrutementRole | None,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -479,7 +479,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
@@ -491,7 +491,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             )
 
     def test_agent_with_revoked_responsable_role_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
@@ -512,7 +512,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
 )
 class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
     def test_superviseur_is_allowed(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -527,7 +527,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
         assert result == AgentOrganismeRole.SUPERVISEUR
 
     def test_agent_responsable_of_a_recrutement_is_allowed(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
@@ -547,7 +547,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
     def test_agent_not_responsable_is_denied(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         recrutement_role: AgentRecrutementRole | None,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -562,7 +562,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
             )
 
     def test_agent_responsable_in_another_organisme_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         autre_organisme = OrganismeDjangoFactory()
@@ -578,7 +578,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
             )
 
     def test_agent_with_revoked_responsable_role_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         _attach_recrutement_role(
@@ -598,7 +598,7 @@ class TestSuperviseurOuAgentResponsableDUnRecrutementActions:
 )
 class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
     def test_superviseur_bypasses_recrutement_check(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -620,7 +620,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
     def test_agent_with_responsable_or_recruteur_role_is_allowed(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         recrutement_role: AgentRecrutementRole,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -641,7 +641,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
     def test_agent_without_responsable_or_recruteur_role_is_denied(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         recrutement_role: AgentRecrutementRole | None,
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -661,7 +661,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
@@ -673,7 +673,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             )
 
     def test_agent_with_revoked_recruteur_role_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
@@ -691,7 +691,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
 
 @pytest.mark.parametrize("action", RECRUTEMENT_ACTIONS)
 def test_role_on_a_recrutement_does_not_grant_access_to_another_one(
-    utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+    utilisateur_de: ConstruireUtilisateur, action: PermissionAction
 ) -> None:
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
@@ -714,7 +714,7 @@ class TestOrganismeExistenceGuard:
 
         with pytest.raises(OrganismeNexistePas):
             OrganismePermissionService().can_execute(
-                action=OrganismeAction.GET_ORGANISME,
+                action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme_id,
                 utilisateur=utilisateur_de(uuid4()),
             )
@@ -726,7 +726,7 @@ class TestOrganismeExistenceGuard:
 
         with pytest.raises(OrganismeNexistePas):
             OrganismePermissionService().can_execute(
-                action=OrganismeAction.GET_ORGANISME,
+                action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme_id,
                 utilisateur=utilisateur_de(uuid4(), is_staff=True),
             )
@@ -741,7 +741,7 @@ class TestOrganismeExistenceGuard:
 
         with pytest.raises(OrganismeNexistePas):
             OrganismePermissionService().can_execute(
-                action=OrganismeAction.GET_ORGANISME,
+                action=PermissionAction.GET_ORGANISME,
                 organisme_id=organisme.id,
                 utilisateur=utilisateur_de(agent.utilisateur_id, is_staff=is_staff),
             )
@@ -750,7 +750,7 @@ class TestOrganismeExistenceGuard:
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS)
 class TestStaffSeulementSansOrganismeActions:
     def test_staff_can_execute(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         result = OrganismePermissionService().can_execute(
             action=action,
@@ -763,7 +763,7 @@ class TestStaffSeulementSansOrganismeActions:
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS)
 class TestStaffSeulementAvecOrganismeActions:
     def test_staff_can_execute(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme = OrganismeDjangoFactory()
 
@@ -776,7 +776,7 @@ class TestStaffSeulementAvecOrganismeActions:
         assert result is None
 
     def test_non_staff_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme = OrganismeDjangoFactory()
 
@@ -788,7 +788,7 @@ class TestStaffSeulementAvecOrganismeActions:
             )
 
     def test_organisme_check_runs_before_staff_check(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         organisme_id = uuid4()
 
@@ -810,7 +810,7 @@ class TestStaffActsAsSuperviseur:
     def test_staff_gets_superviseur_role(
         self,
         utilisateur_de: ConstruireUtilisateur,
-        action: OrganismeAction,
+        action: PermissionAction,
         organisme_role: AgentOrganismeRole | None,
     ) -> None:
         if organisme_role is None:
@@ -835,7 +835,7 @@ class TestStaffActsAsSuperviseur:
         assert result == AgentOrganismeRole.SUPERVISEUR
 
     def test_staff_without_organisme_id_is_denied(
-        self, utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+        self, utilisateur_de: ConstruireUtilisateur, action: PermissionAction
     ) -> None:
         with pytest.raises(AccesOrganismeRefuse):
             OrganismePermissionService().can_execute(
@@ -852,7 +852,7 @@ def test_superviseur_of_another_organisme_is_denied(
 
     with pytest.raises(AccesOrganismeRefuse):
         OrganismePermissionService().can_execute(
-            action=OrganismeAction.GET_ORGANISME,
+            action=PermissionAction.GET_ORGANISME,
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),
         )
@@ -866,9 +866,9 @@ class TestAuthorizedActions:
             (
                 True,
                 [
-                    OrganismeAction.CREATE_ORGANISME,
-                    OrganismeAction.LIST_ORGANISMES,
-                    OrganismeAction.UPDATE_ORGANISME,
+                    PermissionAction.CREATE_ORGANISME,
+                    PermissionAction.LIST_ORGANISMES,
+                    PermissionAction.UPDATE_ORGANISME,
                 ],
             ),
         ],
@@ -884,7 +884,7 @@ class TestAuthorizedActions:
 
     @pytest.mark.parametrize(
         ("is_staff", "expected"),
-        [(False, []), (True, [OrganismeAction.UPDATE_ORGANISME])],
+        [(False, []), (True, [PermissionAction.UPDATE_ORGANISME])],
         ids=["non_staff", "staff"],
     )
     def test_staff_authorized_actions_on_an_existing_organisme(
@@ -904,9 +904,9 @@ class TestAuthorizedActions:
             organisme_id=uuid4(),
             organisme_ids_responsable={uuid4()},
         ) == [
-            OrganismeAction.LIST_RECRUTEMENTS,
-            OrganismeAction.GET_MOTIFS_REFUS,
-            OrganismeAction.LIST_TAGS,
+            PermissionAction.LIST_RECRUTEMENTS,
+            PermissionAction.GET_MOTIFS_REFUS,
+            PermissionAction.LIST_TAGS,
         ]
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
@@ -916,7 +916,7 @@ class TestAuthorizedActions:
             organisme_id=uuid4(),
             organisme_ids_responsable=set(),
         ) == sorted(
-            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
+            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(PermissionAction).index
         )
 
     def test_responsable_agent_also_gets_search_and_create_agent(self):
@@ -928,11 +928,11 @@ class TestAuthorizedActions:
             organisme_id=organisme_id,
             organisme_ids_responsable={organisme_id},
         ) == [
-            OrganismeAction.LIST_RECRUTEMENTS,
-            OrganismeAction.SEARCH_AGENT,
-            OrganismeAction.CREATE_AGENT,
-            OrganismeAction.GET_MOTIFS_REFUS,
-            OrganismeAction.LIST_TAGS,
+            PermissionAction.LIST_RECRUTEMENTS,
+            PermissionAction.SEARCH_AGENT,
+            PermissionAction.CREATE_AGENT,
+            PermissionAction.GET_MOTIFS_REFUS,
+            PermissionAction.LIST_TAGS,
         ]
 
     @pytest.mark.parametrize("is_responsable", [False, True])
@@ -945,7 +945,7 @@ class TestAuthorizedActions:
             organisme_id=organisme_id,
             organisme_ids_responsable={organisme_id} if is_responsable else set(),
         ) == sorted(
-            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
+            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(PermissionAction).index
         )
 
     @pytest.mark.parametrize(
@@ -975,84 +975,84 @@ class TestAuthorizedActions:
 
 
 RECRUTEUR_ACTIONS_RECRUTEMENT = [
-    OrganismeAction.GET_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE,
-    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
-    OrganismeAction.READ_DOCUMENT,
-    OrganismeAction.LIST_DOCUMENTS,
-    OrganismeAction.LIST_NOTES,
-    OrganismeAction.CREATE_NOTE,
-    OrganismeAction.UPDATE_NOTE,
-    OrganismeAction.DELETE_NOTE,
-    OrganismeAction.LIST_CONVERSATIONS,
-    OrganismeAction.READ_CONVERSATION,
-    OrganismeAction.CREATE_CONVERSATION,
-    OrganismeAction.REPLY_CONVERSATION,
-    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+    PermissionAction.GET_RECRUTEMENT,
+    PermissionAction.GET_CANDIDATURE,
+    PermissionAction.CHANGE_ETAPE_CANDIDATURES,
+    PermissionAction.READ_DOCUMENT,
+    PermissionAction.LIST_DOCUMENTS,
+    PermissionAction.LIST_NOTES,
+    PermissionAction.CREATE_NOTE,
+    PermissionAction.UPDATE_NOTE,
+    PermissionAction.DELETE_NOTE,
+    PermissionAction.LIST_CONVERSATIONS,
+    PermissionAction.READ_CONVERSATION,
+    PermissionAction.CREATE_CONVERSATION,
+    PermissionAction.REPLY_CONVERSATION,
+    PermissionAction.MANAGE_TAG_ON_APPLICATION,
 ]
 CONTRIBUTEUR_ACTIONS_RECRUTEMENT = [
-    OrganismeAction.GET_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE,
-    OrganismeAction.READ_DOCUMENT,
-    OrganismeAction.LIST_DOCUMENTS,
-    OrganismeAction.LIST_NOTES,
-    OrganismeAction.CREATE_NOTE,
-    OrganismeAction.UPDATE_NOTE,
-    OrganismeAction.DELETE_NOTE,
-    OrganismeAction.LIST_CONVERSATIONS,
-    OrganismeAction.READ_CONVERSATION,
-    OrganismeAction.CREATE_CONVERSATION,
-    OrganismeAction.REPLY_CONVERSATION,
+    PermissionAction.GET_RECRUTEMENT,
+    PermissionAction.GET_CANDIDATURE,
+    PermissionAction.READ_DOCUMENT,
+    PermissionAction.LIST_DOCUMENTS,
+    PermissionAction.LIST_NOTES,
+    PermissionAction.CREATE_NOTE,
+    PermissionAction.UPDATE_NOTE,
+    PermissionAction.DELETE_NOTE,
+    PermissionAction.LIST_CONVERSATIONS,
+    PermissionAction.READ_CONVERSATION,
+    PermissionAction.CREATE_CONVERSATION,
+    PermissionAction.REPLY_CONVERSATION,
 ]
 RESPONSABLE_ACTIONS_RECRUTEMENT = [
-    OrganismeAction.GET_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE,
-    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
-    OrganismeAction.GET_RECRUTEMENT_ETAPES,
-    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
-    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
-    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
-    OrganismeAction.ADD_RECRUTEMENT_AGENT,
-    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
-    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-    OrganismeAction.READ_DOCUMENT,
-    OrganismeAction.LIST_DOCUMENTS,
-    OrganismeAction.LIST_NOTES,
-    OrganismeAction.CREATE_NOTE,
-    OrganismeAction.UPDATE_NOTE,
-    OrganismeAction.DELETE_NOTE,
-    OrganismeAction.LIST_CONVERSATIONS,
-    OrganismeAction.READ_CONVERSATION,
-    OrganismeAction.CREATE_CONVERSATION,
-    OrganismeAction.REPLY_CONVERSATION,
-    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
-    OrganismeAction.MANAGE_TAG_ON_MEMBER,
+    PermissionAction.GET_RECRUTEMENT,
+    PermissionAction.GET_CANDIDATURE,
+    PermissionAction.CHANGE_ETAPE_CANDIDATURES,
+    PermissionAction.GET_RECRUTEMENT_ETAPES,
+    PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
+    PermissionAction.INIT_RECRUTEMENT_ETAPES,
+    PermissionAction.LIST_RECRUTEMENT_AGENTS,
+    PermissionAction.ADD_RECRUTEMENT_AGENT,
+    PermissionAction.UPDATE_RECRUTEMENT_AGENT,
+    PermissionAction.REVOKE_RECRUTEMENT_AGENT,
+    PermissionAction.READ_DOCUMENT,
+    PermissionAction.LIST_DOCUMENTS,
+    PermissionAction.LIST_NOTES,
+    PermissionAction.CREATE_NOTE,
+    PermissionAction.UPDATE_NOTE,
+    PermissionAction.DELETE_NOTE,
+    PermissionAction.LIST_CONVERSATIONS,
+    PermissionAction.READ_CONVERSATION,
+    PermissionAction.CREATE_CONVERSATION,
+    PermissionAction.REPLY_CONVERSATION,
+    PermissionAction.MANAGE_TAG_ON_APPLICATION,
+    PermissionAction.MANAGE_TAG_ON_MEMBER,
 ]
 
 SUPERVISEUR_ACTIONS_RECRUTEMENT = [
-    OrganismeAction.GET_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE,
-    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
-    OrganismeAction.GET_RECRUTEMENT_ETAPES,
-    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
-    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
-    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
-    OrganismeAction.ADD_RECRUTEMENT_AGENT,
-    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
-    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-    OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE,
-    OrganismeAction.READ_DOCUMENT,
-    OrganismeAction.LIST_DOCUMENTS,
-    OrganismeAction.LIST_NOTES,
-    OrganismeAction.CREATE_NOTE,
-    OrganismeAction.UPDATE_NOTE,
-    OrganismeAction.DELETE_NOTE,
-    OrganismeAction.LIST_CONVERSATIONS,
-    OrganismeAction.READ_CONVERSATION,
-    OrganismeAction.CREATE_CONVERSATION,
-    OrganismeAction.REPLY_CONVERSATION,
-    OrganismeAction.MANAGE_TAG_ON_APPLICATION,
-    OrganismeAction.MANAGE_TAG_ON_MEMBER,
+    PermissionAction.GET_RECRUTEMENT,
+    PermissionAction.GET_CANDIDATURE,
+    PermissionAction.CHANGE_ETAPE_CANDIDATURES,
+    PermissionAction.GET_RECRUTEMENT_ETAPES,
+    PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
+    PermissionAction.INIT_RECRUTEMENT_ETAPES,
+    PermissionAction.LIST_RECRUTEMENT_AGENTS,
+    PermissionAction.ADD_RECRUTEMENT_AGENT,
+    PermissionAction.UPDATE_RECRUTEMENT_AGENT,
+    PermissionAction.REVOKE_RECRUTEMENT_AGENT,
+    PermissionAction.GRANT_RECRUTEMENT_RESPONSABLE,
+    PermissionAction.READ_DOCUMENT,
+    PermissionAction.LIST_DOCUMENTS,
+    PermissionAction.LIST_NOTES,
+    PermissionAction.CREATE_NOTE,
+    PermissionAction.UPDATE_NOTE,
+    PermissionAction.DELETE_NOTE,
+    PermissionAction.LIST_CONVERSATIONS,
+    PermissionAction.READ_CONVERSATION,
+    PermissionAction.CREATE_CONVERSATION,
+    PermissionAction.REPLY_CONVERSATION,
+    PermissionAction.MANAGE_TAG_ON_APPLICATION,
+    PermissionAction.MANAGE_TAG_ON_MEMBER,
 ]
 
 
@@ -1107,7 +1107,7 @@ class TestAuthorizedActionsRecrutement:
         self, role
     ):
         exposee = (
-            OrganismeAction.GRANT_RECRUTEMENT_RESPONSABLE
+            PermissionAction.GRANT_RECRUTEMENT_RESPONSABLE
             in OrganismePermissionService().authorized_actions_recrutement(
                 role, recrutement_role=AgentRecrutementRole.RESPONSABLE
             )
