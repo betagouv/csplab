@@ -347,12 +347,11 @@ FRET_ENABLED = env.bool("FRET_ENABLED")
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
-img_src = [CSP.SELF, "data:", "blob:", "https://cdn.redoc.ly"]
+img_src = [CSP.SELF, "data:", "blob:"]
 script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
 style_src = [
     CSP.SELF,
     CSP.NONCE,
-    "https://fonts.googleapis.com",
     "'sha256-faU7yAF8NxuMTNEwVmBz+VcYeIoBQ2EMHW3WaVxCvnk='",  # DSFR inline style
     "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # Redoc inline style
     "'sha256-QMIg+bpjm3JdElJ388KYke01izlUW0UoNOeKjpMxdgc='",  # ReDoc inline style
@@ -368,7 +367,7 @@ SECURE_CSP = {
     "connect-src": connect_src,
     "img-src": img_src,
     "frame-src": [CSP.SELF, "https://tally.so"],
-    "font-src": [CSP.SELF, "https://fonts.gstatic.com/", "data:"],
+    "font-src": [CSP.SELF, "data:"],
     "script-src": script_src,
     "script-src-elem": script_src,
     "style-src": style_src,
