@@ -28,7 +28,6 @@ import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
-import CandidatureHistorique from '../components/CandidatureHistorique.vue'
 import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
@@ -44,6 +43,7 @@ import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../co
 import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
 import CandidatureCvView from './CandidatureCvView.vue'
+import CandidatureHistoriqueView from './CandidatureHistoriqueView.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -268,9 +268,9 @@ function handleUpdateOpen(open: boolean): void {
               </template>
               <template #historique>
                 <div class="candidature-panel__tab">
-                  <CandidatureHistorique
+                  <CandidatureHistoriqueView
                     v-if="candidature"
-                    :candidature="candidatureParams"
+                    v-bind="candidatureParams"
                   />
                 </div>
               </template>
