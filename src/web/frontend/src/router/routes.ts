@@ -7,11 +7,11 @@ import { RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_TAB_LABELS } from '@/feature
 import { redirectHome } from './home'
 import {
   CANDIDATURE_PANEL_ROUTE_NAMES,
-  CANDIDATURES_VIEW_ROUTE_NAMES,
+  CANDIDATURES_LAYOUT_ROUTE_NAMES,
   HOME_ROUTE_NAME,
   NOT_FOUND_ROUTE_NAME,
   ORGANISME_HOME_ROUTE_NAME,
-  ORGANISME_SECTION_ROUTE_NAMES,
+  ORGANISME_NAV_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
   RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES,
@@ -72,18 +72,18 @@ const recrutementRoutes: RouteRecordRaw[] = [
         children: [
           {
             path: '',
-            name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+            name: CANDIDATURES_LAYOUT_ROUTE_NAMES.kanban,
             component: () => import('@/features/candidatures/views/CandidaturesKanbanView.vue'),
             props: recrutementProps,
-            meta: { candidaturesView: 'kanban' },
+            meta: { candidaturesLayout: 'kanban' },
             children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.kanban),
           },
           {
             path: 'liste',
-            name: CANDIDATURES_VIEW_ROUTE_NAMES.liste,
+            name: CANDIDATURES_LAYOUT_ROUTE_NAMES.liste,
             component: () => import('@/features/candidatures/views/CandidaturesListeView.vue'),
             props: candidatureProps,
-            meta: { candidaturesView: 'liste' },
+            meta: { candidaturesLayout: 'liste' },
             children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.liste),
           },
         ],
@@ -115,7 +115,7 @@ const organismeRoutes: RouteRecordRaw[] = [
   { path: 'accueil', name: ORGANISME_HOME_ROUTE_NAME, component: HomeView, props: true },
   {
     path: '',
-    name: ORGANISME_SECTION_ROUTE_NAMES.parametres,
+    name: ORGANISME_NAV_ROUTE_NAMES.parametres,
     children: [
       {
         path: '',
@@ -149,7 +149,7 @@ const organismeRoutes: RouteRecordRaw[] = [
   },
   {
     path: 'recrutements',
-    name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
+    name: ORGANISME_NAV_ROUTE_NAMES.recrutements,
     children: [
       { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true, meta: recrutementsTabMeta('actifs') },
       { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true, meta: recrutementsTabMeta('archives') },

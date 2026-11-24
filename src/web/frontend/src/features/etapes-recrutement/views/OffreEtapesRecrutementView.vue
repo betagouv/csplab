@@ -8,7 +8,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
-import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
+import { CANDIDATURES_LAYOUT_ROUTE_NAMES } from '@/router/names'
 import { can } from '@/utils/authorizedActions'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import EtapesRecrutementSection from '../components/EtapesRecrutementSection.vue'
@@ -28,7 +28,7 @@ const forbidden = computed(() =>
 )
 
 const candidaturesRoute = computed(() => ({
-  name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+  name: CANDIDATURES_LAYOUT_ROUTE_NAMES.kanban,
   params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
 }))
 
