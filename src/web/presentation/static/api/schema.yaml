@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: CSPLab API
   version: 0.0.1
-  description: API for CSPLab
+  description: Référence des routes de l'API CSPLab.
 paths:
   /api/changelog.atom:
     get:
@@ -7870,29 +7870,53 @@ components:
       schema:
         type: integer
       description: Nombre de secondes à attendre avant de pouvoir réessayer.
+x-tagGroups:
+- name: Présentation
+  tags:
+  - changelog
+  - contact
+- name: Référence des routes
+  tags:
+  - token
+  - offres
+  - metiers
+  - organismes
+  - concours
+  - fake-ts
+  - talentsoft_organisme
+- name: Documentation en formats bruts
+  tags:
+  - documentation
 tags:
 - name: changelog
-  x-displayName: Changelog
+  x-displayName: Derniers changements
   x-traitTag: true
 - name: token
+  x-displayName: Authentification
   description: Gestion de l'authentification
 - name: concours
+  x-displayName: Concours
   description: Ingestion des concours par import de fichiers CSV
 - name: offres
+  x-displayName: Offres
   description: Offres d'emploi de la Fonction Publique
 - name: metiers
+  x-displayName: Métiers
   description: Métiers du Référentiel des Métiers de la Fonction Publique
 - name: fake-ts
+  x-displayName: Simulation Talentsoft
   description: Endpoints de simulation au format Talentsoft
 - name: organismes
+  x-displayName: Organismes
   description: Organismes de la Fonction Publique
 - name: talentsoft_organisme
+  x-displayName: Organismes Talentsoft
   description: Organismes au format Talentsoft
 - name: documentation
-  x-displayName: Changelog et documentation
+  x-displayName: Markdown, JSON et Atom
   description: Le changelog et le guide de l'API en formats bruts, pour les outils
-    et les agents. Routes publiques, sans authentification, limitées à 60 appels par
-    minute et par adresse IP.
+    et les assistants IA. Routes publiques, sans authentification, limitées à 60 appels
+    par minute et par adresse IP.
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true
