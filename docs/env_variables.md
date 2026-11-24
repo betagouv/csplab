@@ -142,7 +142,7 @@ python manage.py export_secrets_vaultwarden
 - The state of the last export lives in the Django cache (Redis), under `secrets_export:{env}`, without expiry: the date of the last run and, for each secret name, an HMAC-SHA256 of its value keyed with `SECRET_KEY`. No value is stored in clear, and reading Redis does not allow brute-forcing a weak secret.
 - The state is saved only after answering `o` to « Notes mises à jour dans Vaultwarden ? [o/N] ». Answering anything else, or losing the session, keeps the previous state: the next run prints the same diff. If the state is lost (cache cleared, eviction), every note is printed again.
 
-Values are printed in clear in the one-off container's terminal: run it from a trusted machine, and clear the terminal scrollback afterwards.
+Values are printed in clear in the one-off container's terminal: run it from a trusted machine, and clear the terminal scrollback afterwards. Never run it with `scalingo run --detached`: a detached one-off's output goes to the application logs. Scalingo also records the input and output of one-off containers in the dashboard's Activity tab ([doc](https://doc.scalingo.com/platform/app/tasks)), so the printed values are readable there by the app's collaborators.
 
 ## Key files
 
