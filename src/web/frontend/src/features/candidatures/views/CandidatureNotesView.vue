@@ -21,7 +21,6 @@ import { can } from '@/utils/authorizedActions'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import CandidatureEditNoteForm from '../components/CandidatureEditNoteForm.vue'
-import CandidatureNewNoteForm from '../components/CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from '../components/CandidatureNoteMessage.vue'
 import { useCandidatureNotes, useCandidatureNoteTags, useDeleteCandidatureNote, useUpdateCandidatureNoteVisibilite } from '../composables/useCandidatureNotes'
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
@@ -269,12 +268,7 @@ function deleteActions(note: Note) {
           />
         </header>
         <ul class="candidature-notes__list">
-          <CandidatureNewNoteForm
-            v-if="isCreatingNote"
-            :candidature="candidature"
-            :routes="names.notes"
-            class="candidature-notes__item candidature-notes__item--edition"
-          />
+          <router-view class="candidature-notes__item candidature-notes__item--edition" />
           <CspCard
             v-for="note in notes"
             :key="note.uuid"

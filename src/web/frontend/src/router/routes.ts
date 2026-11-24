@@ -28,7 +28,6 @@ const recrutementTabMeta = tabMetaFor(RECRUTEMENT_DETAIL_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const HomeView = () => import('@/features/home/views/HomeView.vue')
-const CandidatureNotesView = () => import('@/features/candidatures/views/CandidatureNotesView.vue')
 const CandidatureMessagesView = () => import('@/features/candidatures/views/CandidatureMessagesView.vue')
 
 function paramsAsProps(...names: string[]) {
@@ -79,16 +78,17 @@ function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanel
         {
           path: 'notes',
           name: tabs.notes,
-          component: CandidatureNotesView,
+          component: () => import('@/features/candidatures/views/CandidatureNotesView.vue'),
           props: candidatureTabProps,
           meta: panelTabMeta('notes'),
-        },
-        {
-          path: 'notes/nouvelle',
-          name: notes.create,
-          component: CandidatureNotesView,
-          props: candidatureTabProps,
-          meta: panelTabMeta('notes'),
+          children: [
+            {
+              path: 'nouvelle',
+              name: notes.create,
+              component: () => import('@/features/candidatures/views/CandidatureNewNoteView.vue'),
+              props: candidatureTabProps,
+            },
+          ],
         },
         {
           path: 'messages',

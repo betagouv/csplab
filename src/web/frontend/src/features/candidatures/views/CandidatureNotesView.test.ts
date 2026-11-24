@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH, NOTE, SECONDE_NOTE } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
 import {
@@ -14,7 +15,7 @@ import {
   noteVisibiliteUpdate,
 } from '@/test/handlers/candidatures'
 import { tags } from '@/test/handlers/tags'
-import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { inRouterViewOf, renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import CandidatureNotesView from './CandidatureNotesView.vue'
 
@@ -31,7 +32,7 @@ async function openTagPicker() {
   return { user, picker }
 }
 
-const Host = withToaster(CandidatureNotesView, { candidature: CANDIDATURE_PARAMS })
+const Host = inRouterViewOf(withToaster(CandidatureNotesView, { candidature: CANDIDATURE_PARAMS }), CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes.notes)
 
 function renderNotes(route = NOTES_PATH) {
   return renderWithApp(Host, { route })

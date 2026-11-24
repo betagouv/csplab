@@ -1,11 +1,10 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { noteCreation, noteCreationFailure } from '@/test/handlers/candidatures'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
+import CandidatureNewNoteView from './CandidatureNewNoteView.vue'
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 const NEW_NOTE_PATH = `${NOTES_PATH}/nouvelle`
@@ -13,7 +12,7 @@ const NEW_NOTE_PATH = `${NOTES_PATH}/nouvelle`
 async function renderForm() {
   const user = setupUser()
   const { router } = await renderWithApp(
-    withToaster(CandidatureNewNoteForm, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes }),
+    withToaster(CandidatureNewNoteView, { candidature: CANDIDATURE_PARAMS }),
     { route: NEW_NOTE_PATH },
   )
   return {
@@ -24,7 +23,7 @@ async function renderForm() {
   }
 }
 
-describe('candidatureNewNoteForm', () => {
+describe('candidatureNewNoteView', () => {
   it('saves the note and goes back to the notes', async () => {
     const sent = vi.fn()
     server.use(noteCreation(sent))

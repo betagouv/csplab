@@ -35,11 +35,6 @@ export type UpdateNotePayload = Required<components['schemas']['PatchedUpdateNot
 
 export type NoteVisibilitePayload = components['schemas']['NoteVisibilite']
 
-export interface NoteRouteNames {
-  notes: string
-  create: string
-}
-
 export type Activite = components['schemas']['AuditLog']
 
 export type PaginatedActiviteList = components['schemas']['PaginatedAuditLogList']
