@@ -7,6 +7,9 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.authorized_actions import (
+    set_etape_actions_of_recrutement,
+)
 from application.recruteur.errors.application_errors_recruteur import (
     RecrutementEtapeIncoherents,
 )
@@ -78,6 +81,7 @@ def update_recrutement_etapes(
                     categorie=etape_data.categorie.value,
                     nom=etape_data.nom,
                 )
+                etape.nb_candidatures = 0  # type: ignore[attr-defined]
                 ajoutees.append(etape)
                 journal.append((etape.id, "EtapeAjoutee"))
             else:
@@ -126,6 +130,12 @@ def update_recrutement_etapes(
             ressource_kind="Recrutement",
             event_name="RecrutementEtapesMisesAJour",
         )
+    set_etape_actions_of_recrutement(
+        finales,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+        utilisateur=utilisateur,
+    )
     return finales
 
 
