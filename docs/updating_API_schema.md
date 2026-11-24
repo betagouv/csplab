@@ -38,6 +38,8 @@ Les routes sont réparties par des hooks de prétraitement dans `presentation/ap
 mise run web:schema
 ```
 
+La tâche génère le schéma public avec `config.settings.base`, pour documenter les taux de production : `config.settings.test`, chargé en CI, désactive `auth_rejection`.
+
 La tâche lance `openapi_schema` plutôt que `spectacular`, pour mettre entre guillemets les chaînes composées uniquement de chiffres, comme `08`, qu'un lecteur YAML 1.2 lirait sinon comme des entiers.
 
 ## Validation
