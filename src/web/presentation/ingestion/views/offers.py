@@ -1,3 +1,5 @@
+import logging
+
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema,
@@ -24,6 +26,7 @@ from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
 from application.ingestion.services.upsert_offers import upsert_offers
+from config.logger_names import LoggerName
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -52,6 +55,8 @@ from presentation.ingestion.serializers import (
     UpsertOffersRequestSerializer,
     UpsertOffersResponseSerializer,
 )
+
+logger = logging.getLogger(LoggerName.INGESTION.value)
 
 UNKNOWN_GENERATED_REFERENCE = (
     "Aucune offre de cette source ne porte cette référence. Les références au "
@@ -302,9 +307,6 @@ class OffersUpsertView(PublicApiMixin, APIView):
     serializer_class = UpsertOffersRequestSerializer
 
     def post(self, request):
-        container = create_ingestion_container()
-        logger = container.logger_service()
-
         # catch mini / maxi items number
         serializer = UpsertOffersRequestSerializer(data=request.data)
         if not serializer.is_valid():
@@ -323,7 +325,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             serializer = OffersInputSerializer(
                 data=offer_data,
                 context={
-                    "metiers_repository": container.metiers_repository(),
+                    "check_metier": True,
                     "allow_talentsoft_organisme": not jwt_authenticated,
                 },
             )

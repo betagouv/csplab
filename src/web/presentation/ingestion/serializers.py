@@ -35,6 +35,7 @@ from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.services.list_metiers import list_metiers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
 )
@@ -1022,9 +1023,9 @@ class ProfessionInputSerializer(serializers.Serializer):
             )
 
         metier = data.get("metier")
-        metiers_repository = self.context.get("metiers_repository")
-        if metiers_repository is not None and not metiers_repository.get_filtered(
-            {"offer_family_code": metier}
+        if (
+            self.context.get("check_metier")
+            and not list_metiers(codes=[metier]).exists()
         ):
             raise serializers.ValidationError(
                 {"metier": f"Code métier inconnu : {metier}."}
