@@ -1,21 +1,12 @@
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from django.db import transaction
 from django.utils import timezone
-from pydantic import HttpUrl
-from referentiel.value_objects.area import GeographicalArea
-from referentiel.value_objects.category import Category
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_criteria import OfferCriteria
-from referentiel.value_objects.offer_nature import OfferNature
-from referentiel.value_objects.region import Region
-from referentiel.value_objects.verse import Verse
 
 from application.ingestion.services.offer_references import format_reference
 from domain.ingestion.exceptions.source_authorization_error import (
@@ -79,78 +70,6 @@ UPDATE_FIELDS = [
 class PendingOffer:
     offer: OfferModel
     localisations: list[Localisation] = field(default_factory=list)
-
-
-def build_offer(source_id: UUID, data: dict) -> PendingOffer:
-    description = data["description"]
-    profession = data["profession"]
-    publication = data["publication"]
-    conditions = data.get("conditions") or None
-    debut_contrat = conditions.get("debut_contrat") if conditions else None
-    criteria = OfferCriteria.from_dict(data.get("criteres"))
-    application_url = data.get("url_candidature")
-
-    offer = OfferModel(
-        id=uuid4(),
-        source_id=source_id,
-        reference=data["identification"]["reference"],
-        verse=Verse(data["identification"]["versant"]).value,
-        title=data["titre"],
-        long_title=data.get("titre_long") or None,
-        profile=description["profil"],
-        mission=description["mission"],
-        employer=description.get("employeur") or None,
-        complements=description.get("complements") or None,
-        exercise_conditions=description.get("conditions_exercice") or None,
-        service_description=description.get("descriptif_service") or None,
-        organization=data["organisation"]["nom"],
-        talentsoft_organisme_entity_code_id=data["organisation"].get(
-            "talentsoft_organisme_entity_code"
-        )
-        or None,
-        categories=[Category(category).value for category in data["categories"]],
-        offer_nature=OfferNature(data["nature_offre"]).value,
-        offer_url=data.get("url_offre") or None,
-        code_emploi_csp=profession["metier"],
-        job_family_referential=profession.get("referentiel"),
-        local_job_code=profession.get("code_emploi_local"),
-        functional_area_code=profession.get("domaine"),
-        publication_date=publication["debut_publication"],
-        end_publication_date=publication["fin_publication"],
-        application_deadline=publication.get("fin_candidature"),
-        job_vacancy_date=publication.get("debut_vacance_poste"),
-        beginning_date=debut_contrat or None,
-        application_url=str(HttpUrl(application_url)) if application_url else None,
-        application_email=data.get("email_candidature"),
-        contract_kind=data.get("type_contrat") or None,
-        job_vacancy=data.get("vacance_poste") or None,
-        criteria=criteria.to_dict() if criteria else None,
-        conditions=conditions,
-        contacts=list(data["contacts"]) if data.get("contacts") else None,
-        archived_at=None,
-    )
-    return PendingOffer(
-        offer=offer,
-        localisations=[
-            _localisation(localisation)
-            for localisation in data.get("localisation") or []
-            if localisation
-        ],
-    )
-
-
-def _localisation(data: dict) -> Localisation:
-    return Localisation(
-        area=GeographicalArea(data["zone_geographique"]),
-        country=Country(data["pays"]),
-        region=Region(code=data["region"]) if data["region"] else None,
-        department=(
-            Department(code=data["departement"]) if data["departement"] else None
-        ),
-        label=data.get("localisation_label") or None,
-        latitude=data.get("latitude"),
-        longitude=data.get("longitude"),
-    )
 
 
 def upsert_offers(

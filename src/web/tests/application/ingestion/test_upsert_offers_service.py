@@ -1,11 +1,15 @@
 from datetime import datetime, timezone
-from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from referentiel.value_objects.area import GeographicalArea
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.region import Region
 
-from application.ingestion.services.upsert_offers import build_offer, upsert_offers
+from application.ingestion.services.upsert_offers import PendingOffer, upsert_offers
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -13,7 +17,6 @@ from infrastructure.authentication.api_key_authentication import (
     IngestionApiKeyUser,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
@@ -24,11 +27,11 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 pytestmark = pytest.mark.django_db
 
 
-def _pending(source_id: UUID, reference: str, **overrides):
-    payload = PayloadOfferFactory.create(
-        identification={"reference": reference, "versant": "FPT"}, **overrides
+def _pending(source, reference: str, localisations=None, **overrides):
+    return PendingOffer(
+        offer=OfferDjangoFactory.build(source=source, reference=reference, **overrides),
+        localisations=localisations or [],
     )
-    return build_offer(source_id, payload)
 
 
 def test_creates_new_offers_and_updates_existing_ones():
@@ -38,8 +41,8 @@ def test_creates_new_offers_and_updates_existing_ones():
     result = upsert_offers(
         source_id,
         [
-            _pending(source_id, existing.reference, titre="Nouveau titre"),
-            _pending(source_id, "REF-NEW"),
+            _pending(existing.source, existing.reference, title="Nouveau titre"),
+            _pending(existing.source, "REF-NEW"),
         ],
         user=IngestionApiKeyUser(),
     )
@@ -64,29 +67,24 @@ def test_creates_new_offers_and_updates_existing_ones():
 def test_localisations_are_replaced_in_sent_order():
     existing = OfferDjangoFactory(country="FRA", region="11", department="75")
     localisations = [
-        {
-            "zone_geographique": "EU",
-            "pays": "FRA",
-            "region": "28",
-            "departement": "14",
-            "localisation_label": "Caen",
-            "latitude": None,
-            "longitude": None,
-        },
-        {
-            "zone_geographique": "AF",
-            "pays": "MAR",
-            "region": None,
-            "departement": None,
-            "localisation_label": "",
-            "latitude": None,
-            "longitude": None,
-        },
+        Localisation(
+            area=GeographicalArea.EUROPE,
+            country=Country("FRA"),
+            region=Region(code="28"),
+            department=Department(code="14"),
+            label="Caen",
+        ),
+        Localisation(
+            area=GeographicalArea.AFRIQUE,
+            country=Country("MAR"),
+            region=None,
+            department=None,
+        ),
     ]
 
     upsert_offers(
         existing.source_id,
-        [_pending(existing.source_id, existing.reference, localisation=localisations)],
+        [_pending(existing.source, existing.reference, localisations=localisations)],
         user=IngestionApiKeyUser(),
     )
 
@@ -105,7 +103,7 @@ def test_unarchives_offer_and_makes_it_eligible_for_reindexing():
 
     upsert_offers(
         archived.source_id,
-        [_pending(archived.source_id, archived.reference)],
+        [_pending(archived.source, archived.reference)],
         user=IngestionApiKeyUser(),
     )
 
@@ -115,14 +113,14 @@ def test_unarchives_offer_and_makes_it_eligible_for_reindexing():
 
 
 def test_generates_auto_references():
-    source_id = OfferDjangoFactory().source_id
+    source = OfferDjangoFactory().source
 
     result = upsert_offers(
-        source_id,
+        source.source_id,
         [
-            _pending(source_id, "auto"),
-            _pending(source_id, "REF-1"),
-            _pending(source_id, "auto", titre="Troisième"),
+            _pending(source, "auto"),
+            _pending(source, "REF-1"),
+            _pending(source, "auto", title="Troisième"),
         ],
         user=IngestionApiKeyUser(),
     )
@@ -141,9 +139,7 @@ def test_user_without_the_source_is_refused(test_user):
     source = SourceDjangoFactory()
 
     with pytest.raises(SourceAuthorizationError):
-        upsert_offers(
-            source.source_id, [_pending(source.source_id, "REF-1")], user=test_user
-        )
+        upsert_offers(source.source_id, [_pending(source, "REF-1")], user=test_user)
 
     assert not OfferModel.objects.exists()
 
@@ -153,7 +149,7 @@ def test_user_with_the_source_upserts(test_user):
     test_user.sources.add(source)
 
     result = upsert_offers(
-        source.source_id, [_pending(source.source_id, "REF-1")], user=test_user
+        source.source_id, [_pending(source, "REF-1")], user=test_user
     )
 
     assert result["created"] == 1
