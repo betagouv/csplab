@@ -5,7 +5,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
-    authorized_actions_of,
+    authorized_actions_of_recrutement,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
@@ -15,7 +15,6 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
 )
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.recruteur.models.etape import (
@@ -87,7 +86,5 @@ def get_candidature(
                 "id", flat=True
             )
         ),
-        authorized_actions=authorized_actions_of(
-            role, AgentRecrutementRole(recrutement_role) if recrutement_role else None
-        ),
+        authorized_actions=authorized_actions_of_recrutement(role, recrutement_role),
     )

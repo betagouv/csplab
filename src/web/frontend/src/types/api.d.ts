@@ -910,10 +910,26 @@ export interface components {
             /** Format: date-time */
             depose_le: string;
         };
+        /**
+         * @description * `rename_etape` - rename_etape
+         *     * `move_etape` - move_etape
+         *     * `delete_etape` - delete_etape
+         *     * `insert_etape_before` - insert_etape_before
+         *     * `insert_etape_after` - insert_etape_after
+         * @enum {string}
+         */
+        EtapeActionsEnum: "rename_etape" | "move_etape" | "delete_etape" | "insert_etape_before" | "insert_etape_after";
         EtapeCandidatureDetail: {
             /** Format: uuid */
             uuid: string;
             nom: string;
+        };
+        EtapeOrganisme: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            readonly categorie: components["schemas"]["CategorieEnum"];
+            readonly etape_actions: components["schemas"]["EtapeActionsEnum"][];
         };
         EtapeRecrutement: {
             /** Format: uuid */
@@ -2299,7 +2315,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeOrganisme"][];
                 };
             };
             401: {
@@ -2389,7 +2405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeOrganisme"][];
                 };
             };
             400: {
@@ -2484,7 +2500,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EtapeRecrutement"][];
+                    "application/json": components["schemas"]["EtapeOrganisme"][];
                 };
             };
             401: {

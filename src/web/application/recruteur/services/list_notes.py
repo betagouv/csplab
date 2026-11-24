@@ -7,7 +7,7 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
-    authorized_actions_of,
+    authorized_actions_of_recrutement,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -17,7 +17,6 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -100,9 +99,8 @@ def _actions_on_own_note(
     )
     return [
         action
-        for action in authorized_actions_of(
-            organisme_role,
-            AgentRecrutementRole(recrutement_role) if recrutement_role else None,
+        for action in authorized_actions_of_recrutement(
+            organisme_role, recrutement_role
         )
         if action in _ACTIONS_SUR_SA_NOTE
     ]

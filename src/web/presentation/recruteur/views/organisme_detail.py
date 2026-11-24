@@ -37,7 +37,6 @@ from presentation.api.serializers import (
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     EtapeOrganismeSerializer,
-    EtapeRecrutementSerializer,
     MotifRefusSerializer,
     OrganismeDetailSerializer,
     OrganismeReadSerializer,
@@ -124,7 +123,7 @@ class OrganismeDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
         tags=["recruteur"],
         responses={
             **generic_response_format,
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeOrganismeSerializer(many=True),
         },
     ),
     put=extend_schema(
@@ -133,7 +132,7 @@ class OrganismeDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
         request=UpdateEtapeRecrutementSerializer(many=True),
         responses={
             **generic_response_format,
-            200: EtapeRecrutementSerializer(many=True),
+            200: EtapeOrganismeSerializer(many=True),
             400: GenericErrorSerializer,
         },
     ),
@@ -145,7 +144,9 @@ class EtapesRecrutementOrganismeView(ConditionalGetMixin, SessionApiMixin, APIVi
                 organisme_id=organisme_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeOrganismeSerializer(organisme.etapes, many=True)
+            serializer = EtapeOrganismeSerializer(
+                organisme.etapes_with_actions, many=True
+            )
             return Response(serializer.data)
         except AccesOrganismeRefuse:
             return Response(
@@ -183,7 +184,9 @@ class EtapesRecrutementOrganismeView(ConditionalGetMixin, SessionApiMixin, APIVi
                 utilisateur=request.user,
                 etapes=etapes_data,
             )
-            return Response(EtapeOrganismeSerializer(organisme.etapes, many=True).data)
+            return Response(
+                EtapeOrganismeSerializer(organisme.etapes_with_actions, many=True).data
+            )
         except ConfigurationEtapesInvalide as e:
             return Response({"error": e.raison}, status=status.HTTP_400_BAD_REQUEST)
         except AccesOrganismeRefuse:
@@ -241,7 +244,7 @@ class MotifsRefusOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
     request=None,
     responses={
         **generic_response_format,
-        201: EtapeRecrutementSerializer(many=True),
+        201: EtapeOrganismeSerializer(many=True),
     },
 )
 class InitEtapesRecrutementOrganismeView(SessionApiMixin, APIView):
@@ -251,7 +254,9 @@ class InitEtapesRecrutementOrganismeView(SessionApiMixin, APIView):
                 organisme_id=organisme_uuid,
                 utilisateur=request.user,
             )
-            serializer = EtapeOrganismeSerializer(organisme.etapes, many=True)
+            serializer = EtapeOrganismeSerializer(
+                organisme.etapes_with_actions, many=True
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except AccesOrganismeRefuse:
             return Response(
