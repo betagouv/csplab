@@ -125,6 +125,25 @@ The root `mise.toml` also declares `redactions` (`*SECRET*`, `*_KEY`, `*PASSWORD
 2. In dev: restart a mise shell (or `mise en src/web`) to reload the environment; verify with `mise run secrets:check`.
 3. In production: nothing to redeploy — the secret is re-read the next time the process starts on Scalingo (manual restart or next deploy).
 
+## Secrets backup to Vaultwarden
+
+Demo and prod secrets only live in Scaleway Secret Manager. To keep a copy the team can read if the Scaleway project is lost, a developer copies them by hand into the incubator's Vaultwarden, one secure note per service and env, named `/{service}/{env}` (e.g. `/web/prod`), whose content is a list of `NAME=value` lines sorted by name.
+
+The `export_secrets_vaultwarden` command of `web` prints what to paste:
+
+```bash
+scalingo --app csplab-web run bash
+python manage.py export_secrets_vaultwarden
+```
+
+- It reads `SCALEWAY_ENV` and refuses anything other than `demo` or `prod`.
+- It reads every secret under `/web/{env}`, `/ocr/{env}` and `/ingestion/{env}` with the app's `SCW_*` credentials, which must be allowed to read the three paths.
+- For each note to update, it prints the added, removed and changed names, then the full note content to paste in place of the old one. Notes without changes are listed as up to date, without their content.
+- The state of the last export lives in the Django cache (Redis), under `secrets_export:{env}`, without expiry: the date of the last run and, for each secret name, an HMAC-SHA256 of its value keyed with `SECRET_KEY`. No value is stored in clear, and reading Redis does not allow brute-forcing a weak secret.
+- The state is saved only after answering `o` to « Notes mises à jour dans Vaultwarden ? [o/N] ». Answering anything else, or losing the session, keeps the previous state: the next run prints the same diff. If the state is lost (cache cleared, eviction), every note is printed again.
+
+Values are printed in clear in the one-off container's terminal: run it from a trusted machine, and clear the terminal scrollback afterwards.
+
 ## Key files
 
 | File | Role |
@@ -134,5 +153,6 @@ The root `mise.toml` also declares `redactions` (`*SECRET*`, `*_KEY`, `*PASSWORD
 | `src/{service}/mise.toml` (`[env]`) | Declares `_.file` and `_.source` to load env.d + secrets |
 | `src/{service}/bin/inject_scaleway_env.sh` | Script sourced by mise and by the Procfiles, no-op without `SCALEWAY_ENV` |
 | `libs/scaleway_secrets/fetch.py` | Queries the Scaleway Secret Manager API, prints `export` lines |
+| `src/web/application/commons/services/export_secrets_vaultwarden.py` | Reads the demo or prod secrets, computes which Vaultwarden notes to update, keeps the export state in Redis |
 | `src/{service}/env.test` | Fake values for tests / CI |
 | `src/{service}/Procfile` | Scalingo commands (web, worker, postdeploy) |
