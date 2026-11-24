@@ -5,8 +5,8 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
     OperationOrganismeRefusee,
+    OrganismePermissionError,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -17,6 +17,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
@@ -61,32 +62,34 @@ def authorized_actions_of_recrutement(
 def authorized_actions_of_etapes(
     categories: Sequence[CategorieEtapeRecrutement],
     *,
+    action: OrganismeAction,
     organisme_id: UUID,
     utilisateur: UserModel,
+    recrutement_id: UUID | None = None,
+    nb_candidatures: Sequence[int] | None = None,
 ) -> list[list[str]]:
-    if not can_update_etapes(organisme_id=organisme_id, utilisateur=utilisateur):
-        return [[] for _ in categories]
-    en_cours = categories.count(CategorieEtapeRecrutement.EN_COURS)
-    return [
-        [
-            action.value
-            for action in categorie.actions
-            if not (action == EtapeAction.DELETE_ETAPE and en_cours == 1)
-        ]
-        for categorie in categories
-    ]
-
-
-def can_update_etapes(*, organisme_id: UUID, utilisateur: UserModel) -> bool:
     try:
         organisme_permissions.can_execute(
-            action=OrganismeAction.UPDATE_ORGANISME_STEPS,
+            action=action,
             utilisateur=utilisateur,
             organisme_id=organisme_id,
+            recrutement_id=recrutement_id,
         )
-    except (AccesOrganismeRefuse, OperationOrganismeRefusee):
-        return False
-    return True
+    except (OrganismePermissionError, OperationOrganismeRefusee):
+        return [[] for _ in categories]
+    en_cours = categories.count(CategorieEtapeRecrutement.EN_COURS)
+    nb_candidatures = nb_candidatures or [0] * len(categories)
+    return [
+        [
+            etape_action.value
+            for etape_action in categorie.actions
+            if not (
+                etape_action == EtapeAction.DELETE_ETAPE
+                and (en_cours == 1 or nb_candidats)
+            )
+        ]
+        for categorie, nb_candidats in zip(categories, nb_candidatures, strict=True)
+    ]
 
 
 def set_recrutement_authorized_actions(recrutement: RecrutementModel) -> None:
@@ -102,6 +105,7 @@ def set_etape_actions_of_organisme(
     etapes = organisme.etapes or []
     actions = authorized_actions_of_etapes(
         [CategorieEtapeRecrutement(etape["categorie"]) for etape in etapes],
+        action=OrganismeAction.UPDATE_ORGANISME_STEPS,
         organisme_id=organisme.id,
         utilisateur=utilisateur,
     )
@@ -109,3 +113,25 @@ def set_etape_actions_of_organisme(
         {**etape, "etape_actions": etape_actions}
         for etape, etape_actions in zip(etapes, actions, strict=True)
     ]
+
+
+def set_etape_actions_of_recrutement(
+    etapes: Sequence[EtapeModel],
+    *,
+    organisme_id: UUID,
+    recrutement_id: UUID,
+    utilisateur: UserModel,
+) -> None:
+    actions = authorized_actions_of_etapes(
+        [CategorieEtapeRecrutement(etape.categorie) for etape in etapes],
+        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+        organisme_id=organisme_id,
+        utilisateur=utilisateur,
+        recrutement_id=recrutement_id,
+        nb_candidatures=[
+            etape.nb_candidatures  # type: ignore[attr-defined]
+            for etape in etapes
+        ],
+    )
+    for etape, etape_actions in zip(etapes, actions, strict=True):
+        etape.etape_actions = etape_actions  # type: ignore[attr-defined]

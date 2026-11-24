@@ -11,7 +11,6 @@ from application.recruteur.services.get_candidature import CandidatureDetail
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from domain.recruteur.value_objects.etape_action import EtapeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -48,6 +47,7 @@ from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
     OrganismeSerializer,
     authorized_actions_field,
+    etape_actions_field,
 )
 
 # Single source of choices for every `categorie` field of an etape. drf-spectacular
@@ -173,12 +173,7 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
 class EtapeOrganismeSerializer(EtapeRecrutementSerializer):
     uuid = serializers.UUIDField(source="entity_id")
     categorie = serializers.SerializerMethodField()
-    etape_actions = serializers.ListField(
-        child=serializers.ChoiceField(
-            choices=[(action.value, action.value) for action in EtapeAction]
-        ),
-        read_only=True,
-    )
+    etape_actions = etape_actions_field()
 
     @extend_schema_field(serializers.ChoiceField(choices=CATEGORIE_ETAPE_CHOICES))
     def get_categorie(self, etape: dict) -> str:
@@ -312,6 +307,13 @@ class EtapeRecrutementModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = EtapeModel
         fields = ["uuid", "nom", "categorie"]
+
+
+class EtapeRecrutementActionsSerializer(EtapeRecrutementModelSerializer):
+    etape_actions = etape_actions_field()
+
+    class Meta(EtapeRecrutementModelSerializer.Meta):
+        fields = [*EtapeRecrutementModelSerializer.Meta.fields, "etape_actions"]
 
 
 # Computed fields of RecrutementDetailSerializer. They are plain (not read_only)

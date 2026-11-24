@@ -140,9 +140,29 @@ class TestGetRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
-            {"uuid": str(reception.id), "nom": "Réception", "categorie": "ENTREE"},
-            {"uuid": str(entretien.id), "nom": "Entretien", "categorie": "EN_COURS"},
-            {"uuid": str(refus.id), "nom": "Refus", "categorie": "REFUS"},
+            {
+                "uuid": str(reception.id),
+                "nom": "Réception",
+                "categorie": "ENTREE",
+                "etape_actions": ["rename_etape", "insert_etape_after"],
+            },
+            {
+                "uuid": str(entretien.id),
+                "nom": "Entretien",
+                "categorie": "EN_COURS",
+                "etape_actions": [
+                    "rename_etape",
+                    "move_etape",
+                    "insert_etape_before",
+                    "insert_etape_after",
+                ],
+            },
+            {
+                "uuid": str(refus.id),
+                "nom": "Refus",
+                "categorie": "REFUS",
+                "etape_actions": ["rename_etape", "insert_etape_before"],
+            },
         ]
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
@@ -440,6 +460,64 @@ def _agent_with_recrutement_role(recrutement_role, test_user):
     return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
 
 
+EN_COURS_ACTIONS = [
+    "rename_etape",
+    "move_etape",
+    "delete_etape",
+    "insert_etape_before",
+    "insert_etape_after",
+]
+
+
+class TestGetRecrutementEtapesActions:
+    @pytest.mark.parametrize(
+        "arrange",
+        [
+            pytest.param(_superviseur, id="superviseur"),
+            pytest.param(_agent_responsable, id="agent_responsable"),
+            pytest.param(_staff_without_liaison, id="staff"),
+        ],
+    )
+    def test_each_role_gets_the_etape_actions_by_categorie(
+        self, authenticated_client, test_user, arrange
+    ):
+        organisme, recrutement, (reception, entretien, refus) = arrange(test_user)
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        accepte = EtapeDjangoFactory(
+            recrutement=recrutement, nom="Recrutement", categorie="accepte"
+        )
+        recrutement.ordre_etapes = [
+            str(e.id) for e in (reception, entretien, second, refus, accepte)
+        ]
+        recrutement.save(update_fields=["ordre_etapes"])
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [e["etape_actions"] for e in response.json()] == [
+            ["rename_etape", "insert_etape_after"],
+            EN_COURS_ACTIONS,
+            EN_COURS_ACTIONS,
+            ["rename_etape", "insert_etape_before"],
+            ["rename_etape"],
+        ]
+
+    def test_etape_with_candidatures_has_no_delete_etape(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        CandidatureDjangoFactory(etape=second)
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        actions = {e["nom"]: e["etape_actions"] for e in response.json()}
+        assert "delete_etape" not in actions["Second"]
+        assert "delete_etape" in actions["Entretien"]
+
+
 def _agent_without_recrutement_role(test_user):
     _, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.AGENT, utilisateur=test_user
@@ -589,6 +667,10 @@ class TestInitRecrutementEtapeView:
         assert [(e["nom"], e["categorie"]) for e in data] == [
             ("Accueil", "ENTREE"),
             ("Recrutement", "ACCEPTE"),
+        ]
+        assert [e["etape_actions"] for e in data] == [
+            ["rename_etape", "insert_etape_after"],
+            ["rename_etape"],
         ]
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in data]
@@ -802,16 +884,26 @@ class TestUpdateRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()[:3] == [
-            {"uuid": str(e.id), "nom": e.nom, "categorie": c}
-            for e, c in (
-                (reception, "ENTREE"),
-                (entretien, "EN_COURS"),
-                (refus, "REFUS"),
+            {"uuid": str(e.id), "nom": e.nom, "categorie": c, "etape_actions": a}
+            for e, c, a in (
+                (reception, "ENTREE", ["rename_etape", "insert_etape_after"]),
+                (
+                    entretien,
+                    "EN_COURS",
+                    [
+                        "rename_etape",
+                        "move_etape",
+                        "insert_etape_before",
+                        "insert_etape_after",
+                    ],
+                ),
+                (refus, "REFUS", ["rename_etape", "insert_etape_before"]),
             )
         ]
         nouvelle = response.json()[3]
         assert nouvelle["nom"] == "Recrutement"
         assert nouvelle["categorie"] == "ACCEPTE"
+        assert nouvelle["etape_actions"] == ["rename_etape"]
         recrutement.refresh_from_db()
         assert recrutement.ordre_etapes == [e["uuid"] for e in response.json()]
         assert EtapeModel.objects.get(id=nouvelle["uuid"]).categorie == "accepte"
@@ -858,6 +950,30 @@ class TestUpdateRecrutementEtapesView:
             ),
         ]
         assert sorted(entries, key=str) == sorted(expected, key=str)
+
+    def test_patched_etapes_carry_their_actions(self, authenticated_client, test_user):
+        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
+            test_user
+        )
+        second = _avec_second_entretien(recrutement, reception, entretien, refus)
+        CandidatureDjangoFactory(etape=second)
+        payload = [
+            _item(reception),
+            _item(entretien),
+            _item(second),
+            _item(refus),
+            _accepte(),
+        ]
+
+        response = authenticated_client.patch(
+            _etapes_url(organisme.id, recrutement.pk), data=payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = {e["nom"]: e["etape_actions"] for e in response.json()}
+        assert actions["Entretien"] == EN_COURS_ACTIONS
+        assert "delete_etape" not in actions["Second"]
+        assert "move_etape" in actions["Second"]
 
     def test_deletes_an_etape_without_candidatures(
         self, authenticated_client, test_user

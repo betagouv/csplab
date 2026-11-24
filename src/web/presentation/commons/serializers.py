@@ -6,6 +6,7 @@ from referentiel.value_objects.region import Region
 from rest_framework import serializers
 
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.value_objects.etape_action import EtapeAction
 
 _country_adapter = TypeAdapter(Country)
 
@@ -50,6 +51,15 @@ class LocalisationSerializer(serializers.Serializer):
 class OrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField()
     siret = serializers.CharField(max_length=14)
+
+
+def etape_actions_field() -> serializers.ListField:
+    return serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=[(action.value, action.value) for action in EtapeAction]
+        ),
+        read_only=True,
+    )
 
 
 def authorized_actions_field() -> serializers.ListField:

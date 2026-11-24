@@ -4771,7 +4771,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeRecrutementActions'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4896,7 +4896,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeRecrutementActions'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -5017,7 +5017,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EtapeRecrutement'
+                  $ref: '#/components/schemas/EtapeRecrutementActions'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6912,6 +6912,29 @@ components:
           $ref: '#/components/schemas/CategorieEnum'
       required:
       - categorie
+      - nom
+      - uuid
+    EtapeRecrutementActions:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+          maxLength: 255
+        categorie:
+          allOf:
+          - $ref: '#/components/schemas/CategorieEnum'
+          readOnly: true
+        etape_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeActionsEnum'
+          readOnly: true
+      required:
+      - categorie
+      - etape_actions
       - nom
       - uuid
     EtapeRecrutementModel:
