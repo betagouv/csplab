@@ -279,7 +279,6 @@ function formater() {
       <ChampSimple
         label="Nature de l'emploi"
         obligatoire
-        bulle="L'emploi est ouvert aux fonctionnaires, aux contractuels, ou aux deux."
       >
         <CspRadioGroup
           v-model="ouvertA"
