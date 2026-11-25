@@ -14,24 +14,23 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import ActionsOffreCell from './cellules/ActionsOffreCell.vue'
+import ActiviteOffreCell from './cellules/ActiviteOffreCell.vue'
 import CandidaturesCell from './cellules/CandidaturesCell.vue'
 import DepublicationCell from './cellules/DepublicationCell.vue'
-import EtapeCell from './cellules/EtapeCell.vue'
 import IntituleCell from './cellules/IntituleCell.vue'
-import MiseEnLigneCell from './cellules/MiseEnLigneCell.vue'
 import ResponsablesCell from './cellules/ResponsablesCell.vue'
 import StatutDepuisCell from './cellules/StatutDepuisCell.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
-import { db, fiche } from './store'
-import { categorieOffre, CATEGORIES_OFFRE, PHASES, prochaineEtape, responsable, responsables } from './suivi'
+import { dateTri, db, fiche } from './store'
+import { categorieOffre, CATEGORIES_OFFRE, PHASES, responsable, responsables } from './suivi'
 
-// « Mes offres d'emploi » (sans autorisation) : onglets par phase, recherche, filtres, colonnes selon l'onglet.
+// « Mes offres d'emploi » (sans autorisation) : onglets par statut, recherche, filtres, colonnes selon l'onglet (Alice, 25/11/2026).
 const props = defineProps<{ filtre?: string }>()
 const { aller } = useNav()
 
-const offres = computed(() => db.offres.filter(o => o.etat !== 'archivee'))
+const offres = computed(() => db.offres)
 const { search, filtered: trouvees } = useTextSearch(offres, o => [o.titre, o.id, o.lieu, fiche(o.ficheId)?.service])
 
 const ORDRE = CATEGORIES_OFFRE.map(c => c.id)
@@ -65,7 +64,7 @@ const filtrees = computed(() => trouvees.value.filter((o) => {
     && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
 }))
 
-// --- Onglets par phase (retour PO, L1) : En préparation, En ligne, Terminées, puis Toutes ---
+// --- Onglets par statut : Brouillon, En ligne, En pause, Archivée, puis Toutes ---
 type Onglet = CategorieOffre | 'toutes'
 const parPhase = computed(() => {
   const m = new Map<CategorieOffre, number>()
@@ -79,37 +78,37 @@ const onglets = computed<CspTabItem<Onglet>[]>(() => [
   { value: 'toutes', label: `Toutes (${filtrees.value.length})` },
 ])
 // Accès direct depuis le tableau de bord. À l'ouverture, on arrive sur les offres en ligne (retour Alice).
-const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'depubliee' }
+const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'en_pause', en_pause: 'en_pause', archivee: 'archivee' }
 const onglet = ref<Onglet>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
 
-// Tri par défaut : en ligne, les fins les plus proches d'abord (L4) ; terminées, les plus récentes d'abord.
+// Tri par défaut : en ligne, les fins les plus proches d'abord (L4) ; ailleurs, l'activité la plus récente d'abord.
+function dateActivite(o: Offre) {
+  const d = { brouillon: o.modifieLe, en_ligne: o.publieeLe ?? o.dateDebut, en_pause: o.retireeLe ?? o.dateFin, archivee: o.archiveeLe ?? '' }[categorieOffre(o)]
+  return /^\d{4}-/.test(d) ? d : dateTri(d)
+}
 const lignes = computed(() => {
   const l = filtrees.value.filter(o => onglet.value === 'toutes' || categorieOffre(o) === onglet.value)
   if (onglet.value === 'en_ligne') {
     return [...l].sort((a, b) => a.dateFin.localeCompare(b.dateFin))
   }
-  if (onglet.value === 'depubliee') {
-    return [...l].sort((a, b) => b.dateFin.localeCompare(a.dateFin))
+  if (onglet.value === 'toutes') {
+    return [...l].sort((a, b) => ORDRE.indexOf(categorieOffre(a)) - ORDRE.indexOf(categorieOffre(b)) || dateActivite(b).localeCompare(dateActivite(a)))
   }
-  return [...l].sort((a, b) => ORDRE.indexOf(categorieOffre(a)) - ORDRE.indexOf(categorieOffre(b)))
+  return [...l].sort((a, b) => dateActivite(b).localeCompare(dateActivite(a)))
 })
 
-// Colonnes selon l'onglet. Le statut n'est utile que dans « Toutes » (L2) ; les dates et candidatures
-// n'existent pas encore pour une offre en préparation.
+// Socle commun (Alice, 25/11/2026) : Offre d'emploi, Statut, Responsable, Activité sur l'offre, puis
+// Fin de publication et Candidatures seulement là où elles existent (pas pour un brouillon ; pas de fin pour une archivée).
 const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
-  const preparation = onglet.value === 'brouillon'
+  const avecFin = ['en_ligne', 'en_pause', 'toutes'].includes(onglet.value)
+  const avecCandidatures = onglet.value !== 'brouillon'
   return [
-    { id: 'intitule', header: 'Intitulé', accessor: o => o.titre, cellComponent: IntituleCell },
-    ...(onglet.value === 'toutes' ? [{ id: 'statut', header: 'Statut', sortable: true, accessor: (o: Offre) => ORDRE.indexOf(categorieOffre(o)), cellComponent: StatutDepuisCell, width: '7.5rem' }] : []),
-    { id: 'etape', header: 'Prochaine étape', accessor: o => prochaineEtape(o).label, cellComponent: EtapeCell, width: preparation ? '16rem' : '12rem' },
+    { id: 'intitule', header: 'Offre d\'emploi', accessor: o => o.titre, cellComponent: IntituleCell },
+    { id: 'statut', header: 'Statut', sortable: true, accessor: (o: Offre) => ORDRE.indexOf(categorieOffre(o)), cellComponent: StatutDepuisCell, width: '7.5rem' },
     { id: 'responsable', header: 'Responsable', accessor: o => responsable(o), cellComponent: ResponsablesCell, width: '11rem' },
-    ...(preparation
-      ? []
-      : [
-          { id: 'enligne', header: 'Mise en ligne', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' && o.dateDebut ? o.dateDebut : ''), cellComponent: MiseEnLigneCell, width: '7.5rem' },
-          { id: 'fin', header: 'Fin de publication', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? o.dateFin : ''), cellComponent: DepublicationCell, width: '8rem' },
-          { id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? candidatures(o).total : -1), cellComponent: CandidaturesCell, width: '6.5rem' },
-        ]),
+    { id: 'activite', header: 'Activité sur l\'offre', wrapHeader: true, sortable: true, accessor: (o: Offre) => dateActivite(o), cellComponent: ActiviteOffreCell, width: '11rem' },
+    ...(avecFin ? [{ id: 'fin', header: 'Fin de publication', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat === 'publiee' || o.etat === 'retiree' ? o.dateFin : ''), cellComponent: DepublicationCell, width: '8rem' }] : []),
+    ...(avecCandidatures ? [{ id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? candidatures(o).total : -1), cellComponent: CandidaturesCell, width: '6.5rem' }] : []),
     { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsOffreCell },
   ]
 })
@@ -126,7 +125,7 @@ const page = ref(1)
     v-model:onglet="onglet"
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Retrouvez toutes vos offres d'emploi : en préparation, en ligne et terminées."
+    sous-titre="Retrouvez toutes vos offres d'emploi : brouillons, en ligne, en pause et archivées."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
     :onglets="onglets"
   >

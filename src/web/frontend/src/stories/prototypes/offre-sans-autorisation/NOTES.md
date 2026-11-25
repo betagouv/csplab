@@ -124,3 +124,16 @@ Réponses aux questions
 - CspTextarea, CspCheckboxGroup, CspRadioGroup : pas d'aide (« hint ») ni de message d'information ; contourné
   par `ChampSimple.vue`.
 - CspInput : pas de type date.
+
+## Tableau « Mes offres d'emploi » par statut (Alice, 25/11/2026)
+
+- Onglets par statut : Brouillon, En ligne, En pause, Archivée, Toutes (remplacent En préparation / En ligne / Terminées).
+  Pas d'onglet « À valider » : ce proto reste sans autorisation (choix d'Alice). À reprendre dans le proto avec autorisation.
+- Colonnes, socle commun : Offre d'emploi (intitulé, service · lieu · référence), Statut, Responsable, Activité sur l'offre,
+  Fin de publication (En ligne, En pause selon le cas, Toutes), Candidatures (sauf Brouillon), Actions.
+  Retirées : « Prochaine étape » et « Mise en ligne ».
+- Activité sur l'offre : « Modifiée le… », « Publiée le… », « Mise en pause le… », « Archivée le… ».
+- Interprétation à valider : « En pause » = l'ancien statut « Dépubliée » (retirée, prolongeable). La fin de publication
+  ne s'affiche pour une offre en pause que si la date n'est pas passée (une échéance existe encore).
+- Les offres archivées sont maintenant visibles dans la liste. Deux offres fictives ajoutées : une en pause avant sa date de fin,
+  une archivée.

@@ -31,7 +31,7 @@ const o = computed(() => db.offres.find(x => x.id === props.id)!)
 const ETATS = {
   brouillon: { label: 'Brouillon', type: 'new' as const },
   publiee: { label: 'En ligne', type: 'success' as const },
-  retiree: { label: 'Dépubliée', type: 'warning' as const },
+  retiree: { label: 'En pause', type: 'warning' as const },
   archivee: { label: 'Archivée', type: 'info' as const },
 }
 const etat = computed(() => ETATS[o.value.etat])

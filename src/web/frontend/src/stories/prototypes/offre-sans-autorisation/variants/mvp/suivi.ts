@@ -88,29 +88,23 @@ export function referenceCsp(o: Offre): string {
   return o.etat === 'brouillon' ? '-' : `CSP-${o.id.slice(4).replace('-', '')}`
 }
 
-// --- Tableau « Mes offres d'emploi » (sans autorisation) : brouillons, offres publiées et dépubliées ---
+// --- Tableau « Mes offres d'emploi » (sans autorisation) : onglets par statut (Alice, 25/11/2026) ---
 
-export type CategorieOffre = 'brouillon' | 'en_ligne' | 'depubliee'
+export type CategorieOffre = 'brouillon' | 'en_ligne' | 'en_pause' | 'archivee'
 
-/** Libellés des badges de statut (colonne « Statut » de l'onglet « Toutes »). */
+/** Libellés des badges de statut. « En pause » remplace « Dépubliée » (offre retirée, prolongeable). */
 export const CATEGORIES_OFFRE: { id: CategorieOffre, label: string, badge: 'info' | 'new' | 'warning' | 'error' | 'success' }[] = [
   { id: 'brouillon', label: 'Brouillon', badge: 'new' },
-  { id: 'en_ligne', label: 'Publiée', badge: 'success' },
-  { id: 'depubliee', label: 'Dépubliée', badge: 'warning' },
+  { id: 'en_ligne', label: 'En ligne', badge: 'success' },
+  { id: 'en_pause', label: 'En pause', badge: 'warning' },
+  { id: 'archivee', label: 'Archivée', badge: 'info' },
 ]
 
-/**
- * Onglets de la liste, par phase plutôt que par statut (retour PO, L1) : le même écran servira quand l'organisme
- * a un circuit d'autorisation, dont les statuts (validation en attente, validée…) se rangent dans « En préparation ».
- */
-export const PHASES: { id: CategorieOffre, label: string }[] = [
-  { id: 'brouillon', label: 'En préparation' },
-  { id: 'en_ligne', label: 'En ligne' },
-  { id: 'depubliee', label: 'Terminées' },
-]
+/** Onglets de la liste : un par statut, puis « Toutes ». Pas de « À valider » : organisme sans autorisation. */
+export const PHASES: { id: CategorieOffre, label: string }[] = CATEGORIES_OFFRE.map(c => ({ id: c.id, label: c.label }))
 
 export function categorieOffre(o: Offre): CategorieOffre {
-  return o.etat === 'publiee' ? 'en_ligne' : o.etat === 'retiree' ? 'depubliee' : 'brouillon'
+  return o.etat === 'publiee' ? 'en_ligne' : o.etat === 'retiree' ? 'en_pause' : o.etat === 'archivee' ? 'archivee' : 'brouillon'
 }
 
 /** « 15 octobre 2026 », « Aujourd'hui, 11:27 », « Hier » ou « 2026-10-15 » → nombre de jours écoulés. */
@@ -130,7 +124,7 @@ function joursDepuis(date: string | undefined): number | null {
 
 /** Temps passé dans le statut : « depuis 6 jours ». */
 export function depuis(o: Offre): string {
-  const date = { brouillon: o.creeLe, en_ligne: o.dateDebut, depubliee: o.dateFin && o.dateFin < aujourdhui() ? o.dateFin : o.retireeLe }[categorieOffre(o)]
+  const date = { brouillon: o.creeLe, en_ligne: o.dateDebut, en_pause: o.dateFin && o.dateFin < aujourdhui() ? o.dateFin : o.retireeLe, archivee: o.archiveeLe }[categorieOffre(o)]
   const j = joursDepuis(date)
   if (j === null) {
     return ''
@@ -152,8 +146,10 @@ export function prochaineEtape(o: Offre, peutPublier = true): ActionAFaire {
     case 'en_ligne':
       // Rien à faire tant que la fin n'approche pas : les candidatures ont leur propre colonne (retour PO, L6).
       return termineBientot(o) ? { label: 'Prolonger la publication', ecran: offre } : { label: '—' }
-    case 'depubliee':
+    case 'en_pause':
       return { label: 'Prolonger pour remettre en ligne', ecran: offre }
+    case 'archivee':
+      return { label: '—' }
   }
 }
 
@@ -168,4 +164,33 @@ export function responsables(o: Offre): string[] {
   }
   const r = o.equipe.find(m => m.role === 'Responsable')?.nom || o.creePar
   return r ? [r] : []
+}
+
+/** « 20 nov. 2026 », « hier », « aujourd'hui à 09:12 », quel que soit le format stocké. */
+function quand(date: string | undefined): string {
+  if (!date) {
+    return ''
+  }
+  if (date.startsWith('Aujourd')) {
+    return date.includes(',') ? `aujourd'hui à ${date.slice(-5)}` : 'aujourd\'hui'
+  }
+  if (date.startsWith('Hier')) {
+    return 'hier'
+  }
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : dateTri(date)
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? `le ${dateCourte(iso)}` : date
+}
+
+/** Colonne « Activité sur l'offre » : la dernière activité significative, selon le statut (Alice, 25/11/2026). */
+export function activiteOffre(o: Offre): string {
+  switch (categorieOffre(o)) {
+    case 'brouillon':
+      return `Modifiée ${quand(o.modifieLe)}`
+    case 'en_ligne':
+      return `Publiée ${quand(o.publieeLe ?? o.dateDebut)}`
+    case 'en_pause':
+      return `Mise en pause ${quand(o.retireeLe ?? o.dateFin)}`
+    case 'archivee':
+      return `Archivée ${quand(o.archiveeLe)}`
+  }
 }

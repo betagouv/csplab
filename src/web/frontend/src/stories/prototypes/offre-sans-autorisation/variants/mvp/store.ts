@@ -203,6 +203,7 @@ export interface Offre {
   modifieLe: string
   publieeLe?: string
   retireeLe?: string
+  archiveeLe?: string
   historique: Evenement[]
 }
 
@@ -537,7 +538,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v4'
+const CLE = 'csplab-proto-offre-mvp-v5'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -610,6 +611,44 @@ function offresMvp(fiches: Fiche[]): Offre[] {
         { date: dateLongue(J(-36)), texte: 'Offre créée (formulaire vide)' },
         { date: dateLongue(J(-34)), texte: 'Offre publiée sur Choisir le Service Public' },
         { date: dateLongue(J(-3)), texte: 'Retrait automatique à la date limite' },
+      ],
+    },
+    // En pause à la main, avant la date de fin : l'échéance existe encore (colonne « Fin de publication »)
+    {
+      ...base('OFF-2026-0129', 'FP-DOC-2026-002', 'Chargé·e de communication interne'),
+      lieu: 'Toulouse (31)',
+      etat: 'retiree',
+      responsables: ['Nadia Benali'],
+      dateDebut: J(-15),
+      dateFin: J(12),
+      publieeLe: dateLongue(J(-15)),
+      retireeLe: dateLongue(J(-5)),
+      modifieLe: dateLongue(J(-5)),
+      publications: { csp: { etat: 'arretee', debut: dateLongue(J(-15)), fin: J(12) } },
+      historique: [
+        { date: dateLongue(J(-16)), texte: 'Offre créée (formulaire vide)' },
+        { date: dateLongue(J(-15)), texte: 'Offre publiée sur Choisir le Service Public' },
+        { date: dateLongue(J(-5)), texte: 'Offre mise en pause' },
+      ],
+    },
+    // Archivée : recrutement terminé
+    {
+      ...base('OFF-2026-0098', 'FP-SG-2025-031', 'Technicien·ne bâtiment'),
+      lieu: 'Montpellier (34)',
+      etat: 'archivee',
+      responsables: ['Julien Lefèvre'],
+      dateDebut: J(-75),
+      dateFin: J(-45),
+      publieeLe: dateLongue(J(-75)),
+      retireeLe: dateLongue(J(-45)),
+      archiveeLe: dateLongue(J(-10)),
+      modifieLe: dateLongue(J(-10)),
+      publications: { csp: { etat: 'arretee', debut: dateLongue(J(-75)), fin: J(-45) } },
+      historique: [
+        { date: dateLongue(J(-77)), texte: 'Offre créée (formulaire vide)' },
+        { date: dateLongue(J(-75)), texte: 'Offre publiée sur Choisir le Service Public' },
+        { date: dateLongue(J(-45)), texte: 'Retrait automatique à la date limite' },
+        { date: dateLongue(J(-10)), texte: 'Offre archivée' },
       ],
     },
   ]
@@ -1070,6 +1109,7 @@ export function archiverOffre(o: Offre) {
     p.etat = 'arretee'
   }
   o.etat = 'archivee'
+  o.archiveeLe = maintenant()
   journal(o, 'Offre archivée')
 }
 
