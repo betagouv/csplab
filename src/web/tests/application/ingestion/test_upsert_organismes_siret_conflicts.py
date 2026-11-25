@@ -51,11 +51,10 @@ def _data(referentiel: str, external_id: str, **overrides) -> OrganismeUpsertDat
         "versant": VERSANT_BY_REFERENTIEL[referentiel],
         "siret": SIRET(code=SIRET_A),
         "localisation": None,
-        "parent_id": None,
+        "parent_external_id": None,
         "external_id": external_id,
         "referentiel": referentiel,
         "millesime": "2026-10-28",
-        "entity_id": uuid4(),
     }
     fields.update(overrides)
     return OrganismeUpsertData(**fields)
@@ -66,6 +65,12 @@ def _upsert(*data: OrganismeUpsertData):
         organisme_repository=PostgresOrganismeRepository(), logger=MagicMock()
     )
     return usecase.execute(UpsertOrganismesInput(organismes=list(data)))
+
+
+def _id_of(referentiel: str, external_id: str):
+    return OrganismeModel.objects.get(
+        referentiel=referentiel, external_id=external_id
+    ).id
 
 
 def _siret_holder(siret: str = SIRET_A) -> OrganismeModel:
@@ -172,9 +177,8 @@ def test_dependents_are_moved_to_the_new_organisme():
     talentsoft = TalentsoftOrganismeDjangoFactory(organisme=gipcdg)
     child = OrganismeDjangoFactory(parent_id=gipcdg.id)
     tag = TagDjangoFactory(organisme=gipcdg)
-    dila_id = uuid4()
-
-    result = _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+    result = _upsert(_data("DILA", "dila-1"))
+    dila_id = _id_of("DILA", "dila-1")
 
     assert result["created"] == 1
     assert not OrganismeModel.objects.filter(id=gipcdg.id).exists()
@@ -189,9 +193,8 @@ def test_etapes_are_kept_on_the_new_organisme():
     etapes = [{"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Tri"}]
     OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
     OrganismeModel.objects.filter(siret=SIRET_A).update(etapes=etapes)
-    dila_id = uuid4()
-
-    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+    _upsert(_data("DILA", "dila-1"))
+    dila_id = _id_of("DILA", "dila-1")
 
     assert OrganismeModel.objects.get(id=dila_id).etapes == etapes
 
@@ -206,7 +209,7 @@ def test_etapes_of_the_existing_organisme_are_not_overridden():
     OrganismeModel.objects.filter(siret=SIRET_A).update(etapes=gipcdg_etapes)
     OrganismeModel.objects.filter(id=dila.id).update(etapes=dila_etapes)
 
-    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+    _upsert(_data("DILA", "dila-1"))
 
     assert OrganismeModel.objects.get(id=dila.id).etapes == dila_etapes
 
@@ -223,7 +226,7 @@ def test_dependents_are_merged_into_an_existing_organisme():
     gipcdg_tag = TagDjangoFactory(organisme=gipcdg, name="URGENT")
     candidature_tag = CandidatureTagDjangoFactory(tag=gipcdg_tag)
 
-    result = _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+    result = _upsert(_data("DILA", "dila-1"))
 
     assert result["updated"] == 1
     assert not OrganismeModel.objects.filter(id=gipcdg.id).exists()
@@ -251,7 +254,7 @@ def test_note_tags_are_merged_into_the_tag_of_the_same_name():
     )
     note_tag = NoteTagDjangoFactory(tag=gipcdg_tag)
 
-    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+    _upsert(_data("DILA", "dila-1"))
 
     note_tag.refresh_from_db()
     assert note_tag.tag_id == dila_tag.id
@@ -263,9 +266,8 @@ def test_only_active_agent_links_are_moved():
     revoked_link = OrganismeAgentDjangoFactory(
         organisme=gipcdg, date_revocation=timezone.now()
     )
-    dila_id = uuid4()
-
-    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+    _upsert(_data("DILA", "dila-1"))
+    dila_id = _id_of("DILA", "dila-1")
 
     assert list(
         OrganismeAgentModel.objects.filter(organisme_id=dila_id).values_list(
@@ -282,9 +284,8 @@ def test_agents_of_a_soft_deleted_organisme_are_not_moved():
     OrganismeAgentDjangoFactory(
         organisme=gipcdg, role=AgentOrganismeRole.SUPERVISEUR.value
     )
-    dila_id = uuid4()
-
-    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+    _upsert(_data("DILA", "dila-1"))
+    dila_id = _id_of("DILA", "dila-1")
 
     assert not OrganismeAgentModel.objects.filter(organisme_id=dila_id).exists()
 
@@ -315,7 +316,7 @@ def test_agent_linked_to_both_keeps_an_active_link_with_the_strongest_role(
         organisme=gipcdg, agent=existing_link.agent, role=replaced_role
     )
 
-    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+    _upsert(_data("DILA", "dila-1"))
 
     existing_link.refresh_from_db()
     assert existing_link.date_revocation is None

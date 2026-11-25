@@ -6,6 +6,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
 
 URL = reverse("ingestion:organismes_upsert")
@@ -16,7 +19,7 @@ def _organisme_payload(**overrides) -> dict:
         "nom": "Commune de Paris",
         "versant": "FPT",
         "siret": "19754687200015",
-        "parent_id": None,
+        "parent_external_id": None,
         "external_id": "ext-123",
         "referentiel": "FINESS",
         "millesime": "2026-08-19",
@@ -281,8 +284,43 @@ class TestOrganismesUpsertViewDbVerified:
         assert organisme.nom == payload["nom"]
         assert organisme.versant == payload["versant"]
         assert organisme.siret == payload["siret"]
-        assert organisme.parent_id == payload["parent_id"]
+        assert organisme.parent_id is None
         assert organisme.millesime == payload["millesime"]
+
+    def test_an_id_sent_by_the_caller_is_ignored(self, api_key_client):
+        manual = OrganismeDjangoFactory(nom="Organisme créé à la main")
+
+        response = api_key_client.post(
+            URL,
+            data={"organismes": [_organisme_payload(id=str(manual.id))]},
+            content_type="application/json",
+        )
+
+        assert response.json() == {"created": 1, "updated": 0, "errors": []}
+        manual.refresh_from_db()
+        assert manual.nom == "Organisme créé à la main"
+        assert manual.external_id is None
+        assert OrganismeModel.objects.get(external_id="ext-123").id != manual.id
+
+    def test_unknown_parent_is_reported_in_errors(self, api_key_client):
+        response = api_key_client.post(
+            URL,
+            data={"organismes": [_organisme_payload(parent_external_id="ghost")]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == {
+            "created": 0,
+            "updated": 0,
+            "errors": [
+                {
+                    "entity_id": None,
+                    "error": "parent_external_id ghost inconnu "
+                    "dans le référentiel FINESS",
+                }
+            ],
+        }
 
 
 def test_upsert_errors_are_serialized_without_exception(api_key_client, use_case):

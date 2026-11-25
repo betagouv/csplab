@@ -4560,6 +4560,7 @@ paths:
       operationId: v1_organismes_creer_modifier_create
       description: Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via
         un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
+        L'identifiant d'un organisme créé est attribué par CSPLab.
       summary: Ajouter/mettre à jour des organismes
       tags:
       - organismes
@@ -7138,10 +7139,6 @@ components:
     OrganismeUpsertInput:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-          nullable: true
         nom:
           type: string
           maxLength: 255
@@ -7150,10 +7147,12 @@ components:
         siret:
           type: string
           maxLength: 14
-        parent_id:
+        parent_external_id:
           type: string
-          format: uuid
           nullable: true
+          description: external_id de l'organisme parent, dans le même référentiel,
+            ou null. Le parent existe déjà ou figure dans le même lot.
+          maxLength: 50
         external_id:
           type: string
           maxLength: 50
@@ -7182,7 +7181,7 @@ components:
       - external_id
       - millesime
       - nom
-      - parent_id
+      - parent_external_id
       - referentiel
       - siret
       - versant

@@ -124,12 +124,11 @@ class OrganismeInputMapper(IToDomainMapper[dict, OrganismeUpsertData]):
 
     def to_domain(self, data: dict) -> OrganismeUpsertData:
         return OrganismeUpsertData(
-            entity_id=data.get("id"),
             nom=data["nom"],
             versant=Verse(data["versant"]),
             siret=SIRET(code=data["siret"]),
             localisation=self._localisation_mapper.to_domain(data.get("localisation")),
-            parent_id=data.get("parent_id"),
+            parent_external_id=data.get("parent_external_id"),
             external_id=data["external_id"],
             referentiel=data["referentiel"],
             millesime=data["millesime"],

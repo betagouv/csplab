@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from uuid import UUID
 
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.siret import SIRET
@@ -13,14 +12,13 @@ class OrganismeUpsertData:
     versant: Verse
     siret: SIRET
     localisation: Localisation | None
-    parent_id: UUID | None
+    parent_external_id: str | None
     external_id: str
     referentiel: str
     millesime: str
     gestion_ats: bool | None = False
     date_creation: datetime | None = None
     date_derniere_activite: datetime | None = None
-    entity_id: UUID | None = None
 
 
 @dataclass
