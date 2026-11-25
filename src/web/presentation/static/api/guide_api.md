@@ -731,7 +731,7 @@ sont accessibles qu'avec une **clé d'API** et ne concernent pas les partenaires
 
 | Route | À quoi ça sert |
 |---|---|
-| `POST /api/v1/organismes/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes, identifiés par le couple `referentiel` + `external_id`. CSPLab attribue l'`id` d'un organisme créé : un `id` envoyé est ignoré. Le parent est désigné par `parent_external_id`, dans le même référentiel : il existe déjà ou figure dans le même lot, sinon l'organisme est rejeté dans `errors` |
+| `POST /api/v1/organismes/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes, identifiés par le couple `referentiel` + `external_id`. CSPLab attribue l'`id` d'un organisme créé : un `id` envoyé est ignoré. Le parent est désigné par `parent_external_id`, dans le même référentiel : il existe déjà (non supprimé) ou figure dans le même lot, sinon l'organisme est rejeté dans `errors`. Un organisme ne peut pas être son propre parent, et les enfants d'un parent rejeté dans le même lot sont rejetés aussi |
 | `PUT /api/v1/organismes` | Supprimer de 1 à 100 organismes, identifiés de la même façon. Un organisme supprimé n'est plus renvoyé par `GET /api/v1/organismes` |
 | `POST /api/v1/talentsoft_organisme/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes Talentsoft, identifiés par leur `entity_code` |
 

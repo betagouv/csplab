@@ -30,15 +30,19 @@ class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
             pairs
         )
         batch_ids = {pair: existing_ids.get(pair) or uuid4() for pair in pairs}
-        known_ids = {
-            **OrganismeModel.objects.ids_by_referentiel_and_external_id(
+        parent_ids = {
+            **{
+                pair: entity_id
+                for pair, entity_id in batch_ids.items()
+                if pair not in existing_ids
+            },
+            **OrganismeModel.objects.not_supprimes().ids_by_referentiel_and_external_id(
                 [
                     (data.referentiel, data.parent_external_id)
                     for data in input_data.organismes
                     if data.parent_external_id
                 ]
             ),
-            **batch_ids,
         }
 
         organismes: list[Organisme] = []
@@ -47,8 +51,8 @@ class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
             pair = (data.referentiel, data.external_id)
             parent_id = None
             if data.parent_external_id:
-                parent_id = known_ids.get((data.referentiel, data.parent_external_id))
-                if parent_id is None:
+                parent_id = parent_ids.get((data.referentiel, data.parent_external_id))
+                if parent_id is None or data.parent_external_id == data.external_id:
                     errors.append(self._unknown_parent_error(data))
                     continue
             organismes.append(

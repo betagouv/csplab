@@ -60,6 +60,9 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                 organismes, replaced_by, errors = self._resolve_siret_conflicts(
                     organismes
                 )
+                organismes = self._reject_children_of_rejected(
+                    organismes, errors, existing_ids
+                )
                 etapes_by_target = self._replace(replaced_by)
 
                 new_models = []
@@ -139,6 +142,32 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                 )
 
         return kept, replaced_by, errors
+
+    @staticmethod
+    def _reject_children_of_rejected(
+        organismes: list[Organisme],
+        errors: list[IUpsertError],
+        existing_ids: set[UUID],
+    ) -> list[Organisme]:
+        missing_ids = {error["entity_id"] for error in errors} - existing_ids
+        while children := [o for o in organismes if o.parent_id in missing_ids]:
+            for child in children:
+                message = (
+                    f"parent de {child.referentiel} {child.external_id} "
+                    "rejeté dans le même lot"
+                )
+                errors.append(
+                    {
+                        "entity_id": child.entity_id,
+                        "error": message,
+                        "exception": ValueError(message),
+                    }
+                )
+                if child.entity_id not in existing_ids:
+                    missing_ids.add(child.entity_id)
+            child_ids = {child.entity_id for child in children}
+            organismes = [o for o in organismes if o.entity_id not in child_ids]
+        return organismes
 
     def _replace(self, replaced_by: dict[UUID, UUID]) -> dict[UUID, list]:
         etapes_by_target = {}

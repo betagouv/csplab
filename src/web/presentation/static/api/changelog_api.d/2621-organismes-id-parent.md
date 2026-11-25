@@ -14,8 +14,10 @@ liens:
   couple (`referentiel`, `external_id`).
 - `parent_id` est remplacé par `parent_external_id`, obligatoire, qui vaut
   l'`external_id` du parent dans le même référentiel, ou `null`. Le parent existe déjà
-  ou figure dans le même lot, dans n'importe quel ordre. Sinon l'organisme est rejeté
-  dans `errors`, avec un `entity_id` à `null`.
+  (non supprimé) ou figure dans le même lot, dans n'importe quel ordre. Sinon
+  l'organisme est rejeté dans `errors`, avec un `entity_id` à `null`. Un organisme ne
+  peut pas être son propre parent, et les enfants d'un parent rejeté dans le même lot
+  sont rejetés aussi.
 
 ### Compatibilité
 
