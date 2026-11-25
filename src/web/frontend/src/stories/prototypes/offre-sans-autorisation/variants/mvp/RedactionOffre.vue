@@ -2,19 +2,17 @@
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
-import Panel from '../../shared/Panel.vue'
-import { manquesAnnonce, tentatives } from './aide'
+import { manquesAnnonce } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import { ETAPES_OFFRE } from './etapes'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import ParcoursOffre from './ParcoursOffre.vue'
-import RecapPublication from './RecapPublication.vue'
 import { db, heure, sauvegarder, UTILISATEUR } from './store'
 
-// Créer une offre : le formulaire en étapes (retour PO, F1), avec le récapitulatif des champs obligatoires à droite
-// (F4). Rien n'est exigé pour enregistrer un brouillon. Les deux derniers écrans, facultatifs, reprennent les écrans
-// existants (étapes de recrutement, équipe de recrutement).
+// Créer une offre (retour Alice du 25/11/2026) : formulaire vide (bouton « Créer une offre ») ou pré-rempli
+// (« Dupliquer » dans le menu « … » d'une offre), sans écran de choix. Une page par étape. Enregistrement automatique :
+// on peut quitter à tout moment. « Publier » s'active dès que tous les champs obligatoires sont remplis.
 const props = defineProps<{ id: string, etape?: number }>()
 const { aller, notifier } = useNav()
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
@@ -23,25 +21,22 @@ const o = computed(() => db.offres.find(x => x.id === props.id)!)
 const etapeUrl = Number(new URLSearchParams(window.location.search).get('etape')) || undefined
 const etape = ref(Math.min(Math.max(props.etape ?? etapeUrl ?? 1, 1), ETAPES_OFFRE.length))
 
-// Enregistrement automatique.
 const enregistre = ref(heure())
-// Aperçu candidat (œil) : l'annonce telle que la verront les candidats, à côté du formulaire.
 const apercu = ref(false)
 watch(o, () => {
   sauvegarder()
   enregistre.value = heure()
 }, { deep: true })
 
+const reste = computed(() => manquesAnnonce(o.value).length)
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
-function enregistrer() {
+const source = computed(() => (o.value.origineContenu === 'duplication' ? db.offres.find(x => x.id === o.value.sourceOffreId) : undefined))
+
+function quitter() {
   notifier('Brouillon enregistré. Vous pouvez le reprendre à tout moment.')
-  aller({ nom: 'offre', id: o.value.id })
+  aller({ nom: 'offres' })
 }
 function publier() {
-  // Les erreurs s'affichent à partir de la première tentative de publication (F6).
-  if (manquesAnnonce(o.value).length) {
-    tentatives.add(o.value.id)
-  }
   aller({ nom: 'publier', id: o.value.id })
 }
 </script>
@@ -51,16 +46,15 @@ function publier() {
     actif="offres"
     largeur="full"
     :titre="o.titre || 'Nouvelle offre'"
-    sous-titre="Nouvelle offre d'emploi · brouillon"
+    :sous-titre="source ? `Brouillon · copie de « ${source.titre} »` : 'Brouillon'"
     :fil="[{ label: 'Mes offres d\'emploi', to: '/offres' }, { label: 'Nouvelle offre' }]"
-    :bandeaux="['Les champs obligatoires (*) ne sont contrôlés qu\'au moment de publier : vous pouvez enregistrer une offre incomplète.']"
   >
     <template #actions>
       <span class="enregistre">Enregistré automatiquement à {{ enregistre }}</span>
       <CspButton
         label="Aperçu candidat"
         size="sm"
-        variant="secondary"
+        variant="tertiary"
         icon="ri:eye-line"
         is-icon-left
         @click="apercu = true"
@@ -69,44 +63,49 @@ function publier() {
         label="Enregistrer et quitter"
         size="sm"
         variant="secondary"
-        @click="enregistrer"
+        @click="quitter"
+      />
+      <CspButton
+        v-if="peutPublier"
+        label="Publier"
+        size="sm"
+        icon="ri:send-plane-line"
+        is-icon-left
+        :disabled="Boolean(reste)"
+        :title="reste ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} à remplir` : undefined"
+        @click="publier"
       />
     </template>
 
-    <div class="colonnes">
-      <ParcoursOffre
-        v-model:etape="etape"
-        :offre="o"
-      >
-        <template #fin>
-          <CspButton
-            label="Enregistrer le brouillon"
-            variant="secondary"
-            @click="enregistrer"
-          />
-          <CspButton
-            v-if="peutPublier"
-            label="Publier"
-            icon="ri:arrow-right-line"
-            @click="publier"
-          />
-        </template>
-      </ParcoursOffre>
-      <aside class="cote">
-        <Panel titre="Avant de publier">
-          <RecapPublication
-            :offre="o"
-            @aller="(n: number) => (etape = n)"
-          />
-          <p
-            v-if="!peutPublier"
-            class="sans-droit"
-          >
-            Vous n'avez pas le droit « Publier » : un agent qui l'a mettra l'offre en ligne.
-          </p>
-        </Panel>
-      </aside>
-    </div>
+    <p
+      class="etat"
+      :class="{ 'etat--ok': !reste }"
+    >
+      {{ reste
+        ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} (*) à remplir avant de pouvoir publier. Vous pouvez enregistrer et quitter à tout moment.`
+        : peutPublier ? 'Tous les champs obligatoires sont remplis : vous pouvez publier l\'offre.' : 'Tous les champs obligatoires sont remplis. Vous n\'avez pas le droit « Publier » : un agent qui l\'a mettra l\'offre en ligne.' }}
+    </p>
+
+    <ParcoursOffre
+      v-model:etape="etape"
+      :offre="o"
+    >
+      <template #fin>
+        <CspButton
+          label="Enregistrer et quitter"
+          variant="secondary"
+          @click="quitter"
+        />
+        <CspButton
+          v-if="peutPublier"
+          label="Publier"
+          icon="ri:send-plane-line"
+          is-icon-left
+          :disabled="Boolean(reste)"
+          @click="publier"
+        />
+      </template>
+    </ParcoursOffre>
 
     <CspDrawer
       :open="apercu"
@@ -126,34 +125,23 @@ function publier() {
 </template>
 
 <style scoped lang="scss">
-.colonnes {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
-  gap: var(--csp-space-8);
-  align-items: start;
-  max-width: 80rem;
-}
-
-@media (width <= 64rem) {
-  .colonnes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.cote {
-  position: sticky;
-  top: var(--csp-space-4);
-}
-
 .enregistre {
   align-self: center;
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
 }
 
-.sans-droit {
-  margin: var(--csp-space-3) 0 0;
+.etat {
+  max-width: 80rem;
+  margin: 0;
+  padding: var(--csp-space-3) var(--csp-space-4);
+  border-left: 3px solid var(--border-plain-blue-france);
+  background: var(--background-alt-blue-france);
   font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
+
+  &--ok {
+    border-left-color: var(--border-plain-success);
+    background: var(--background-contrast-success);
+  }
 }
 </style>

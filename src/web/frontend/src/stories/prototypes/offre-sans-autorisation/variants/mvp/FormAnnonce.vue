@@ -166,6 +166,49 @@ function formater() {
           hint="10 au maximum"
         />
       </FieldRow>
+      <ChampOffre
+        :offre="o"
+        champ="missions"
+        label="Descriptif du poste"
+        obligatoire
+        for-id="a-missions"
+        :repris="repris('missions')"
+        :modifie="modifie('missions')"
+        @restaurer="restaurer('missions')"
+      >
+        <CspTextarea
+          id="a-missions"
+          v-model="o.missions"
+          :rows="6"
+        />
+      </ChampOffre>
+      <div
+        v-if="aMettreEnForme(o.missions)"
+        class="outil"
+      >
+        <CspButton
+          label="Mettre en forme (une mission par ligne)"
+          variant="tertiary-no-outline"
+          size="sm"
+          icon="ri:list-unordered"
+          is-icon-left
+          @click="formater"
+        />
+      </div>
+      <FieldRow :cols="3">
+        <CspSelect
+          v-model="management"
+          label="Management"
+          :options="opts(['Oui', 'Non'], 'Non renseigné')"
+        />
+      </FieldRow>
+    </div>
+
+    <!-- Étape « Le métier » : page dédiée au métier et aux compétences -->
+    <div
+      v-else-if="partie === 'metier'"
+      class="groupe"
+    >
       <div class="metier">
         <ChampOffre
           :offre="o"
@@ -220,42 +263,6 @@ function formater() {
           </div>
         </ChampOffre>
       </div>
-      <ChampOffre
-        :offre="o"
-        champ="missions"
-        label="Descriptif du poste"
-        obligatoire
-        for-id="a-missions"
-        :repris="repris('missions')"
-        :modifie="modifie('missions')"
-        @restaurer="restaurer('missions')"
-      >
-        <CspTextarea
-          id="a-missions"
-          v-model="o.missions"
-          :rows="6"
-        />
-      </ChampOffre>
-      <div
-        v-if="aMettreEnForme(o.missions)"
-        class="outil"
-      >
-        <CspButton
-          label="Mettre en forme (une mission par ligne)"
-          variant="tertiary-no-outline"
-          size="sm"
-          icon="ri:list-unordered"
-          is-icon-left
-          @click="formater"
-        />
-      </div>
-      <FieldRow :cols="3">
-        <CspSelect
-          v-model="management"
-          label="Management"
-          :options="opts(['Oui', 'Non'], 'Non renseigné')"
-        />
-      </FieldRow>
     </div>
 
     <!-- Étape « Cadre du recrutement » : Catégorie, Corps puis Grade (le grade dépend du corps, F8) -->
@@ -546,10 +553,9 @@ function formater() {
 }
 
 .metier {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--csp-space-6);
-  align-items: start;
 }
 
 .ajout {

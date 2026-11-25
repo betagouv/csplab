@@ -1,87 +1,105 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import type { PartieOffre } from './etapes'
+import { computed, nextTick, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
-import Panel from '../../shared/Panel.vue'
-import { manquesAnnonce, tentatives } from './aide'
+import { champsObligatoires } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
+import BlocEtape from './BlocEtape.vue'
 import { dupliquer } from './dupliquer'
-import { ETAPES_OFFRE } from './etapes'
+import { ETAPES_OFFRE, GROUPES } from './etapes'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import ParcoursOffre from './ParcoursOffre.vue'
-import RecapPublication from './RecapPublication.vue'
 import { candidatures } from './recrutement'
 import { aujourdhui, dateLongue, db, heure, joursRestants, le, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
 
-// Page d'une offre (sans autorisation) : le formulaire en étapes à gauche (retour PO, F1), l'encart de l'état et le
-// récapitulatif des champs obligatoires à droite (F4). Les deux derniers écrans reprennent les écrans existants
-// (étapes et équipe de recrutement) ; le journal d'activité s'ouvre depuis le menu « … ».
-// Brouillon → Publiée (publication immédiate) → Dépubliée (date de fin ou retrait manuel) → Publiée (prolongation).
-// L'offre reste modifiable une fois publiée. Publier, prolonger et retirer demandent le droit « Publier ».
+// Page d'une offre, hors création (retour Alice du 25/11/2026), structurée comme un profil Malt : l'en-tête,
+// « Accéder à », le bloc des champs qui restent à remplir, puis un bloc par étape, regroupés dans les deux parties
+// (annonce visible du candidat, paramétrage des candidatures). Chaque bloc se modifie à part, avec le crayon.
+// Brouillon → Publiée → Dépubliée (date de fin ou retrait) → Publiée (prolongation). Publier, prolonger et retirer
+// demandent le droit « Publier ».
 const props = defineProps<{ id: string, section?: string }>()
 const { aller, notifier } = useNav()
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
 
 const ETATS = {
   brouillon: { label: 'Brouillon', type: 'new' as const },
-  publiee: { label: 'Publiée', type: 'success' as const },
+  publiee: { label: 'En ligne', type: 'success' as const },
   retiree: { label: 'Dépubliée', type: 'warning' as const },
   archivee: { label: 'Archivée', type: 'info' as const },
 }
 const etat = computed(() => ETATS[o.value.etat])
 const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
 const modifiable = computed(() => o.value.etat !== 'archivee')
-const manques = computed(() => manquesAnnonce(o.value))
 const restants = computed(() => (o.value.dateFin ? joursRestants(o.value.dateFin) : 0))
+const enLigne = computed(() => o.value.etat === 'publiee' || o.value.etat === 'retiree')
 
-// Enregistrement automatique
 const enregistre = ref(heure())
 watch(() => JSON.stringify(o.value), () => {
   sauvegarder()
   enregistre.value = heure()
 })
 
+const nature = computed(() => (o.value.ouvertA.length === 2 ? 'Fonctionnaires et contractuels' : o.value.ouvertA[0] === 'contractuel' ? 'Contractuels' : o.value.ouvertA[0] === 'titulaire' ? 'Fonctionnaires' : ''))
 const meta = computed(() => [
-  { icon: 'ri:calendar-line', srLabel: 'Création', label: `Créée ${le(o.value.creeLe).replace(/^le /, 'le ')}` },
-  { icon: 'ri:map-pin-2-line', srLabel: 'Lieu', label: o.value.lieu || 'Lieu à préciser' },
-  { icon: 'ri:government-line', srLabel: 'Organisme', label: db.organisme.nom },
+  { icon: 'ri:map-pin-2-line', srLabel: 'Lieu', label: o.value.sansLieuFixe ? 'Pas de lieu fixe' : o.value.lieu || 'Lieu à préciser' },
   ...(o.value.categorie ? [{ icon: 'ri:price-tag-3-line', srLabel: 'Catégorie', label: `Catégorie ${o.value.categorie}` }] : []),
+  ...(nature.value ? [{ icon: 'ri:user-line', srLabel: 'Nature de l\'emploi', label: nature.value }] : []),
   { icon: 'ri:group-line', srLabel: 'Postes', label: `${o.value.nbPostes || 1} poste${Number(o.value.nbPostes) > 1 ? 's' : ''}` },
+  o.value.etat === 'publiee'
+    ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `En ligne jusqu'au ${dateLongue(o.value.dateFin)}` }
+    : o.value.etat === 'retiree'
+      ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `Retirée ${le(o.value.retireeLe)}` }
+      : { icon: 'ri:calendar-line', srLabel: 'Création', label: `Créée ${le(o.value.creeLe)}` },
 ])
+
+// --- Champs obligatoires qui restent à remplir (bloc « À compléter ») ---
+const champs = computed(() => champsObligatoires(o.value))
+const reste = computed(() => champs.value.filter(c => !c.ok).length)
+const aCompleter = computed(() => ETAPES_OFFRE
+  .map(e => ({ ...e, manquants: champs.value.filter(c => c.partie === e.id && !c.ok).map(c => c.label) }))
+  .filter(e => e.manquants.length))
+
+// --- Blocs : un seul en modification à la fois ---
+const edition = ref<PartieOffre | null>(null)
+const verrouCandidature = computed(() => (o.value.etat === 'brouillon' ? undefined : 'Verrouillé : des candidats ont déjà postulé'))
+async function allerBloc(partie: PartieOffre | string, modifier = false) {
+  if (modifier) {
+    edition.value = partie as PartieOffre
+  }
+  await nextTick()
+  document.getElementById(partie.startsWith('partie-') ? partie : `bloc-${partie}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+function enregistreBloc(titre: string) {
+  notifier(o.value.etat === 'publiee' ? `« ${titre} » enregistré : la modification est en ligne.` : `« ${titre} » enregistré.`)
+}
+// Depuis la liste, « Compléter » peut viser une étape.
+if (props.section && ETAPES_OFFRE.some(e => e.id === props.section)) {
+  void allerBloc(props.section, true)
+}
+
+const apercu = ref(false)
 const journal = ref(false)
-const menu = [
+const retrait = ref(false)
+const menu = computed(() => [
   {
     items: [
+      ...(enLigne.value ? [{ label: 'Voir le recrutement', icon: 'ri:team-line', onSelect: () => aller({ nom: 'recrutement', id: o.value.id }) }] : []),
       { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(o.value, { aller, notifier }) },
-    ],
-  },
-  {
-    items: [
       { label: 'Journal d’activité', icon: 'ri:history-line', onSelect: () => (journal.value = true) },
     ],
   },
-]
-const apercu = ref(false)
-
-// --- Étape du formulaire. Depuis la liste, « Compléter » ouvre la candidature ou le début de l'annonce. ---
-const etape = ref(props.section === 'candidature' ? ETAPES_OFFRE.findIndex(e => e.id === 'candidature') + 1 : 1)
-function publierOuTenter() {
-  if (manques.value.length) {
-    tentatives.add(o.value.id)
-  }
-  aller({ nom: 'publier', id: o.value.id })
-}
-const bandeaux = computed(() => o.value.etat === 'publiee'
-  ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.']
-  : o.value.etat === 'brouillon'
-    ? ['Les champs obligatoires (*) ne sont contrôlés qu\'au moment de publier : vous pouvez enregistrer une offre incomplète.']
-    : [])
+  ...(o.value.etat === 'publiee' && peutPublier.value
+    ? [{ items: [{ label: 'Retirer l’offre', icon: 'ri:stop-circle-line', onSelect: () => (retrait.value = true) }] }]
+    : []),
+])
+const bandeaux = computed(() => (o.value.etat === 'publiee' ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.'] : []))
 
 // --- Prolonger (publiée ou dépubliée) ---
 const prolongation = ref(false)
@@ -105,7 +123,6 @@ function confirmerProlongation() {
 }
 
 // --- Retirer (publiée → dépubliée) ---
-const retrait = ref(false)
 function confirmerRetrait() {
   retirer(o.value, 'manuel')
   retrait.value = false
@@ -129,17 +146,26 @@ function confirmerRetrait() {
           :type="etat.type"
           size="sm"
         />
+        <span class="meta__ref">{{ o.id }}</span>
         <CspMetaList :items="meta" />
+        <button
+          v-if="enLigne"
+          type="button"
+          class="lien"
+          @click="aller({ nom: 'recrutement', id: o.id })"
+        >
+          {{ candidatures(o).total }} candidature{{ candidatures(o).total > 1 ? 's' : '' }}
+        </button>
       </div>
     </template>
     <template #actions>
-      <span class="save">Enregistré automatiquement à {{ enregistre }}</span>
+      <span class="save">Enregistré à {{ enregistre }}</span>
       <CspButton
-        label="Aperçu candidat"
-        size="sm"
-        variant="secondary"
         icon="ri:eye-line"
-        is-icon-left
+        variant="tertiary-no-outline"
+        size="sm"
+        aria-label="Aperçu candidat"
+        title="Aperçu candidat"
         @click="apercu = true"
       />
       <CspDropdownMenu
@@ -150,147 +176,192 @@ function confirmerRetrait() {
         <template #trigger>
           <CspButton
             icon="ri:more-fill"
-            variant="tertiary"
+            variant="tertiary-no-outline"
             size="sm"
             aria-label="Actions sur l’offre"
           />
         </template>
       </CspDropdownMenu>
+      <template v-if="peutPublier">
+        <CspButton
+          v-if="o.etat === 'brouillon'"
+          label="Publier"
+          size="sm"
+          icon="ri:send-plane-line"
+          is-icon-left
+          :disabled="Boolean(reste)"
+          :title="reste ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} à remplir` : undefined"
+          @click="aller({ nom: 'publier', id: o.id })"
+        />
+        <CspButton
+          v-else-if="enLigne"
+          :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
+          size="sm"
+          :variant="o.etat === 'retiree' || restants <= 7 ? 'primary' : 'secondary'"
+          icon="ri:calendar-line"
+          is-icon-left
+          @click="ouvrirProlongation"
+        />
+      </template>
     </template>
 
-    <div class="colonnes">
-      <!-- Encart de l'état et des actions -->
-      <aside class="tete">
-        <Panel
-          v-if="o.etat === 'brouillon'"
-          class="encart encart--action"
-          titre="Brouillon"
-          :description="manques.length ? undefined : 'Il ne reste qu\'à choisir la date de fin et publier.'"
+    <div class="fond">
+      <nav
+        class="acces"
+        aria-label="Accéder à une partie de l'offre"
+      >
+        <span class="acces__label">Accéder à :</span>
+        <button
+          v-for="e in ETAPES_OFFRE"
+          :key="e.id"
+          type="button"
+          class="acces__chip"
+          @click="allerBloc(e.id)"
         >
-          <RecapPublication
-            :offre="o"
-            @aller="(n: number) => (etape = n)"
+          {{ e.titre }}
+        </button>
+      </nav>
+
+      <p
+        v-if="o.etat === 'publiee' && restants <= 7"
+        class="alerte"
+      >
+        <CspIcon
+          name="ri:time-line"
+          :size="16"
+        />
+        L'offre se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
+        Prolongez-la pour continuer à recevoir des candidatures.
+      </p>
+
+      <!-- Champs qui restent à remplir, étape par étape -->
+      <section
+        v-if="reste || o.etat === 'brouillon'"
+        class="completion"
+        :class="{ 'completion--ok': !reste }"
+      >
+        <header class="completion__tete">
+          <h2 class="completion__titre">
+            {{ reste ? 'À compléter avant de publier' : 'Tout est prêt' }}
+          </h2>
+          <span class="completion__compte">{{ champs.length - reste }} / {{ champs.length }} champs obligatoires remplis</span>
+        </header>
+        <div
+          class="jauge"
+          role="progressbar"
+          :aria-valuenow="champs.length - reste"
+          :aria-valuemax="champs.length"
+          aria-label="Champs obligatoires remplis"
+        >
+          <span :style="{ width: `${((champs.length - reste) / champs.length) * 100}%` }" />
+        </div>
+        <div
+          v-if="reste"
+          class="cartes"
+        >
+          <article
+            v-for="e in aCompleter"
+            :key="e.id"
+            class="carte"
+          >
+            <p class="carte__partie">
+              {{ GROUPES.find(g => g.id === e.groupe)!.titre }}
+            </p>
+            <h3 class="carte__titre">
+              {{ e.titre }}
+            </h3>
+            <p class="carte__texte">
+              {{ e.manquants.join(', ') }}
+            </p>
+            <CspButton
+              v-if="modifiable"
+              label="Compléter"
+              size="sm"
+              variant="secondary"
+              @click="allerBloc(e.id, true)"
+            />
+          </article>
+        </div>
+        <div
+          v-else
+          class="completion__fin"
+        >
+          <p>
+            <CspIcon
+              name="ri:checkbox-circle-fill"
+              :size="18"
+              class="ok"
+            />
+            Tous les champs obligatoires sont remplis.
+            {{ peutPublier ? 'Vous pouvez publier l\'offre.' : 'Un agent qui a le droit « Publier » la mettra en ligne.' }}
+          </p>
+          <CspButton
+            v-if="peutPublier"
+            label="Publier"
+            icon="ri:send-plane-line"
+            is-icon-left
+            @click="aller({ nom: 'publier', id: o.id })"
           />
-          <div v-if="peutPublier">
-            <CspButton
-              label="Publier"
-              icon="ri:send-plane-line"
-              is-icon-left
-              @click="publierOuTenter"
-            />
-          </div>
-          <p
-            v-else
-            class="texte"
-          >
-            Vous n'avez pas le droit « Publier » : un agent qui l'a mettra l'offre en ligne.
-          </p>
-        </Panel>
+        </div>
+      </section>
 
-        <Panel
-          v-else-if="o.etat === 'publiee' || o.etat === 'retiree'"
-          class="encart"
-          :class="o.etat === 'publiee' && restants <= 7 ? 'encart--attention' : 'encart--action'"
-          :titre="o.etat === 'publiee' ? 'En ligne' : 'Dépubliée'"
-          :description="o.etat === 'publiee'
-            ? `Publiée ${le(o.publieeLe)}, jusqu'au ${dateLongue(o.dateFin)} (date limite de candidature). Vous pouvez toujours modifier l'offre.`
-            : `Retirée ${le(o.retireeLe)}. Les candidatures reçues restent à traiter. Prolonger remet l'offre en ligne.`"
-        >
-          <p
-            v-if="o.etat === 'publiee' && restants <= 7"
-            class="alerte"
-          >
-            Se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
-          </p>
-          <p class="texte">
-            <button
-              type="button"
-              class="lien"
-              @click="aller({ nom: 'recrutements' })"
-            >
-              {{ candidatures(o).total }} candidature{{ candidatures(o).total > 1 ? 's' : '' }}
-            </button>
-            dans le recrutement.
-          </p>
-          <div
-            v-if="prolongation"
-            class="prolonger"
-          >
-            <CspInput
-              v-model="nouvelleFin"
-              placeholder="AAAA-MM-JJ"
-              label="Nouvelle date de fin"
-              :error="Boolean(erreurFin)"
-              :error-message="erreurFin || undefined"
+      <section
+        v-for="g in GROUPES"
+        :id="`partie-${g.id}`"
+        :key="g.id"
+        class="partie"
+      >
+        <header class="partie__tete">
+          <h2 class="partie__titre">
+            <CspIcon
+              :name="g.icone"
+              :size="20"
             />
-            <div class="actions">
-              <CspButton
-                label="Annuler"
-                variant="tertiary-no-outline"
-                size="sm"
-                @click="prolongation = false"
-              />
-              <CspButton
-                :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
-                size="sm"
-                @click="confirmerProlongation"
-              />
-            </div>
-          </div>
-          <div
-            v-else-if="peutPublier"
-            class="actions"
-          >
-            <CspButton
-              :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
-              size="sm"
-              :variant="o.etat === 'retiree' ? 'primary' : 'secondary'"
-              icon="ri:calendar-line"
-              is-icon-left
-              @click="ouvrirProlongation"
-            />
-            <CspButton
-              v-if="o.etat === 'publiee'"
-              label="Retirer l'offre"
-              size="sm"
-              variant="tertiary"
-              icon="ri:stop-circle-line"
-              is-icon-left
-              @click="retrait = true"
-            />
-          </div>
-          <p
-            v-else
-            class="texte"
-          >
-            Prolonger ou retirer l'offre demande le droit « Publier ».
+            {{ g.titre }}
+          </h2>
+          <p class="partie__aide">
+            {{ g.aide }}
           </p>
-        </Panel>
-      </aside>
-
-      <div class="sections">
-        <fieldset
-          class="verrou"
-          :disabled="!modifiable"
-        >
-          <ParcoursOffre
-            v-model:etape="etape"
-            :offre="o"
-            :lecture-seule="!modifiable"
-            :verrouille-candidature="o.etat !== 'brouillon'"
-          >
-            <template #fin>
-              <CspButton
-                v-if="o.etat === 'brouillon' && peutPublier"
-                label="Publier"
-                icon="ri:arrow-right-line"
-                @click="publierOuTenter"
-              />
-            </template>
-          </ParcoursOffre>
-        </fieldset>
-      </div>
+        </header>
+        <BlocEtape
+          v-for="e in ETAPES_OFFRE.filter(x => x.groupe === g.id)"
+          :key="e.id"
+          :offre="o"
+          :partie="e.id"
+          :modifiable="modifiable"
+          :verrouille="g.id === 'candidature' ? verrouCandidature : undefined"
+          :edition="edition === e.id"
+          @update:edition="(v: boolean) => (edition = v ? e.id : null)"
+          @enregistre="enregistreBloc"
+        />
+      </section>
     </div>
+
+    <CspDialog
+      v-model:open="prolongation"
+      :title="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger la publication'"
+      size="sm"
+    >
+      <CspInput
+        v-model="nouvelleFin"
+        placeholder="AAAA-MM-JJ"
+        label="Nouvelle date de fin"
+        hint="C'est aussi la date limite de candidature."
+        :error="Boolean(erreurFin)"
+        :error-message="erreurFin || undefined"
+      />
+      <template #footer>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="prolongation = false"
+        />
+        <CspButton
+          :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
+          @click="confirmerProlongation"
+        />
+      </template>
+    </CspDialog>
 
     <CspDialog
       v-model:open="retrait"
@@ -317,7 +388,7 @@ function confirmerRetrait() {
     <CspDrawer
       :open="apercu"
       title="Aperçu candidat"
-      description="Mise en page indicative ; elle suit votre saisie."
+      description="Mise en page indicative."
       size="lg"
       :modal="false"
       :overlay="false"
@@ -329,7 +400,6 @@ function confirmerRetrait() {
       />
     </CspDrawer>
 
-    <!-- Journal d'activité : consulté à part, comme l'historique ailleurs dans la plateforme (F2). -->
     <CspDrawer
       v-model:open="journal"
       title="Journal d'activité"
@@ -355,20 +425,20 @@ function confirmerRetrait() {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--csp-space-2);
+  gap: var(--csp-space-2) var(--csp-space-3);
+}
+
+.meta__ref {
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
 }
 
 .meta :deep(.csp-meta-list) {
   flex-wrap: wrap;
-  gap: var(--csp-space-2);
+  gap: var(--csp-space-2) var(--csp-space-4);
 }
 
 .meta :deep(.csp-meta-list__item) {
-  padding: 2px var(--csp-space-3);
-  border-radius: 1rem;
-  background: var(--background-contrast-grey);
-  color: var(--text-default-grey);
-
   &::before,
   &::after {
     content: none;
@@ -382,45 +452,189 @@ function confirmerRetrait() {
   color: var(--text-mention-grey);
 }
 
-.colonnes {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 24rem;
-  grid-template-areas: 'sections tete';
-  gap: var(--csp-space-6);
-  align-items: start;
-
-  @media (max-width: 75rem) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'tete' 'sections';
-  }
-}
-
-.tete {
-  grid-area: tete;
-  position: sticky;
-  top: 4rem;
-
-  @media (max-width: 75rem) {
-    position: static;
-  }
-}
-
-.sections {
-  grid-area: sections;
+.fond {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-5);
-  min-width: 0;
+  gap: var(--csp-space-6);
+  max-width: 64rem;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.encart {
-  &--action {
-    border-top: 3px solid var(--border-plain-blue-france);
+.acces {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-2);
+  padding: var(--csp-space-3) 0;
+  background: var(--background-default-grey);
+}
+
+.acces__label {
+  margin-right: var(--csp-space-1);
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+}
+
+.acces__chip {
+  padding: var(--csp-space-1) var(--csp-space-3);
+  border: 0;
+  border-radius: 999px;
+  background: var(--background-action-high-blue-france);
+  font: inherit;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-inverted-blue-france);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-action-high-blue-france-hover);
   }
 
-  &--attention {
-    border-top: 3px solid var(--border-plain-warning);
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color);
+    outline-offset: 2px;
   }
+}
+
+.alerte {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+  margin: 0;
+  padding: var(--csp-space-3) var(--csp-space-4);
+  border-left: 3px solid var(--border-plain-warning);
+  background: var(--background-contrast-warning);
+  font-size: var(--csp-font-size-sm);
+}
+
+.completion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-4);
+  padding: var(--csp-space-6) var(--csp-space-8);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 0.75rem;
+  background: var(--background-alt-blue-france);
+}
+
+.completion__tete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--csp-space-2);
+}
+
+.completion__titre {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.completion__compte {
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+}
+
+.jauge {
+  height: 0.375rem;
+  border-radius: 1rem;
+  background: var(--background-contrast-grey);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--background-action-high-blue-france);
+  }
+}
+
+.completion--ok .jauge span {
+  background: var(--border-plain-success);
+}
+
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--csp-space-3);
+}
+
+.carte {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--csp-space-1);
+  padding: var(--csp-space-4);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 0.75rem;
+  background: var(--background-default-grey);
+
+  .csp-button,
+  :deep(.csp-button) {
+    margin-top: auto;
+  }
+}
+
+.carte__partie {
+  margin: 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.carte__titre {
+  margin: 0;
+  font-size: var(--csp-font-size-md, 1rem);
+}
+
+.carte__texte {
+  margin: 0 0 var(--csp-space-3);
+  font-size: var(--csp-font-size-sm);
+}
+
+.completion__fin {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--csp-space-3);
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: var(--csp-space-2);
+    margin: 0;
+  }
+}
+
+.ok {
+  color: var(--text-default-success);
+}
+
+.partie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-4);
+  scroll-margin-top: 4rem;
+}
+
+.partie__tete {
+  margin-top: var(--csp-space-4);
+}
+
+.partie__titre {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.partie__aide {
+  margin: var(--csp-space-1) 0 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
 }
 
 .lien {
@@ -428,50 +642,15 @@ function confirmerRetrait() {
   border: 0;
   background: none;
   font: inherit;
+  font-size: var(--csp-font-size-sm);
   color: var(--text-action-high-blue-france);
   text-decoration: underline;
   cursor: pointer;
-
-  li > & {
-    margin-left: var(--csp-space-2);
-  }
 }
 
 .texte {
   margin: 0;
   font-size: var(--csp-font-size-sm);
-}
-
-.alerte {
-  margin: 0;
-  font-weight: 600;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-default-warning);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-2);
-}
-
-.prolonger {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-3);
-}
-
-.source {
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
-
-.verrou {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
 }
 
 .journal__titre {

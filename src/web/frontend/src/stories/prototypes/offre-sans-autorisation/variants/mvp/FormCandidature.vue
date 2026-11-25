@@ -5,10 +5,10 @@ import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmen
 import ListEditor from '../../shared/ListEditor.vue'
 import { PIECES } from './store'
 
-// Section « Formulaire de candidature » : pièces demandées, questions libres. Les candidats postulent
+// Paramétrage des candidatures, en deux étapes : « Formulaire » (questions) et « Documents » (pièces demandées). Les candidats postulent
 // toujours dans l'ATS (plus de choix « par courriel » ni « sur un site externe »).
 // Une fois l'offre publiée, ce qui est demandé aux candidats est verrouillé (des candidats ont déjà postulé).
-const props = defineProps<{ offre: Offre, verrouille?: boolean }>()
+const props = defineProps<{ offre: Offre, partie: 'formulaire' | 'documents', verrouille?: boolean }>()
 const o = computed(() => props.offre)
 
 const EXIGENCES = [
@@ -23,9 +23,12 @@ const EXIGENCES = [
     v-if="verrouille"
     class="verrou"
   >
-    Offre publiée : les pièces demandées ne peuvent plus changer, des candidats ont déjà postulé.
+    Offre publiée : ce qui est demandé aux candidats ne peut plus changer, des candidats ont déjà postulé.
   </p>
-  <div class="groupe">
+  <div
+    v-if="partie === 'formulaire'"
+    class="groupe"
+  >
     <h3 class="groupe__titre">
       Mode de candidature
     </h3>
@@ -34,7 +37,10 @@ const EXIGENCES = [
     </p>
   </div>
 
-  <div class="groupe">
+  <div
+    v-if="partie === 'documents'"
+    class="groupe"
+  >
     <h3 class="groupe__titre">
       Pièces demandées
     </h3>
@@ -64,14 +70,24 @@ const EXIGENCES = [
     </div>
   </div>
 
-  <div class="groupe">
+  <div
+    v-if="partie === 'formulaire'"
+    class="groupe"
+  >
     <h3 class="groupe__titre">
       Questions aux candidats
     </h3>
     <p class="groupe__desc">
       Réponse en texte libre, au moment de la candidature.
     </p>
+    <p
+      v-if="verrouille"
+      class="piece__valeur"
+    >
+      {{ o.questions.length ? o.questions.join(' · ') : 'Aucune question' }}
+    </p>
     <ListEditor
+      v-else
       v-model="o.questions"
       label="Questions libres"
       placeholder="Ex. : Quelle expérience avez-vous de la paie publique ?"

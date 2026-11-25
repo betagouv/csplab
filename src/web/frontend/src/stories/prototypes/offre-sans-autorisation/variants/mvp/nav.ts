@@ -9,6 +9,7 @@ export type Ecran
     | { nom: 'rediger', id: string, etape?: number }
     | { nom: 'offre', id: string, section?: string }
     | { nom: 'publier', id: string }
+    | { nom: 'recrutement', id: string }
     | { nom: 'recrutements', onglet?: 'en_cours' | 'clos' }
     | { nom: 'parametres' }
 

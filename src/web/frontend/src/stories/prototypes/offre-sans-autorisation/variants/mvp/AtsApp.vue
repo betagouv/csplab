@@ -2,15 +2,15 @@
 import type { Ecran } from './nav'
 import { provide, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CreationOffre from './CreationOffre.vue'
 import { NAV } from './nav'
 import OffreEspace from './OffreEspace.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
 import PublierOffre from './PublierOffre.vue'
+import RecrutementOffre from './RecrutementOffre.vue'
 import RecrutementsListe from './RecrutementsListe.vue'
 import RedactionOffre from './RedactionOffre.vue'
-import { db, retraitsAutomatiques, UTILISATEUR } from './store'
+import { db, nouvelleOffre, retraitsAutomatiques, UTILISATEUR } from './store'
 
 // Racine du proto « Offres sans autorisation ». Le menu latéral change la route ; la racine la suit.
 // `publier` : simule un agent sans le droit « Publier » (il prépare l'offre, un autre la met en ligne).
@@ -22,7 +22,7 @@ if (moi) {
 }
 retraitsAutomatiques()
 
-const ecran = ref<Ecran>(props.depart)
+const ecran = ref<Ecran>(props.depart.nom === 'creation' ? { nom: 'rediger', id: nouvelleOffre(undefined, 'manuel').id } : props.depart)
 const flash = ref<string | null>(null)
 let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -37,15 +37,19 @@ function chemin(e: Ecran): string {
   return e.nom === 'creation' ? `/creation-${Date.now()}` : `/${e.nom}`
 }
 // Le routeur de Storybook est partagé entre les stories : on l'aligne sur l'écran de départ.
-void router.replace(chemin(props.depart))
+void router.replace(chemin(ecran.value))
 
 function aller(e: Ecran) {
+  // « Créer une offre » ouvre directement le formulaire vide (retour Alice du 25/11/2026) : plus d'écran de choix.
+  if (e.nom === 'creation') {
+    e = { nom: 'rediger', id: nouvelleOffre(undefined, 'manuel').id }
+  }
   ecran.value = e
   void router.replace(chemin(e))
   document.querySelector('.csp-page-container')?.scrollTo({ top: 0 })
 }
 
-const DETAILS = /^\/(offre|rediger|publier)\/(.+)$/
+const DETAILS = /^\/(offre|rediger|publier|recrutement)\/(.+)$/
 watch(() => route.path, (p) => {
   const d = DETAILS.exec(p)
   const e = LISTES[p] ?? (d ? { nom: d[1], id: d[2] } as Ecran : undefined)
@@ -69,12 +73,6 @@ provide(NAV, { ecran, aller, notifier, flash })
     :key="ecran.filtre ?? 'toutes'"
     :filtre="ecran.filtre"
   />
-  <CreationOffre
-    v-else-if="ecran.nom === 'creation'"
-    :key="`${ecran.mode}-${ecran.offreId}`"
-    :mode="ecran.mode"
-    :offre-id="ecran.offreId"
-  />
   <RedactionOffre
     v-else-if="ecran.nom === 'rediger'"
     :id="ecran.id"
@@ -91,6 +89,11 @@ provide(NAV, { ecran, aller, notifier, flash })
     v-else-if="ecran.nom === 'publier'"
     :id="ecran.id"
     :key="`p-${ecran.id}`"
+  />
+  <RecrutementOffre
+    v-else-if="ecran.nom === 'recrutement'"
+    :id="ecran.id"
+    :key="`rec-${ecran.id}`"
   />
   <RecrutementsListe
     v-else-if="ecran.nom === 'recrutements'"

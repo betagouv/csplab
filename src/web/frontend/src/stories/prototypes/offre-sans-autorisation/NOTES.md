@@ -98,6 +98,20 @@ Réponses aux questions
 - Q2 « Champs obligatoires seulement » : pas fait. Avec les étapes et le récapitulatif, on va directement aux
   champs manquants ; à tester avant d'ajouter ce filtre.
 
+## Restructuration demandée par Alice (25/11/2026)
+
+- **Étapes** : 7 étapes en deux parties. *Annonce visible du candidat* : Le poste, Le métier (page dédiée au métier et aux compétences), Cadre du recrutement, Profil et conditions, Employeur et lieux. *Paramétrage des candidatures* : Formulaire (questions), Documents (pièces demandées).
+- **Retirées** : Informations internes (France Travail, référence interne), Étapes de recrutement, Équipe de recrutement. Les composants `FormInterne`, `EtapesRecrutementOffre`, `EquipeRecrutementOffre` et `RecapPublication` restent dans le dossier, inutilisés.
+- **Création** : plus d'écran de choix. « Créer une offre » ouvre le formulaire vide ; « Dupliquer » (menu « … ») ouvre le formulaire pré-rempli. Une page par étape, étapes groupées par partie à gauche. Enregistrement automatique, « Enregistrer et quitter » à tout moment ; « Publier » s'active quand tous les champs obligatoires sont remplis.
+- **Publication** : page « Vérifier et publier » (aperçu candidat + date de fin) → « Valider la publication » → fenêtre de succès : « Afficher le recrutement » ou « Retourner aux offres ».
+- **Page de l'offre** : structure inspirée de Malt. En-tête, « Accéder à : », bloc « À compléter avant de publier » (champs obligatoires manquants par étape, bouton « Compléter »), puis un bloc par étape avec un crayon. La modification se fait dans le bloc (Annuler / Enregistrer). Prolonger : fenêtre ; Retirer : menu « … ».
+- **Choix pris par Claude, à valider** :
+  - modification sur place dans le bloc (pas de panneau latéral) ;
+  - blocs Formulaire et Documents verrouillés une fois l'offre publiée ;
+  - « Publier » désactivé tant qu'il manque des champs obligatoires.
+- **Écran du recrutement** : simplifié pour le proto (0 candidature juste après la publication). Dans l'outil, c'est l'écran existant du recrutement qui s'ouvre.
+- **À tester** : place du métier et des compétences (étape dédiée ou dans « Profil et conditions »).
+
 ## Blocage technique (à signaler à Lucas)
 
 - 19/11/2026 : les dépendances installées sur le poste sont celles d'une branche plus récente (proto/vision-csp).

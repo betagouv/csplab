@@ -126,8 +126,8 @@ export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, partie: 
     // [étape, applicable, rempli, libellé]
     ['poste', true, Boolean(o.titre.trim()), 'Intitulé de l\'offre'],
     ['poste', true, Boolean(o.nbPostes), 'Nombre de postes'],
-    ['poste', true, Boolean(o.metier), 'Métier'],
     ['poste', true, Boolean(o.missions.trim()), 'Descriptif du poste'],
+    ['metier', true, Boolean(o.metier), 'Métier'],
     ['cadre', true, Boolean(o.ouvertA.length), 'Nature de l\'emploi'],
     ['cadre', true, Boolean(o.statutPoste), 'Statut du poste'],
     ['cadre', true, Boolean(o.dateVacance), 'Date de vacance'],
@@ -137,10 +137,8 @@ export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, partie: 
     ['profil', true, Boolean(o.tempsTravail), 'Temps de travail'],
     ['lieu', true, Boolean(o.descriptifEmployeur.trim()), 'Descriptif de l\'employeur'],
     ['lieu', !o.sansLieuFixe, lieux.length > 0 && lieux.every(l => l.geo), 'Lieu (adresse géolocalisée)'],
-    ['candidature', o.modeCandidature === 'courriel', Boolean(o.courrielCandidature.trim()), 'Adresse de réception des candidatures'],
-    ['candidature', o.modeCandidature === 'externe', Boolean(o.urlCandidature.trim()), 'Lien du site de candidature'],
   ]
-  return liste.filter(([, a]) => a).map(([partie, , ok, label]) => ({ etape: partie === 'candidature' ? 'candidature' as const : 'annonce' as const, partie, label, ok }))
+  return liste.filter(([, a]) => a).map(([partie, , ok, label]) => ({ etape: partie === 'formulaire' || partie === 'documents' ? 'candidature' as const : 'annonce' as const, partie, label, ok }))
 }
 
 /**
