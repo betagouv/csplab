@@ -264,9 +264,6 @@ function confirmerRetrait() {
             :key="e.id"
             class="carte"
           >
-            <p class="carte__partie">
-              {{ GROUPES.find(g => g.id === e.groupe)!.titre }}
-            </p>
             <h3 class="carte__titre">
               {{ e.titre }}
             </h3>
@@ -575,12 +572,6 @@ function confirmerRetrait() {
   :deep(.csp-button) {
     margin-top: auto;
   }
-}
-
-.carte__partie {
-  margin: 0;
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
 }
 
 .carte__titre {

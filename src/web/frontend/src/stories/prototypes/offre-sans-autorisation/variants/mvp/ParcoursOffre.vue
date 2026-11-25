@@ -14,7 +14,6 @@ const props = defineProps<{ offre: Offre }>()
 const etape = defineModel<number>('etape', { default: 1 })
 
 const courante = computed(() => ETAPES_OFFRE[etape.value - 1]!)
-const groupe = computed(() => GROUPES.find(g => g.id === courante.value.groupe)!)
 const derniere = computed(() => etape.value === ETAPES_OFFRE.length)
 const champs = computed(() => champsObligatoires(props.offre))
 function etat(id: string) {
@@ -87,13 +86,6 @@ defineExpose({ aller })
 
     <div class="principal">
       <div class="tete">
-        <p class="tete__partie">
-          <CspIcon
-            :name="groupe.icone"
-            :size="16"
-          />
-          {{ groupe.titre }}
-        </p>
         <h2 class="tete__titre">
           {{ courante.titre }}
         </h2>
@@ -269,16 +261,6 @@ defineExpose({ aller })
   flex-direction: column;
   gap: var(--csp-space-5);
   min-width: 0;
-}
-
-.tete__partie {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-1);
-  margin: 0 0 var(--csp-space-1);
-  font-size: var(--csp-font-size-sm);
-  font-weight: 700;
-  color: var(--text-action-high-blue-france);
 }
 
 .tete__titre {
