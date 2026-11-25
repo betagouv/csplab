@@ -12,3 +12,5 @@ export const MEMBRE_EQUIPE: MembreEquipe = {
   recrutement_role: 'recruteur',
   tags: [],
 }
+
+export const EQUIPE: MembreEquipe[] = [MEMBRE_EQUIPE]
