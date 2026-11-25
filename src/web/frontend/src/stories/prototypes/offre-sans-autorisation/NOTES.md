@@ -149,9 +149,11 @@ Réponses aux questions
 
 ## « Mes offres d'emploi » : actions à faire (Alice, 25/11/2026)
 
-- Encart « À faire » entre l'en-tête et les onglets : une carte par action (offres en préparation à continuer, offres prêtes
-  à publier, offres qui se terminent dans moins de 7 jours). Un clic ouvre l'onglet concerné, limité à ces offres
-  (« Tout afficher » pour revenir). Une carte sans offre disparaît, l'encart aussi. Pas de filet sous l'en-tête dans ce cas.
+- Encart « À faire » entre l'en-tête et les onglets, par priorité : offres qui se terminent dans moins de 7 jours (orange),
+  puis offres prêtes à publier (vert). Les offres en préparation à compléter n'y sont pas : pas d'urgence (Alice).
+  Un clic applique le filtre « À faire » (aussi dans le tiroir de filtres) et ouvre l'onglet concerné. La vue filtrée est
+  annoncée au-dessus du tableau (« Vue filtrée : » + étiquettes supprimables + « Supprimer les filtres »).
+  Une carte sans offre disparaît, l'encart aussi. Pas de filet sous l'en-tête dans ce cas.
 - Bouton d'action sur la ligne, avant le menu « … » : Continuer, Publier, Prolonger (ouvre directement la fenêtre).
 - Sans autorisation, « publier une offre validée » devient « publier une offre prête » (tous les champs obligatoires remplis).
 - Colonne Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon / Prête à publier ; plus tard

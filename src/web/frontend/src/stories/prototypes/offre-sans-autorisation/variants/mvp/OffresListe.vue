@@ -1,15 +1,17 @@
 <script setup lang="ts">
+import type { CarteAFaire } from './AFaire.vue'
 import type { Offre } from './store'
-import type { CategorieOffre, TypeAction } from './suivi'
+import type { CategorieOffre } from './suivi'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspFiltersDrawer from '@/components/base/CspFiltersDrawer/CspFiltersDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
+import CspTag from '@/components/base/CspTag/CspTag.vue'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
@@ -39,7 +41,8 @@ const ORDRE = CATEGORIES_OFFRE.map(c => c.id)
 
 // --- Filtres (retour PO, L3), dans un tiroir et appliqués au clic, comme sur les autres listes ---
 const TOUS = 'tous'
-const filtres = useDraft(() => ({ responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
+const filtres = useDraft(() => ({ aFaire: TOUS as string, responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
+const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
 const tiroir = useDisclosure()
 function ouvrirFiltres() {
   filtres.syncDraft()
@@ -57,6 +60,21 @@ function options(tous: string, valeurs: string[]) {
 const OPTIONS_RESPONSABLE = computed(() => options('Tous les responsables', offres.value.flatMap(responsables)))
 const OPTIONS_SERVICE = computed(() => options('Tous les services', offres.value.map(service)))
 const OPTIONS_LIEU = computed(() => options('Tous les lieux', offres.value.flatMap(o => o.lieu.split(',').map(l => l.trim()))))
+const OPTIONS_A_FAIRE = [
+  { value: TOUS, label: 'Toutes les offres' },
+  { value: 'prolonger', label: 'Se terminent dans moins de 7 jours' },
+  { value: 'publier', label: 'Prêtes à publier' },
+]
+// Filtres appliqués, annoncés au-dessus du tableau (« Vue filtrée »), chacun supprimable.
+const LIBELLES_FILTRES: Record<string, string> = { aFaire: 'À faire', responsable: 'Responsable', service: 'Service', lieu: 'Lieu', categorie: 'Catégorie' }
+const filtresActifs = computed(() => Object.entries(filtres.applied)
+  .filter(([, v]) => v !== TOUS)
+  .map(([cle, v]) => ({ cle, label: `${LIBELLES_FILTRES[cle]} : ${cle === 'aFaire' ? OPTIONS_A_FAIRE.find(x => x.value === v)?.label : v}` })))
+function retirerFiltre(cle: string) {
+  filtres.syncDraft()
+  ;(filtres.draft as Record<string, string>)[cle] = TOUS
+  filtres.apply()
+}
 const OPTIONS_CATEGORIE = computed(() => options('Toutes les catégories', offres.value.map(o => o.categorie ? `Catégorie ${o.categorie}` : '')))
 const filtrees = computed(() => trouvees.value.filter((o) => {
   const f = filtres.applied
@@ -64,6 +82,7 @@ const filtrees = computed(() => trouvees.value.filter((o) => {
     && (f.service === TOUS || service(o) === f.service)
     && (f.lieu === TOUS || o.lieu.split(',').map(l => l.trim()).includes(f.lieu))
     && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
+    && (f.aFaire === TOUS || actionOffre(o, peutPublier.value)?.type === f.aFaire)
 }))
 
 // --- Onglets par statut : En préparation, En ligne, En pause, Archivée, puis Toutes ---
@@ -88,34 +107,29 @@ function dateActivite(o: Offre) {
   const d = { brouillon: o.modifieLe, en_ligne: o.publieeLe ?? o.dateDebut, en_pause: o.retireeLe ?? o.dateFin, archivee: o.archiveeLe ?? '' }[categorieOffre(o)]
   return /^\d{4}-/.test(d) ? d : dateTri(d)
 }
-// --- Encart « À faire » : un clic ouvre l'onglet concerné, limité aux offres de cette action ---
-const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
-const aFaire = ref<TypeAction | null>(null)
+// --- Encart « À faire » (prolonger, publier) : un clic applique le filtre « À faire » et ouvre l'onglet concerné ---
 const compteAFaire = computed(() => {
-  const c: Record<TypeAction, number> = { continuer: 0, publier: 0, prolonger: 0 }
+  const c: Record<CarteAFaire, number> = { prolonger: 0, publier: 0 }
   for (const o of offres.value) {
     const a = actionOffre(o, peutPublier.value)
-    if (a) {
+    if (a && a.type !== 'continuer') {
       c[a.type]++
     }
   }
   return c
 })
-const ONGLET_ACTION: Record<TypeAction, CategorieOffre> = { continuer: 'brouillon', publier: 'brouillon', prolonger: 'en_ligne' }
-const LIBELLE_ACTION: Record<TypeAction, string> = { continuer: 'offres à continuer', publier: 'offres prêtes à publier', prolonger: 'offres qui se terminent dans moins de 7 jours' }
-function choisirAction(t: TypeAction) {
-  aFaire.value = aFaire.value === t ? null : t
-  onglet.value = ONGLET_ACTION[t]
-}
-watch(onglet, (v) => {
-  if (aFaire.value && ONGLET_ACTION[aFaire.value] !== v) {
-    aFaire.value = null
+const ONGLET_ACTION: Record<CarteAFaire, CategorieOffre> = { prolonger: 'en_ligne', publier: 'brouillon' }
+function choisirAction(t: CarteAFaire) {
+  filtres.syncDraft()
+  filtres.draft.aFaire = filtres.applied.aFaire === t ? TOUS : t
+  filtres.apply()
+  if (filtres.applied.aFaire !== TOUS) {
+    onglet.value = ONGLET_ACTION[t]
   }
-})
+}
 
 const lignes = computed(() => {
-  const l = filtrees.value.filter(o => (onglet.value === 'toutes' || categorieOffre(o) === onglet.value)
-    && (!aFaire.value || actionOffre(o, peutPublier.value)?.type === aFaire.value))
+  const l = filtrees.value.filter(o => onglet.value === 'toutes' || categorieOffre(o) === onglet.value)
   if (onglet.value === 'en_ligne') {
     return [...l].sort((a, b) => a.dateFin.localeCompare(b.dateFin))
   }
@@ -162,7 +176,7 @@ const page = ref(1)
     <template #avant-onglets>
       <AFaire
         :compte="compteAFaire"
-        :actif="aFaire"
+        :actif="filtres.applied.aFaire === TOUS ? null : filtres.applied.aFaire as CarteAFaire"
         @choisir="choisirAction"
       />
     </template>
@@ -180,16 +194,6 @@ const page = ref(1)
         <template #status>
           <p class="compte">
             {{ compte }}
-            <template v-if="aFaire">
-              · {{ LIBELLE_ACTION[aFaire] }}
-              <button
-                type="button"
-                class="compte__tout"
-                @click="aFaire = null"
-              >
-                Tout afficher
-              </button>
-            </template>
           </p>
         </template>
         <CspSearchBar
@@ -208,6 +212,30 @@ const page = ref(1)
           @click="ouvrirFiltres"
         />
       </CspTableToolbar>
+      <div
+        v-if="filtresActifs.length"
+        class="vue-filtree"
+        role="status"
+      >
+        <span class="vue-filtree__label">Vue filtrée :</span>
+        <CspTag
+          v-for="f in filtresActifs"
+          :key="f.cle"
+          variant="dismissible"
+          size="sm"
+          :label="f.label"
+          :dismiss-label="`Retirer le filtre ${f.label}`"
+          @dismiss="retirerFiltre(f.cle)"
+        />
+        <CspButton
+          label="Supprimer les filtres"
+          variant="tertiary-no-outline"
+          size="sm"
+          icon="ri:close-circle-line"
+          is-icon-left
+          @click="filtres.reset()"
+        />
+      </div>
       <CspDataTable
         :key="onglet"
         v-model:page="page"
@@ -228,6 +256,11 @@ const page = ref(1)
       @apply="appliquer"
       @reset="filtres.reset()"
     >
+      <CspSelect
+        v-model="filtres.draft.aFaire"
+        label="À faire"
+        :options="OPTIONS_A_FAIRE"
+      />
       <CspSelect
         v-model="filtres.draft.responsable"
         label="Responsable"
@@ -259,16 +292,18 @@ const page = ref(1)
   color: var(--text-mention-grey);
 }
 
-.compte__tout {
-  margin-left: var(--csp-space-2);
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: var(--text-action-high-blue-france);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
+.vue-filtree {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-2);
+  margin-bottom: var(--csp-space-3);
+}
+
+.vue-filtree__label {
+  font-size: var(--csp-font-size-sm);
+  font-weight: 700;
+  color: var(--text-title-grey);
 }
 
 .recherche {

@@ -1,18 +1,22 @@
+<script lang="ts">
+</script>
+
 <script setup lang="ts">
-import type { TypeAction } from './suivi'
 import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
-// Encart « À faire » en tête de « Mes offres d'emploi » (Alice, 25/11/2026) : une carte par type d'action,
-// avec le nombre d'offres concernées. Une carte disparaît quand il n'y a rien à faire, l'encart aussi.
-const props = defineProps<{ compte: Record<TypeAction, number>, actif: TypeAction | null }>()
-const emit = defineEmits<{ choisir: [TypeAction] }>()
+export type CarteAFaire = 'prolonger' | 'publier'
+
+// Encart « À faire » en tête de « Mes offres d'emploi » (Alice, 25/11/2026) : prolongations d'abord, puis offres
+// prêtes à publier (en vert). Pas les offres en préparation à compléter : pas d'urgence. Une carte disparaît
+// quand il n'y a rien à faire, l'encart aussi.
+const props = defineProps<{ compte: Record<CarteAFaire, number>, actif: CarteAFaire | null }>()
+const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 
 const pluriel = (n: number, un: string, plusieurs: string) => (n > 1 ? plusieurs : un)
 const cartes = computed(() => ([
-  { id: 'continuer' as const, icone: 'ri:edit-line', texte: (n: number) => pluriel(n, 'offre en préparation à continuer', 'offres en préparation à continuer') },
-  { id: 'publier' as const, icone: 'ri:send-plane-line', texte: (n: number) => pluriel(n, 'offre prête à publier', 'offres prêtes à publier') },
   { id: 'prolonger' as const, icone: 'ri:time-line', texte: (n: number) => `${pluriel(n, 'offre se termine', 'offres se terminent')} dans moins de 7 jours` },
+  { id: 'publier' as const, icone: 'ri:send-plane-line', texte: (n: number) => pluriel(n, 'offre prête à publier', 'offres prêtes à publier') },
 ]).filter(c => props.compte[c.id] > 0))
 </script>
 
@@ -105,6 +109,24 @@ const cartes = computed(() => ([
 
 .carte--prolonger {
   border-left-color: var(--border-plain-warning);
+}
+
+.carte--publier {
+  border-left-color: var(--border-plain-success);
+}
+
+.carte--publier.carte--active {
+  border-color: var(--border-plain-success);
+  background: var(--background-contrast-success);
+}
+
+.carte--prolonger.carte--active {
+  border-color: var(--border-plain-warning);
+  background: var(--background-contrast-warning);
+}
+
+.carte--publier .carte__icone {
+  color: var(--text-default-success);
 }
 
 .carte--active {
