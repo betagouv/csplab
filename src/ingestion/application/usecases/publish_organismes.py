@@ -29,8 +29,6 @@ class PublishOrganismesUsecase(IAsyncUsecase[PublishOrganismesCommand, None]):
         self._raw_organisme_repository = raw_organisme_repository
 
     async def execute(self, command: PublishOrganismesCommand) -> None:
-        # The web resolves a parent by its external_id among the organismes
-        # it already knows: parents are published before their children.
         organismes = _parents_first(command.organismes)
         external_ids = {o.entity_id: o.external_id for o in organismes}
         total = 0
