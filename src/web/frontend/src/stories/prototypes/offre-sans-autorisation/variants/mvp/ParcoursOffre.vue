@@ -3,7 +3,7 @@ import type { Offre } from './store'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { champsObligatoires } from './aide'
+import { avancementEtape, champsObligatoires } from './aide'
 import { ETAPES_OFFRE, GROUPES } from './etapes'
 import FormEtape from './FormEtape.vue'
 
@@ -67,17 +67,17 @@ defineExpose({ aller })
               <span class="etape__corps">
                 <span class="etape__titre">{{ e.titre }}</span>
                 <span
-                  v-if="e.reste"
                   class="etape__reste"
-                >{{ e.reste }} champ{{ e.reste > 1 ? 's' : '' }} obligatoire{{ e.reste > 1 ? 's' : '' }}</span>
+                  :class="{ 'etape__reste--ok': e.total && !e.reste }"
+                >
+                  <CspIcon
+                    v-if="e.total && !e.reste"
+                    name="ri:checkbox-circle-fill"
+                    :size="14"
+                  />
+                  {{ avancementEtape(e.total, e.reste) }}
+                </span>
               </span>
-              <CspIcon
-                v-if="e.total && !e.reste"
-                name="ri:checkbox-circle-fill"
-                :size="18"
-                class="etape__ok"
-                aria-label="complète"
-              />
             </button>
           </li>
         </ol>
@@ -246,14 +246,16 @@ defineExpose({ aller })
 }
 
 .etape__reste {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 400;
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
-}
 
-.etape__ok {
-  flex-shrink: 0;
-  color: var(--text-default-success);
+  &--ok {
+    color: var(--text-default-success);
+  }
 }
 
 .principal {

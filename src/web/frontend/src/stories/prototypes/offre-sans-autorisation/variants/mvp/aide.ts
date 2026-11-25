@@ -180,3 +180,20 @@ export function mettreEnForme(texte: string): string {
   const maj = (m: string) => m.charAt(0).toUpperCase() + m.slice(1)
   return morceaux.map(m => `- ${maj(m)}`).join('\n')
 }
+
+/**
+ * Avancement d'une étape, en toutes lettres (retour Alice du 25/11/2026) : « 2 champs obligatoires * à remplir »,
+ * « Reste 1 champ obligatoire * sur 2 », « Étape complétée », ou « Facultatif » sans champ obligatoire.
+ */
+export function avancementEtape(total: number, reste: number): string {
+  if (!total) {
+    return 'Facultatif'
+  }
+  if (!reste) {
+    return 'Étape complétée'
+  }
+  const s = (n: number) => (n > 1 ? 's' : '')
+  return reste === total
+    ? `${total} champ${s(total)} obligatoire${s(total)} * à remplir`
+    : `Reste ${reste} champ${s(reste)} obligatoire${s(reste)} * sur ${total}`
+}

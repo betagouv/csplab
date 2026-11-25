@@ -4,7 +4,7 @@ import type { Offre } from './store'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { champsObligatoires } from './aide'
+import { avancementEtape, champsObligatoires } from './aide'
 import { ETAPES_OFFRE } from './etapes'
 import FormEtape from './FormEtape.vue'
 import { resume } from './resume'
@@ -16,7 +16,9 @@ const emit = defineEmits<{ enregistre: [titre: string] }>()
 const edition = defineModel<boolean>('edition', { default: false })
 const etape = computed(() => ETAPES_OFFRE.find(e => e.id === props.partie)!)
 const lignes = computed(() => resume(props.offre, props.partie))
-const reste = computed(() => champsObligatoires(props.offre).filter(c => c.partie === props.partie && !c.ok).length)
+const champs = computed(() => champsObligatoires(props.offre).filter(c => c.partie === props.partie))
+const total = computed(() => champs.value.length)
+const reste = computed(() => champs.value.filter(c => !c.ok).length)
 
 const copie = ref<Offre | null>(null)
 watch(edition, (v) => {
@@ -49,7 +51,7 @@ function enregistrer() {
           name="ri:error-warning-line"
           :size="16"
         />
-        {{ reste }} champ{{ reste > 1 ? 's' : '' }} obligatoire{{ reste > 1 ? 's' : '' }} à remplir
+        {{ avancementEtape(total, reste) }}
       </span>
       <span class="bloc__espace" />
       <span
