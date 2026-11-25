@@ -167,3 +167,5 @@ Réponses aux questions
   automatique de l'offre : le comportement de la carte resterait imprévisible. À partir de 2 offres, la carte filtre le tableau.
 - Cartes « À faire » harmonisées (Alice) : titre (« Une offre arrive à échéance » / « 2 offres prêtes à publier »), titre de
   l'offre s'il n'y en a qu'une, puis bouton : l'action (Prolonger, Publier) pour une offre, « Voir les offres » (filtre) sinon.
+- Puis retour à la flèche (Alice) : un utilisateur rouvre l'offre avant de publier ou prolonger. Toute la carte est cliquable ;
+  une offre → sa page ; plusieurs → le tableau filtré. Plus de bouton dans les cartes.

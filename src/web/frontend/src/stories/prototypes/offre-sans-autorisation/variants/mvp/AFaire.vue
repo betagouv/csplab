@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { Offre } from './store'
 import { computed } from 'vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useNav } from './nav'
-import { actionOffre } from './suivi'
 
 export type CarteAFaire = 'prolonger' | 'publier'
 
 // Encart « À faire » en tête de « Mes offres d'emploi » (Alice, 25/11/2026) : prolongations d'abord, puis offres
 // prêtes à publier (en vert). Pas les offres en préparation à compléter : pas d'urgence. Une carte disparaît
 // quand il n'y a rien à faire, l'encart aussi.
-// Même modèle pour toutes les cartes (Alice) : titre de la carte, titre de l'offre (lien) s'il n'y en a qu'une,
-// puis bouton. Une offre : l'action (Prolonger, Publier). Plusieurs : « Voir les offres » filtre le tableau.
+// Même modèle pour toutes les cartes : titre de la carte, titre de l'offre s'il n'y en a qu'une, et une flèche.
+// Toute la carte est cliquable (Alice : on rouvre l'offre avant de publier ou prolonger). Une offre : sa page.
+// Plusieurs : le tableau, filtré.
 const props = defineProps<{ offres: Record<CarteAFaire, Offre[]> }>()
 const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 const { aller } = useNav()
@@ -40,42 +39,32 @@ const cartes = computed(() => ([
         v-for="c in cartes"
         :key="c.id"
       >
-        <div
+        <button
+          type="button"
           class="carte"
           :class="`carte--${c.id}`"
+          @click="c.seule ? aller({ nom: 'offre', id: c.seule.id }) : emit('choisir', c.id)"
         >
-          <p class="carte__tete">
-            <CspIcon
-              :name="c.icone"
-              :size="20"
-              class="carte__icone"
-            />
-            {{ c.titre(c.n) }}
-          </p>
-          <template v-if="c.seule">
-            <button
-              type="button"
+          <span class="carte__corps">
+            <span class="carte__tete">
+              <CspIcon
+                :name="c.icone"
+                :size="20"
+                class="carte__icone"
+              />
+              {{ c.titre(c.n) }}
+            </span>
+            <span
+              v-if="c.seule"
               class="carte__offre"
-              @click="aller({ nom: 'offre', id: c.seule.id })"
-            >
-              {{ c.seule.titre || 'Offre sans titre' }}
-            </button>
-            <CspButton
-              :label="actionOffre(c.seule)!.label"
-              size="sm"
-              class="carte__cta"
-              @click="aller(actionOffre(c.seule)!.ecran)"
-            />
-          </template>
-          <CspButton
-            v-else
-            label="Voir les offres"
-            size="sm"
-            variant="secondary"
-            class="carte__cta"
-            @click="emit('choisir', c.id)"
+            >{{ c.seule.titre || 'Offre sans titre' }}</span>
+          </span>
+          <CspIcon
+            name="ri:arrow-right-line"
+            :size="16"
+            class="carte__fleche"
           />
-        </div>
+        </button>
       </li>
     </ul>
   </section>
@@ -100,16 +89,41 @@ const cartes = computed(() => ([
 
 .carte {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--csp-space-2);
+  align-items: center;
+  gap: var(--csp-space-3);
+  width: 100%;
   height: 100%;
   padding: var(--csp-space-3) var(--csp-space-4);
   border: 1px solid var(--border-default-grey);
   border-left: 4px solid var(--border-plain-blue-france);
   background: var(--background-default-grey);
+  font: inherit;
   font-size: var(--csp-font-size-sm);
   color: var(--text-default-grey);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color);
+    outline-offset: 2px;
+  }
+}
+
+.carte__corps {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--csp-space-1);
+  min-width: 0;
+}
+
+.carte__fleche {
+  flex-shrink: 0;
+  color: var(--text-mention-grey);
 }
 
 .carte--prolonger {
@@ -142,28 +156,7 @@ const cartes = computed(() => ([
   color: var(--text-title-grey);
 }
 
-.carte__cta {
-  margin-top: auto;
-}
-
 .carte__offre {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
   color: var(--text-default-grey);
-  text-align: left;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration-thickness: 2px;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
 }
 </style>
