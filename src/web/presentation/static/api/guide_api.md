@@ -408,11 +408,11 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 |---|---|
 | `diplome_niveau` | Nombre entier **entre 1 et 8** (niveaux de diplôme). |
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
-| `specialisations` | Liste de textes. |
-| `diplome` | Texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État (liste ci-dessous), à l'identique. |
+| `specialisations` | Liste de textes, **20 éléments maximum**, chacun de **255 caractères maximum**. Les doublons sont retirés, dans l'ordre reçu. |
+| `diplome` | Texte libre, **255 caractères maximum**. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État (liste ci-dessous), à l'identique. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
-| `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
+| `langues` | Liste de langues, chacune avec un **code ISO 639-1 sur 2 lettres** (ex. `EN`, `DE`) et un **niveau** (**A1, A2, B1, B2, C1, C2**). Le code est enregistré en majuscules (`en` devient `EN`) ; un code inconnu est rejeté. Chaque langue ne peut être citée qu'une fois. |
 
 Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'État (toute autre valeur reste acceptée) :
 
@@ -449,7 +449,7 @@ Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'Ét
 | `salaire_titulaire` | **100 caractères maximum.** |
 | `salaire_contractuel` | **100 caractères maximum.** |
 | `debut_contrat` / `fin_contrat` | Dates. Peuvent être vides. |
-| `duree_contrat` | Texte. |
+| `duree_contrat` | Texte, **100 caractères maximum**. |
 | `temps_travail` | Obligatoire. Valeurs : **NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL**. |
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
 | `lieu_de_travail` | Obligatoire. Valeurs : **NON_DEFINI, SUR_SITE, TELETRAVAIL**. |

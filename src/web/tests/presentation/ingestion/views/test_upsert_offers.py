@@ -50,6 +50,8 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 from infrastructure.mappers.offer_mapper import OfferMapper
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
 from presentation.ingestion.serializers import (
+    DUPLICATE_LANGUAGE,
+    INVALID_LANGUAGE_CODE,
     ConditionsInputSerializer,
     OfferDetailResponseSerializer,
 )
@@ -801,6 +803,166 @@ def test_invalid_competences_requises_are_rejected(
             "index": 0,
             "offre": {"reference": "REF-012", "versant": "FPT"},
             "error": {"criteres": {"competences_requises": expected_error}},
+        }
+    ]
+
+
+def test_criteria_and_conditions_at_their_limits_are_normalized(
+    authenticated_client_with_source, use_case
+):
+    specialisations = ["s" * 255, *(f"Spécialisation {i}" for i in range(18))]
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-LIMITES", "versant": "FPT"},
+        criteres={
+            "diplome": "d" * 255,
+            "specialisations": [*specialisations, specialisations[0]],
+            "langues": [
+                {"iso_code": "en", "niveau": "B2"},
+                {"iso_code": "De", "niveau": "A1"},
+            ],
+        },
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "duree_contrat": "a" * 100,
+        },
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-LIMITES", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    (received,) = use_case.execute.call_args[0][0].offers
+    assert received.criteria.diploma == "d" * 255
+    assert received.criteria.specialisations == specialisations
+    assert [language.iso_code for language in received.criteria.languages] == [
+        "EN",
+        "DE",
+    ]
+    assert received.conditions["duree_contrat"] == "a" * 100
+
+
+@pytest.mark.parametrize(
+    "criteres,conditions,expected_error",
+    [
+        (
+            {"diplome": "d" * 256},
+            None,
+            {
+                "criteres": {
+                    "diplome": [
+                        "Assurez-vous que ce champ comporte au plus 255\xa0caractères."
+                    ]
+                }
+            },
+        ),
+        (
+            {"specialisations": [f"Spécialisation {i}" for i in range(21)]},
+            None,
+            {
+                "criteres": {
+                    "specialisations": [
+                        "Assurez-vous que ce champ n'a pas plus de 20 éléments."
+                    ]
+                }
+            },
+        ),
+        (
+            {"specialisations": ["Droit public", "s" * 256]},
+            None,
+            {
+                "criteres": {
+                    "specialisations": {
+                        "1": [
+                            (
+                                "Assurez-vous que ce champ comporte au plus "
+                                "255\xa0caractères."
+                            )
+                        ]
+                    }
+                }
+            },
+        ),
+        (
+            None,
+            {"duree_contrat": "a" * 101},
+            {
+                "conditions": {
+                    "duree_contrat": [
+                        "Assurez-vous que ce champ comporte au plus 100\xa0caractères."
+                    ]
+                }
+            },
+        ),
+        (
+            {"langues": [{"iso_code": "e", "niveau": "B2"}]},
+            None,
+            {"criteres": {"langues": {"0": {"iso_code": [INVALID_LANGUAGE_CODE]}}}},
+        ),
+        (
+            {"langues": [{"iso_code": "XX", "niveau": "B2"}]},
+            None,
+            {"criteres": {"langues": {"0": {"iso_code": [INVALID_LANGUAGE_CODE]}}}},
+        ),
+        (
+            {
+                "langues": [
+                    {"iso_code": "EN", "niveau": "B2"},
+                    {"iso_code": "en", "niveau": "C1"},
+                ]
+            },
+            None,
+            {"criteres": {"langues": [DUPLICATE_LANGUAGE]}},
+        ),
+    ],
+    ids=[
+        "diplome-too-long",
+        "too-many-specialisations",
+        "specialisation-too-long",
+        "duree-contrat-too-long",
+        "iso-code-too-short",
+        "iso-code-unknown",
+        "duplicate-language",
+    ],
+)
+def test_invalid_free_texts_of_criteria_and_conditions_are_rejected(
+    authenticated_client_with_source, use_case, criteres, conditions, expected_error
+):
+    overrides = {}
+    if criteres is not None:
+        overrides["criteres"] = criteres
+    if conditions is not None:
+        overrides["conditions"] = {
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            **conditions,
+        }
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-HORS-LIMITES", "versant": "FPT"}, **overrides
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-HORS-LIMITES", "versant": "FPT"},
+            "error": expected_error,
         }
     ]
 
