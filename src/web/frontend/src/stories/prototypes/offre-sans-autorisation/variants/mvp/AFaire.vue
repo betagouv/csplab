@@ -4,7 +4,6 @@ import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useNav } from './nav'
-import { joursRestants } from './store'
 import { actionOffre } from './suivi'
 
 export type CarteAFaire = 'prolonger' | 'publier'
@@ -12,20 +11,16 @@ export type CarteAFaire = 'prolonger' | 'publier'
 // Encart « À faire » en tête de « Mes offres d'emploi » (Alice, 25/11/2026) : prolongations d'abord, puis offres
 // prêtes à publier (en vert). Pas les offres en préparation à compléter : pas d'urgence. Une carte disparaît
 // quand il n'y a rien à faire, l'encart aussi.
-// Une seule offre concernée : la carte nomme l'offre et porte le bouton d'action (pas de passage par le tableau).
+// Une seule offre concernée : titre de la carte, titre de l'offre (lien), puis bouton d'action (Alice).
 // Plusieurs : la carte filtre le tableau.
 const props = defineProps<{ offres: Record<CarteAFaire, Offre[]>, actif: CarteAFaire | null }>()
 const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 const { aller } = useNav()
 
 const pluriel = (n: number, un: string, plusieurs: string) => (n > 1 ? plusieurs : un)
-function finDans(o: Offre) {
-  const j = joursRestants(o.dateFin)
-  return j <= 0 ? 'Se termine aujourd\'hui' : j === 1 ? 'Se termine demain' : `Se termine dans ${j} jours`
-}
 const cartes = computed(() => ([
-  { id: 'prolonger' as const, icone: 'ri:time-line', texte: (n: number) => `${pluriel(n, 'offre se termine', 'offres se terminent')} dans moins de 7 jours`, detail: finDans },
-  { id: 'publier' as const, icone: 'ri:send-plane-line', texte: (n: number) => pluriel(n, 'offre prête à publier', 'offres prêtes à publier'), detail: () => 'Prête à publier' },
+  { id: 'prolonger' as const, icone: 'ri:time-line', texte: (n: number) => `${pluriel(n, 'offre se termine', 'offres se terminent')} dans moins de 7 jours`, titreSeule: 'Une offre arrive à échéance' },
+  { id: 'publier' as const, icone: 'ri:send-plane-line', texte: (n: number) => pluriel(n, 'offre prête à publier', 'offres prêtes à publier'), titreSeule: 'Une offre prête à publier' },
 ]).filter(c => props.offres[c.id].length > 0).map(c => ({ ...c, n: props.offres[c.id].length, seule: props.offres[c.id].length === 1 ? props.offres[c.id][0]! : null })))
 </script>
 
@@ -51,24 +46,25 @@ const cartes = computed(() => ([
           class="carte carte--seule"
           :class="`carte--${c.id}`"
         >
-          <CspIcon
-            :name="c.icone"
-            :size="20"
-            class="carte__icone"
-          />
-          <span class="carte__texte">
-            <button
-              type="button"
-              class="carte__offre"
-              @click="aller({ nom: 'offre', id: c.seule.id })"
-            >
-              {{ c.seule.titre || 'Offre sans titre' }}
-            </button>
-            <span class="carte__detail">{{ c.detail(c.seule) }}</span>
-          </span>
+          <p class="carte__tete">
+            <CspIcon
+              :name="c.icone"
+              :size="20"
+              class="carte__icone"
+            />
+            {{ c.titreSeule }}
+          </p>
+          <button
+            type="button"
+            class="carte__offre"
+            @click="aller({ nom: 'offre', id: c.seule.id })"
+          >
+            {{ c.seule.titre || 'Offre sans titre' }}
+          </button>
           <CspButton
             :label="actionOffre(c.seule)!.label"
             size="sm"
+            class="carte__cta"
             @click="aller(actionOffre(c.seule)!.ecran)"
           />
         </div>
@@ -170,17 +166,27 @@ const cartes = computed(() => ([
 }
 
 .carte--seule {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--csp-space-2);
   cursor: default;
 
   &:hover {
     background: var(--background-default-grey);
   }
+}
 
-  .carte__texte {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+.carte__tete {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-title-grey);
+}
+
+.carte__cta {
+  margin-top: auto;
 }
 
 .carte__offre {
@@ -188,8 +194,7 @@ const cartes = computed(() => ([
   border: 0;
   background: none;
   font: inherit;
-  font-weight: 700;
-  color: var(--text-title-grey);
+  color: var(--text-default-grey);
   text-align: left;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -203,11 +208,6 @@ const cartes = computed(() => ([
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
-}
-
-.carte__detail {
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
 }
 
 .carte__nombre {

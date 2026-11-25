@@ -161,6 +161,7 @@ Réponses aux questions
 - Colonne Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon / Prête à publier ; plus tard
   À valider, Validée…) ; absente des autres onglets.
 - Besoin design system : slot entre l'en-tête de page et les onglets (fait ici dans PageAts, propre au proto).
-- Une seule offre concernée par une carte « À faire » : la carte nomme l'offre (lien vers sa page), précise l'échéance
+- Une seule offre concernée par une carte « À faire » : titre de la carte (« Une offre arrive à échéance », « Une offre prête
+  à publier »), titre de l'offre (lien vers sa page), puis bouton d'action. Ancienne version : échéance
   (« Se termine dans 4 jours » / « Prête à publier ») et porte le bouton d'action (Prolonger, Publier). Pas d'ouverture
   automatique de l'offre : le comportement de la carte resterait imprévisible. À partir de 2 offres, la carte filtre le tableau.
