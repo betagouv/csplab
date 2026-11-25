@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
-import { getConversations } from '@/features/messages/api'
 import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
@@ -36,10 +35,6 @@ vi.mock('../api', () => ({
   getCandidatureActivites: vi.fn(),
 }))
 
-vi.mock('@/features/messages/api', () => ({
-  getConversations: vi.fn(),
-}))
-
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
 // Web history: closing the panel depends on the browser history state.
@@ -68,7 +63,6 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
-    vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
