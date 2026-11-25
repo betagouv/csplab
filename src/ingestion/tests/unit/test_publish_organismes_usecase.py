@@ -14,9 +14,12 @@ from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 
 
-def _organisme(external_id: str = "ext-1", referentiel: str = "FINESS") -> Organisme:
+def _organisme(
+    external_id: str = "ext-1", referentiel: str = "FINESS", parent_id=None
+) -> Organisme:
     return Organisme.build(
         entity_id=uuid4(),
+        parent_id=parent_id,
         nom="Mairie de Test",
         versant=Verse.FPT,
         localisation=None,
@@ -54,7 +57,9 @@ async def test_execute_publishes_single_batch_below_batch_size(usecase, mock_gat
 
     await usecase.execute(PublishOrganismesCommand(organismes=organismes))
 
-    mock_gateway.publish.assert_awaited_once_with(organismes)
+    mock_gateway.publish.assert_awaited_once_with(
+        organismes, {o.entity_id: o.external_id for o in organismes}
+    )
 
 
 @pytest.mark.asyncio
@@ -108,3 +113,17 @@ async def test_execute_does_not_mark_upserted_when_publish_fails(
         await usecase.execute(PublishOrganismesCommand(organismes=[_organisme()]))
 
     mock_raw_organisme_repository.mark_as_upserted_batch.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_execute_publishes_parents_before_their_children(usecase, mock_gateway):
+    root = _organisme("root")
+    child = _organisme("child", parent_id=root.entity_id)
+    grandchild = _organisme("grandchild", parent_id=child.entity_id)
+
+    await usecase.execute(
+        PublishOrganismesCommand(organismes=[grandchild, child, root])
+    )
+
+    published = mock_gateway.publish.await_args.args[0]
+    assert [o.external_id for o in published] == ["root", "child", "grandchild"]
