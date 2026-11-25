@@ -2,7 +2,7 @@
 titre: "Offres : `vacance_poste` devient facultatif et vaut `null` s'il n'est pas connu"
 type: non_retrocompatible
 date: 2026-11-25
-pr: 2631
+pr: 2627
 liens:
   - https://github.com/betagouv/csplab/issues/2628
 ---
