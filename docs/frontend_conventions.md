@@ -301,7 +301,7 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - Interact through `setupUser()` from `src/test/render.ts`.
 - Assert what is displayed, the route and the arguments of the API call. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
-- Vitest clears the calls of every mock before each test (`clearMocks` in `vite.config.ts`) and keeps their implementation. A test that restores the default implementation of a mock calls `mockReset()`.
+- Vitest resets every mock before each test (`mockReset` in `vite.config.ts`): a mock gets back the implementation given to `vi.fn()`, and a value set by a previous test does not carry over.
 - A test checks a notification on screen: `withToaster(component, props)` from `src/test/render.ts` mounts the component inside `CspToaster`, and the test finds the title of the toast with `findByRole('heading', { name })`. `src/test/setup.ts` dismisses the toasts after each test.
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
