@@ -1,6 +1,12 @@
 import pytest
 from django.db import IntegrityError, transaction
 
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -25,6 +31,17 @@ def test_offer_with_long_title_equal_to_title_is_rejected(db):
 @pytest.mark.parametrize("long_title", [None, "Développeur back-end Python"])
 def test_offer_with_long_title_absent_or_different_is_accepted(db, long_title):
     OfferDjangoFactory(title="Développeur", long_title=long_title)
+
+
+def test_offer_linked_to_an_organisme_and_a_talentsoft_organisme_is_rejected(db):
+    with (
+        pytest.raises(IntegrityError, match="offer_single_organisme_link"),
+        transaction.atomic(),
+    ):
+        OfferDjangoFactory(
+            organisme=OrganismeDjangoFactory(),
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(),
+        )
 
 
 def test_duplicate_localisation_abroad_is_rejected(db):
