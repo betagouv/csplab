@@ -296,6 +296,12 @@ function formater() {
           label="Nature du contrat"
           :options="opts(CONTRATS, 'Non renseigné')"
         />
+      </FieldRow>
+      <!-- Un champ avec texte d'aide est seul sur sa ligne (retour Alice du 25/11/2026) -->
+      <FieldRow
+        v-if="contractuels"
+        :cols="2"
+      >
         <ChampSimple
           label="Fondement juridique"
           obligatoire
@@ -330,7 +336,7 @@ function formater() {
           />
         </ChampSimple>
       </FieldRow>
-      <FieldRow :cols="3">
+      <FieldRow :cols="2">
         <ChampSimple
           label="Catégorie"
           obligatoire
@@ -346,6 +352,8 @@ function formater() {
           label="Corps"
           placeholder="Ex. : attachés d'administration de l'État"
         />
+      </FieldRow>
+      <FieldRow :cols="2">
         <CspInput
           v-model="o.grade"
           label="Grade"
