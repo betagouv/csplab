@@ -36,6 +36,7 @@ from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
 from application.ingestion.services.list_metiers import list_metiers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
@@ -43,7 +44,6 @@ from application.ingestion.services.list_public_organismes import (
 from application.ingestion.services.metier_functional_areas import (
     get_metier_functional_areas,
 )
-from application.ingestion.services.offer_organismes import OfferOrganismes
 from application.ingestion.services.upsert_offers import PendingOffer
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,

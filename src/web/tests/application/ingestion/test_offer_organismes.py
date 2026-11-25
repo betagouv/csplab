@@ -1,7 +1,7 @@
 import pytest
 from django.utils import timezone
 
-from application.ingestion.services.offer_organismes import OfferOrganismes
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )

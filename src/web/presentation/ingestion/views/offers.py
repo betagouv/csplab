@@ -15,6 +15,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
@@ -22,7 +23,6 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
     GetOffersBySourceInput,
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from application.ingestion.services.offer_organismes import OfferOrganismes
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
