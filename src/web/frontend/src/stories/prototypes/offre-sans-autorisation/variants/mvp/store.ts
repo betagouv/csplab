@@ -538,7 +538,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v5'
+const CLE = 'csplab-proto-offre-mvp-v6'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -589,6 +589,8 @@ function offresMvp(fiches: Fiche[]): Offre[] {
     { ...base('OFF-2026-0151', 'FP-SG-2026-007'), statutPoste: '', dateVacance: '', missions: '', creeLe: 'Hier', historique: [{ date: 'Hier', texte: 'Offre créée (formulaire vide)' }] },
     // Brouillon complet : il ne reste qu'à publier
     { ...base('OFF-2026-0145', 'FP-DOC-2026-002', 'Chef·fe de projet numérique — démarches en ligne'), nbPostes: '1' },
+    // Deuxième brouillon complet : la carte « À faire » verte montre le cas « 2 offres prêtes à publier »
+    { ...base('OFF-2026-0148', 'FP-SG-2026-007', 'Gestionnaire paie et carrière'), nbPostes: '1', modifieLe: 'Aujourd\'hui, 08:40' },
     // Brouillon issu d'une duplication (nombre de postes, dates et champs d'autorisation remis à zéro)
     { ...base('OFF-2026-0156', 'FP-SG-2023-010', 'Chargé·e d\'accueil — site de Nîmes'), origineContenu: 'duplication', sourceOffreId: 'OFF-2026-0122', lieu: 'Nîmes (30)', dateVacance: '', creeLe: 'Aujourd\'hui, 09:12', modifieLe: 'Aujourd\'hui, 09:12', historique: [{ date: 'Aujourd\'hui, 09:12', texte: 'Offre créée par duplication de OFF-2026-0122' }] },
     // En ligne, se termine dans 4 jours
