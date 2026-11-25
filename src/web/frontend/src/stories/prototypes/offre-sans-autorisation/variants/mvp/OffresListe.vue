@@ -127,12 +127,12 @@ function dateActivite(o: Offre) {
   return /^\d{4}-/.test(d) ? d : dateTri(d)
 }
 // --- Encart « À faire » (prolonger, publier) : un clic applique un filtre et ouvre l'onglet concerné ---
-const compteAFaire = computed(() => {
-  const c: Record<CarteAFaire, number> = { prolonger: 0, publier: 0 }
+const offresAFaire = computed(() => {
+  const c: Record<CarteAFaire, Offre[]> = { prolonger: [], publier: [] }
   for (const o of offres.value) {
     const a = actionOffre(o, peutPublier.value)
     if (a && a.type !== 'continuer') {
-      c[a.type]++
+      c[a.type].push(o)
     }
   }
   return c
@@ -198,7 +198,7 @@ const page = ref(1)
   >
     <template #avant-onglets>
       <AFaire
-        :compte="compteAFaire"
+        :offres="offresAFaire"
         :actif="carteActive"
         @choisir="choisirAction"
       />
