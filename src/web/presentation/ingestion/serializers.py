@@ -1365,9 +1365,10 @@ class OffersInputSerializer(serializers.Serializer):
     )
     vacance_poste = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in JobVacancy],
-        allow_blank=True,
+        allow_null=True,
+        required=False,
         help_text="`OUI` si le poste est vacant, `NON` s'il est susceptible d'être "
-        "vacant. Peut être vide.",
+        "vacant. Omis ou `null` si l'information n'est pas connue.",
     )
 
     description = DescriptionInputSerializer(

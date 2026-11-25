@@ -6918,14 +6918,15 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         vacance_poste:
+          nullable: true
           description: |-
-            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Peut être vide.
+            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Omis ou `null` si l'information n'est pas connue.
 
             * `OUI` - Poste vacant
             * `NON` - Poste susceptible d'être vacant
           oneOf:
           - $ref: '#/components/schemas/VacancePosteEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         description:
           allOf:
           - $ref: '#/components/schemas/DescriptionInput'
@@ -6974,7 +6975,6 @@ components:
       - publication
       - titre
       - url_offre
-      - vacance_poste
     OrganismeDeleteInput:
       type: object
       properties:

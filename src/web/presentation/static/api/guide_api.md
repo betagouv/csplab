@@ -420,7 +420,7 @@ longueur et de valeurs autorisées**.
 | `categories` | Obligatoire. Liste d'au moins une valeur : une offre sans catégorie est rejetée. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
-| `vacance_poste` | Obligatoire. **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant ; texte vide (`""`) si l'information n'est pas connue. |
+| `vacance_poste` | Facultatif. **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant ; omis ou `null` si l'information n'est pas connue (`""` est rejeté). |
 
 #### Bloc « Description » (`description`) — obligatoire
 Les champs `mission`, `profil`, `employeur` et `complements` sont obligatoires, mais

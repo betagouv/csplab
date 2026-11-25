@@ -19,6 +19,7 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_conditions import JobVacancy
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
@@ -277,7 +278,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         else None,
         application_email=payload.get("email_candidature"),
         contract_kind=ContractKind[type_contrat] if type_contrat else None,
-        job_vacancy=payload.get("vacance_poste") or None,
+        job_vacancy=payload.get("vacance_poste"),
         employer=payload["description"].get("employeur") or None,
         complements=payload["description"].get("complements") or None,
         exercise_conditions=payload["description"].get("conditions_exercice") or None,
@@ -1476,6 +1477,55 @@ class TestOffersUpsertViewDbVerified:
             reference="REF-001", source_id=UUID(SOURCE_UUID)
         )
         assert offer_model.long_title is None
+
+    @pytest.mark.parametrize(
+        "vacance_poste,expected",
+        [({}, None), ({"vacance_poste": None}, None)]
+        + [({"vacance_poste": v.name}, v.name) for v in JobVacancy],
+        ids=["missing", "null"] + [v.name for v in JobVacancy],
+    )
+    def test_persists_vacance_poste(
+        self, authenticated_client_with_source, vacance_poste, expected
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = {
+            k: v for k, v in MINIMAL_VALID_OFFER.items() if k != "vacance_poste"
+        } | vacance_poste
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.job_vacancy == expected
+
+    def test_empty_vacance_poste_is_rejected(self, authenticated_client_with_source):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = MINIMAL_VALID_OFFER | {"vacance_poste": ""}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"][0]["error"] == {
+            "vacance_poste": ["«\xa0\xa0» n'est pas un choix valide."]
+        }
+        assert not OfferModel.objects.filter(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        ).exists()
 
     def test_offer_with_titre_long_equal_to_titre_is_rejected(
         self, authenticated_client_with_source
