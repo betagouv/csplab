@@ -40,7 +40,7 @@ const cartes = computed(() => ([
         <button
           type="button"
           class="carte"
-          :class="[`carte--${c.id}`, { 'carte--active': actif === c.id }]"
+          :class="`carte--${c.id}`"
           :aria-pressed="actif === c.id"
           @click="emit('choisir', c.id)"
         >
@@ -115,23 +115,8 @@ const cartes = computed(() => ([
   border-left-color: var(--border-plain-success);
 }
 
-.carte--publier.carte--active {
-  border-color: var(--border-plain-success);
-  background: var(--background-contrast-success);
-}
-
-.carte--prolonger.carte--active {
-  border-color: var(--border-plain-warning);
-  background: var(--background-contrast-warning);
-}
-
 .carte--publier .carte__icone {
   color: var(--text-default-success);
-}
-
-.carte--active {
-  border-color: var(--border-action-high-blue-france);
-  background: var(--background-alt-blue-france);
 }
 
 .carte__icone {

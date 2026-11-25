@@ -151,8 +151,10 @@ Réponses aux questions
 
 - Encart « À faire » entre l'en-tête et les onglets, par priorité : offres qui se terminent dans moins de 7 jours (orange),
   puis offres prêtes à publier (vert). Les offres en préparation à compléter n'y sont pas : pas d'urgence (Alice).
-  Un clic applique le filtre « À faire » (aussi dans le tiroir de filtres) et ouvre l'onglet concerné. La vue filtrée est
-  annoncée au-dessus du tableau (« Vue filtrée : » + étiquettes supprimables + « Supprimer les filtres »).
+  Un clic applique un filtre existant et ouvre l'onglet concerné : « Statut : En préparation · Prête à publier » ou
+  « Fin de publication : Dans moins de 7 jours » (nouveaux filtres du tiroir). Pas d'état coloré sur la carte choisie.
+  La vue filtrée est annoncée au-dessus du tableau (« Vue filtrée : » + étiquettes supprimables + « Supprimer les filtres »).
+  Les compteurs des onglets restent les totaux, même filtrés (Alice).
   Une carte sans offre disparaît, l'encart aussi. Pas de filet sous l'en-tête dans ce cas.
 - Bouton d'action sur la ligne, avant le menu « … » : Continuer, Publier, Prolonger (ouvre directement la fenêtre).
 - Sans autorisation, « publier une offre validée » devient « publier une offre prête » (tous les champs obligatoires remplis).
