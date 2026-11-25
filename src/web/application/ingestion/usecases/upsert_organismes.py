@@ -29,8 +29,6 @@ class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
         existing_ids = self.organisme_repository.get_ids_by_referentiel_and_external_id(
             pairs
         )
-        # Ids of the batch are known upfront, so that a parent may come in the
-        # same batch as its children, in any order.
         batch_ids = {pair: existing_ids.get(pair) or uuid4() for pair in pairs}
         known_ids = {
             **OrganismeModel.objects.ids_by_referentiel_and_external_id(
