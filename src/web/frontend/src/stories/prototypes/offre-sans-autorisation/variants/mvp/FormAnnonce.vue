@@ -575,11 +575,6 @@ function formater() {
   }
 }
 
-// Champs côte à côte alignés par le bas, que l'un ait un texte d'aide ou non.
-.groupe :deep(.field-row) {
-  align-items: end;
-}
-
 .groupe__titre {
   margin: 0;
   font-size: 1.125rem;

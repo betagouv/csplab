@@ -46,5 +46,10 @@ defineProps<{ path?: string, cols?: 1 | 2 | 3 }>()
   :deep(.champ__tete:not(:has(+ .champ__hint))) {
     padding-bottom: calc(var(--reserve-aide, 1.375rem) + 0.25rem);
   }
+
+  // Champs encadrés par ChampSimple (astérisque rouge) : même réserve sous le libellé.
+  :deep(.champ > .champ__label:not(:has(.champ__hint))) {
+    padding-bottom: var(--reserve-aide, 1.375rem);
+  }
 }
 </style>
