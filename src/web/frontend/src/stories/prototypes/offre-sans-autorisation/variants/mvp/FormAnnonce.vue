@@ -144,7 +144,7 @@ function formater() {
         champ="titre"
         label="Intitulé de l'offre"
         obligatoire
-        hint="150 caractères maximum"
+        hint="Compréhensible hors de l'administration, sans sigle · 150 caractères maximum"
         for-id="a-titre"
         :repris="repris('titre')"
         :modifie="modifie('titre')"
@@ -176,6 +176,7 @@ function formater() {
         champ="missions"
         label="Descriptif du poste"
         obligatoire
+        hint="Une mission par ligne, en commençant par un verbe"
         for-id="a-missions"
         :repris="repris('missions')"
         :modifie="modifie('missions')"

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { Champ } from './aide'
 import type { Offre } from './store'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { alerte, CONSEILS, tentatives } from './aide'
+import { alerte, tentatives } from './aide'
 
-// Un champ de l'annonce avec son aide légère : un conseil et un exemple derrière le « ? » du libellé,
-// une alerte discrète au besoin, et l'indication « repris de la fiche » tant que le texte n'a pas été adapté.
+// Un champ de l'annonce avec son aide légère : un conseil 💡 qui réagit à la saisie (un seul format d'aide,
+// retour Alice du 25/11/2026 : plus de « ? » à côté du libellé), une alerte au besoin, et l'indication « repris de la fiche » tant que le texte n'a pas été adapté.
 // « Requis pour la validation » signale les champs déterminants pour la DAR.
 const props = defineProps<{
   offre: Offre
@@ -28,13 +28,11 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ restaurer: [] }>()
 
-const aide = computed(() => CONSEILS[props.champ])
 // Les alertes « à corriger » n'apparaissent qu'après une tentative de publication (retour PO, F6).
 const a = computed(() => {
   const x = alerte(props.offre, props.champ)
   return x?.niveau === 'attention' && !tentatives.has(props.offre.id) ? null : x
 })
-const ouvert = ref(false)
 </script>
 
 <template>
@@ -52,18 +50,6 @@ const ouvert = ref(false)
           class="champ__etoile"
           title="obligatoire"
         > *</abbr></label>
-        <button
-          type="button"
-          class="champ__aide"
-          :aria-expanded="ouvert"
-          :aria-label="`Conseil de rédaction : ${label}`"
-          @click="ouvert = !ouvert"
-        >
-          <CspIcon
-            name="ri:question-line"
-            :size="16"
-          />
-        </button>
         <span
           v-if="requis"
           class="champ__requis"
@@ -95,15 +81,6 @@ const ouvert = ref(false)
     >
       {{ hint }}
     </p>
-    <div
-      v-if="ouvert"
-      class="champ__exemple"
-    >
-      {{ aide.conseil }}
-      <template v-if="aide.exemple">
-        <br>Exemple : {{ aide.exemple }}
-      </template>
-    </div>
     <slot />
     <p
       v-if="erreur"
@@ -131,22 +108,6 @@ const ouvert = ref(false)
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-1);
-}
-
-.champ__aide {
-  display: inline-flex;
-  vertical-align: middle;
-  margin-left: var(--csp-space-1);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text-mention-grey);
-  cursor: pointer;
-
-  &:hover,
-  &[aria-expanded='true'] {
-    color: var(--text-action-high-blue-france);
-  }
 }
 
 .champ__tete {
@@ -196,18 +157,10 @@ const ouvert = ref(false)
   color: var(--text-mention-grey);
 }
 
-.champ__exemple,
 .champ__alerte {
   margin: 0;
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
-}
-
-.champ__exemple {
-  margin-bottom: var(--csp-space-1);
-  padding: var(--csp-space-2) var(--csp-space-3);
-  background: var(--background-alt-blue-france);
-  color: var(--text-default-grey);
 }
 
 .champ__alerte {
