@@ -151,20 +151,54 @@ class TestRenderGuide:
 
         assert toc_items == [
             {
-                "label": "Guide",
-                "link": "#guide",
-                "items": [
-                    {
-                        "label": "Authentification",
-                        "link": "#authentification",
-                        "items": [
-                            {"label": "Obtenir un jeton", "link": "#obtenir-un-jeton"}
-                        ],
-                    }
-                ],
+                "label": "Authentification",
+                "link": "#authentification",
+                "items": [{"label": "Obtenir un jeton", "link": "#obtenir-un-jeton"}],
             },
             {"label": "Annexe", "link": "#annexe"},
         ]
+
+    def test_keeps_document_title_out_of_side_menu(self):
+        html, toc_items = _render_guide("# Guide\n\n# Annexe")
+
+        assert toc_items == [{"label": "Annexe", "link": "#annexe"}]
+        assert '<h1 id="guide" class="fr-h1">' in html
+
+    def test_drops_markdown_table_of_contents(self):
+        html, toc_items = _render_guide(
+            "# Guide\n\n## Sommaire\n\n- [Offres](#offres)\n\n## Offres"
+        )
+
+        assert "Sommaire" not in html
+        assert toc_items == [{"label": "Offres", "link": "#offres"}]
+
+    def test_renders_blockquotes_as_dsfr_callouts(self):
+        html, _ = _render_guide("> **Règle métier :** une règle.")
+
+        assert '<blockquote class="fr-callout fr-my-3w">' in html
+
+    def test_shows_route_method_as_badge_in_headings(self):
+        html, _ = _render_guide("## Archiver — `POST /api/v1/offres/archiver`")
+
+        assert (
+            '<span class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--success">'
+            "POST</span> <code>/api/v1/offres/archiver</code>"
+        ) in html
+
+    def test_shows_route_method_as_badge_at_start_of_table_cell(self):
+        html, _ = _render_guide(
+            "| Route | Exemple |\n| --- | --- |\n"
+            "| `GET /api/guide.md` | ex. `GET /api/v1/offres` |"
+        )
+
+        assert 'fr-badge--info">GET</span> <code>/api/guide.md</code>' in html
+        assert "ex. <code>GET /api/v1/offres</code>" in html
+
+    def test_leaves_routes_in_paragraphs_as_code(self):
+        html, _ = _render_guide("Appelez `GET /api/v1/offres`.")
+
+        assert "<code>GET /api/v1/offres</code>" in html
+        assert "fr-badge" not in html
 
     def test_suffixes_duplicate_anchors(self):
         html, toc_items = _render_guide("## Réponses\n\n## Réponses\n\n## Réponses")
