@@ -13,24 +13,27 @@
 - [Qu'est-ce qu'une API, en deux phrases ?](#quest-ce-quune-api-en-deux-phrases)
 - [À qui s'adresse cette API ?](#a-qui-sadresse-cette-api)
 - [Comment fonctionne l'authentification ?](#comment-fonctionne-lauthentification)
-  - [Obtenir un jeton — `POST /api/token/`](#obtenir-un-jeton-post-apitoken)
-  - [Rafraîchir un jeton — `POST /api/token/refresh/`](#rafraichir-un-jeton-post-apitokenrefresh)
+  - [Obtenir un jeton — `POST /api/token`](#obtenir-un-jeton-post-apitoken)
+  - [Rafraîchir un jeton — `POST /api/token/refresh`](#rafraichir-un-jeton-post-apitokenrefresh)
 - [Limitations d'usage (quotas)](#limitations-dusage-quotas)
 - [Les fonctionnalités de l'API](#les-fonctionnalites-de-lapi)
-  - [1. Consulter les offres d'emploi — `GET /api/v1/offres/`](#1-consulter-les-offres-demploi-get-apiv1offres)
+  - [1. Consulter les offres d'emploi — `GET /api/v1/offres`](#1-consulter-les-offres-demploi-get-apiv1offres)
     - [Filtres disponibles](#filtres-disponibles)
   - [2. Consulter les offres d'une source — `GET /api/v1/offres/sources/{source_id}`](#2-consulter-les-offres-dune-source-get-apiv1offressourcessource_id)
   - [3. Archiver une offre — `POST /api/v1/offres/archiver`](#3-archiver-une-offre-post-apiv1offresarchiver)
-  - [4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`](#4-creer-ou-modifier-des-offres-post-apiv1offrescreer_modifier)
+  - [4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier`](#4-creer-ou-modifier-des-offres-post-apiv1offrescreer_modifier)
     - [Structure d'une offre et contraintes sur les champs](#structure-dune-offre-et-contraintes-sur-les-champs)
     - [En cas de problème](#en-cas-de-probleme)
-  - [5. Consulter les métiers — `GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers)
-  - [6. Consulter les organismes — `GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes)
-  - [7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#7-importer-des-concours-fichier-csv-post-apiv1concoursupload)
+  - [5. Consulter les métiers — `GET /api/v1/metiers`](#5-consulter-les-metiers-get-apiv1metiers)
+  - [6. Consulter les organismes — `GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes)
+  - [7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload`](#7-importer-des-concours-fichier-csv-post-apiv1concoursupload)
     - [Format du fichier attendu](#format-du-fichier-attendu)
     - [Colonnes obligatoires](#colonnes-obligatoires)
     - [Comment se passe le traitement ?](#comment-se-passe-le-traitement)
     - [Réponses possibles](#reponses-possibles)
+  - [8. Simuler l'API Talentsoft — `/api/fake-ts`](#8-simuler-lapi-talentsoft-apifake-ts)
+  - [9. Lire la documentation de l'API](#9-lire-la-documentation-de-lapi)
+  - [10. Routes réservées à CSPLab](#10-routes-reservees-a-csplab)
 - [Annexe — Les codes de réponse, en clair](#annexe-les-codes-de-reponse-en-clair)
 - [Annexe — Récapitulatif des listes de valeurs autorisées](#annexe-recapitulatif-des-listes-de-valeurs-autorisees)
   - [Domaine fonctionnel (référentiel RMFPv2)](#domaine-fonctionnel-referentiel-rmfpv2)
@@ -66,28 +69,35 @@ ci-dessous). Aucun accès n'est possible sans autorisation préalable.
 
 ## Comment fonctionne l'authentification ?
 
-Avant d'utiliser l'API, l'appelant doit prouver son identité. Trois moyens existent :
+Avant d'utiliser l'API, l'appelant doit prouver son identité. Deux moyens existent,
+à placer dans l'en-tête `Authorization` de chaque appel :
 
 | Moyen | Description | Où est-il utilisé ? |
 |---|---|---|
-| **Jeton JWT** (`jwtAuth`) | Un jeton temporaire obtenu en échange d'un identifiant + mot de passe. Il expire au bout d'un certain temps et doit être renouvelé. | Toutes les routes protégées |
-| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, à placer dans l'en-tête sous la forme `Api-Key <clé>`. | Consultation, création/modification et archivage d'offres |
-| **Cookie de session** (`cookieAuth`) | Utilisé lorsqu'on est connecté via le site web. | Consultation des métiers et import de concours |
+| **Jeton JWT** (`jwtAuth`) | Un jeton temporaire obtenu en échange d'un email et d'un mot de passe, envoyé sous la forme `Bearer <jeton>`. Il expire au bout d'un certain temps et doit être renouvelé. | Toutes les routes, sauf les [routes réservées à CSPLab](#10-routes-reservees-a-csplab) |
+| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, envoyée sous la forme `Api-Key <clé>`. | Offres (consultation, création/modification, archivage), métiers, import de concours, et [routes réservées à CSPLab](#10-routes-reservees-a-csplab) |
 
-> **Règle générale :** un jeton invalide ou expiré entraîne systématiquement un refus
-> (`401 Non autorisé`).
+Les routes de [documentation](#9-lire-la-documentation-de-lapi) et l'obtention d'un
+jeton ne demandent aucune authentification.
 
-### Obtenir un jeton — `POST /api/token/`
+> **Règle générale :** un jeton ou une clé absent, invalide ou expiré entraîne
+> systématiquement un refus (`401 Non autorisé`).
 
-On envoie un **email** et un **mot de passe**, et on reçoit en retour deux jetons :
+### Obtenir un jeton — `POST /api/token`
+
+On envoie un **email** (`email`) et un **mot de passe** (`password`), et on reçoit en
+retour deux jetons :
 
 - un jeton d'**accès** (`access`) — sert à appeler les autres routes ;
 - un jeton de **rafraîchissement** (`refresh`) — sert à obtenir un nouveau jeton
   d'accès quand le premier expire, sans avoir à ressaisir le mot de passe.
 
-### Rafraîchir un jeton — `POST /api/token/refresh/`
+Un email ou un mot de passe incorrect renvoie `401 Non autorisé`.
 
-On envoie le jeton de rafraîchissement et on reçoit un nouveau jeton d'accès.
+### Rafraîchir un jeton — `POST /api/token/refresh`
+
+On envoie le jeton de rafraîchissement (`refresh`) et on reçoit un nouveau jeton
+d'accès (`access`).
 
 ### Restreindre un compte à des adresses IP
 
@@ -102,9 +112,9 @@ facultative : un compte sans plage reste utilisable depuis n'importe quelle adre
   identifiant invalide.
 
 Si un accès depuis une adresse non autorisée laisse penser à une fuite de jeton, nous
-pouvons révoquer les jetons de rafraîchissement du compte : `POST /api/token/refresh/`
+pouvons révoquer les jetons de rafraîchissement du compte : `POST /api/token/refresh`
 renvoie alors `401 Non autorisé` (code `token_not_valid`). Obtenez un nouveau jeton avec
-`POST /api/token/`. Un jeton d'accès déjà obtenu reste valable jusqu'à son expiration.
+`POST /api/token`. Un jeton d'accès déjà obtenu reste valable jusqu'à son expiration.
 
 En cas de fuite avérée, nous pouvons aussi désactiver le compte : l'obtention d'un jeton,
 son rafraîchissement et chaque appel avec un jeton déjà obtenu sont alors refusés
@@ -124,7 +134,8 @@ Pour préserver le service, le nombre d'appels est plafonné :
 
 # Les fonctionnalités de l'API
 
-L'API est organisée en cinq grands domaines :
+L'API est organisée en grands domaines, repris dans la
+[référence technique Redoc](/api/schema/redoc) :
 
 | Domaine | À quoi ça sert |
 |---|---|
@@ -133,10 +144,19 @@ L'API est organisée en cinq grands domaines :
 | **Métiers** (`metiers`) | Consulter le référentiel des métiers de la Fonction Publique |
 | **Organismes** (`organismes`) | Consulter le référentiel des organismes de la Fonction Publique |
 | **Concours** (`concours`) | Importer des données de concours via un fichier CSV |
+| **Simulation Talentsoft** (`fake-ts`) | Lire les offres de CSPLab au format de l'API Talentsoft |
+| **Documentation** (`documentation`) | Lire ce guide et le changelog de l'API en formats bruts |
+| **Organismes Talentsoft** (`talentsoft_organisme`) | Réservé à CSPLab : synchroniser les organismes Talentsoft |
+
+Les listes (offres, métiers, organismes) sont **paginées** de la même façon :
+paramètres `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par
+page, défaut `100`, maximum `1000`). Chaque réponse contient `count` (nombre total
+d'éléments), `next` et `previous` (liens vers les pages voisines, `null` aux
+extrémités) et `results`. Une page au-delà de la dernière renvoie une erreur `404`.
 
 
 
-## 1. Consulter les offres d'emploi — `GET /api/v1/offres/`
+## 1. Consulter les offres d'emploi — `GET /api/v1/offres`
 
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
 par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
@@ -188,6 +208,16 @@ Chaque offre renvoyée contient notamment :
 > **Règle métier clé :** une offre dont `date_archivage` est **vide** est **active** ;
 > une offre dont `date_archivage` est **renseigné** est **archivée**.
 
+**Réponses possibles :**
+
+| Code | Signification |
+|---|---|
+| `200 OK` | La page d'offres est renvoyée |
+| `400` | Filtre invalide |
+| `401` | Authentification absente ou invalide |
+| `404` | Page inexistante |
+| `500` | Erreur inattendue du serveur |
+
 
 
 ## 2. Consulter les offres d'une source — `GET /api/v1/offres/sources/{source_id}`
@@ -197,7 +227,7 @@ identifiée par son identifiant unique (`source_id`, UUID). La pagination foncti
 comme pour la liste principale des offres (paramètres `page` et `taille`).
 
 > **Règle métier :** l'accès à une source non autorisée pour l'utilisateur authentifié
-> renvoie une erreur `401`, même si la source existe.
+> renvoie une erreur `403`, même si la source existe.
 
 Chaque offre renvoyée contient, en plus des informations de la liste principale
 (voir section précédente), le détail complet de l'offre. Les champs reprennent les
@@ -234,7 +264,9 @@ le bloc « Description » de la section 4).
 | Code | Signification |
 |---|---|
 | `200 OK` | La liste des offres de la source est renvoyée |
-| `401` | Authentification absente/invalide, ou source non autorisée pour l'utilisateur |
+| `401` | Authentification absente ou invalide |
+| `403` | Source non autorisée pour l'utilisateur |
+| `404` | Page inexistante |
 | `500` | Erreur inattendue du serveur |
 
 
@@ -258,8 +290,9 @@ référence.
 | `200 OK` | L'offre a bien été archivée |
 | `400` | Champ manquant ou requête mal formée |
 | `401` | Authentification absente ou invalide |
-| `403` | Action interdite pour cet utilisateur |
-| `404` | Aucune offre ne correspond à cette référence |
+| `403` | Source non autorisée pour l'utilisateur |
+| `404` | Aucune offre de cette source ne correspond à cette référence |
+| `503` | L'offre n'a pas pu être archivée : réessayez plus tard |
 
 En cas de succès, la réponse contient un champ `statut` qui vaut `ok` :
 
@@ -269,14 +302,33 @@ En cas de succès, la réponse contient un champ `statut` qui vaut `ok` :
 
 
 
-## 4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`
+## 4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier`
 
 C'est la fonctionnalité la plus riche. Elle permet d'envoyer **entre 1 et 100 offres**
 en un seul appel.
 
+Le corps de la requête contient deux champs :
+
+| Champ | Règle |
+|---|---|
+| `source_id` | Obligatoire. Identifiant (UUID) de la source des offres, le même que pour l'archivage et la consultation par source. L'utilisateur doit être autorisé à écrire dans cette source, sinon l'appel est refusé (`403`). |
+| `offres` | Obligatoire. Liste de **1 à 100 offres**, décrites dans la section « [Structure d'une offre](#structure-dune-offre-et-contraintes-sur-les-champs) ». |
+
 > **Règle métier centrale (« upsert ») :** chaque offre est identifiée par le couple
-> **`identification.reference` + source**. Si une offre portant cette référence existe
-> déjà, elle est **mise à jour** ; sinon, elle est **créée**.
+> **`identification.reference` + `source_id`**. Si une offre portant cette référence
+> existe déjà dans la source, elle est **mise à jour** ; sinon, elle est **créée**.
+
+**Référence générée par CSPLab.** Sans référence pour une offre, envoyez `"auto"` dans
+`identification.reference` : CSPLab génère une référence au format `CSP-AAAA-NNNNNN`
+(année, puis numéro séquentiel commun à toutes les sources, qui repart de 1 chaque
+année), par exemple `CSP-2026-000042`. Retrouvez-la dans la réponse grâce à l'`index`
+de l'offre.
+
+> **Règle métier :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour
+> l'offre ensuite, envoyez la référence renvoyée à la place de `"auto"`, sinon chaque
+> envoi crée un doublon. Une référence au format `CSP-AAAA-NNNNNN` n'est acceptée que
+> pour mettre à jour une offre existante de la source : sinon, l'offre est rejetée
+> dans `errors`.
 
 La réponse indique combien d'offres ont été **créées**, **mises à jour**, et la liste
 des offres **rejetées** avec le détail de l'erreur. Une offre rejetée n'empêche pas les
@@ -323,10 +375,15 @@ Exemple de réponse :
 Une offre est composée de plusieurs blocs. Voici le détail, avec les **contraintes de
 longueur et de valeurs autorisées**.
 
+> **Règle métier :** les blocs `localisation`, `criteres`, `conditions` et `contacts`,
+> ainsi que `url_offre`, doivent figurer dans chaque offre, même sans valeur : envoyez
+> alors `null`. Les dates sont au format ISO 8601 avec l'heure
+> (`2026-11-05T00:00:00Z`).
+
 #### Bloc « Identification » (`identification`) — obligatoire
 | Champ | Règle |
 |---|---|
-| `reference` | Obligatoire. Référence de l'offre. |
+| `reference` | Obligatoire. Référence de l'offre, unique dans la source, ou `"auto"` pour que CSPLab la génère (voir plus haut). |
 | `versant` | Obligatoire. Valeurs autorisées : **FPT** (Territoriale), **FPE** (État), **FPH** (Hospitalière). |
 
 #### Informations générales
@@ -334,7 +391,7 @@ longueur et de valeurs autorisées**.
 |---|---|
 | `titre` | Obligatoire. **150 caractères maximum.** |
 | `titre_long` | Facultatif. Intitulé long, à ne renseigner que s'il diffère de `titre` : une offre dont le `titre_long` est identique à `titre` est rejetée. Peut être vide. **1 500 caractères maximum.** |
-| `url_offre` | Lien web. Peut être vide. |
+| `url_offre` | Obligatoire, peut valoir `null`. Lien vers l'offre sur le site de la source. |
 | `url_candidature` | Lien web pour candidater. Voir la règle ci-dessous. |
 | `email_candidature` | Adresse email valide pour candidater. Voir la règle ci-dessous. |
 
@@ -345,15 +402,16 @@ longueur et de valeurs autorisées**.
 #### Bloc « Organisation » (`organisation`) — obligatoire
 | Champ | Règle |
 |---|---|
-| `nom` | Obligatoire. Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes). |
-| `siret` | Obligatoire. **14 caractères maximum.** Le SIRET se retrouve avec [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. |
+| `nom` | Obligatoire. Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes). |
+| `siret` | Obligatoire. **14 caractères maximum.** Le SIRET se retrouve avec [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. |
+| `talentsoft_organisme_entity_code` | Réservé au service d'ingestion de CSPLab : ne pas envoyer ce champ. Une offre envoyée avec un jeton JWT qui le renseigne est rejetée. |
 
 #### Bloc « Profession » (`profession`) — obligatoire
 | Champ | Règle |
 |---|---|
 | `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
 | `domaine` | Facultatif. Code du domaine fonctionnel. Absent, il est déduit du métier ; renseigné, il doit correspondre au `domaine_fonctionnel_code` du métier, sinon l'offre est rejetée. Obligatoire lorsque le code métier relève de plusieurs domaines (ex. `ERJUS008`, `ERTRA007`) : il doit alors être l'un d'eux. Vérifié uniquement si `referentiel=RMFPv2`. **3 caractères maximum.** |
-| `metier` | Obligatoire. Code métier : valeur du champ `code_emploi_csp` d'un métier renvoyé par [`GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
+| `metier` | Obligatoire. Code métier : valeur du champ `code_emploi_csp` d'un métier renvoyé par [`GET /api/v1/metiers`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
 | `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 
 #### Catégorie et contrat
@@ -362,7 +420,7 @@ longueur et de valeurs autorisées**.
 | `categories` | Obligatoire. Liste d'au moins une valeur : une offre sans catégorie est rejetée. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
-| `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
+| `vacance_poste` | Obligatoire. **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant ; texte vide (`""`) si l'information n'est pas connue. |
 
 #### Bloc « Description » (`description`) — obligatoire
 Les champs `mission`, `profil`, `employeur` et `complements` sont obligatoires, mais
@@ -398,9 +456,9 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique), **MO** (Moyen-Orient et Afrique du Nord). |
 | `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. Pour une offre à l'étranger (tout autre pays), ils valent `null` : la `zone_geographique` et le `localisation_label` situent l'offre. L'outre-mer est en `FRA`, avec son département : région `DOM` pour les départements d'outre-mer (Guadeloupe `971`, Martinique `972`, Guyane `973`, La Réunion `974`, Mayotte `976`), région `TOM` pour les collectivités d'outre-mer (Saint-Pierre-et-Miquelon `975`, Saint-Barthélemy `977`, Saint-Martin `978`, Wallis-et-Futuna `986`, Polynésie française `987`, Nouvelle-Calédonie `988`). Une offre dont le `pays` est le code ISO de l'un de ces territoires (`GLP`, `MTQ`, `GUF`, `REU`, `MYT`, `SPM`, `BLM`, `MAF`, `WLF`, `PYF`, `NCL`) est rejetée, avec un message qui donne la `region` et le `departement` attendus. `DOM` est le code de la République dominicaine, et `ATF` (Terres australes et antarctiques françaises), sans département, reste accepté comme pays. |
-| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou `null` hors de France. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `977`, `978`, `986`, `987`, `988`, `SPM` et `WLF`. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM dont `977` Saint-Barthélemy et `978` Saint-Martin, `SPM`, `WLF`…), ou `null` hors de France. Doit appartenir à `region`. |
-| `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
+| `region` | Obligatoire. Code région INSEE officiel, `DOM`, `TOM`, ou `null` hors de France. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `977`, `978`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Obligatoire. Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM dont `977` Saint-Barthélemy et `978` Saint-Martin, `SPM`, `WLF`…), ou `null` hors de France. Doit appartenir à `region`. |
+| `localisation_label` | Obligatoire, peut être un texte vide. Libellé du lieu, affiché aux candidats (ex. ville et adresse). **500 caractères maximum.** |
 | `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
 #### Bloc « Critères » (`criteres`) — peut être vide
@@ -448,7 +506,7 @@ Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'Ét
 |---|---|
 | `salaire_titulaire` | **100 caractères maximum.** |
 | `salaire_contractuel` | **100 caractères maximum.** |
-| `debut_contrat` / `fin_contrat` | Dates. Peuvent être vides. |
+| `debut_contrat` / `fin_contrat` | Dates. Peuvent valoir `null`. |
 | `duree_contrat` | Texte, **100 caractères maximum**. |
 | `temps_travail` | Obligatoire. Valeurs : **NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL**. |
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
@@ -488,21 +546,21 @@ Exemple :
 |---|---|
 | `debut_publication` | Obligatoire. Date. |
 | `fin_publication` | Obligatoire. Date. |
-| `fin_candidature` | Date limite de candidature. Peut être vide. |
-| `debut_vacance_poste` | Date à partir de laquelle le poste est vacant. Peut être vide. |
+| `fin_candidature` | Date limite de candidature. Peut valoir `null`. |
+| `debut_vacance_poste` | Date à partir de laquelle le poste est vacant. Peut valoir `null`. |
 
 ### En cas de problème
 | Code | Signification |
 |---|---|
 | `201` | Traitement effectué (voir le détail créées / mises à jour / rejetées) |
-| `400` | Requête globalement invalide |
+| `400` | Requête globalement invalide : `source_id` absent ou invalide, `offres` vide ou de plus de 100 offres |
 | `401` | Authentification absente ou invalide |
-| `403` | Action interdite pour cet utilisateur |
+| `403` | Source non autorisée pour l'utilisateur |
 | `500` | Erreur inattendue du serveur |
 
 
 
-## 5. Consulter les métiers — `GET /api/v1/metiers/`
+## 5. Consulter les métiers — `GET /api/v1/metiers`
 
 Retourne la liste **paginée** des métiers de la Fonction Publique (paramètres `page`
 et `taille`, mêmes règles que pour la liste des offres). La liste est triée par
@@ -534,20 +592,18 @@ Chaque métier renvoyé contient :
 
 
 
-## 6. Consulter les organismes — `GET /api/v1/organismes/`
+## 6. Consulter les organismes — `GET /api/v1/organismes`
 
 Retourne la liste **paginée** des organismes du référentiel CSPLab, alimenté par les
 référentiels FINESS, GIPCDG et DILA (paramètres `page` et `taille`). Les organismes
 supprimés ne sont pas renvoyés. La liste est triée par nom, puis par identifiant :
 l'ordre ne change pas d'un appel à l'autre.
 
-Cette route n'est accessible qu'avec un **jeton** (voir « Authentification »).
-
-> **Page hors limites :** contrairement à la liste des métiers, une page au-delà de la
-> dernière renvoie une erreur `404`.
+Cette route n'est accessible qu'avec un **jeton** (voir « Authentification »), pas
+avec une clé d'API.
 
 Les valeurs `nom` et `siret` d'un organisme sont celles à reprendre dans le bloc
-`organisation` d'une offre envoyée avec `POST /api/v1/offres/creer_modifier/`.
+`organisation` d'une offre envoyée avec `POST /api/v1/offres/creer_modifier`.
 
 ### Filtres disponibles
 
@@ -577,9 +633,10 @@ Un filtre invalide (par exemple un versant inconnu) renvoie une erreur `400`.
 
 
 
-## 7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
+## 7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload`
 
-Permet d'importer en masse des données de concours **GRECO** via un fichier CSV.
+Permet d'importer en masse des données de concours **GRECO** via un fichier CSV,
+envoyé dans le champ `file` d'un formulaire `multipart/form-data`.
 
 ### Format du fichier attendu
 - **Encodage :** UTF-8
@@ -612,8 +669,71 @@ Permet d'importer en masse des données de concours **GRECO** via un fichier CSV
 | `401` | Authentification absente ou invalide |
 | `500` | Erreur inattendue du serveur |
 
-La réponse de succès détaille : nombre total de lignes, lignes valides, lignes
-invalides, lignes créées, lignes mises à jour, et la liste éventuelle des erreurs.
+La réponse de succès détaille :
+
+| Champ | Signification |
+|---|---|
+| `total_rows` | Nombre total de lignes du fichier |
+| `valid_rows` / `invalid_rows` | Nombre de lignes valides / invalides |
+| `created` / `updated` | Nombre de concours créés / mis à jour |
+| `validation_errors` | Erreurs des lignes invalides, avec le numéro de ligne et le motif |
+
+
+
+## 8. Simuler l'API Talentsoft — `/api/fake-ts`
+
+Ces routes exposent les offres de CSPLab **au format de l'API Talentsoft**, pour les
+partenaires qui lisaient déjà les offres dans Talentsoft. Elles ne sont accessibles
+qu'avec un **jeton**.
+
+| Route | À quoi ça sert |
+|---|---|
+| `GET /api/fake-ts/offersummaries` | Liste des offres, pagination avec `start` (à partir de `0`) et `count` (`100` par défaut, `1000` au plus). Filtres équivalents à ceux de `GET /api/v1/offres`, avec leurs noms Talentsoft (`verse`, `category`, `area`, `keywords`…) |
+| `GET /api/fake-ts/offers/getoffer` | Détail d'une offre, à partir de sa `reference` |
+| `GET /api/fake-ts/organisation/{entity_code}` | Détail d'un organisme Talentsoft, à partir de son `entityCode` |
+| `GET /api/fake-ts/referentials/{referential_type}` | Valeurs possibles d'un référentiel (`area`, `country`, `region`, `department`, `verse`, `domain`…), filtrables par `parentCode` |
+
+La correspondance entre les champs Talentsoft et ceux de CSPLab est détaillée dans
+l'[annexe dédiée](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1) (notes
+« API fake-ts »).
+
+
+
+## 9. Lire la documentation de l'API
+
+Ces routes ne demandent **aucune authentification**. Elles servent aux outils et aux
+assistants IA.
+
+| Route | Contenu |
+|---|---|
+| `GET /api/guide.md` | Ce guide, en Markdown |
+| `GET /api/changelog.md` | Le changelog de l'API, en Markdown, du plus récent au plus ancien |
+| `GET /api/changelog.json` | Le changelog, une entrée par changement avec ses routes, sa PR et ses tickets |
+| `GET /api/changelog.atom` | Le changelog en flux Atom, pour être prévenu des nouveaux changements |
+
+Les trois formats du changelog acceptent les mêmes filtres :
+
+| Filtre | Effet |
+|---|---|
+| `depuis` | Changements publiés à partir de cette date (`AAAA-MM-JJ`) |
+| `route` | Changements qui citent cette route, avec sa méthode (ex. `POST /api/v1/offres/creer_modifier`). Une route citée par aucun changement renvoie une erreur `400` |
+| `type` | Type de changement, répétable (`?type=ajoute&type=corrige`) : `ajoute`, `corrige`, `modifie`, `non_retrocompatible`, `retire` |
+
+La [référence technique Redoc](/api/schema/redoc) et le
+[schéma OpenAPI](/static/api/schema.yaml) décrivent chaque route en détail.
+
+
+
+## 10. Routes réservées à CSPLab
+
+Ces routes servent aux services de CSPLab à synchroniser les référentiels. Elles ne
+sont accessibles qu'avec une **clé d'API** et ne concernent pas les partenaires.
+
+| Route | À quoi ça sert |
+|---|---|
+| `POST /api/v1/organismes/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes, identifiés par le couple `referentiel` + `external_id` |
+| `PUT /api/v1/organismes` | Supprimer de 1 à 100 organismes, identifiés de la même façon. Un organisme supprimé n'est plus renvoyé par `GET /api/v1/organismes` |
+| `POST /api/v1/talentsoft_organisme/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes Talentsoft, identifiés par leur `entity_code` |
 
 
 
@@ -625,8 +745,10 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | `400` | Erreur de la demande | Données envoyées invalides ou incomplètes |
 | `401` | Authentification | Identité non prouvée (jeton manquant/expiré) |
 | `403` | Autorisation | Identité prouvée, mais action non permise |
-| `404` | Introuvable | L'élément demandé n'existe pas |
+| `404` | Introuvable | L'élément ou la page demandés n'existent pas |
+| `429` | Trop de requêtes | Nombre d'appels autorisés dépassé : attendre avant de réessayer (voir « [Limitations d'usage](#limitations-dusage-quotas) ») |
 | `500` | Erreur serveur | Problème inattendu côté CSPLab |
+| `503` | Service indisponible | Traitement momentanément impossible : réessayer plus tard |
 
 
 
@@ -646,7 +768,8 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Lieu de travail** | NON_DEFINI, SUR_SITE, TELETRAVAIL |
 | **Management** | AVEC, SANS |
 | **Ouvert aux militaires** | OUI, NON |
-| **Zone géographique** | AF, EU, AS, AM, OC, AN |
+| **Zone géographique** (envoi d'une offre) | AF (Afrique), EU (Europe), AS (Asie), AM (Amérique), OC (Océanie), AN (Antarctique), MO (Moyen-Orient et Afrique du Nord) |
+| **Zone géographique** (filtre `zone` de `GET /api/v1/offres`) | AFRIQUE, EUROPE, ASIE, AMERIQUE, OCEANIE, ANTARTIQUE, MOYEN_ORIENT_AFRIQUE_DU_NORD |
 | **Niveau de diplôme** | Entier de 1 à 8 |
 | **Domaine fonctionnel** | Voir tableau ci-dessous |
 
@@ -691,7 +814,7 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 # Annexe — Correspondance entre le format Talentsoft et l'API v1
 
-Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs de l'API v1 lus dans des champs personnalisés (`customFields`) ou jamais renseignés par l'ingestion sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
+Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs de l'API v1 lus dans des champs personnalisés (`customFields`) ou jamais renseignés par l'ingestion sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
 Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode`, sauf `diploma` lu par son `label` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
@@ -825,7 +948,7 @@ Lieux dans l'API fake-ts : les objets codés `geographicalLocation`, `country`, 
 
 # Annexe — Passer de l'API vacancies de Talentsoft à l'API v1
 
-Cette annexe s'adresse aux employeurs qui publient aujourd'hui leurs offres dans le Back Office Talentsoft de la PEP avec l'API Talentsoft `PUT api/v1/vacancies/{vacancyReference}`, et qui envoient désormais ces offres à `POST /api/v1/offres/creer_modifier/`. Elle indique, pour chaque champ de l'offre envoyée à Talentsoft, le champ correspondant de l'API v1 et la conversion des valeurs. Les libellés entre guillemets sont ceux du formulaire offre du Back Office (fichier DGAFP « champs Offre BO V3 »).
+Cette annexe s'adresse aux employeurs qui publient aujourd'hui leurs offres dans le Back Office Talentsoft de la PEP avec l'API Talentsoft `PUT api/v1/vacancies/{vacancyReference}`, et qui envoient désormais ces offres à `POST /api/v1/offres/creer_modifier`. Elle indique, pour chaque champ de l'offre envoyée à Talentsoft, le champ correspondant de l'API v1 et la conversion des valeurs. Les libellés entre guillemets sont ceux du formulaire offre du Back Office (fichier DGAFP « champs Offre BO V3 »).
 
 Notation : `a.b` désigne un objet imbriqué, `a[]` une liste. Les champs `…Id` contiennent le code client d'une liste Talentsoft (colonne « Codeclient » du fichier DGAFP), converti selon la section « [Valeurs des listes Talentsoft](#valeurs-des-listes-talentsoft) ». Un texte HTML (`…HTML`) doit être converti en Markdown : l'API v1 rejette les balises HTML (voir le bloc « Description »). Les dates sont envoyées à l'API v1 au format ISO 8601 avec l'heure (`2026-11-05T00:00:00Z`).
 
@@ -838,7 +961,7 @@ Les blocs `localisation`, `criteres`, `conditions` et `contacts`, ainsi que `url
 | `reference` | `identification.reference` | Le paramètre `{vacancyReference}` de l'URL Talentsoft. Une offre déjà envoyée avec la même référence est mise à jour. |
 | `jobDescription.salaryRangeId` | `identification.versant` | « Versant » : `Versant_FPE` → `FPE`, `Versant_FPH` → `FPH`, `Versant_FPT` → `FPT`. |
 | `jobDescription.title` | `titre` | « Intitulé du poste ». 104 caractères dans Talentsoft, 150 dans l'API v1. |
-| `organisationId` | `organisation.nom` et `organisation.siret` | « Organisme de rattachement ». L'API v1 n'utilise pas le code d'entité Talentsoft : retrouvez l'organisme avec [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes) (filtres `nom`, `siret`) et reprenez son `nom` et son `siret`. |
+| `organisationId` | `organisation.nom` et `organisation.siret` | « Organisme de rattachement ». L'API v1 n'utilise pas le code d'entité Talentsoft : retrouvez l'organisme avec [`GET /api/v1/organismes`](#6-consulter-les-organismes-get-apiv1organismes) (filtres `nom`, `siret`) et reprenez son `nom` et son `siret`. |
 | `candidateRedirectionUrl` | `url_candidature` | « URL pour postuler candidat ». Renseigné, `email_candidature` reste vide. |
 | `requestingParty.requestingPartyCustomFields.shortText1` | `email_candidature` | « Personne à qui adresser les candidatures ». Ne reprendre que l'adresse email, et seulement si `candidateRedirectionUrl` est vide : l'API v1 attend l'un ou l'autre, jamais les deux. |
 | `requestingParty.requestingPartyCustomFields.shortText2` | `contacts[]` avec `role` = `principal` | « Contact 1 ». La valeur va dans `texte`, les adresses email qu'elle contient dans `emails`. Valeur vide : pas de contact. |
