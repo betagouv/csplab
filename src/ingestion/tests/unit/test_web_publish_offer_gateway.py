@@ -151,7 +151,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["categories"] == []
     assert offer["nature_offre"] == "TITULAIRE_CONTRACTUEL"
     assert offer["type_contrat"] is None
-    assert offer["vacance_poste"] == ""
+    assert offer["vacance_poste"] is None
     assert offer["description"]["mission"] == "Mission text"
     assert offer["description"]["profil"] == "Profile text"
     assert offer["description"]["employeur"] == ""
@@ -468,7 +468,7 @@ async def test_publish_serializes_debut_vacance_poste_without_job_vacancy(
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert body["offres"][0]["vacance_poste"] == ""
+    assert body["offres"][0]["vacance_poste"] is None
     assert (
         body["offres"][0]["publication"]["debut_vacance_poste"]
         == "2024-06-01T00:00:00Z"

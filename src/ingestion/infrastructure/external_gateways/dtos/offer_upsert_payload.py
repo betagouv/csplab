@@ -115,7 +115,7 @@ class OfferUpsertPayload(BaseModel):
     categories: list[str] = []
     nature_offre: Optional[str] = None
     type_contrat: Optional[str] = None
-    vacance_poste: str = ""
+    vacance_poste: Optional[str] = None
     description: DescriptionPayload
     localisation: Optional[list[LocalisationItemPayload]] = None
     criteres: Optional[CriteresPayload] = None
@@ -176,7 +176,7 @@ class OfferUpsertPayload(BaseModel):
             categories=[offer.category.value] if offer.category else [],
             nature_offre=offer.offer_nature.value if offer.offer_nature else None,
             type_contrat=offer.contract_kind.name if offer.contract_kind else None,
-            vacance_poste=offer.job_vacancy.name if offer.job_vacancy else "",
+            vacance_poste=offer.job_vacancy.name if offer.job_vacancy else None,
             description=DescriptionPayload(
                 mission=offer.mission,
                 profil=offer.profile,
