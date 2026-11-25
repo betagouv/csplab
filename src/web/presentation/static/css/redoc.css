@@ -54,3 +54,19 @@
     line-height: 1.5rem;
     margin-top: 1.5rem;
 }
+
+/* DSFR tints every button on hover and click, overriding Redoc backgrounds. */
+.csplab-redoc button:not(:disabled):hover,
+.csplab-redoc button:not(:disabled):active {
+    background-color: transparent;
+}
+
+.csplab-redoc button:has(> strong):not(:disabled):hover,
+.csplab-redoc button:has(> strong):not(:disabled):active {
+    background-color: color-mix(in srgb, currentcolor 7%, transparent);
+}
+
+.csplab-redoc button:has(> .http-verb):not(:disabled):hover,
+.csplab-redoc button:has(> .http-verb):not(:disabled):active {
+    background-color: #2a2a2a;
+}
