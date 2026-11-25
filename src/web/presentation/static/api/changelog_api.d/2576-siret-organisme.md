@@ -1,7 +1,7 @@
 ---
 titre: "Offres : `organisation.siret` obligatoire et relié à l'organisme"
 type: non_retrocompatible
-date: 2026-11-23
+date: 2026-11-25
 pr: 2586
 liens:
   - https://github.com/betagouv/csplab/issues/2576
