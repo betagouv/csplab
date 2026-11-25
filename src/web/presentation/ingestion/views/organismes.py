@@ -58,7 +58,8 @@ logger = logging.getLogger(LoggerName.INGESTION.value)
 
 UPSERT_ORGANISMES_DESCRIPTION = (
     "Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via un payload "
-    "JSON. L'upsert se base sur le couple (référentiel, external_id)."
+    "JSON. L'upsert se base sur le couple (référentiel, external_id). "
+    "L'identifiant d'un organisme créé est attribué par CSPLab."
 )
 
 
@@ -149,7 +150,12 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
             usecase = container.upsert_organismes_usecase()
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
             upsert_errors = [
-                {"entity_id": str(error["entity_id"]), "error": error["error"]}
+                {
+                    "entity_id": str(error["entity_id"])
+                    if error["entity_id"] is not None
+                    else None,
+                    "error": error["error"],
+                }
                 for error in result["errors"]
             ]
             return Response(

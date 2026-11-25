@@ -139,6 +139,17 @@ class OrganismeQuerySet(models.QuerySet):
             query |= Q(referentiel=referentiel, external_id=external_id)
         return self.filter(query)
 
+    def ids_by_referentiel_and_external_id(
+        self, pairs: list[tuple[str, str]]
+    ) -> dict[tuple[str, str], UUID]:
+        rows = self.by_referentiel_and_external_id_pairs(pairs).values_list(
+            "id", "referentiel", "external_id"
+        )
+        return {
+            (referentiel, external_id): organisme_id
+            for organisme_id, referentiel, external_id in rows
+        }
+
     def stable_order(self) -> "OrganismeQuerySet":
         return self.order_by("nom", "id")
 

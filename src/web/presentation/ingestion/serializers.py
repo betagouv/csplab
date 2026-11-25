@@ -1564,11 +1564,17 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):
-    id = serializers.UUIDField(required=False, allow_null=True)
     nom = serializers.CharField(max_length=255)
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
     siret = serializers.CharField(max_length=14)
-    parent_id = serializers.UUIDField(allow_null=True)
+    parent_external_id = serializers.CharField(
+        max_length=50,
+        allow_null=True,
+        help_text=(
+            "external_id de l'organisme parent, dans le même référentiel, "
+            "ou null. Le parent existe déjà ou figure dans le même lot."
+        ),
+    )
     external_id = serializers.CharField(max_length=50)
     referentiel = serializers.CharField(max_length=50)
     millesime = serializers.CharField(max_length=25)
