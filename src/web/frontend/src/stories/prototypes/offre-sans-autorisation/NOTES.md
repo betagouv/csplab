@@ -100,7 +100,7 @@ Réponses aux questions
 
 ## Restructuration demandée par Alice (25/11/2026)
 
-- **Étapes** : 7 étapes en deux parties. *Annonce visible du candidat* : Le poste, Le métier (page dédiée au métier et aux compétences), Cadre du recrutement, Profil et conditions, Employeur et lieux. *Paramétrage des candidatures* : Formulaire (questions), Documents (pièces demandées).
+- **Étapes** : 7 étapes en deux parties. *Annonce visible du candidat* : Le poste, Cadre du recrutement, Le métier (page dédiée au métier et aux compétences), Le profil recherché (ex-« Profil et conditions »), Employeur et lieux (ordre revu le 25/11). *Paramétrage des candidatures* : Formulaire (questions), Documents (pièces demandées).
 - **Retirées** : Informations internes (France Travail, référence interne), Étapes de recrutement, Équipe de recrutement. Les composants `FormInterne`, `EtapesRecrutementOffre`, `EquipeRecrutementOffre` et `RecapPublication` restent dans le dossier, inutilisés.
 - **Création** : plus d'écran de choix. « Créer une offre » ouvre le formulaire vide ; « Dupliquer » (menu « … ») ouvre le formulaire pré-rempli. Une page par étape, étapes groupées par partie à gauche. Enregistrement automatique, « Enregistrer et quitter » à tout moment ; « Publier » s'active quand tous les champs obligatoires sont remplis.
 - **Publication** : page « Vérifier et publier » (aperçu candidat + date de fin) → « Valider la publication » → fenêtre de succès : « Afficher le recrutement » ou « Retourner aux offres ».
@@ -110,7 +110,7 @@ Réponses aux questions
   - blocs Formulaire et Documents verrouillés une fois l'offre publiée ;
   - « Publier » désactivé tant qu'il manque des champs obligatoires.
 - **Écran du recrutement** : simplifié pour le proto (0 candidature juste après la publication). Dans l'outil, c'est l'écran existant du recrutement qui s'ouvre.
-- **À tester** : place du métier et des compétences (étape dédiée ou dans « Profil et conditions »).
+- **À tester** : place du métier et des compétences (étape dédiée ou dans « Le profil recherché »).
 
 ## Blocage technique (à signaler à Lucas)
 

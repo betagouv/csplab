@@ -276,12 +276,13 @@ function formater() {
       class="groupe"
     >
       <ChampSimple
-        label="Nature de l'emploi : l'emploi est ouvert aux"
+        label="Nature de l'emploi"
         obligatoire
+        bulle="L'emploi est ouvert aux fonctionnaires, aux contractuels, ou aux deux."
       >
         <CspRadioGroup
           v-model="ouvertA"
-          label="Nature de l'emploi : l'emploi est ouvert aux"
+          label="Nature de l'emploi"
           name="ouvert-a"
           :options="OUVERT"
         />
@@ -359,7 +360,7 @@ function formater() {
       />
     </div>
 
-    <!-- Étape « Profil et conditions » -->
+    <!-- Étape « Le profil recherché » (profil et conditions de travail) -->
     <template v-else-if="partie === 'profil'">
       <div class="groupe">
         <h3 class="groupe__titre">

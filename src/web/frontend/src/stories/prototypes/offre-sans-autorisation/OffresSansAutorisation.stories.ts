@@ -12,8 +12,8 @@ const meta = {
     docs: {
       description: {
         component: 'Organisme sans circuit d\'autorisation. « Créer une offre » ouvre le formulaire vide, « Dupliquer » (menu « … ») '
-          + 'le formulaire pré-rempli. Formulaire en 7 étapes, en deux parties : annonce visible du candidat (le poste, le métier, cadre, '
-          + 'profil et conditions, employeur et lieux) et paramétrage des candidatures (formulaire, documents). Publier → aperçu candidat '
+          + 'le formulaire pré-rempli. Formulaire en 7 étapes, en deux parties : annonce visible du candidat (le poste, cadre, le métier, '
+          + 'le profil recherché, employeur et lieux) et paramétrage des candidatures (formulaire, documents). Publier → aperçu candidat '
           + '→ fenêtre de succès (afficher le recrutement ou retourner aux offres). Page de l\'offre en blocs modifiables un par un. '
           + 'Hypothèses : NOTES.md.',
       },

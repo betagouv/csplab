@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
 
 // Structure de champ DSFR pour les composants partagés qui ne l'offrent pas entièrement :
 // libellé, texte d'aide gris sous le libellé (ex. « Champ obligatoire »), le champ, puis un message
 // d'information sous le champ (icône bleue). Le composant glissé dedans garde son libellé, masqué à l'écran
 // quand ce cadre affiche le sien.
-defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obligatoire?: boolean }>()
+defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obligatoire?: boolean, bulle?: string }>()
 </script>
 
 <template>
@@ -20,7 +21,18 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obli
         v-if="obligatoire"
         class="champ__etoile"
         title="obligatoire"
-      > *</abbr></span>
+      > *</abbr><CspTooltip
+        v-if="bulle"
+        :content="bulle"
+        side="top"
+      ><span
+        class="champ__bulle"
+        tabindex="0"
+        :aria-label="bulle"
+      ><CspIcon
+        name="ri:information-line"
+        :size="16"
+      /></span></CspTooltip></span>
       <span
         v-if="hint"
         class="champ__hint"
@@ -83,6 +95,14 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obli
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+.champ__bulle {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: var(--csp-space-1);
+  color: var(--text-mention-grey);
+  cursor: help;
+}
+
 .champ__etoile {
   color: var(--text-default-error);
   text-decoration: none;
