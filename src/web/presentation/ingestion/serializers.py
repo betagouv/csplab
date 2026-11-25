@@ -1,7 +1,9 @@
 from urllib.parse import urlparse
+from uuid import UUID, uuid4
 
 import pycountry
 from drf_spectacular.utils import extend_schema_field
+from pydantic import HttpUrl
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
@@ -17,6 +19,7 @@ from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.job_family_referential import JobFamilyReferential
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
     Management,
@@ -24,6 +27,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import RequiredDocument
@@ -31,16 +35,19 @@ from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.services.list_metiers import list_metiers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
 )
 from application.ingestion.services.metier_functional_areas import (
     get_metier_functional_areas,
 )
+from application.ingestion.services.upsert_offers import PendingOffer
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.countries import COUNTRY_NAMES
 from presentation.commons.markdown import forbidden_markdown
@@ -1016,9 +1023,9 @@ class ProfessionInputSerializer(serializers.Serializer):
             )
 
         metier = data.get("metier")
-        metiers_repository = self.context.get("metiers_repository")
-        if metiers_repository is not None and not metiers_repository.get_filtered(
-            {"offer_family_code": metier}
+        if (
+            self.context.get("check_metier")
+            and not list_metiers(codes=[metier]).exists()
         ):
             raise serializers.ValidationError(
                 {"metier": f"Code métier inconnu : {metier}."}
@@ -1482,6 +1489,78 @@ class OffersInputSerializer(serializers.Serializer):
                 "mais pas les deux."
             )
         return data
+
+    def to_pending_offer(self, source_id: UUID) -> PendingOffer:
+        data = self.validated_data
+        description = data["description"]
+        profession = data["profession"]
+        publication = data["publication"]
+        conditions = data.get("conditions") or None
+        debut_contrat = conditions.get("debut_contrat") if conditions else None
+        criteria = OfferCriteria.from_dict(data.get("criteres"))
+        application_url = data.get("url_candidature")
+
+        offer = OfferModel(
+            id=uuid4(),
+            source_id=source_id,
+            reference=data["identification"]["reference"],
+            verse=Verse(data["identification"]["versant"]).value,
+            title=data["titre"],
+            long_title=data.get("titre_long") or None,
+            profile=description["profil"],
+            mission=description["mission"],
+            employer=description.get("employeur") or None,
+            complements=description.get("complements") or None,
+            exercise_conditions=description.get("conditions_exercice") or None,
+            service_description=description.get("descriptif_service") or None,
+            organization=data["organisation"]["nom"],
+            talentsoft_organisme_entity_code_id=data["organisation"].get(
+                "talentsoft_organisme_entity_code"
+            )
+            or None,
+            categories=[Category(category).value for category in data["categories"]],
+            offer_nature=OfferNature(data["nature_offre"]).value,
+            offer_url=data.get("url_offre") or None,
+            code_emploi_csp=profession["metier"],
+            job_family_referential=profession.get("referentiel"),
+            local_job_code=profession.get("code_emploi_local"),
+            functional_area_code=profession.get("domaine"),
+            publication_date=publication["debut_publication"],
+            end_publication_date=publication["fin_publication"],
+            application_deadline=publication.get("fin_candidature"),
+            job_vacancy_date=publication.get("debut_vacance_poste"),
+            beginning_date=debut_contrat or None,
+            application_url=str(HttpUrl(application_url)) if application_url else None,
+            application_email=data.get("email_candidature"),
+            contract_kind=data.get("type_contrat") or None,
+            job_vacancy=data.get("vacance_poste") or None,
+            criteria=criteria.to_dict() if criteria else None,
+            conditions=conditions,
+            contacts=list(data["contacts"]) if data.get("contacts") else None,
+            archived_at=None,
+        )
+        return PendingOffer(
+            offer=offer,
+            localisations=[
+                _to_localisation(localisation)
+                for localisation in data.get("localisation") or []
+                if localisation
+            ],
+        )
+
+
+def _to_localisation(data: dict) -> Localisation:
+    return Localisation(
+        area=GeographicalArea(data["zone_geographique"]),
+        country=Country(data["pays"]),
+        region=Region(code=data["region"]) if data["region"] else None,
+        department=(
+            Department(code=data["departement"]) if data["departement"] else None
+        ),
+        label=data.get("localisation_label") or None,
+        latitude=data.get("latitude"),
+        longitude=data.get("longitude"),
+    )
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):

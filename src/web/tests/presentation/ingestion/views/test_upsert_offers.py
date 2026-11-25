@@ -1,36 +1,19 @@
+import json
 import re
 from datetime import datetime
-from unittest.mock import MagicMock
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
+from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from faker import Faker
 from pydantic import HttpUrl
-from referentiel.entities.offer import Offer
-from referentiel.value_objects.area import GeographicalArea
-from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_kind import ContractKind
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
-from referentiel.value_objects.diploma import Diploma
-from referentiel.value_objects.experience_level import ExperienceLevel
-from referentiel.value_objects.language_level import LanguageLevel
-from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import JobVacancy
-from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
-from referentiel.value_objects.offer_nature import OfferNature
-from referentiel.value_objects.region import Region
-from referentiel.value_objects.required_document import RequiredDocument
-from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from domain.ingestion.exceptions.source_authorization_error import (
-    SourceAuthorizationError,
-)
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.offer_payload_factory import (
     PayloadOfferFactory,
@@ -48,13 +31,11 @@ from infrastructure.factories.referentiel.metier_django_factory import (
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
-from infrastructure.mappers.offer_mapper import OfferMapper
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
 from presentation.ingestion.serializers import (
     DUPLICATE_LANGUAGE,
     INVALID_LANGUAGE_CODE,
     ConditionsInputSerializer,
-    OfferDetailResponseSerializer,
 )
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
@@ -149,54 +130,27 @@ INVALID_DATA_OFFER = PayloadOfferFactory.create(
 )
 
 
-COMPARABLE_OFFER_ATTRS = [
-    "reference",
-    "title",
-    "profile",
-    "mission",
-    "organization",
-    "publication_date",
-    "end_publication_date",
-    "verse",
-    "categories",
-    "offer_nature",
-    "offer_url",
-    "localisations",
-    "beginning_date",
-    "family_code",
-    "job_family_referential",
-    "functional_area_code",
-    "source_id",
-    "long_title",
-    "application_url",
-    "application_email",
-    "contract_kind",
-    "job_vacancy",
-    "employer",
-    "complements",
-    "exercise_conditions",
-    "service_description",
-    "application_deadline",
-    "job_vacancy_date",
-    "criteria",
-    "conditions",
-    "contacts",
+LOCALISATION_FIELDS = [
+    "area",
+    "country",
+    "region",
+    "department",
+    "label",
+    "latitude",
+    "longitude",
 ]
 
 
-def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
-    reference = payload["identification"]["reference"]
-    versant = payload["identification"]["versant"]
-
+def expected_offer_fields(payload: dict, source_id: UUID) -> dict:
     def parse_datetime(raw: str) -> datetime:
         return datetime.fromisoformat(raw.replace("Z", "+00:00"))
 
-    conditions = payload.get("conditions") or None
-    debut_contrat_raw = conditions.get("debut_contrat") if conditions else None
-    debut_contrat = (
-        LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
-    )
+    description = payload["description"]
+    publication = payload["publication"]
+    profession = payload["profession"]
 
+    conditions = payload.get("conditions") or None
+    debut_contrat = conditions.get("debut_contrat") if conditions else None
     # mirrors how ConditionsInputSerializer drops unknown fields and parses datetime
     # fields into validated_data
     if conditions:
@@ -207,106 +161,94 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             for key, value in conditions.items()
             if key in ConditionsInputSerializer().fields
         }
-
-    localisations = [
-        Localisation(
-            area=GeographicalArea(loc["zone_geographique"]),
-            country=Country(loc["pays"]),
-            region=Region(code=loc["region"]) if loc["region"] else None,
-            department=(
-                Department(code=loc["departement"]) if loc["departement"] else None
-            ),
-            label=loc.get("localisation_label") or None,
-            latitude=loc.get("latitude"),
-            longitude=loc.get("longitude"),
-        )
-        for loc in payload.get("localisation") or []
-    ]
-
-    type_contrat = payload.get("type_contrat")
+        # stored in a JSONField, where datetimes are encoded as strings
+        conditions = json.loads(json.dumps(conditions, cls=DjangoJSONEncoder))
 
     criteres = payload.get("criteres")
     criteria = (
-        OfferCriteria(
-            diploma_level=Diploma(criteres["diplome_niveau"])
-            if criteres.get("diplome_niveau") is not None
-            else None,
-            diploma=criteres.get("diplome") or None,
-            experience_level=ExperienceLevel[criteres["experience"]]
-            if criteres.get("experience")
-            else None,
-            specialisations=list(criteres.get("specialisations") or []),
-            documents_requis=[
-                RequiredDocument[document]
-                for document in criteres.get("documents_requis") or []
-            ],
-            competences_requises=criteres.get("competences_requises") or None,
-            languages=[
-                OfferLanguage(
-                    iso_code=langue["iso_code"], level=LanguageLevel[langue["niveau"]]
-                )
+        {
+            "diplome_niveau": criteres.get("diplome_niveau"),
+            "diplome": criteres.get("diplome") or None,
+            "experience": criteres.get("experience") or None,
+            "specialisations": list(criteres.get("specialisations") or []),
+            "documents_requis": list(criteres.get("documents_requis") or []),
+            "competences_requises": criteres.get("competences_requises") or None,
+            "langues": [
+                {"iso_code": langue["iso_code"], "niveau": langue["niveau"]}
                 for langue in criteres.get("langues") or []
             ],
-        )
+        }
         if criteres
         else None
     )
 
-    return Offer(
-        reference=reference,
-        title=payload["titre"],
-        profile=payload["description"]["profil"],
-        mission=payload["description"]["mission"],
-        organization=payload["organisation"]["nom"],
-        publication_date=datetime.fromisoformat(
-            payload["publication"]["debut_publication"]
-        ),
-        end_publication_date=datetime.fromisoformat(
-            payload["publication"]["fin_publication"]
-        ),
-        verse=Verse(versant),
-        categories=[Category(c) for c in payload.get("categories") or []],
-        offer_nature=OfferNature(payload["nature_offre"]),
-        offer_url=payload.get("url_offre"),
-        localisations=localisations,
-        beginning_date=debut_contrat,
-        family_code=payload["profession"]["metier"],
-        job_family_referential=payload["profession"].get("referentiel"),
-        functional_area_code=payload["profession"].get("domaine"),
-        source_id=source_id,
-        long_title=payload.get("titre_long") or None,
-        application_url=HttpUrl(url_candidature)
-        if (url_candidature := payload.get("url_candidature"))
+    url_candidature = payload.get("url_candidature")
+    fin_candidature = publication.get("fin_candidature")
+    debut_vacance_poste = publication.get("debut_vacance_poste")
+
+    return {
+        "reference": payload["identification"]["reference"],
+        "verse": payload["identification"]["versant"],
+        "title": payload["titre"],
+        "long_title": payload.get("titre_long") or None,
+        "profile": description["profil"],
+        "mission": description["mission"],
+        "employer": description.get("employeur") or None,
+        "complements": description.get("complements") or None,
+        "exercise_conditions": description.get("conditions_exercice") or None,
+        "service_description": description.get("descriptif_service") or None,
+        "organization": payload["organisation"]["nom"],
+        "categories": list(payload.get("categories") or []),
+        "offer_nature": payload["nature_offre"],
+        "offer_url": payload.get("url_offre") or None,
+        "code_emploi_csp": profession["metier"],
+        "job_family_referential": profession.get("referentiel"),
+        "functional_area_code": profession.get("domaine"),
+        "source_id": source_id,
+        "publication_date": datetime.fromisoformat(publication["debut_publication"]),
+        "end_publication_date": datetime.fromisoformat(publication["fin_publication"]),
+        "application_deadline": parse_datetime(fin_candidature)
+        if fin_candidature
         else None,
-        application_email=payload.get("email_candidature"),
-        contract_kind=ContractKind[type_contrat] if type_contrat else None,
-        job_vacancy=payload.get("vacance_poste"),
-        employer=payload["description"].get("employeur") or None,
-        complements=payload["description"].get("complements") or None,
-        exercise_conditions=payload["description"].get("conditions_exercice") or None,
-        service_description=payload["description"].get("descriptif_service") or None,
-        application_deadline=parse_datetime(fin_candidature)
-        if (fin_candidature := payload["publication"].get("fin_candidature"))
+        "job_vacancy_date": parse_datetime(debut_vacance_poste)
+        if debut_vacance_poste
         else None,
-        job_vacancy_date=parse_datetime(debut_vacance_poste)
-        if (debut_vacance_poste := payload["publication"].get("debut_vacance_poste"))
-        else None,
-        criteria=criteria,
-        conditions=conditions,
-        contacts=list(payload["contacts"]) if payload.get("contacts") else None,
-    )
+        "beginning_date": parse_datetime(debut_contrat) if debut_contrat else None,
+        # pydantic normalises the URL, e.g. adds a trailing slash
+        "application_url": str(HttpUrl(url_candidature)) if url_candidature else None,
+        "application_email": payload.get("email_candidature"),
+        "contract_kind": payload.get("type_contrat") or None,
+        "job_vacancy": payload.get("vacance_poste"),
+        "criteria": criteria,
+        "conditions": conditions,
+        "contacts": list(payload["contacts"]) if payload.get("contacts") else None,
+    }
 
 
-@pytest.fixture
-def use_case():
-    mock = MagicMock()
-    mock.execute.return_value = {"created": 0, "updated": 0, "errors": [], "offres": []}
-    return mock
+def expected_localisations(payload: dict) -> list[dict]:
+    return [
+        {
+            "area": loc["zone_geographique"],
+            "country": loc["pays"],
+            "region": loc["region"] or None,
+            "department": loc["departement"] or None,
+            "label": loc.get("localisation_label") or "",
+            "latitude": loc.get("latitude"),
+            "longitude": loc.get("longitude"),
+        }
+        for loc in payload.get("localisation") or []
+    ]
 
 
 @pytest.fixture(autouse=True)
-def mock_container(mock_offers_container, use_case):
-    mock_offers_container.upsert_offers_usecase.return_value = use_case
+def metier(db):
+    return MetierDjangoFactory(
+        offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+    )
+
+
+def _upserted_offers() -> list[OfferModel]:
+    return list(OfferModel.objects.order_by("reference"))
 
 
 @pytest.fixture
@@ -327,13 +269,7 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_api_key_authentication(api_key_client, use_case):
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-001", "statut": "created"}],
-    }
+def test_api_key_authentication(api_key_client, source):
     response = api_key_client.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
@@ -364,8 +300,7 @@ def test_invalid_payload_returns_error_400(jwt_client, num_offers, expected_msg)
     assert response.json() == {"offres": [expected_msg]}
 
 
-def test_jwt_forbidden_source_id_returns_403(jwt_client, use_case):
-    use_case.execute.side_effect = SourceAuthorizationError({UUID(SOURCE_UUID)})
+def test_jwt_forbidden_source_id_returns_403(jwt_client):
     response = jwt_client.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
@@ -375,19 +310,10 @@ def test_jwt_forbidden_source_id_returns_403(jwt_client, use_case):
 
 
 def test_valid_payload_returns_201_and_valid_offers_to_usecase(
-    authenticated_client_with_source, use_case
+    authenticated_client_with_source,
 ):
     offers_payload = [MINIMAL_VALID_OFFER, PARTIAL_VALID_OFFER, COMPLETE_VALID_OFFER]
 
-    use_case.execute.return_value = {
-        "created": len(offers_payload),
-        "updated": 0,
-        "errors": [],
-        "offres": [
-            {"reference": p["identification"]["reference"], "statut": "created"}
-            for p in offers_payload
-        ],
-    }
     response = authenticated_client_with_source.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": offers_payload},
@@ -395,27 +321,21 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
     )
     assert response.status_code == status.HTTP_201_CREATED
 
-    upsert_input = use_case.execute.call_args[0][0]
-    for payload, offer in zip(offers_payload, upsert_input.offers, strict=True):
-        expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
-        for attr in COMPARABLE_OFFER_ATTRS:
-            assert getattr(offer, attr) == getattr(expected, attr)
+    offers = _upserted_offers()
+    for payload, offer in zip(offers_payload, offers, strict=True):
+        expected = expected_offer_fields(payload, source_id=UUID(SOURCE_UUID))
+        assert {field: getattr(offer, field) for field in expected} == expected
+        assert list(
+            offer.localisations.values(*LOCALISATION_FIELDS)
+        ) == expected_localisations(payload)
     # conditions.complements was removed from the API: sent fields are dropped
-    partial_offer = upsert_input.offers[1]
+    partial_offer = offers[1]
     assert "complements" not in partial_offer.conditions
 
 
-def test_mixed_valid_invalid_offers_in_payload(
-    authenticated_client_with_source, use_case
-):
+def test_mixed_valid_invalid_offers_in_payload(authenticated_client_with_source):
     offers_payload = [MINIMAL_VALID_OFFER, INVALID_PAYLOAD_OFFER, INVALID_DATA_OFFER]
 
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": ["db error on offer xxx"],
-        "offres": [{"reference": "REF-001", "statut": "created"}],
-    }
     response = authenticated_client_with_source.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": offers_payload},
@@ -427,7 +347,6 @@ def test_mixed_valid_invalid_offers_in_payload(
     ]
     errors = response.json()["errors"]
     assert errors == [
-        "db error on offer xxx",
         {
             "index": 1,
             "offre": {"reference": "REF-004", "versant": "FPT"},
@@ -441,17 +360,9 @@ def test_mixed_valid_invalid_offers_in_payload(
     ]
 
 
-def test_unknown_metier_returns_error_in_payload(
-    authenticated_client_with_source, use_case, mock_offers_container
-):
-    mock_offers_container.metiers_repository.return_value.get_filtered.return_value = []
+def test_unknown_metier_returns_error_in_payload(authenticated_client_with_source):
+    MetierModel.objects.all().delete()
 
-    use_case.execute.return_value = {
-        "created": 0,
-        "updated": 0,
-        "errors": [],
-        "offres": [],
-    }
     response = authenticated_client_with_source.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
@@ -485,7 +396,7 @@ def _offer_with_talentsoft_organisme(entity_code):
 
 
 def test_talentsoft_organisme_is_rejected_with_jwt_authentication(
-    authenticated_client_with_source, use_case, db
+    authenticated_client_with_source, db
 ):
     entity_code = TalentsoftOrganismeDjangoFactory().entity_code
 
@@ -512,18 +423,12 @@ def test_talentsoft_organisme_is_rejected_with_jwt_authentication(
             },
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 def test_unknown_talentsoft_organisme_is_rejected_with_api_key_authentication(
-    api_key_client, use_case, db
+    api_key_client, source
 ):
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-002", "statut": "created"}],
-    }
     response = api_key_client.post(
         URL,
         data={
@@ -551,19 +456,13 @@ def test_unknown_talentsoft_organisme_is_rejected_with_api_key_authentication(
             },
         }
     ]
-    offers = use_case.execute.call_args.args[0].offers
+    offers = _upserted_offers()
     assert [offer.reference for offer in offers] == ["REF-002"]
 
 
 def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
-    api_key_client, use_case, db
+    api_key_client, source
 ):
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-001", "statut": "created"}],
-    }
     entity_code = TalentsoftOrganismeDjangoFactory().entity_code
 
     response = api_key_client.post(
@@ -577,12 +476,12 @@ def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    (offer,) = use_case.execute.call_args.args[0].offers
-    assert offer.talentsoft_organisme_entity_code == entity_code
+    (offer,) = _upserted_offers()
+    assert offer.talentsoft_organisme_entity_code_id == entity_code
 
 
 def test_contacts_are_sorted_by_role_with_deduplicated_emails(
-    authenticated_client_with_source, use_case
+    authenticated_client_with_source,
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-006", "versant": "FPT"},
@@ -595,12 +494,6 @@ def test_contacts_are_sorted_by_role_with_deduplicated_emails(
             {"role": "principal", "texte": "Camille Martin", "emails": []},
         ],
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-006", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -609,8 +502,8 @@ def test_contacts_are_sorted_by_role_with_deduplicated_emails(
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    upsert_input = use_case.execute.call_args[0][0]
-    assert upsert_input.offers[0].contacts == [
+    offers = _upserted_offers()
+    assert offers[0].contacts == [
         {"role": "principal", "texte": "Camille Martin", "emails": []},
         {
             "role": "autre",
@@ -684,7 +577,7 @@ def test_contacts_are_sorted_by_role_with_deduplicated_emails(
     ],
 )
 def test_invalid_contacts_are_rejected(
-    authenticated_client_with_source, use_case, contacts, expected_error
+    authenticated_client_with_source, contacts, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-007", "versant": "FPT"},
@@ -722,7 +615,7 @@ def test_invalid_contacts_are_rejected(
     ids=["unknown-document", "duplicate-document"],
 )
 def test_invalid_required_documents_are_rejected(
-    authenticated_client_with_source, use_case, documents_requis, expected_error
+    authenticated_client_with_source, documents_requis, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-010", "versant": "FPT"},
@@ -746,18 +639,12 @@ def test_invalid_required_documents_are_rejected(
 
 
 def test_competences_requises_markdown_is_passed_to_usecase(
-    authenticated_client_with_source, use_case
+    authenticated_client_with_source,
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-011", "versant": "FPT"},
         criteres={"competences_requises": "Connaissances :\n\n- Droit public"},
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-011", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -767,8 +654,8 @@ def test_competences_requises_markdown_is_passed_to_usecase(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    upsert_input = use_case.execute.call_args[0][0]
-    assert upsert_input.offers[0].criteria.competences_requises == (
+    offers = _upserted_offers()
+    assert offers[0].criteria["competences_requises"] == (
         "Connaissances :\n\n- Droit public"
     )
 
@@ -785,7 +672,7 @@ def test_competences_requises_markdown_is_passed_to_usecase(
     ids=["list", "too-long"],
 )
 def test_invalid_competences_requises_are_rejected(
-    authenticated_client_with_source, use_case, competences_requises, expected_error
+    authenticated_client_with_source, competences_requises, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-012", "versant": "FPT"},
@@ -809,7 +696,7 @@ def test_invalid_competences_requises_are_rejected(
 
 
 def test_criteria_and_conditions_at_their_limits_are_normalized(
-    authenticated_client_with_source, use_case
+    authenticated_client_with_source,
 ):
     specialisations = ["s" * 255, *(f"Spécialisation {i}" for i in range(18))]
     offer = PayloadOfferFactory.create(
@@ -828,13 +715,6 @@ def test_criteria_and_conditions_at_their_limits_are_normalized(
             "duree_contrat": "a" * 100,
         },
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-LIMITES", "statut": "created"}],
-    }
-
     response = authenticated_client_with_source.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [offer]},
@@ -843,10 +723,10 @@ def test_criteria_and_conditions_at_their_limits_are_normalized(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    (received,) = use_case.execute.call_args[0][0].offers
-    assert received.criteria.diploma == "d" * 255
-    assert received.criteria.specialisations == specialisations
-    assert [language.iso_code for language in received.criteria.languages] == [
+    (received,) = _upserted_offers()
+    assert received.criteria["diplome"] == "d" * 255
+    assert received.criteria["specialisations"] == specialisations
+    assert [language["iso_code"] for language in received.criteria["langues"]] == [
         "EN",
         "DE",
     ]
@@ -937,7 +817,7 @@ def test_criteria_and_conditions_at_their_limits_are_normalized(
     ],
 )
 def test_invalid_free_texts_of_criteria_and_conditions_are_rejected(
-    authenticated_client_with_source, use_case, criteres, conditions, expected_error
+    authenticated_client_with_source, criteres, conditions, expected_error
 ):
     overrides = {}
     if criteres is not None:
@@ -968,9 +848,7 @@ def test_invalid_free_texts_of_criteria_and_conditions_are_rejected(
     ]
 
 
-def test_bases_legales_markdown_is_passed_to_usecase(
-    authenticated_client_with_source, use_case
-):
+def test_bases_legales_markdown_is_passed_to_usecase(authenticated_client_with_source):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-013", "versant": "FPT"},
         conditions={
@@ -980,12 +858,6 @@ def test_bases_legales_markdown_is_passed_to_usecase(
             "bases_legales": "Ouvert :\n\n- 1° aux fonctionnaires",
         },
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-013", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -995,8 +867,8 @@ def test_bases_legales_markdown_is_passed_to_usecase(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    upsert_input = use_case.execute.call_args[0][0]
-    assert upsert_input.offers[0].conditions["bases_legales"] == (
+    offers = _upserted_offers()
+    assert offers[0].conditions["bases_legales"] == (
         "Ouvert :\n\n- 1° aux fonctionnaires"
     )
 
@@ -1030,7 +902,7 @@ def test_bases_legales_markdown_is_passed_to_usecase(
     ids=["html", "forbidden-link", "too-long"],
 )
 def test_invalid_bases_legales_are_rejected(
-    authenticated_client_with_source, use_case, bases_legales, expected_error
+    authenticated_client_with_source, bases_legales, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-014", "versant": "FPT"},
@@ -1056,7 +928,7 @@ def test_invalid_bases_legales_are_rejected(
             "error": {"conditions": {"bases_legales": expected_error}},
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 @pytest.mark.parametrize(
@@ -1068,7 +940,7 @@ def test_invalid_bases_legales_are_rejected(
     ],
 )
 def test_invalid_categories_are_rejected(
-    authenticated_client_with_source, use_case, categories, expected_error
+    authenticated_client_with_source, categories, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-007", "versant": "FPT"},
@@ -1094,20 +966,12 @@ def test_invalid_categories_are_rejected(
     ]
 
 
-def test_email_candidature_is_passed_to_usecase(
-    authenticated_client_with_source, use_case
-):
+def test_email_candidature_is_passed_to_usecase(authenticated_client_with_source):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-008", "versant": "FPT"},
         url_candidature=None,
         email_candidature="rh@exemple.gouv.fr",
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-008", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -1116,9 +980,9 @@ def test_email_candidature_is_passed_to_usecase(
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    upsert_input = use_case.execute.call_args[0][0]
-    assert upsert_input.offers[0].application_email == "rh@exemple.gouv.fr"
-    assert upsert_input.offers[0].application_url is None
+    offers = _upserted_offers()
+    assert offers[0].application_email == "rh@exemple.gouv.fr"
+    assert offers[0].application_url is None
 
 
 APPLICATION_CHANNEL_ERROR = {
@@ -1150,7 +1014,7 @@ APPLICATION_CHANNEL_ERROR = {
     ],
 )
 def test_invalid_application_channels_are_rejected(
-    authenticated_client_with_source, use_case, candidature, expected_error
+    authenticated_client_with_source, candidature, expected_error
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-009", "versant": "FPT"},
@@ -1200,7 +1064,7 @@ def test_invalid_application_channels_are_rejected(
     ],
 )
 def test_inconsistent_region_and_department_are_rejected(
-    authenticated_client_with_source, use_case, region, departement, expected_message
+    authenticated_client_with_source, region, departement, expected_message
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-011", "versant": "FPT"},
@@ -1231,7 +1095,7 @@ def test_inconsistent_region_and_department_are_rejected(
             "error": {"localisation": {"0": {"non_field_errors": [expected_message]}}},
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 @pytest.mark.parametrize(
@@ -1239,7 +1103,7 @@ def test_inconsistent_region_and_department_are_rejected(
     [("11", "75"), ("11", None), (None, "75")],
 )
 def test_region_or_department_abroad_is_rejected(
-    authenticated_client_with_source, use_case, region, departement
+    authenticated_client_with_source, region, departement
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-013", "versant": "FPE"},
@@ -1270,7 +1134,7 @@ def test_region_or_department_abroad_is_rejected(
     assert response.json()["errors"][0]["error"] == {
         "localisation": {"0": {"non_field_errors": [expected_message]}}
     }
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 @pytest.mark.parametrize(
@@ -1285,7 +1149,7 @@ def test_region_or_department_abroad_is_rejected(
     ],
 )
 def test_consistent_region_and_department_are_accepted(
-    authenticated_client_with_source, use_case, region, departement
+    authenticated_client_with_source, region, departement
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-012", "versant": "FPT"},
@@ -1301,12 +1165,6 @@ def test_consistent_region_and_department_are_accepted(
             }
         ],
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-012", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -1316,11 +1174,11 @@ def test_consistent_region_and_department_are_accepted(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    assert len(use_case.execute.call_args.args[0].offers) == 1
+    assert len(_upserted_offers()) == 1
 
 
 def test_description_with_html_is_rejected_with_an_explicit_message(
-    authenticated_client_with_source, use_case
+    authenticated_client_with_source,
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-010", "versant": "FPT"},
@@ -1363,12 +1221,10 @@ def test_description_with_html_is_rejected_with_an_explicit_message(
             },
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
-def test_country_code_not_in_uppercase_is_rejected(
-    authenticated_client_with_source, use_case
-):
+def test_country_code_not_in_uppercase_is_rejected(authenticated_client_with_source):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-011", "versant": "FPT"},
         localisation=[
@@ -1383,12 +1239,6 @@ def test_country_code_not_in_uppercase_is_rejected(
             }
         ],
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-001", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -1404,7 +1254,7 @@ def test_country_code_not_in_uppercase_is_rejected(
             "error": {"localisation": {"0": {"pays": [INVALID_COUNTRY_CODE]}}},
         }
     ]
-    offers = use_case.execute.call_args.args[0].offers
+    offers = _upserted_offers()
     assert [offer.reference for offer in offers] == ["REF-001"]
 
 
@@ -1419,7 +1269,7 @@ def test_country_code_not_in_uppercase_is_rejected(
     ],
 )
 def test_overseas_country_code_is_rejected(
-    authenticated_client_with_source, use_case, pays, territory, region, departement
+    authenticated_client_with_source, pays, territory, region, departement
 ):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-014", "versant": "FPT"},
@@ -1455,13 +1305,11 @@ def test_overseas_country_code_is_rejected(
             "error": {"localisation": {"1": {"pays": [expected_message]}}},
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 @pytest.mark.parametrize("pays", ["DOM", "ATF", "DEU"])
-def test_country_code_abroad_is_accepted(
-    authenticated_client_with_source, use_case, pays
-):
+def test_country_code_abroad_is_accepted(authenticated_client_with_source, pays):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-015", "versant": "FPT"},
         localisation=[
@@ -1476,12 +1324,6 @@ def test_country_code_abroad_is_accepted(
             }
         ],
     )
-    use_case.execute.return_value = {
-        "created": 1,
-        "updated": 0,
-        "errors": [],
-        "offres": [{"reference": "REF-015", "statut": "created"}],
-    }
 
     response = authenticated_client_with_source.post(
         URL,
@@ -1491,18 +1333,23 @@ def test_country_code_abroad_is_accepted(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["errors"] == []
-    assert len(use_case.execute.call_args.args[0].offers) == 1
+    assert len(_upserted_offers()) == 1
 
 
-def test_returns_error_500(authenticated_client_with_source, use_case):
-    use_case.execute.side_effect = Exception("db error")
-
+def test_database_error_returns_500_and_saves_nothing(
+    authenticated_client_with_source,
+):
     response = authenticated_client_with_source.post(
         URL,
-        data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [MINIMAL_VALID_OFFER, MINIMAL_VALID_OFFER],
+        },
         content_type="application/json",
     )
+
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert not OfferModel.objects.exists()
 
 
 DUPLICATE_LOCALISATION_MESSAGE = (
@@ -1522,9 +1369,7 @@ def _localisation_payload(departement: str, label: str = "") -> dict:
     }
 
 
-def test_more_than_50_localisations_are_rejected(
-    authenticated_client_with_source, use_case
-):
+def test_more_than_50_localisations_are_rejected(authenticated_client_with_source):
     offer = PayloadOfferFactory.create(
         identification={"reference": "REF-51", "versant": "FPT"},
         localisation=[
@@ -1548,12 +1393,10 @@ def test_more_than_50_localisations_are_rejected(
             },
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
-def test_duplicate_localisations_are_rejected(
-    authenticated_client_with_source, use_case
-):
+def test_duplicate_localisations_are_rejected(authenticated_client_with_source):
     first = _localisation_payload("14", label="Caen")
     duplicate = {**first, "latitude": 49.18, "longitude": -0.37}
     offer = PayloadOfferFactory.create(
@@ -1575,12 +1418,12 @@ def test_duplicate_localisations_are_rejected(
             "error": {"localisation": [DUPLICATE_LOCALISATION_MESSAGE]},
         }
     ]
-    assert use_case.execute.call_args.args[0].offers == []
+    assert _upserted_offers() == []
 
 
 class TestOffersUpsertViewDbVerified:
     @pytest.fixture(autouse=True)
-    def mock_container(self):
+    def metier(self):
         return None
 
     def test_creates_and_persists_the_offer(self, authenticated_client_with_source):
@@ -1605,12 +1448,13 @@ class TestOffersUpsertViewDbVerified:
         offer_model = OfferModel.objects.get(
             reference="REF-001", source_id=UUID(SOURCE_UUID)
         )
-        persisted = OfferMapper().to_domain(offer_model)
-        expected = parse_offer_from_payload(
+        expected = expected_offer_fields(
             MINIMAL_VALID_OFFER, source_id=UUID(SOURCE_UUID)
         )
-        for attr in COMPARABLE_OFFER_ATTRS:
-            assert getattr(persisted, attr) == getattr(expected, attr)
+        assert {field: getattr(offer_model, field) for field in expected} == expected
+        assert list(
+            offer_model.localisations.values(*LOCALISATION_FIELDS)
+        ) == expected_localisations(MINIMAL_VALID_OFFER)
 
     @pytest.mark.parametrize(
         "titre_long",
@@ -1762,7 +1606,7 @@ class TestOffersUpsertViewDbVerified:
         offer_model = OfferModel.objects.get(
             reference="REF-SANS-GPS", source_id=UUID(SOURCE_UUID)
         )
-        localisation = OfferMapper().to_domain(offer_model).main_localisation
+        localisation = offer_model.localisations.get(position=0)
         assert localisation.label == "Caen"
         assert localisation.latitude is None
         assert localisation.longitude is None
@@ -1868,17 +1712,13 @@ class TestOffersUpsertViewDbVerified:
         offer_model = OfferModel.objects.get(
             reference="REF-BERLIN", source_id=UUID(SOURCE_UUID)
         )
-        assert list(
-            offer_model.localisations.values_list("country", "region", "department")
-        ) == [("DEU", None, None)]
-        persisted = OfferMapper().to_domain(offer_model)
-        assert OfferDetailResponseSerializer(persisted).data["localisation"] == [
+        assert list(offer_model.localisations.values(*LOCALISATION_FIELDS)) == [
             {
-                "zone_geographique": "EU",
-                "pays": "DEU",
+                "area": "EU",
+                "country": "DEU",
                 "region": None,
-                "departement": None,
-                "localisation_label": "Ambassade de France à Berlin",
+                "department": None,
+                "label": "Ambassade de France à Berlin",
                 "latitude": 52.5163,
                 "longitude": 13.3777,
             }
