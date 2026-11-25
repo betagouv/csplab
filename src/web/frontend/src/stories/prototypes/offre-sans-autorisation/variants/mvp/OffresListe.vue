@@ -139,16 +139,12 @@ const offresAFaire = computed(() => {
 })
 // Les cartes appliquent les filtres existants : Statut « Prête à publier », Fin de publication « moins de 7 jours ».
 const ONGLET_ACTION: Record<CarteAFaire, CategorieOffre> = { prolonger: 'en_ligne', publier: 'brouillon' }
-const carteActive = computed<CarteAFaire | null>(() => filtres.applied.fin === '7' ? 'prolonger' : filtres.applied.statut === 'prete' ? 'publier' : null)
 function choisirAction(t: CarteAFaire) {
-  const dejaActive = carteActive.value === t
   filtres.syncDraft()
-  filtres.draft.statut = t === 'publier' && !dejaActive ? 'prete' : TOUS
-  filtres.draft.fin = t === 'prolonger' && !dejaActive ? '7' : TOUS
+  filtres.draft.statut = t === 'publier' ? 'prete' : TOUS
+  filtres.draft.fin = t === 'prolonger' ? '7' : TOUS
   filtres.apply()
-  if (!dejaActive) {
-    onglet.value = ONGLET_ACTION[t]
-  }
+  onglet.value = ONGLET_ACTION[t]
 }
 
 const lignes = computed(() => {
@@ -199,7 +195,6 @@ const page = ref(1)
     <template #avant-onglets>
       <AFaire
         :offres="offresAFaire"
-        :actif="carteActive"
         @choisir="choisirAction"
       />
     </template>

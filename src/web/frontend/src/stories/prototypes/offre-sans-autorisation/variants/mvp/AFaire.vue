@@ -11,16 +11,15 @@ export type CarteAFaire = 'prolonger' | 'publier'
 // Encart « À faire » en tête de « Mes offres d'emploi » (Alice, 25/11/2026) : prolongations d'abord, puis offres
 // prêtes à publier (en vert). Pas les offres en préparation à compléter : pas d'urgence. Une carte disparaît
 // quand il n'y a rien à faire, l'encart aussi.
-// Une seule offre concernée : titre de la carte, titre de l'offre (lien), puis bouton d'action (Alice).
-// Plusieurs : la carte filtre le tableau.
-const props = defineProps<{ offres: Record<CarteAFaire, Offre[]>, actif: CarteAFaire | null }>()
+// Même modèle pour toutes les cartes (Alice) : titre de la carte, titre de l'offre (lien) s'il n'y en a qu'une,
+// puis bouton. Une offre : l'action (Prolonger, Publier). Plusieurs : « Voir les offres » filtre le tableau.
+const props = defineProps<{ offres: Record<CarteAFaire, Offre[]> }>()
 const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 const { aller } = useNav()
 
-const pluriel = (n: number, un: string, plusieurs: string) => (n > 1 ? plusieurs : un)
 const cartes = computed(() => ([
-  { id: 'prolonger' as const, icone: 'ri:time-line', texte: (n: number) => `${pluriel(n, 'offre se termine', 'offres se terminent')} dans moins de 7 jours`, titreSeule: 'Une offre arrive à échéance' },
-  { id: 'publier' as const, icone: 'ri:send-plane-line', texte: (n: number) => pluriel(n, 'offre prête à publier', 'offres prêtes à publier'), titreSeule: 'Une offre prête à publier' },
+  { id: 'prolonger' as const, icone: 'ri:time-line', titre: (n: number) => (n > 1 ? `${n} offres arrivent à échéance` : 'Une offre arrive à échéance') },
+  { id: 'publier' as const, icone: 'ri:send-plane-line', titre: (n: number) => (n > 1 ? `${n} offres prêtes à publier` : 'Une offre prête à publier') },
 ]).filter(c => props.offres[c.id].length > 0).map(c => ({ ...c, n: props.offres[c.id].length, seule: props.offres[c.id].length === 1 ? props.offres[c.id][0]! : null })))
 </script>
 
@@ -42,8 +41,7 @@ const cartes = computed(() => ([
         :key="c.id"
       >
         <div
-          v-if="c.seule"
-          class="carte carte--seule"
+          class="carte"
           :class="`carte--${c.id}`"
         >
           <p class="carte__tete">
@@ -52,45 +50,32 @@ const cartes = computed(() => ([
               :size="20"
               class="carte__icone"
             />
-            {{ c.titreSeule }}
+            {{ c.titre(c.n) }}
           </p>
-          <button
-            type="button"
-            class="carte__offre"
-            @click="aller({ nom: 'offre', id: c.seule.id })"
-          >
-            {{ c.seule.titre || 'Offre sans titre' }}
-          </button>
+          <template v-if="c.seule">
+            <button
+              type="button"
+              class="carte__offre"
+              @click="aller({ nom: 'offre', id: c.seule.id })"
+            >
+              {{ c.seule.titre || 'Offre sans titre' }}
+            </button>
+            <CspButton
+              :label="actionOffre(c.seule)!.label"
+              size="sm"
+              class="carte__cta"
+              @click="aller(actionOffre(c.seule)!.ecran)"
+            />
+          </template>
           <CspButton
-            :label="actionOffre(c.seule)!.label"
+            v-else
+            label="Voir les offres"
             size="sm"
+            variant="secondary"
             class="carte__cta"
-            @click="aller(actionOffre(c.seule)!.ecran)"
+            @click="emit('choisir', c.id)"
           />
         </div>
-        <button
-          v-else
-          type="button"
-          class="carte"
-          :class="`carte--${c.id}`"
-          :aria-pressed="actif === c.id"
-          @click="emit('choisir', c.id)"
-        >
-          <CspIcon
-            :name="c.icone"
-            :size="20"
-            class="carte__icone"
-          />
-          <span class="carte__texte">
-            <strong class="carte__nombre">{{ c.n }}</strong>
-            {{ c.texte(c.n) }}
-          </span>
-          <CspIcon
-            name="ri:arrow-right-line"
-            :size="16"
-            class="carte__fleche"
-          />
-        </button>
       </li>
     </ul>
   </section>
@@ -115,28 +100,16 @@ const cartes = computed(() => ([
 
 .carte {
   display: flex;
-  align-items: center;
-  gap: var(--csp-space-3);
-  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--csp-space-2);
   height: 100%;
   padding: var(--csp-space-3) var(--csp-space-4);
   border: 1px solid var(--border-default-grey);
   border-left: 4px solid var(--border-plain-blue-france);
   background: var(--background-default-grey);
-  font: inherit;
   font-size: var(--csp-font-size-sm);
   color: var(--text-default-grey);
-  text-align: left;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--background-default-grey-hover);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
 }
 
 .carte--prolonger {
@@ -158,22 +131,6 @@ const cartes = computed(() => ([
 
 .carte--prolonger .carte__icone {
   color: var(--text-default-warning);
-}
-
-.carte__texte {
-  flex: 1;
-  min-width: 0;
-}
-
-.carte--seule {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--csp-space-2);
-  cursor: default;
-
-  &:hover {
-    background: var(--background-default-grey);
-  }
 }
 
 .carte__tete {
@@ -208,16 +165,5 @@ const cartes = computed(() => ([
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
-}
-
-.carte__nombre {
-  margin-right: 0.25em;
-  font-size: 1.25rem;
-  color: var(--text-title-grey);
-}
-
-.carte__fleche {
-  flex-shrink: 0;
-  color: var(--text-mention-grey);
 }
 </style>

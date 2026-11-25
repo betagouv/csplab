@@ -165,3 +165,5 @@ Réponses aux questions
   à publier »), titre de l'offre (lien vers sa page), puis bouton d'action. Ancienne version : échéance
   (« Se termine dans 4 jours » / « Prête à publier ») et porte le bouton d'action (Prolonger, Publier). Pas d'ouverture
   automatique de l'offre : le comportement de la carte resterait imprévisible. À partir de 2 offres, la carte filtre le tableau.
+- Cartes « À faire » harmonisées (Alice) : titre (« Une offre arrive à échéance » / « 2 offres prêtes à publier »), titre de
+  l'offre s'il n'y en a qu'une, puis bouton : l'action (Prolonger, Publier) pour une offre, « Voir les offres » (filtre) sinon.
