@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Mapping
+from uuid import UUID
 
 from referentiel.entities.organisme import Organisme
 
@@ -12,10 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class WebPublishOrganismesGateway(BaseWebGateway, IPublishOrganismesGateway):
-    async def publish(self, organismes: list[Organisme]) -> None:
+    async def publish(
+        self, organismes: list[Organisme], external_ids: Mapping[UUID, str | None]
+    ) -> None:
         response = await self._post(
             "/organismes/creer_modifier",
-            json={"organismes": [self._serialize(o) for o in organismes]},
+            json={"organismes": [self._serialize(o, external_ids) for o in organismes]},
         )
         errors = response.json().get("errors") if response.content else None
         if errors:
@@ -25,5 +29,17 @@ class WebPublishOrganismesGateway(BaseWebGateway, IPublishOrganismesGateway):
                 errors,
             )
 
-    def _serialize(self, organisme: Organisme) -> dict:
-        return OrganismeUpsertPayload.from_organisme(organisme).model_dump(mode="json")
+    def _serialize(
+        self, organisme: Organisme, external_ids: Mapping[UUID, str | None]
+    ) -> dict:
+        parent_external_id = None
+        if organisme.parent_id:
+            if organisme.parent_id not in external_ids:
+                raise ValueError(
+                    f"Parent {organisme.parent_id} of organisme "
+                    f"{organisme.referentiel} {organisme.external_id} is not published"
+                )
+            parent_external_id = external_ids[organisme.parent_id]
+        return OrganismeUpsertPayload.from_organisme(
+            organisme, parent_external_id
+        ).model_dump(mode="json")
