@@ -157,14 +157,19 @@ function formater() {
         />
       </ChampOffre>
       <FieldRow :cols="3">
-        <CspInput
-          v-model="o.nbPostes"
-          type="number"
-          min="1"
-          max="10"
-          label="Nombre de postes *"
+        <ChampSimple
+          label="Nombre de postes"
+          obligatoire
           hint="10 au maximum"
-        />
+        >
+          <CspInput
+            v-model="o.nbPostes"
+            type="number"
+            min="1"
+            max="10"
+            label="Nombre de postes"
+          />
+        </ChampSimple>
       </FieldRow>
       <ChampOffre
         :offre="o"
@@ -270,12 +275,17 @@ function formater() {
       v-else-if="partie === 'cadre'"
       class="groupe"
     >
-      <CspRadioGroup
-        v-model="ouvertA"
-        label="Nature de l'emploi : l'emploi est ouvert aux *"
-        name="ouvert-a"
-        :options="OUVERT"
-      />
+      <ChampSimple
+        label="Nature de l'emploi : l'emploi est ouvert aux"
+        obligatoire
+      >
+        <CspRadioGroup
+          v-model="ouvertA"
+          label="Nature de l'emploi : l'emploi est ouvert aux"
+          name="ouvert-a"
+          :options="OUVERT"
+        />
+      </ChampSimple>
       <FieldRow
         v-if="contractuels"
         :cols="2"
@@ -285,31 +295,51 @@ function formater() {
           label="Nature du contrat"
           :options="opts(CONTRATS, 'Non renseigné')"
         />
-        <CspSelect
-          v-model="fondement"
-          label="Fondement juridique *"
+        <ChampSimple
+          label="Fondement juridique"
+          obligatoire
           hint="Pour les contractuels"
-          :options="opts(FONDEMENTS, 'Choisir')"
-        />
+        >
+          <CspSelect
+            v-model="fondement"
+            label="Fondement juridique"
+            :options="opts(FONDEMENTS, 'Choisir')"
+          />
+        </ChampSimple>
       </FieldRow>
       <FieldRow :cols="2">
-        <CspSelect
-          v-model="statutPoste"
-          label="Statut du poste *"
-          :options="opts(STATUTS_POSTE, 'Choisir')"
-        />
-        <CspInput
-          v-model="o.dateVacance"
-          label="Date de vacance *"
-          placeholder="AAAA-MM-JJ"
-        />
+        <ChampSimple
+          label="Statut du poste"
+          obligatoire
+        >
+          <CspSelect
+            v-model="statutPoste"
+            label="Statut du poste"
+            :options="opts(STATUTS_POSTE, 'Choisir')"
+          />
+        </ChampSimple>
+        <ChampSimple
+          label="Date de vacance"
+          obligatoire
+        >
+          <CspInput
+            v-model="o.dateVacance"
+            label="Date de vacance"
+            placeholder="AAAA-MM-JJ"
+          />
+        </ChampSimple>
       </FieldRow>
       <FieldRow :cols="3">
-        <CspSelect
-          v-model="categorie"
-          label="Catégorie *"
-          :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
-        />
+        <ChampSimple
+          label="Catégorie"
+          obligatoire
+        >
+          <CspSelect
+            v-model="categorie"
+            label="Catégorie"
+            :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
+          />
+        </ChampSimple>
         <CspInput
           v-model="o.corps"
           label="Corps"
@@ -389,12 +419,17 @@ function formater() {
               placeholder="Ex. : anglais"
               @update:model-value="synchroLangues"
             />
-            <CspSelect
-              :model-value="l.niveau || 'aucun'"
-              label="Niveau *"
-              :options="opts(NIVEAUX_LANGUE, 'Choisir')"
-              @update:model-value="(v?: string) => { l.niveau = !v || v === 'aucun' ? '' : v; synchroLangues() }"
-            />
+            <ChampSimple
+              label="Niveau"
+              obligatoire
+            >
+              <CspSelect
+                :model-value="l.niveau || 'aucun'"
+                label="Niveau"
+                :options="opts(NIVEAUX_LANGUE, 'Choisir')"
+                @update:model-value="(v?: string) => { l.niveau = !v || v === 'aucun' ? '' : v; synchroLangues() }"
+              />
+            </ChampSimple>
             <CspButton
               label="Retirer"
               variant="tertiary-no-outline"
@@ -420,11 +455,16 @@ function formater() {
           Conditions de travail
         </h3>
         <FieldRow :cols="2">
-          <CspSelect
-            v-model="temps"
-            label="Temps de travail *"
-            :options="OPTIONS_TEMPS"
-          />
+          <ChampSimple
+            label="Temps de travail"
+            obligatoire
+          >
+            <CspSelect
+              v-model="temps"
+              label="Temps de travail"
+              :options="OPTIONS_TEMPS"
+            />
+          </ChampSimple>
           <CspSelect
             v-model="teletravail"
             label="Télétravail"
@@ -478,11 +518,16 @@ function formater() {
         <h3 class="groupe__titre">
           Employeur
         </h3>
-        <CspTextarea
-          v-model="o.descriptifEmployeur"
-          label="Descriptif de l'employeur *"
-          :rows="2"
-        />
+        <ChampSimple
+          label="Descriptif de l'employeur"
+          obligatoire
+        >
+          <CspTextarea
+            v-model="o.descriptifEmployeur"
+            label="Descriptif de l'employeur"
+            :rows="2"
+          />
+        </ChampSimple>
         <ChampOffre
           :offre="o"
           champ="presentation"
@@ -527,6 +572,11 @@ function formater() {
     padding-top: var(--csp-space-6);
     border-top: 1px solid var(--border-default-grey);
   }
+}
+
+// Champs côte à côte alignés par le bas, que l'un ait un texte d'aide ou non.
+.groupe :deep(.field-row) {
+  align-items: end;
 }
 
 .groupe__titre {

@@ -9,6 +9,7 @@ import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import ParcoursOffre from './ParcoursOffre.vue'
 import { db, heure, sauvegarder, UTILISATEUR } from './store'
+import TexteEtoile from './TexteEtoile.vue'
 
 // Créer une offre (retour Alice du 25/11/2026) : formulaire vide (bouton « Créer une offre ») ou pré-rempli
 // (« Dupliquer » dans le menu « … » d'une offre), sans écran de choix. Une page par étape. Enregistrement automatique :
@@ -81,9 +82,11 @@ function publier() {
       class="etat"
       :class="{ 'etat--ok': !reste }"
     >
-      {{ reste
-        ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} (*) à remplir avant de pouvoir publier. Vous pouvez enregistrer et quitter à tout moment.`
-        : peutPublier ? 'Tous les champs obligatoires sont remplis : vous pouvez publier l\'offre.' : 'Tous les champs obligatoires sont remplis. Vous n\'avez pas le droit « Publier » : un agent qui l\'a mettra l\'offre en ligne.' }}
+      <TexteEtoile
+        :texte="reste
+          ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} (*) à remplir avant de pouvoir publier. Vous pouvez enregistrer et quitter à tout moment.`
+          : peutPublier ? 'Tous les champs obligatoires sont remplis : vous pouvez publier l\'offre.' : 'Tous les champs obligatoires sont remplis. Vous n\'avez pas le droit « Publier » : un agent qui l\'a mettra l\'offre en ligne.'"
+      />
     </p>
 
     <ParcoursOffre

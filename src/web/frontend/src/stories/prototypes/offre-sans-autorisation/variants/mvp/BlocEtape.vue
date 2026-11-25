@@ -8,6 +8,7 @@ import { avancementEtape, champsObligatoires } from './aide'
 import { ETAPES_OFFRE } from './etapes'
 import FormEtape from './FormEtape.vue'
 import { resume } from './resume'
+import TexteEtoile from './TexteEtoile.vue'
 
 // Un bloc de la page de l'offre (façon Malt, retour Alice du 25/11/2026) : l'étape en lecture, et un crayon pour
 // la modifier sur place. On modifie une copie : « Annuler » ne change rien, « Enregistrer » applique.
@@ -51,7 +52,7 @@ function enregistrer() {
           name="ri:error-warning-line"
           :size="16"
         />
-        {{ avancementEtape(total, reste) }}
+        <TexteEtoile :texte="avancementEtape(total, reste)" />
       </span>
       <span class="bloc__espace" />
       <span

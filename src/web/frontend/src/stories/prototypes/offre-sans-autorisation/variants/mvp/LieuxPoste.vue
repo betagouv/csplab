@@ -6,6 +6,7 @@ import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import ChampSimple from './ChampSimple.vue'
 
 // Lieux du poste (retour PO, F9) : « Ajouter un lieu » ; chaque lieu a son adresse, saisie avec des suggestions
 // (simulées ici, la Base adresse nationale en vrai) et géolocalisée dès qu'on choisit une suggestion.
@@ -78,17 +79,22 @@ const sansLieuFixe = computed({
             @click="retirer(i)"
           />
         </div>
-        <CspCombobox
-          :model-value="l.adresse || null"
-          :search-term="recherches[i] ?? ''"
-          label="Adresse *"
+        <ChampSimple
+          label="Adresse"
+          obligatoire
           hint="Commencez à taper, puis choisissez une adresse dans la liste"
-          placeholder="Numéro, rue, ville"
-          empty-label="Aucune adresse trouvée"
-          :options="options(i)"
-          @update:search-term="(t: string) => (recherches[i] = t)"
-          @update:model-value="(v: string | null) => choisir(l, v)"
-        />
+        >
+          <CspCombobox
+            :model-value="l.adresse || null"
+            :search-term="recherches[i] ?? ''"
+            label="Adresse"
+            placeholder="Numéro, rue, ville"
+            empty-label="Aucune adresse trouvée"
+            :options="options(i)"
+            @update:search-term="(t: string) => (recherches[i] = t)"
+            @update:model-value="(v: string | null) => choisir(l, v)"
+          />
+        </ChampSimple>
         <p
           v-if="l.geo"
           class="lieu__geo"

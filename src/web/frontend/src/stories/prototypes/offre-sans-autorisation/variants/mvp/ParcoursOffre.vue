@@ -6,6 +6,7 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { avancementEtape, champsObligatoires } from './aide'
 import { ETAPES_OFFRE, GROUPES } from './etapes'
 import FormEtape from './FormEtape.vue'
+import TexteEtoile from './TexteEtoile.vue'
 
 // Formulaire de création, une page par étape (retour Alice du 25/11/2026). À gauche, les étapes regroupées dans les
 // deux grandes parties : « Annonce visible du candidat » et « Paramétrage des candidatures ». Les étapes restent
@@ -75,7 +76,7 @@ defineExpose({ aller })
                     name="ri:checkbox-circle-fill"
                     :size="14"
                   />
-                  {{ avancementEtape(e.total, e.reste) }}
+                  <TexteEtoile :texte="avancementEtape(e.total, e.reste)" />
                 </span>
               </span>
             </button>

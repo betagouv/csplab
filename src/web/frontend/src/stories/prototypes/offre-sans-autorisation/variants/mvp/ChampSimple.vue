@@ -16,11 +16,11 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obli
       :for="forId"
       class="champ__label"
     >
-      {{ label }}<abbr
+      <span>{{ label }}<abbr
         v-if="obligatoire"
         class="champ__etoile"
         title="obligatoire"
-      > *</abbr>
+      > *</abbr></span>
       <span
         v-if="hint"
         class="champ__hint"
@@ -73,6 +73,9 @@ defineProps<{ label?: string, hint?: string, forId?: string, info?: string, obli
 }
 
 .champ__controle :deep(.csp-textarea-group__label),
+.champ__controle :deep(.csp-input-group__label),
+.champ__controle :deep(.csp-select-group__label),
+.champ__controle :deep(.csp-combobox__label),
 .champ__controle :deep(legend) {
   position: absolute;
   width: 1px;
