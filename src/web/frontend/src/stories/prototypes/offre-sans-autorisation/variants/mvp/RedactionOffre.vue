@@ -78,17 +78,6 @@ function publier() {
       />
     </template>
 
-    <p
-      class="etat"
-      :class="{ 'etat--ok': !reste }"
-    >
-      <TexteEtoile
-        :texte="reste
-          ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} (*) à remplir avant de pouvoir publier. Vous pouvez enregistrer et quitter à tout moment.`
-          : peutPublier ? 'Tous les champs obligatoires sont remplis : vous pouvez publier l\'offre.' : 'Tous les champs obligatoires sont remplis. Vous n\'avez pas le droit « Publier » : un agent qui l\'a mettra l\'offre en ligne.'"
-      />
-    </p>
-
     <ParcoursOffre
       v-model:etape="etape"
       :offre="o"
@@ -107,6 +96,18 @@ function publier() {
           :disabled="Boolean(reste)"
           @click="publier"
         />
+      </template>
+      <template #sous-fin>
+        <p
+          class="etat"
+          :class="{ 'etat--ok': !reste }"
+        >
+          <TexteEtoile
+            :texte="reste
+              ? `Encore ${reste} champ${reste > 1 ? 's' : ''} obligatoire${reste > 1 ? 's' : ''} (*) à remplir avant de pouvoir publier.`
+              : peutPublier ? 'Tous les champs obligatoires sont remplis : vous pouvez publier l\'offre.' : 'Tous les champs obligatoires sont remplis. Vous n\'avez pas le droit « Publier » : un agent qui l\'a mettra l\'offre en ligne.'"
+          />
+        </p>
       </template>
     </ParcoursOffre>
 
@@ -135,16 +136,13 @@ function publier() {
 }
 
 .etat {
-  max-width: 80rem;
   margin: 0;
-  padding: var(--csp-space-3) var(--csp-space-4);
-  border-left: 3px solid var(--border-plain-blue-france);
-  background: var(--background-alt-blue-france);
   font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+  text-align: right;
 
   &--ok {
-    border-left-color: var(--border-plain-success);
-    background: var(--background-contrast-success);
+    color: var(--text-default-success);
   }
 }
 </style>

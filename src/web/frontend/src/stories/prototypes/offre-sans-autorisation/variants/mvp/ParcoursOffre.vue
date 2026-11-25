@@ -134,6 +134,10 @@ defineExpose({ aller })
           name="fin"
         />
       </div>
+      <slot
+        v-if="derniere"
+        name="sous-fin"
+      />
     </div>
   </div>
 </template>
