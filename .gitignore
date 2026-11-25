@@ -6,6 +6,8 @@ src/web/static_collected/
 
 node_modules/
 src/web/presentation/static/frontend/
+src/web/.stryker-tmp/
+src/web/reports/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

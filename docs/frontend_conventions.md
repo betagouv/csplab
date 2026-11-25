@@ -318,6 +318,8 @@ Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
 
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
 
+`mise run front:mutation -- recrutements` runs Stryker on the TypeScript files of a feature: it changes the code one small step at a time and reruns the tests. A mutation that survives shows a behavior that no test protects. A person reads the report (`src/web/reports/mutation/index.html`) and chooses the mutations that deserve a test.
+
 ## API Calls
 
 ### Where to Place Code

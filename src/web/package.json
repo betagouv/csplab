@@ -48,6 +48,8 @@
     "@storybook/addon-docs": "^10.6.5",
     "@storybook/vue3": "^10.6.5",
     "@storybook/vue3-vite": "^10.6.5",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@tailwindcss/vite": "^4.3.4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.8",
