@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
-    _IngestionApiKeyUser,
+    IngestionApiKeyUser,
 )
 from infrastructure.authentication.rate_throttle import ClientIpAnonRateThrottle
 from presentation.middleware.rate_limit_headers import RateLimitHeadersMiddleware
@@ -147,7 +147,7 @@ class TestRateLimitHeadersMiddleware:
         settings.INGESTION_API_KEY = "secret-key"
 
         request = rf.get("/")
-        request.user = _IngestionApiKeyUser()
+        request.user = IngestionApiKeyUser()
         ApiKeyRateThrottleDaily().allow_request(request, view=None)
 
         middleware, _ = make_middleware(mock_response)
@@ -171,7 +171,7 @@ class TestRateLimitHeadersMiddleware:
         settings.INGESTION_API_KEY = "secret-key"
 
         request = rf.get("/")
-        request.user = _IngestionApiKeyUser()
+        request.user = IngestionApiKeyUser()
         ApiKeyRateThrottleDaily().allow_request(request, view=None)
         ApiKeyRateThrottleDaily().allow_request(request, view=None)
 
@@ -191,7 +191,7 @@ class TestRateLimitHeadersMiddleware:
         settings.INGESTION_API_KEY = "secret-key"
 
         request = rf.get("/")
-        request.user = _IngestionApiKeyUser()
+        request.user = IngestionApiKeyUser()
         for _ in range(3):
             ApiKeyRateThrottleDaily().allow_request(request, view=None)
 

@@ -9,7 +9,7 @@ from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip, ip_in_networks
 
 
-class _IngestionApiKeyUser:
+class IngestionApiKeyUser:
     is_authenticated = True
     pk = "ingestion-api-key"
 
@@ -38,7 +38,7 @@ class ApiKeyAuthentication(BaseAuthentication):
             get_client_ip(request), allowed_ranges
         ):
             raise _reject("IP not allowed", "IP address not allowed.", request)
-        return (_IngestionApiKeyUser(), None)
+        return (IngestionApiKeyUser(), None)
 
     def authenticate_header(self, request):
         # See https://www.django-rest-framework.org/api-guide/authentication/#custom-authentication
@@ -62,7 +62,7 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
     scope = "api_key"
 
     def get_cache_key(self, request, view):
-        if isinstance(request.user, _IngestionApiKeyUser):
+        if isinstance(request.user, IngestionApiKeyUser):
             return self.cache_format % {
                 "scope": self.scope,
                 "ident": "ingestion-api-key",
@@ -81,6 +81,6 @@ class NonApiKeyUserRateThrottle(UserRateThrottle):
     """
 
     def get_cache_key(self, request, view):
-        if isinstance(request.user, _IngestionApiKeyUser):
+        if isinstance(request.user, IngestionApiKeyUser):
             return None
         return super().get_cache_key(request, view)
