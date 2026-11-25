@@ -22,6 +22,7 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
     GetOffersBySourceInput,
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
+from application.ingestion.services.offer_organismes import OfferOrganismes
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
@@ -320,6 +321,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
         valid_indexes = []
         errors = []
         jwt_authenticated = isinstance(request.user, UserModel)
+        offer_organismes = OfferOrganismes()
 
         for index, offer_data in enumerate(request.data["offres"]):
             serializer = OffersInputSerializer(
@@ -327,6 +329,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 context={
                     "check_metier": True,
                     "allow_talentsoft_organisme": not jwt_authenticated,
+                    "offer_organismes": offer_organismes,
                 },
             )
             if not serializer.is_valid():

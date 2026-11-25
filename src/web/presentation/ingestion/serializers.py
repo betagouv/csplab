@@ -43,6 +43,7 @@ from application.ingestion.services.list_public_organismes import (
 from application.ingestion.services.metier_functional_areas import (
     get_metier_functional_areas,
 )
+from application.ingestion.services.offer_organismes import OfferOrganismes
 from application.ingestion.services.upsert_offers import PendingOffer
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
@@ -982,7 +983,7 @@ class OrganismeInputSerializer(OrganismeSerializer):
             raise serializers.ValidationError(
                 "Champ réservé au service ingestion de CSPLab."
             )
-        if not TalentsoftOrganismeModel.objects.by_entity_code(value).exists():
+        if not self._offer_organismes().talentsoft_organisme_exists(value):
             raise serializers.ValidationError(
                 f"Organisme Talentsoft inconnu : {value}."
             )
@@ -1008,15 +1009,13 @@ class OrganismeInputSerializer(OrganismeSerializer):
             if not data.get("talentsoft_organisme_entity_code"):
                 raise serializers.ValidationError({"siret": [MISSING_SIRET]})
             return data
-        organisme_id = (
-            OrganismeModel.objects.not_supprimes()
-            .by_siret(data["siret"])
-            .values_list("id", flat=True)
-            .first()
-        )
+        organisme_id = self._offer_organismes().organisme_id(data["siret"])
         if organisme_id is None:
             raise serializers.ValidationError({"siret": [UNKNOWN_SIRET]})
         return {**data, "organisme_id": organisme_id}
+
+    def _offer_organismes(self) -> OfferOrganismes:
+        return self.context.get("offer_organismes") or OfferOrganismes()
 
 
 class ProfessionInputSerializer(serializers.Serializer):
