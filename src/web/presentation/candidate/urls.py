@@ -6,10 +6,94 @@ from presentation.candidate.views.cv_flow import (
     CVUploadView,
     OfferDrawerView,
 )
+from presentation.candidate.views.home import (
+    CandidateAdviceView,
+    CandidateAlertEditView,
+    CandidateAlertsView,
+    CandidateAlertView,
+    CandidateApplicationDetailView,
+    CandidateApplicationsView,
+    CandidateConversationsReadView,
+    CandidateConversationsView,
+    CandidateDocumentView,
+    CandidateFranceConnectView,
+    CandidateHomeView,
+    CandidateLoginView,
+    CandidateLogoutView,
+    CandidateOfferView,
+    CandidateSavedOfferRemoveView,
+    CandidateSavedOfferView,
+)
 
 app_name = "candidate"
 
 urlpatterns = [
+    path("", CandidateHomeView.as_view(), name="home"),
+    path(
+        "mes-candidatures",
+        CandidateApplicationsView.as_view(),
+        name="applications",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>",
+        CandidateApplicationDetailView.as_view(),
+        name="application_detail",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/conversations",
+        CandidateConversationsView.as_view(),
+        name="conversations",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/conversations/lues",
+        CandidateConversationsReadView.as_view(),
+        name="conversations_read",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/conversations/<int:conversation_id>",
+        CandidateConversationsView.as_view(),
+        name="conversation",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/documents/<slug:slug>",
+        CandidateDocumentView.as_view(),
+        name="document",
+    ),
+    path(
+        "mes-candidatures/<int:application_id>/offre",
+        CandidateOfferView.as_view(),
+        name="offer",
+    ),
+    path(
+        "mon-alerte/modifier",
+        CandidateAlertEditView.as_view(),
+        name="alert_edit",
+    ),
+    path("mon-alerte", CandidateAlertView.as_view(), name="alert"),
+    path("conseils", CandidateAdviceView.as_view(), name="advice"),
+    path("mon-alerte-emploi", CandidateAlertsView.as_view(), name="alerts"),
+    path(
+        "mes-offres/<int:offer_id>",
+        CandidateSavedOfferView.as_view(),
+        name="saved_offer",
+    ),
+    path(
+        "mes-offres/<int:offer_id>/retirer",
+        CandidateSavedOfferRemoveView.as_view(),
+        name="saved_offer_remove",
+    ),
+    path(
+        "mes-offres/favori/<int:offer_id>/retirer",
+        CandidateSavedOfferRemoveView.as_view(favorite=True),
+        name="favorite_remove",
+    ),
+    path(
+        "connexion/franceconnect",
+        CandidateFranceConnectView.as_view(),
+        name="franceconnect",
+    ),
+    path("deconnexion", CandidateLogoutView.as_view(), name="logout"),
+    path("connexion", CandidateLoginView.as_view(), name="login"),
     path("cv-upload", CVUploadView.as_view(), name="cv_upload"),
     path(
         "cv/<uuid:cv_uuid>/results",

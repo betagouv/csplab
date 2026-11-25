@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags editorial_tags %}
+{% block page_title %}
+    {{ page.title }}
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <article class="fr-container fr-pb-8w">
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-md-8">
+                <h1>{{ page.title }}</h1>
+                <ul class="fr-tags-group fr-mb-3w">
+                    {% for theme in page.themes.all %}
+                        <li>
+                            <p class="fr-tag">{{ theme.label }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="fr-text--lead">{{ page.text }}</p>
+                {% if page.external_url %}
+                    <a class="fr-btn"
+                       href="{{ page.external_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer">Lire le conseil complet<span class="fr-sr-only">- nouvelle fenêtre</span></a>
+                {% endif %}
+            </div>
+            <div class="fr-col-12 fr-col-md-4">
+                <img class="fr-responsive-img" src="{{ page.display_image|image_src }}" alt="" />
+            </div>
+        </div>
+    </article>
+{% endblock main %}

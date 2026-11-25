@@ -1,0 +1,188 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags editorial_tags %}
+{% block page_title %}
+    {{ territory.title }}
+{% endblock page_title %}
+{% block meta_description %}
+    Offres, actualités et liens utiles pour travailler dans la fonction publique en {{ territory.name }}.
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <section class="fr-background-alt--grey">
+        <div class="fr-container">
+            <div class="fr-grid-row fr-grid-row--middle">
+                <div class="fr-col-12 fr-col-md-7 fr-py-5w">
+                    <h1 class="fr-mb-0">{{ territory.title }}</h1>
+                </div>
+                <div class="fr-col-12 fr-col-md-5 fr-py-2w">
+                    <img class="fr-responsive-img"
+                         src="{{ territory.image|image_src }}"
+                         alt="" />
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if territory.highlights %}
+    <section class="fr-container fr-py-6w">
+        <h2>À la une</h2>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            {% for item in territory.highlights %}
+                <div class="fr-col-12 fr-col-md-6 fr-col-lg-3">
+                    <div class="fr-card fr-enlarge-link">
+                        <div class="fr-card__body">
+                            <div class="fr-card__content">
+                                <h3 class="fr-card__title">
+                                    <a href="{{ item.url|default:'#' }}">{{ item.title }}</a>
+                                </h3>
+                                {% if item.tags %}
+                                    <div class="fr-card__start">
+                                        <ul class="fr-tags-group">
+                                            {% for tag in item.tags %}
+                                                <li>
+                                                    <p class="fr-tag">{{ tag }}</p>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                <div class="fr-card__end">
+                                    <p class="fr-card__detail fr-icon-calendar-line">Publié le {{ item.date }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% if item.image %}
+                            <div class="fr-card__header">
+                                <div class="fr-card__img">
+                                    <img class="fr-responsive-img"
+                                         src="{{ item.image|image_src }}"
+                                         alt="" />
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% if territory.assets %}
+        <section class="fr-container fr-pb-6w">
+            <h2 class="fr-mb-4w">{{ territory.assets_title }}</h2>
+            {% for asset in territory.assets %}
+                <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-mb-4w">
+                    <div class="fr-col-12 fr-col-md-5">
+                        <figure class="fr-content-media" role="group">
+                            <div class="fr-content-media__img">
+                                <img class="fr-responsive-img"
+                                     src="{{ asset.image|image_src }}"
+                                     alt="" />
+                            </div>
+                            <figcaption class="fr-content-media__caption">{{ asset.caption }}</figcaption>
+                        </figure>
+                    </div>
+                    <div class="fr-col-12 fr-col-md-7">
+                        <h3 class="fr-h5">{{ asset.title }}</h3>
+                        <p>{{ asset.text }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+    {% if territory.state_title %}
+        <section class="fr-background-alt--grey fr-py-6w">
+            <div class="fr-container">
+                <h2>{{ territory.state_title }}</h2>
+                <p>{{ territory.state_text }}</p>
+                <ul class="fr-grid-row fr-grid-row--gutters fr-raw-list">
+                    {% for label in territory.state_links %}
+                        <li class="fr-col-12 fr-col-md-4">
+                            <div class="fr-card fr-enlarge-link">
+                                <div class="fr-card__body">
+                                    <div class="fr-card__content">
+                                        <h3 class="fr-card__title">
+                                            <a href="#">{{ label }}</a>
+                                        </h3>
+                                        <div class="fr-card__start">
+                                            <ul class="fr-tags-group">
+                                                <li>
+                                                    <p class="fr-tag">{{ territory.name }}</p>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    {% endif %}
+    {% if territory.figures %}
+        <section class="fr-container fr-py-6w">
+            <h2 class="fr-mb-4w">{{ territory.figures_title }}</h2>
+            <ul class="fr-grid-row fr-grid-row--gutters fr-raw-list">
+                {% for value, label in territory.figures %}
+                    <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                        <div class="fr-callout fr-p-2w">
+                            <p class="fr-h4 fr-mb-1v">{{ value }}</p>
+                            <p class="fr-text--sm fr-mb-0">{{ label }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+    <section class="fr-background-alt--blue-france fr-py-6w">
+        <div class="fr-container">
+            <ul class="fr-grid-row fr-grid-row--gutters fr-raw-list">
+                <li class="fr-col-12 fr-col-lg-6">
+                    <div class="fr-callout">
+                        <h2 class="fr-callout__title">{{ offers_count }} offres d'emploi dans la région</h2>
+                        <a class="fr-btn fr-mt-2w"
+                           href="{% url 'pages:offers' %}?lieu={{ territory.name|urlencode }}">Découvrir les offres d'emploi</a>
+                    </div>
+                </li>
+                <li class="fr-col-12 fr-col-lg-6">
+                    <div class="fr-callout fr-icon-user-line">
+                        <h2 class="fr-callout__title fr-text--md">Découvrir tous les employeurs recrutant dans la région</h2>
+                        <p class="fr-callout__text">{{ territory.employers|default:5 }} pages employeurs</p>
+                        <a class="fr-btn fr-btn--secondary fr-mt-2w" href="#">Voir les employeurs</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+    {% if territory.links %}
+    <section class="fr-container fr-py-8w">
+        <h2 class="fr-mb-4w">{{ territory.links_title|default:"Des liens utiles pour en savoir plus !" }}</h2>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            {% for link in territory.links %}
+                <div class="fr-col-12 fr-col-sm-6 fr-col-xl-{% if territory.links|length == 4 %}3{% else %}4{% endif %}">
+                    <div class="fr-card fr-enlarge-link">
+                        <div class="fr-card__body">
+                            <div class="fr-card__content">
+                                <h3 class="fr-card__title">
+                                    <a href="{{ link.url }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer">{{ link.title }}</a>
+                                </h3>
+                                <p class="fr-card__desc">{{ link.text }}</p>
+                            </div>
+                        </div>
+                        {% if link.image %}
+                            <div class="fr-card__header">
+                                <div class="fr-card__img">
+                                    <img class="fr-responsive-img"
+                                         src="{{ link.image|image_src }}"
+                                         alt="" />
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+{% endblock main %}

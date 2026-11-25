@@ -1369,3 +1369,122 @@ hr {
 .csplab-login__signup {
   text-align: center;
 }
+
+.csplab-application {
+  position: relative;
+  border: 1px solid var(--border-default-grey);
+  background-color: var(--background-default-grey);
+}
+
+.csplab-application--unread {
+  border-left: 4px solid var(--border-active-blue-france);
+}
+
+@media (min-width: 48em) {
+  .csplab-drawer--wide {
+    width: 85%;
+    max-width: 70rem;
+  }
+}
+.csplab-conversations {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default-grey);
+}
+@media (min-width: 62em) {
+  .csplab-conversations {
+    flex-direction: row;
+  }
+}
+.csplab-conversations__list {
+  flex: 0 0 35%;
+  border-right: 1px solid var(--border-default-grey);
+}
+.csplab-conversations__thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.csplab-conversations__messages {
+  flex: 1;
+  padding: 1rem;
+}
+.csplab-conversations__item {
+  position: relative;
+}
+.csplab-document {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--background-default-grey);
+  border: 1px solid var(--border-default-grey);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.csplab-document__section {
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-default-grey);
+}
+.csplab-document--cv {
+  padding: 0;
+}
+.csplab-document__avatar {
+  width: 6rem;
+  height: 6rem;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c4b2a2, #9a8676);
+}
+.csplab-drawer__body a.fr-link[target="_blank"] {
+  display: inline;
+  width: auto;
+}
+.csplab-alert__row {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.csplab-alert__row > span,
+.csplab-alert__tags > .fr-tag {
+  margin: 0;
+}
+.csplab-alert__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.csplab-offer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-default-grey);
+  border: 1px solid var(--border-default-grey);
+}
+@media (min-width: 48em) {
+  .csplab-offer {
+    flex-direction: row;
+  }
+}
+.csplab-offer__logo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex: 0 0 14rem;
+  min-height: 10rem;
+  margin: 1.5rem;
+  padding: 1rem;
+  background: var(--background-action-high-blue-france);
+  color: #fff;
+  font-size: 1.25rem;
+  text-align: right;
+}
+.csplab-offer__body {
+  flex: 1;
+  padding: 1.5rem 1.5rem 1rem;
+}
+.csplab-offer__favorite {
+  position: relative;
+  z-index: 1;
+}

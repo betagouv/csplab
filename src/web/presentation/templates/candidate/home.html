@@ -1,0 +1,136 @@
+{% extends "layouts/base.html" %}
+{% load static dsfr_tags %}
+{% block page_title %}
+    Mon espace candidat
+{% endblock page_title %}
+{% block meta_description %}
+    Suivez vos candidatures, vos offres sauvegardées et vos alertes emploi.
+{% endblock meta_description %}
+{% block main %}
+    <div class="fr-container">{% dsfr_breadcrumb breadcrumb_data %}</div>
+    <div class="fr-container fr-pb-8w">
+        <h1 class="fr-mb-6w">Bonjour {{ first_name }}</h1>
+        <h2 class="fr-h5">Résumé de vos recherches</h2>
+        <ul class="fr-grid-row fr-grid-row--gutters fr-raw-list fr-mb-6w">
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h3 class="fr-tile__title">
+                                <a href="{% url 'candidate:alerts' %}">
+                                    {% if alert %}
+                                        Ma recherche sauvegardée
+                                    {% else %}
+                                        Créer une recherche sauvegardée
+                                    {% endif %}
+                                </a>
+                            </h3>
+                            <p class="fr-tile__detail">
+                                {% if alert %}{{ alert.title }}{% else %}Recevez les nouvelles offres{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h3 class="fr-tile__title">
+                                <a href="{% url 'candidate:applications' %}">Candidatures en cours</a>
+                            </h3>
+                            <p class="fr-tile__detail">{{ applications_in_progress }}</p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h3 class="fr-tile__title">
+                                <a href="{% url 'candidate:applications' %}?statut=sauvegardees">Offres sauvegardées</a>
+                            </h3>
+                            <p class="fr-tile__detail">{{ saved_offers_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h3 class="fr-tile__title">
+                                <a href="{% url 'candidate:applications' %}?non_lues=1">
+                                    {% if unread_count %}
+                                        Nouveau{{ unread_count|pluralize:"x" }} message{{ unread_count|pluralize }}
+                                    {% else %}
+                                        Messages
+                                    {% endif %}
+                                </a>
+                            </h3>
+                            <p class="fr-tile__detail">{{ unread_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-md-4">
+                <h2 class="fr-h5">Outils de carrière</h2>
+                <div class="csplab-application fr-enlarge-link fr-p-2w fr-mb-2w">
+                    <h3 class="fr-text--md fr-text--bold fr-mb-1v">
+                        <a href="{% url 'candidate:cv_upload' %}">Analyse de CV</a>
+                    </h3>
+                    <p class="fr-text--sm fr-mb-0">
+                        Découvrez les opportunités de choisir le service public qui vous correspondent
+                    </p>
+                </div>
+                <div class="csplab-application fr-enlarge-link fr-p-2w">
+                    <h3 class="fr-text--md fr-text--bold fr-mb-1v">
+                        <a href="{% url 'candidate:advice' %}">Conseils aux candidats</a>
+                    </h3>
+                    <p class="fr-text--sm fr-mb-0">Retrouvez des conseils pratiques pour préparer votre candidature.</p>
+                </div>
+            </div>
+            <div class="fr-col-12 fr-col-md-8">
+                <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
+                    <h2 class="fr-h5 fr-col fr-mb-0">Ces offres pourraient vous intéresser</h2>
+                    <a class="fr-link fr-link--sm" href="{% url 'pages:offers' %}">Voir tout</a>
+                </div>
+                {% for offer in suggestions %}
+                    <div class="csplab-offer fr-enlarge-link fr-mb-3w">
+                        <div class="csplab-offer__logo">
+                            <span>{{ offer.versant }}</span>
+                        </div>
+                        <div class="csplab-offer__body">
+                            <p class="fr-tag fr-tag--sm fr-mb-1w">{{ offer.domain }}</p>
+                            <h3 class="fr-h6 fr-mb-1w">
+                                <a href="{% url 'pages:offer_detail' offer.id %}" data-drawer-open>{{ offer.title }}</a>
+                            </h3>
+                            <p class="fr-text--xs fr-mb-1v">
+                                <span class="fr-icon-map-pin-2-line fr-icon--sm" aria-hidden="true"></span>
+                                {{ offer.place }}
+                                &nbsp;&nbsp;
+                                <span class="fr-icon-file-line fr-icon--sm" aria-hidden="true"></span>
+                                {{ offer.versant }}
+                            </p>
+                            <p class="fr-text--xs fr-mb-1v">
+                                <span class="fr-icon-user-line fr-icon--sm" aria-hidden="true"></span>
+                                {{ offer.employer }}
+                            </p>
+                            <p class="fr-text--xs fr-mb-2w">
+                                <span class="fr-icon-calendar-line fr-icon--sm" aria-hidden="true"></span>
+                                En ligne depuis le {{ offer.since|date:"j F Y" }}
+                            </p>
+                            {% include "pages/components/_favorite_button.html" %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/drawer.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}

@@ -1,0 +1,26 @@
+<dialog class="csplab-drawer csplab-drawer--wide"
+        data-drawer
+        data-read-url="{% url 'candidate:conversations_read' application.id %}"
+        data-read-token="{{ csrf_token }}"
+        aria-labelledby="conversations-title">
+    <div class="csplab-drawer__panel">
+        <div class="fr-modal__header">
+            <button type="button" class="fr-btn fr-btn--close" data-drawer-close>Fermer</button>
+        </div>
+        <div class="csplab-drawer__body fr-modal__content">
+            <h2 id="conversations-title" class="fr-h4 fr-mb-1v">Mes conversations</h2>
+            <p class="fr-mb-1w">{{ application.title }}</p>
+            <ul class="fr-tags-group fr-mb-2w">
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-calendar-line fr-tag--icon-left">Candidature il y a 3 jours</p>
+                </li>
+                <li>
+                    <p class="fr-tag fr-tag--sm fr-icon-map-pin-2-line fr-tag--icon-left">{{ application.employer }}</p>
+                </li>
+            </ul>
+            <div class="csplab-conversations" id="conversations-content">
+                {% include "candidate/components/_conversation_content.html" %}
+            </div>
+        </div>
+    </div>
+</dialog>

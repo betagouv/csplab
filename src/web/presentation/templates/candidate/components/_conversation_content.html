@@ -1,0 +1,43 @@
+<div class="csplab-conversations__list">
+    <p class="fr-text--sm fr-mb-0 fr-p-2w">Conversations ({{ conversations|length }})</p>
+    <ul class="fr-raw-list">
+        {% for conversation in conversations %}
+            <li class="csplab-conversations__item fr-enlarge-link fr-p-2w {% if conversation.id == selected.id %}csplab-application--unread fr-background-alt--blue-france{% endif %}">
+                <p class="fr-text--bold fr-mb-1v">
+                    <a href="{% url 'candidate:conversation' application.id conversation.id %}?partial=1"
+                       hx-get="{% url 'candidate:conversation' application.id conversation.id %}?partial=1"
+                       hx-target="#conversations-content"
+                       hx-swap="innerHTML"
+                       {% if conversation.id == selected.id %}aria-current="true"{% endif %}>{{ conversation.title }}</a>
+                </p>
+                <p class="fr-text--sm fr-mb-1v">{{ conversation.preview|truncatechars:60 }}</p>
+                <p class="fr-text--xs fr-mb-0">{{ conversation.sender }} • {{ conversation.when }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="csplab-conversations__thread">
+    <div class="csplab-conversations__messages">
+        <p class="fr-text--sm">Conversation créée par {{ selected.created_by }} le {{ selected.created_on }}</p>
+        <div id="conversation-messages">
+            {% for message in selected.messages %}
+                {% include "candidate/components/_conversation_message.html" %}
+            {% endfor %}
+        </div>
+    </div>
+    <form class="fr-p-2w"
+          hx-post="{% url 'candidate:conversation' application.id selected.id %}"
+          hx-target="#conversation-messages"
+          hx-swap="beforeend"
+          hx-on::after-request="if (event.detail.successful) this.reset()">
+        {% csrf_token %}
+        <div class="fr-input-group">
+            <label class="fr-label" for="reply-body">Votre réponse</label>
+            <textarea class="fr-input" id="reply-body" name="body" rows="3" required></textarea>
+        </div>
+        <button type="submit"
+                class="fr-btn fr-btn--sm fr-icon-send-plane-fill fr-btn--icon-left fr-mt-2w">
+            Envoyer
+        </button>
+    </form>
+</div>
