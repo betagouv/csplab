@@ -101,7 +101,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             contract_kind=ContractKind[data["type_contrat"]]
             if data.get("type_contrat")
             else None,
-            job_vacancy=data.get("vacance_poste") or None,
+            job_vacancy=data.get("vacance_poste"),
             employer=data["description"].get("employeur") or None,
             complements=data["description"].get("complements") or None,
             exercise_conditions=data["description"].get("conditions_exercice") or None,
