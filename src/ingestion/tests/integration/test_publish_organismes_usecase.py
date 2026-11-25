@@ -140,6 +140,10 @@ async def test_execute_serializes_full_organisme(
     )
 
     body = json.loads(httpx_mock.get_requests()[0].content)
+    assert [o["external_id"] for o in body["organismes"]] == [
+        "ext-minimal",
+        "060786738",
+    ]
     organisme = body["organismes"][1]
 
     assert organisme["versant"] == "FPH"
@@ -271,3 +275,15 @@ async def test_execute_does_not_log_when_response_has_no_errors(
         )
 
     assert caplog.records == []
+
+
+@pytest.mark.asyncio
+async def test_execute_fails_when_the_parent_is_not_published(
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
+):
+    with pytest.raises(ValueError, match="is not published"):
+        await publish_organismes_usecase.execute(
+            PublishOrganismesCommand(organismes=[FULL_ORGANISME])
+        )
+
+    assert httpx_mock.get_requests() == []

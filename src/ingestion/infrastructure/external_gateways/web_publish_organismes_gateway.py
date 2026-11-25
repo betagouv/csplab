@@ -32,9 +32,14 @@ class WebPublishOrganismesGateway(BaseWebGateway, IPublishOrganismesGateway):
     def _serialize(
         self, organisme: Organisme, external_ids: Mapping[UUID, str | None]
     ) -> dict:
-        parent_external_id = (
-            external_ids.get(organisme.parent_id) if organisme.parent_id else None
-        )
+        parent_external_id = None
+        if organisme.parent_id:
+            if organisme.parent_id not in external_ids:
+                raise ValueError(
+                    f"Parent {organisme.parent_id} of organisme "
+                    f"{organisme.referentiel} {organisme.external_id} is not published"
+                )
+            parent_external_id = external_ids[organisme.parent_id]
         return OrganismeUpsertPayload.from_organisme(
             organisme, parent_external_id
         ).model_dump(mode="json")

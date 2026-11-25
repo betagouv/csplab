@@ -7,6 +7,7 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from application.usecases.publish_organismes import (
+    BATCH_SIZE,
     PublishOrganismesCommand,
     PublishOrganismesUsecase,
 )
@@ -15,10 +16,13 @@ from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 
 
 def _organisme(
-    external_id: str = "ext-1", referentiel: str = "FINESS", parent_id=None
+    external_id: str = "ext-1",
+    referentiel: str = "FINESS",
+    parent_id=None,
+    entity_id=None,
 ) -> Organisme:
     return Organisme.build(
-        entity_id=uuid4(),
+        entity_id=entity_id or uuid4(),
         parent_id=parent_id,
         nom="Mairie de Test",
         versant=Verse.FPT,
@@ -127,3 +131,44 @@ async def test_execute_publishes_parents_before_their_children(usecase, mock_gat
 
     published = mock_gateway.publish.await_args.args[0]
     assert [o.external_id for o in published] == ["root", "child", "grandchild"]
+
+
+@pytest.mark.asyncio
+async def test_execute_passes_parents_of_previous_batches_to_the_gateway(
+    usecase, mock_gateway
+):
+    parent = _organisme("parent")
+    roots = [_organisme(f"root-{i}") for i in range(BATCH_SIZE - 1)]
+    child = _organisme("child", parent_id=parent.entity_id)
+
+    await usecase.execute(PublishOrganismesCommand(organismes=[child, parent, *roots]))
+
+    first_batch, second_batch = mock_gateway.publish.await_args_list
+    assert parent in first_batch.args[0]
+    assert second_batch.args[0] == [child]
+    assert second_batch.args[1][parent.entity_id] == "parent"
+
+
+@pytest.mark.asyncio
+async def test_execute_sorts_organismes_whose_parent_is_not_published_as_roots(
+    usecase, mock_gateway
+):
+    orphan = _organisme("orphan", parent_id=uuid4())
+    root = _organisme("root")
+
+    await usecase.execute(PublishOrganismesCommand(organismes=[orphan, root]))
+
+    published = mock_gateway.publish.await_args.args[0]
+    assert [o.external_id for o in published] == ["orphan", "root"]
+
+
+@pytest.mark.asyncio
+async def test_execute_publishes_organismes_in_a_cycle(usecase, mock_gateway):
+    first_id, second_id = uuid4(), uuid4()
+    first = _organisme("first", parent_id=second_id, entity_id=first_id)
+    second = _organisme("second", parent_id=first_id, entity_id=second_id)
+
+    await usecase.execute(PublishOrganismesCommand(organismes=[first, second]))
+
+    published = mock_gateway.publish.await_args.args[0]
+    assert [o.external_id for o in published] == ["first", "second"]
