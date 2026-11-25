@@ -303,12 +303,14 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
+- ESLint applies the Vue rules of `eslint-plugin-testing-library` to the tests and refuses a skipped test, a test without assertion, an `expect` inside a condition, an `expect` outside a test and an `expect` without a matcher.
 
 Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
 
 - `src/test/server.ts` starts the server with the default handlers of each migrated feature, and `src/test/setup.ts` resets them after each test.
 - The default handlers of a feature and the factories for other answers are in `src/test/handlers/<feature>.ts`.
 - A test that needs another answer passes a factory to `server.use(...)`.
+- ESLint refuses a `vi.mock` of the `api` module of a feature that has a file in `src/test/handlers/`.
 - In a feature without handlers, tests mock its API module with `vi.mock`.
 
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
