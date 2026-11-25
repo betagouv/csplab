@@ -31,10 +31,12 @@ from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
 from application.ingestion.services.list_metiers import list_metiers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
@@ -71,6 +73,14 @@ INVALID_LANGUAGE_CODE = (
     "Code de langue invalide, un code ISO 639-1 sur 2 lettres est attendu (ex. EN)."
 )
 DUPLICATE_LANGUAGE = "Chaque langue ne peut être citée qu'une fois."
+INVALID_SIRET = "SIRET invalide : 14 chiffres avec une clé de contrôle valide attendus."
+MISSING_SIRET = "SIRET obligatoire : retrouvez-le avec `GET /api/v1/organismes`."
+UNKNOWN_SIRET = (
+    "Aucun organisme avec ce SIRET : retrouvez-le avec `GET /api/v1/organismes`."
+)
+SIRET_WITH_TALENTSOFT_ORGANISME = (
+    "SIRET à laisser vide pour une offre rattachée à un organisme Talentsoft."
+)
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -954,7 +964,8 @@ class OrganismeInputSerializer(OrganismeSerializer):
         max_length=14,
         allow_blank=True,
         help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
-        "(filtres `nom` et `siret`).",
+        "(filtres `nom` et `siret`). L'offre est rattachée à cet organisme : un "
+        "SIRET vide, invalide ou qui ne correspond à aucun organisme est refusé.",
     )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
@@ -972,11 +983,39 @@ class OrganismeInputSerializer(OrganismeSerializer):
             raise serializers.ValidationError(
                 "Champ réservé au service ingestion de CSPLab."
             )
-        if not TalentsoftOrganismeModel.objects.by_entity_code(value).exists():
+        if not self._offer_organismes().talentsoft_organisme_exists(value):
             raise serializers.ValidationError(
                 f"Organisme Talentsoft inconnu : {value}."
             )
         return value
+
+    def validate_siret(self, value):
+        if not value:
+            return value
+        try:
+            SIRET(code=value)
+        except ValueError as e:
+            raise serializers.ValidationError(INVALID_SIRET) from e
+        return value
+
+    def validate(self, data):
+        if data["siret"] and data.get("talentsoft_organisme_entity_code"):
+            raise serializers.ValidationError(
+                {"siret": [SIRET_WITH_TALENTSOFT_ORGANISME]}
+            )
+        if not data["siret"]:
+            # Talentsoft provides no SIRET: the ingestion service, the only one
+            # allowed to send a Talentsoft organisme, identifies it instead.
+            if not data.get("talentsoft_organisme_entity_code"):
+                raise serializers.ValidationError({"siret": [MISSING_SIRET]})
+            return data
+        organisme_id = self._offer_organismes().organisme_id(data["siret"])
+        if organisme_id is None:
+            raise serializers.ValidationError({"siret": [UNKNOWN_SIRET]})
+        return {**data, "organisme_id": organisme_id}
+
+    def _offer_organismes(self) -> OfferOrganismes:
+        return self.context.get("offer_organismes") or OfferOrganismes()
 
 
 class ProfessionInputSerializer(serializers.Serializer):
@@ -1518,6 +1557,7 @@ class OffersInputSerializer(serializers.Serializer):
                 "talentsoft_organisme_entity_code"
             )
             or None,
+            organisme_id=data["organisation"].get("organisme_id"),
             categories=[Category(category).value for category in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]).value,
             offer_url=data.get("url_offre") or None,

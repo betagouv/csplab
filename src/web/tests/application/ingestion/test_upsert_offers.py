@@ -18,8 +18,14 @@ from infrastructure.authentication.api_key_authentication import (
     IngestionApiKeyUser,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
+)
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
@@ -93,6 +99,43 @@ def test_localisations_are_replaced_in_sent_order():
         (localisation.country, localisation.department, localisation.label)
         for localisation in existing.localisations.order_by("position")
     ] == [("FRA", "14", "Caen"), ("MAR", None, "")]
+
+
+def test_moves_offer_to_the_organisme_sent_again():
+    existing = OfferDjangoFactory(organisme=OrganismeDjangoFactory())
+    other_organisme = OrganismeDjangoFactory()
+
+    upsert_offers(
+        existing.source_id,
+        [_pending(existing.source, existing.reference, organisme=other_organisme)],
+        user=IngestionApiKeyUser(),
+    )
+
+    existing.refresh_from_db()
+    assert existing.organisme_id == other_organisme.id
+
+
+def test_detaches_offer_sent_again_with_a_talentsoft_organisme():
+    existing = OfferDjangoFactory(organisme=OrganismeDjangoFactory())
+    talentsoft_organisme = TalentsoftOrganismeDjangoFactory()
+
+    upsert_offers(
+        existing.source_id,
+        [
+            _pending(
+                existing.source,
+                existing.reference,
+                talentsoft_organisme_entity_code=talentsoft_organisme,
+            )
+        ],
+        user=IngestionApiKeyUser(),
+    )
+
+    existing.refresh_from_db()
+    assert existing.organisme_id is None
+    assert existing.talentsoft_organisme_entity_code_id == (
+        talentsoft_organisme.entity_code
+    )
 
 
 def test_unarchives_offer_and_makes_it_eligible_for_reindexing():

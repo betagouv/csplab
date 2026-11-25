@@ -1,6 +1,12 @@
 import pytest
 
-from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
+from infrastructure.factories.ingestion.offer_payload_factory import (
+    PAYLOAD_SIRET,
+    PayloadOfferFactory,
+)
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
@@ -15,6 +21,7 @@ from presentation.ingestion.serializers import (
 
 
 def test_offers_input_serializer_never_exposes_archived_at(db):
+    OrganismeDjangoFactory(siret=PAYLOAD_SIRET)
     assert "archived_at" not in OffersInputSerializer().fields
 
     payload = PayloadOfferFactory.create(

@@ -15,6 +15,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
@@ -320,6 +321,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
         valid_indexes = []
         errors = []
         jwt_authenticated = isinstance(request.user, UserModel)
+        offer_organismes = OfferOrganismes()
 
         for index, offer_data in enumerate(request.data["offres"]):
             serializer = OffersInputSerializer(
@@ -327,6 +329,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 context={
                     "check_metier": True,
                     "allow_talentsoft_organisme": not jwt_authenticated,
+                    "offer_organismes": offer_organismes,
                 },
             )
             if not serializer.is_valid():
