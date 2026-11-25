@@ -347,6 +347,8 @@ function formater() {
             :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
           />
         </ChampSimple>
+      </FieldRow>
+      <FieldRow :cols="2">
         <CspInput
           v-model="o.corps"
           label="Corps"
