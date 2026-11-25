@@ -1,11 +1,8 @@
 import { screen, within } from '@testing-library/vue'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { TAG_SYNTHESIS, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
 import TagsView from './TagsView.vue'
 
@@ -18,9 +15,7 @@ vi.mock('../api', () => ({
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(TagsView, { organismeUuid: ORGANISME_UUID })),
-})
+const Host = withToaster(TagsView, { organismeUuid: ORGANISME_UUID })
 
 function block(title: string) {
   return screen.getByRole('region', { name: title })
@@ -42,15 +37,10 @@ async function openDrawerFrom(title: string) {
 
 describe('tagsView', () => {
   beforeEach(() => {
-    vi.mocked(getTags).mockReset().mockResolvedValue(TAGS)
+    vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(createTag).mockReset()
     vi.mocked(updateTag).mockReset()
     vi.mocked(deleteTag).mockReset()
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the tags of each category', async () => {

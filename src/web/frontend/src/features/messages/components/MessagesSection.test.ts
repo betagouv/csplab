@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
@@ -14,10 +14,6 @@ vi.mock('../api', () => ({
 const MESSAGES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/messages`
 
 describe('messagesSection', () => {
-  beforeEach(() => {
-    vi.mocked(getConversations).mockReset()
-  })
-
   it('reports a failed load instead of showing an empty list', async () => {
     vi.mocked(getConversations).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
 

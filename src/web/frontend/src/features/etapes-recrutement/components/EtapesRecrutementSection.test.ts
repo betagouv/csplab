@@ -1,11 +1,8 @@
 import { screen, within } from '@testing-library/vue'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, ValidationError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { ETAPES_RECRUTEMENT } from '@/test/fixtures/etapes'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { getEtapesOffre, initEtapesOffre, updateEtapesOffre } from '../api'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 import EtapesRecrutementSection from './EtapesRecrutementSection.vue'
@@ -23,11 +20,9 @@ const ETAPES = ETAPES_RECRUTEMENT
 
 const REFUSAL_REASON = 'L\'étape cccc ne peut être supprimée car 3 candidatures sont en cours'
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(EtapesRecrutementSection, {
-    params: { type: 'offre', organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID },
-    texts: ETAPES_TEXTS_OFFRE,
-  })),
+const Host = withToaster(EtapesRecrutementSection, {
+  params: { type: 'offre', organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID },
+  texts: ETAPES_TEXTS_OFFRE,
 })
 
 async function openSection() {
@@ -74,14 +69,9 @@ async function addEtape(nom: string) {
 
 describe('etapesRecrutementSection', () => {
   beforeEach(() => {
-    vi.mocked(getEtapesOffre).mockReset().mockResolvedValue(ETAPES)
+    vi.mocked(getEtapesOffre).mockResolvedValue(ETAPES)
     vi.mocked(updateEtapesOffre).mockReset()
     vi.mocked(initEtapesOffre).mockReset()
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('deletes an etape and closes the dialog', async () => {
