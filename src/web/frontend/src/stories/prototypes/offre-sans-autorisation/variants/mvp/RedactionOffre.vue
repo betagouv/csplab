@@ -34,7 +34,7 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
 const source = computed(() => (o.value.origineContenu === 'duplication' ? db.offres.find(x => x.id === o.value.sourceOffreId) : undefined))
 
 function quitter() {
-  notifier('Brouillon enregistré. Vous pouvez le reprendre à tout moment.')
+  notifier('Offre enregistrée. Vous pouvez la reprendre à tout moment.')
   aller({ nom: 'offres' })
 }
 function publier() {
@@ -47,7 +47,7 @@ function publier() {
     actif="offres"
     largeur="full"
     :titre="o.titre || 'Nouvelle offre'"
-    :sous-titre="source ? `Brouillon · copie de « ${source.titre} »` : 'Brouillon'"
+    :sous-titre="source ? `En préparation · copie de « ${source.titre} »` : 'En préparation'"
     :fil="[{ label: 'Mes offres d\'emploi', to: '/offres' }, { label: 'Nouvelle offre' }]"
   >
     <template #actions>

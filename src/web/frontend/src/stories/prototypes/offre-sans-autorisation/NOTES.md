@@ -137,3 +137,12 @@ Réponses aux questions
   ne s'affiche pour une offre en pause que si la date n'est pas passée (une échéance existe encore).
 - Les offres archivées sont maintenant visibles dans la liste. Deux offres fictives ajoutées : une en pause avant sa date de fin,
   une archivée.
+- Statut « Brouillon » renommé « En préparation » partout (onglet, badges, page de l'offre, formulaire) — demande d'Alice.
+
+## Offres en pause : « Remettre en ligne » (Alice, 25/11/2026)
+
+- Une offre en pause n'est pas forcément à prolonger : des recruteurs la mettent en pause quand ils ont assez de candidatures
+  à traiter, puis la remettent en ligne s'ils en veulent d'autres. Le CTA devient « Remettre en ligne » (page de l'offre,
+  menu « … » de la liste, colonne d'action).
+- La fenêtre de remise en ligne garde la date de fin si elle n'est pas passée (modifiable) ; sinon elle en demande une nouvelle.
+- Proposition à valider : l'action « Retirer l'offre » s'appelle désormais « Mettre en pause », comme le statut obtenu.

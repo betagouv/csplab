@@ -64,7 +64,7 @@ const filtrees = computed(() => trouvees.value.filter((o) => {
     && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
 }))
 
-// --- Onglets par statut : Brouillon, En ligne, En pause, Archivée, puis Toutes ---
+// --- Onglets par statut : En préparation, En ligne, En pause, Archivée, puis Toutes ---
 type Onglet = CategorieOffre | 'toutes'
 const parPhase = computed(() => {
   const m = new Map<CategorieOffre, number>()
@@ -125,7 +125,7 @@ const page = ref(1)
     v-model:onglet="onglet"
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Retrouvez toutes vos offres d'emploi : brouillons, en ligne, en pause et archivées."
+    sous-titre="Retrouvez toutes vos offres d'emploi : en préparation, en ligne, en pause et archivées."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
     :onglets="onglets"
   >

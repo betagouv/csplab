@@ -22,14 +22,14 @@ import { aujourdhui, dateLongue, db, heure, joursRestants, le, plusJours, prolon
 // Page d'une offre, hors création (retour Alice du 25/11/2026), structurée comme un profil Malt : l'en-tête,
 // « Accéder à », le bloc des champs qui restent à remplir, puis un bloc par étape, regroupés dans les deux parties
 // (annonce visible du candidat, paramétrage des candidatures). Chaque bloc se modifie à part, avec le crayon.
-// Brouillon → Publiée → Dépubliée (date de fin ou retrait) → Publiée (prolongation). Publier, prolonger et retirer
+// En préparation → En ligne → En pause (date de fin ou mise en pause) → En ligne (remise en ligne). Publier, prolonger et mettre en pause
 // demandent le droit « Publier ».
 const props = defineProps<{ id: string, section?: string }>()
 const { aller, notifier } = useNav()
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
 
 const ETATS = {
-  brouillon: { label: 'Brouillon', type: 'new' as const },
+  brouillon: { label: 'En préparation', type: 'new' as const },
   publiee: { label: 'En ligne', type: 'success' as const },
   retiree: { label: 'En pause', type: 'warning' as const },
   archivee: { label: 'Archivée', type: 'info' as const },
@@ -55,7 +55,7 @@ const meta = computed(() => [
   o.value.etat === 'publiee'
     ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `En ligne jusqu'au ${dateLongue(o.value.dateFin)}` }
     : o.value.etat === 'retiree'
-      ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `Retirée ${le(o.value.retireeLe)}` }
+      ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `En pause ${le(o.value.retireeLe)}` }
       : { icon: 'ri:calendar-line', srLabel: 'Création', label: `Créée ${le(o.value.creeLe)}` },
 ])
 
@@ -96,7 +96,7 @@ const menu = computed(() => [
     ],
   },
   ...(o.value.etat === 'publiee' && peutPublier.value
-    ? [{ items: [{ label: 'Retirer l’offre', icon: 'ri:stop-circle-line', onSelect: () => (retrait.value = true) }] }]
+    ? [{ items: [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => (retrait.value = true) }] }]
     : []),
 ])
 const bandeaux = computed(() => (o.value.etat === 'publiee' ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.'] : []))
@@ -105,11 +105,19 @@ const bandeaux = computed(() => (o.value.etat === 'publiee' ? ['Offre en ligne :
 const prolongation = ref(false)
 const nouvelleFin = ref('')
 const erreurFin = ref('')
+// Une offre en pause n'est pas forcément à prolonger (Alice, 25/11/2026) : on la remet en ligne, en gardant
+// sa date de fin si elle n'est pas passée.
+const pause = computed(() => o.value.etat === 'retiree')
+const finPassee = computed(() => !o.value.dateFin || o.value.dateFin <= aujourdhui())
 function ouvrirProlongation() {
   const base = o.value.dateFin && o.value.dateFin > aujourdhui() ? o.value.dateFin : aujourdhui()
-  nouvelleFin.value = plusJours(base, 15)
+  nouvelleFin.value = pause.value && !finPassee.value ? o.value.dateFin : plusJours(base, 15)
   erreurFin.value = ''
   prolongation.value = true
+}
+// Depuis le menu « … » de la liste : « Remettre en ligne » ouvre directement la fenêtre.
+if (props.section === 'remettre' && o.value.etat === 'retiree') {
+  ouvrirProlongation()
 }
 function confirmerProlongation() {
   if (!nouvelleFin.value || nouvelleFin.value <= aujourdhui()) {
@@ -119,14 +127,14 @@ function confirmerProlongation() {
   const remise = o.value.etat === 'retiree'
   prolonger(o.value, nouvelleFin.value)
   prolongation.value = false
-  notifier(remise ? `Offre remise en ligne jusqu'au ${dateLongue(nouvelleFin.value)}.` : `Publication prolongée jusqu'au ${dateLongue(nouvelleFin.value)}.`)
+  notifier(remise ? `Offre remise en ligne jusqu'au ${dateLongue(nouvelleFin.value)}. Elle peut de nouveau recevoir des candidatures.` : `Publication prolongée jusqu'au ${dateLongue(nouvelleFin.value)}.`)
 }
 
-// --- Retirer (publiée → dépubliée) ---
+// --- Mettre en pause (en ligne → en pause) ---
 function confirmerRetrait() {
-  retirer(o.value, 'manuel')
+  retirer(o.value, 'pause')
   retrait.value = false
-  notifier('Offre retirée. Le recrutement continue : les candidatures reçues restent à traiter.')
+  notifier('Offre mise en pause. Le recrutement continue : les candidatures reçues restent à traiter.')
 }
 </script>
 
@@ -195,10 +203,10 @@ function confirmerRetrait() {
         />
         <CspButton
           v-else-if="enLigne"
-          :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
+          :label="pause ? 'Remettre en ligne' : 'Prolonger'"
           size="sm"
-          :variant="o.etat === 'retiree' || restants <= 7 ? 'primary' : 'secondary'"
-          icon="ri:calendar-line"
+          :variant="pause || restants <= 7 ? 'primary' : 'secondary'"
+          :icon="pause ? 'ri:play-circle-line' : 'ri:calendar-line'"
           is-icon-left
           @click="ouvrirProlongation"
         />
@@ -336,13 +344,20 @@ function confirmerRetrait() {
 
     <CspDialog
       v-model:open="prolongation"
-      :title="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger la publication'"
+      :title="pause ? 'Remettre l\'offre en ligne' : 'Prolonger la publication'"
       size="sm"
     >
+      <p
+        v-if="pause"
+        class="texte"
+      >
+        L'offre sera de nouveau visible des candidats et pourra recevoir de nouvelles candidatures.
+        {{ finPassee ? 'Sa date de fin est passée : choisissez-en une nouvelle.' : 'Vous pouvez garder sa date de fin ou la modifier.' }}
+      </p>
       <CspInput
         v-model="nouvelleFin"
         placeholder="AAAA-MM-JJ"
-        label="Nouvelle date de fin"
+        :label="pause ? 'Date de fin de publication' : 'Nouvelle date de fin'"
         hint="C'est aussi la date limite de candidature."
         :error="Boolean(erreurFin)"
         :error-message="erreurFin || undefined"
@@ -354,7 +369,7 @@ function confirmerRetrait() {
           @click="prolongation = false"
         />
         <CspButton
-          :label="o.etat === 'retiree' ? 'Prolonger et remettre en ligne' : 'Prolonger'"
+          :label="pause ? 'Remettre en ligne' : 'Prolonger'"
           @click="confirmerProlongation"
         />
       </template>
@@ -362,12 +377,12 @@ function confirmerRetrait() {
 
     <CspDialog
       v-model:open="retrait"
-      title="Retirer l'offre ?"
+      title="Mettre l'offre en pause ?"
       size="sm"
     >
       <p class="texte">
-        L'offre ne sera plus visible des candidats. Le recrutement continue : les candidatures reçues restent à traiter.
-        Vous pourrez la remettre en ligne en la prolongeant.
+        L'offre ne sera plus visible des candidats et ne recevra plus de candidatures. Les candidatures reçues restent à traiter.
+        Vous pourrez la remettre en ligne à tout moment.
       </p>
       <template #footer>
         <CspButton
@@ -376,7 +391,7 @@ function confirmerRetrait() {
           @click="retrait = false"
         />
         <CspButton
-          label="Retirer l'offre"
+          label="Mettre en pause"
           @click="confirmerRetrait"
         />
       </template>

@@ -8,8 +8,8 @@ import { dupliquer } from '../dupliquer'
 import { useNav } from '../nav'
 import { db, retirer, sauvegarder, UTILISATEUR } from '../store'
 
-// Menu « … » d'une offre. Une seule action pour arrêter la diffusion (retour PO, point 6) : pas de distinction
-// entre « mettre en pause » et « retirer » ; on remet l'offre en ligne en prolongeant sa date de fin.
+// Menu « … » d'une offre. Une seule action pour arrêter la diffusion (retour PO, point 6), appelée « Mettre en pause »
+// comme le statut ; une offre en pause se remet en ligne, sans forcément la prolonger (Alice, 25/11/2026).
 defineOptions({ inheritAttrs: false })
 const props = defineProps<{ row: Offre }>()
 const { aller, notifier } = useNav()
@@ -17,10 +17,10 @@ const { aller, notifier } = useNav()
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 const retrait = ref(false)
 function confirmerRetrait() {
-  retirer(props.row, 'manuel')
+  retirer(props.row, 'pause')
   sauvegarder()
   retrait.value = false
-  notifier('Offre retirée : elle n\'est plus visible des candidats. Les candidatures reçues restent à traiter.')
+  notifier('Offre mise en pause : elle n\'est plus visible des candidats. Les candidatures reçues restent à traiter.')
 }
 
 const sections = computed(() => [{
@@ -28,9 +28,12 @@ const sections = computed(() => [{
     { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
     { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(props.row, { aller, notifier }) },
     ...(props.row.etat === 'publiee' && peutPublier.value
-      ? [{ label: 'Retirer l’offre', icon: 'ri:stop-circle-line', onSelect: () => {
+      ? [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => {
           retrait.value = true
         } }]
+      : []),
+    ...(props.row.etat === 'retiree' && peutPublier.value
+      ? [{ label: 'Remettre en ligne', icon: 'ri:play-circle-line', onSelect: () => aller({ nom: 'offre', id: props.row.id, section: 'remettre' }) }]
       : []),
   ],
 }])
@@ -55,12 +58,12 @@ const sections = computed(() => [{
 
     <CspDialog
       v-model:open="retrait"
-      title="Retirer l'offre ?"
+      title="Mettre l'offre en pause ?"
       size="sm"
     >
       <p class="texte">
-        L'offre « {{ row.titre }} » ne sera plus visible des candidats. Les candidatures reçues restent à traiter.
-        Vous pourrez la remettre en ligne en prolongeant sa date de fin.
+        L'offre « {{ row.titre }} » ne sera plus visible des candidats et ne recevra plus de candidatures.
+        Les candidatures reçues restent à traiter. Vous pourrez la remettre en ligne à tout moment.
       </p>
       <template #footer>
         <CspButton
@@ -69,7 +72,7 @@ const sections = computed(() => [{
           @click="retrait = false"
         />
         <CspButton
-          label="Retirer l'offre"
+          label="Mettre en pause"
           @click="confirmerRetrait"
         />
       </template>

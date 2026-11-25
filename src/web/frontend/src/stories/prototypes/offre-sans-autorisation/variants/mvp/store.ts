@@ -208,7 +208,7 @@ export interface Offre {
 }
 
 export const LIBELLES_ETAT: Record<EtatOffre, string> = {
-  brouillon: 'Brouillon',
+  brouillon: 'En préparation',
   publiee: 'Publiée',
   retiree: 'Retirée',
   archivee: 'Archivée',
@@ -1079,11 +1079,11 @@ export function prolonger(o: Offre, nouvelleFin: string) {
     }
   }
   if (remiseEnLigne) {
-    // Dépubliée → Publiée : la prolongation remet l'offre en ligne, sans autre démarche.
+    // En pause → En ligne : la remise en ligne garde la date de fin si elle n'est pas passée (Alice, 25/11/2026).
     o.etat = 'publiee'
     o.retireeLe = undefined
   }
-  journal(o, remiseEnLigne ? `Offre prolongée jusqu'au ${dateLongue(nouvelleFin)} et remise en ligne` : `Publication prolongée jusqu'au ${dateLongue(nouvelleFin)}`)
+  journal(o, remiseEnLigne ? `Offre remise en ligne jusqu'au ${dateLongue(nouvelleFin)}` : `Publication prolongée jusqu'au ${dateLongue(nouvelleFin)}`)
 }
 
 /** Retirer ne clôt pas le recrutement : les candidatures restent à traiter. */

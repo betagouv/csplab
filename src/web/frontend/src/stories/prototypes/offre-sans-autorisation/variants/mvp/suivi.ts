@@ -9,7 +9,7 @@ import { aujourdhui, aValiderParMoi, dateTri, joursRestants, termineBientot, val
 export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'validee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
 
 export const STATUTS: Record<StatutListe, { label: string, type: 'info' | 'new' | 'warning' | 'error' | 'success', contour?: boolean }> = {
-  brouillon: { label: 'Brouillon', type: 'info' },
+  brouillon: { label: 'En préparation', type: 'info' },
   validation_attente: { label: 'Validation en attente', type: 'warning' },
   validation_refusee: { label: 'Validation refusée', type: 'error' },
   // « Validée » : la validation peut être demandée à tout moment, une offre validée n'est donc pas forcément complète.
@@ -72,7 +72,7 @@ export function actionAFaire(o: Offre): ActionAFaire | null {
       return null
     }
     case 'retiree':
-      return { label: 'Archiver', ecran: offre }
+      return { label: 'Remettre en ligne', ecran: { ...offre, section: 'remettre' } }
     default:
       return null
   }
@@ -92,9 +92,9 @@ export function referenceCsp(o: Offre): string {
 
 export type CategorieOffre = 'brouillon' | 'en_ligne' | 'en_pause' | 'archivee'
 
-/** Libellés des badges de statut. « En pause » remplace « Dépubliée » (offre retirée, prolongeable). */
+/** Libellés des badges de statut. « En pause » remplace « Dépubliée » : offre retirée, qu'on peut remettre en ligne. */
 export const CATEGORIES_OFFRE: { id: CategorieOffre, label: string, badge: 'info' | 'new' | 'warning' | 'error' | 'success' }[] = [
-  { id: 'brouillon', label: 'Brouillon', badge: 'new' },
+  { id: 'brouillon', label: 'En préparation', badge: 'new' },
   { id: 'en_ligne', label: 'En ligne', badge: 'success' },
   { id: 'en_pause', label: 'En pause', badge: 'warning' },
   { id: 'archivee', label: 'Archivée', badge: 'info' },
@@ -147,7 +147,7 @@ export function prochaineEtape(o: Offre, peutPublier = true): ActionAFaire {
       // Rien à faire tant que la fin n'approche pas : les candidatures ont leur propre colonne (retour PO, L6).
       return termineBientot(o) ? { label: 'Prolonger la publication', ecran: offre } : { label: '—' }
     case 'en_pause':
-      return { label: 'Prolonger pour remettre en ligne', ecran: offre }
+      return { label: 'Remettre en ligne', ecran: { ...offre, section: 'remettre' } }
     case 'archivee':
       return { label: '—' }
   }
