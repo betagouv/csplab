@@ -43,7 +43,7 @@ class PayloadOfferFactory:
             "categories": ["A"],
             "nature_offre": "TITULAIRE_CONTRACTUEL",
             "type_contrat": None,
-            "vacance_poste": "",
+            "vacance_poste": None,
             "description": {
                 "mission": fake.text(max_nb_chars=3000),
                 "profil": fake.text(max_nb_chars=3000),
