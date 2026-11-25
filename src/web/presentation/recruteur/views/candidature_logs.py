@@ -23,6 +23,9 @@ from presentation.api.serializers import GenericErrorSerializer, generic_respons
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import AuditLogSerializer
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 _EVENEMENTS = [
     ("NoteAjoutee", "Camille", "Durand"),
@@ -110,10 +113,7 @@ class CandidatureLogsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
                 RecrutementCandidatureInexistante,
             ),
         ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return candidature_inaccessible_response()
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
         return Response(

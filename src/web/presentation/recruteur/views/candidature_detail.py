@@ -23,6 +23,9 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import CandidatureDetailSerializer
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 @extend_schema(
@@ -62,10 +65,7 @@ class CandidatureDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
                 RecrutementCandidatureInexistante,
             ),
         ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return candidature_inaccessible_response()
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
         return Response(

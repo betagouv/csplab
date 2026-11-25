@@ -200,6 +200,7 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert not ConversationLectureModel.objects.exists()
 
     @HTTP_METHODS
@@ -217,6 +218,7 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert not ConversationLectureModel.objects.exists()
 
     @pytest.mark.parametrize(

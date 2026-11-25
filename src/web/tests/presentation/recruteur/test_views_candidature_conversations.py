@@ -155,6 +155,7 @@ class TestAccess:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
 
     @HTTP_METHODS
     @UNKNOWN_OR_FOREIGN_IDS
@@ -171,6 +172,7 @@ class TestAccess:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
 
     @pytest.mark.parametrize(
         "method,queryset_method",
