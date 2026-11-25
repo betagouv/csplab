@@ -2,10 +2,11 @@ import type { TagSummary } from '@/features/tags/types'
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { TAG_INTERVIEW, TAG_SENIOR, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
+import { TAG_INTERVIEW, TAG_SENIOR, TAG_TO_RECALL } from '@/test/fixtures/tags'
+import { tags } from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { server } from '@/test/server'
 import { addCandidatureTag, removeCandidatureTag } from '../api'
 import CandidatureEtiquettes from './CandidatureEtiquettes.vue'
 
@@ -15,17 +16,13 @@ vi.mock('../api', async importOriginal => ({
   removeCandidatureTag: vi.fn(),
 }))
 
-vi.mock('@/features/tags/api', () => ({
-  getTags: vi.fn(),
-}))
-
 function renderEtiquettes(props: { tags: TagSummary[], editable: boolean }) {
   return renderWithApp(withToaster(CandidatureEtiquettes, { candidature: CANDIDATURE_PARAMS, ...props }))
 }
 
-async function openPicker(tags: TagSummary[] = []) {
+async function openPicker(candidatureTags: TagSummary[] = []) {
   const user = setupUser()
-  await renderEtiquettes({ tags, editable: true })
+  await renderEtiquettes({ tags: candidatureTags, editable: true })
   await user.click(screen.getByRole('button', { name: 'Ajouter une étiquette à la candidature' }))
   const picker = await screen.findByRole('dialog', { name: 'Ajouter une étiquette à la candidature' })
   return { user, picker }
@@ -33,7 +30,6 @@ async function openPicker(tags: TagSummary[] = []) {
 
 describe('candidatureEtiquettes', () => {
   it('offers only the candidature tags of the organisme and adds one in a click', async () => {
-    vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(addCandidatureTag).mockResolvedValue()
     const { user, picker } = await openPicker([TAG_TO_RECALL])
 
@@ -46,7 +42,7 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('says when the organisme has no candidature tag', async () => {
-    vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW])
+    server.use(tags([TAG_INTERVIEW]))
     const { picker } = await openPicker()
 
     expect(await within(picker).findByText('Aucune étiquette disponible.')).toBeInTheDocument()
@@ -71,7 +67,6 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('keeps the picker open and says so when a tag cannot be added', async () => {
-    vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
     const { user, picker } = await openPicker()
 
@@ -82,7 +77,6 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('treats a tag already on the candidature as added', async () => {
-    vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(409, 'Conflict', undefined))
     const { user, picker } = await openPicker()
 
@@ -103,7 +97,6 @@ describe('candidatureEtiquettes', () => {
   })
 
   it('warns and closes the picker when the tag was deleted meanwhile', async () => {
-    vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(addCandidatureTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
     const { user, picker } = await openPicker()
 

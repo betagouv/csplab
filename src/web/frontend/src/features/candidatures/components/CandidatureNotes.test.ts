@@ -2,11 +2,12 @@ import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
+import { tags } from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { server } from '@/test/server'
 import { addCandidatureNoteTag, deleteCandidatureNote, getCandidatureNotes, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
@@ -18,10 +19,6 @@ vi.mock('../api', async importOriginal => ({
   updateCandidatureNoteVisibilite: vi.fn(),
   addCandidatureNoteTag: vi.fn(),
   removeCandidatureNoteTag: vi.fn(),
-}))
-
-vi.mock('@/features/tags/api', () => ({
-  getTags: vi.fn(),
 }))
 
 function note(overrides: Partial<Note>): Note {
@@ -43,7 +40,7 @@ function note(overrides: Partial<Note>): Note {
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
 async function openTagPicker() {
-  vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL])
+  server.use(tags([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL]))
   const user = setupUser()
   await renderNotes()
   await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
