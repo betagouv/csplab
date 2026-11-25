@@ -44,7 +44,7 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
   <CspSidebarProvider :default-expanded="true">
     <div
       class="ats"
-      :class="{ 'ats--sans-onglets': !onglets }"
+      :class="{ 'ats--sans-onglets': !onglets, 'ats--avec-encart': $slots['avant-onglets'] }"
     >
       <AtsSidebar :actif="actif" />
       <div class="ats__main">
@@ -80,6 +80,12 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
             </div>
           </template>
         </CspPageHeader>
+        <div
+          v-if="$slots['avant-onglets']"
+          class="ats__avant-onglets"
+        >
+          <slot name="avant-onglets" />
+        </div>
         <CspPageContainer
           v-if="onglets"
           v-model:active-tab="onglet"
@@ -121,6 +127,16 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 </template>
 
 <style scoped lang="scss">
+// Encart entre l'en-tête et les onglets (ex. « À faire » de la liste des offres).
+.ats__avant-onglets {
+  padding: 0 var(--csp-page-container-padding-inline) var(--csp-space-4);
+}
+
+// Avec un encart sous l'en-tête, pas de filet entre les deux (demande d'Alice).
+.ats--avec-encart :deep(.csp-page-header__main-row) {
+  border-bottom: 0;
+}
+
 // Badges sans icône dans tout le prototype (demande d'Alice) : le libellé et la couleur suffisent.
 .ats :deep(.badge > span:has(> .badge__icon)) {
   display: none;

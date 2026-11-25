@@ -7,6 +7,7 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import { dupliquer } from '../dupliquer'
 import { useNav } from '../nav'
 import { db, retirer, sauvegarder, UTILISATEUR } from '../store'
+import { actionOffre } from '../suivi'
 
 // Menu « … » d'une offre. Une seule action pour arrêter la diffusion (retour PO, point 6), appelée « Mettre en pause »
 // comme le statut ; une offre en pause se remet en ligne, sans forcément la prolonger (Alice, 25/11/2026).
@@ -15,6 +16,8 @@ const props = defineProps<{ row: Offre }>()
 const { aller, notifier } = useNav()
 
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
+// Action à faire sur la ligne (Continuer, Publier, Prolonger), avant le menu (Alice, 25/11/2026).
+const action = computed(() => actionOffre(props.row, Boolean(peutPublier.value)))
 const retrait = ref(false)
 function confirmerRetrait() {
   retirer(props.row, 'pause')
@@ -41,6 +44,13 @@ const sections = computed(() => [{
 
 <template>
   <div class="actions-cell">
+    <CspButton
+      v-if="action"
+      :label="action.label"
+      size="sm"
+      :variant="action.type === 'continuer' ? 'secondary' : 'primary'"
+      @click.stop="aller(action.ecran)"
+    />
     <CspDropdownMenu
       :sections="sections"
       side="bottom"
@@ -83,7 +93,9 @@ const sections = computed(() => [{
 <style scoped lang="scss">
 .actions-cell {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--csp-space-2);
 }
 
 .texte {

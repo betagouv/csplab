@@ -115,8 +115,8 @@ function ouvrirProlongation() {
   erreurFin.value = ''
   prolongation.value = true
 }
-// Depuis le menu « … » de la liste : « Remettre en ligne » ouvre directement la fenêtre.
-if (props.section === 'remettre' && o.value.etat === 'retiree') {
+// Depuis la liste : « Remettre en ligne » et « Prolonger » ouvrent directement la fenêtre.
+if ((props.section === 'remettre' && o.value.etat === 'retiree') || (props.section === 'prolonger' && o.value.etat === 'publiee')) {
   ouvrirProlongation()
 }
 function confirmerProlongation() {

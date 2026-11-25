@@ -146,3 +146,14 @@ Réponses aux questions
   menu « … » de la liste, colonne d'action).
 - La fenêtre de remise en ligne garde la date de fin si elle n'est pas passée (modifiable) ; sinon elle en demande une nouvelle.
 - Proposition à valider : l'action « Retirer l'offre » s'appelle désormais « Mettre en pause », comme le statut obtenu.
+
+## « Mes offres d'emploi » : actions à faire (Alice, 25/11/2026)
+
+- Encart « À faire » entre l'en-tête et les onglets : une carte par action (offres en préparation à continuer, offres prêtes
+  à publier, offres qui se terminent dans moins de 7 jours). Un clic ouvre l'onglet concerné, limité à ces offres
+  (« Tout afficher » pour revenir). Une carte sans offre disparaît, l'encart aussi. Pas de filet sous l'en-tête dans ce cas.
+- Bouton d'action sur la ligne, avant le menu « … » : Continuer, Publier, Prolonger (ouvre directement la fenêtre).
+- Sans autorisation, « publier une offre validée » devient « publier une offre prête » (tous les champs obligatoires remplis).
+- Colonne Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon / Prête à publier ; plus tard
+  À valider, Validée…) ; absente des autres onglets.
+- Besoin design system : slot entre l'en-tête de page et les onglets (fait ici dans PageAts, propre au proto).

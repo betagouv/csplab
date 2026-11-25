@@ -194,3 +194,29 @@ export function activiteOffre(o: Offre): string {
       return `Archivée ${quand(o.archiveeLe)}`
   }
 }
+
+// --- Actions à faire depuis « Mes offres d'emploi » (Alice, 25/11/2026) ---
+
+export type TypeAction = 'continuer' | 'publier' | 'prolonger'
+
+/**
+ * Action à mettre en avant pour une offre, ou rien. Sans autorisation, « publier une offre validée » devient
+ * « publier une offre prête » : en préparation, tous les champs obligatoires remplis.
+ */
+export function actionOffre(o: Offre, peutPublier = true): { type: TypeAction, label: string, ecran: Ecran } | null {
+  if (o.etat === 'brouillon') {
+    if (champsObligatoires(o).some(c => !c.ok)) {
+      return { type: 'continuer', label: 'Continuer', ecran: { nom: 'rediger', id: o.id } }
+    }
+    return peutPublier ? { type: 'publier', label: 'Publier', ecran: { nom: 'publier', id: o.id } } : null
+  }
+  if (termineBientot(o) && peutPublier) {
+    return { type: 'prolonger', label: 'Prolonger', ecran: { nom: 'offre', id: o.id, section: 'prolonger' } }
+  }
+  return null
+}
+
+/** Sous-statut d'une offre en préparation (colonne « Statut » de l'onglet En préparation). Plus tard : À valider, Validée… */
+export function etatPreparation(o: Offre): string {
+  return champsObligatoires(o).some(c => !c.ok) ? 'Brouillon' : 'Prête à publier'
+}
