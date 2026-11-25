@@ -17,11 +17,10 @@ class LocalisationPayload(BaseModel):
 
 
 class OrganismeUpsertPayload(BaseModel):
-    id: str
     nom: str
     versant: str
     siret: str
-    parent_id: Optional[str]
+    parent_external_id: Optional[str]
     external_id: str
     referentiel: str
     millesime: str
@@ -31,7 +30,9 @@ class OrganismeUpsertPayload(BaseModel):
     localisation: Optional[LocalisationPayload] = None
 
     @classmethod
-    def from_organisme(cls, organisme: Organisme) -> OrganismeUpsertPayload:
+    def from_organisme(
+        cls, organisme: Organisme, parent_external_id: Optional[str]
+    ) -> OrganismeUpsertPayload:
         localisation = None
         if organisme.localisation:
             localisation = LocalisationPayload(
@@ -48,11 +49,10 @@ class OrganismeUpsertPayload(BaseModel):
             )
 
         return cls(
-            id=str(organisme.entity_id),
             nom=organisme.nom,
             versant=organisme.versant.value,
             siret=str(organisme.siret),
-            parent_id=str(organisme.parent_id) if organisme.parent_id else None,
+            parent_external_id=parent_external_id,
             external_id=organisme.external_id,
             referentiel=organisme.referentiel,
             millesime=organisme.millesime,

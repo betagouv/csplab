@@ -101,11 +101,11 @@ async def test_execute_serializes_minimal_organisme(
     assert len(body["organismes"]) == 1
     organisme = body["organismes"][0]
 
-    assert organisme["id"] == str(ORGANISME_ID)
+    assert "id" not in organisme
     assert organisme["nom"] == "Mairie de Test"
     assert organisme["versant"] == "FPT"
     assert organisme["siret"] == "26060047300342"
-    assert organisme["parent_id"] is None
+    assert organisme["parent_external_id"] is None
     assert organisme["external_id"] == "ext-minimal"
     assert organisme["referentiel"] == "FINESS"
     assert organisme["millesime"] == "2026-08-19"
@@ -136,14 +136,14 @@ async def test_execute_serializes_full_organisme(
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
 
     await publish_organismes_usecase.execute(
-        PublishOrganismesCommand(organismes=[FULL_ORGANISME])
+        PublishOrganismesCommand(organismes=[FULL_ORGANISME, MINIMAL_ORGANISME])
     )
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    organisme = body["organismes"][0]
+    organisme = body["organismes"][1]
 
     assert organisme["versant"] == "FPH"
-    assert organisme["parent_id"] == str(ORGANISME_ID)
+    assert organisme["parent_external_id"] == "ext-minimal"
     assert organisme["external_id"] == "060786738"
     assert organisme["referentiel"] == "FINESS"
     assert organisme["millesime"] == "2026-08-19"
