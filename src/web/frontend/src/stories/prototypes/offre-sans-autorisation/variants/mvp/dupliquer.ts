@@ -6,6 +6,6 @@ import { nouvelleOffre } from './store'
 
 export function dupliquer(source: Offre, { aller, notifier }: Pick<Nav, 'aller' | 'notifier'>) {
   const o = nouvelleOffre(undefined, 'duplication', source)
-  notifier(`Copie de « ${source.titre || source.id} » créée (${o.id}). Nombre de postes et dates remis à zéro.`)
+  notifier(`Copie de « ${source.titre || source.id} » créée (${o.id}). Nombre de postes et dates vidés.`)
   aller({ nom: 'rediger', id: o.id })
 }

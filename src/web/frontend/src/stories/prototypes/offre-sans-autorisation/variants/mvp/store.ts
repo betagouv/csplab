@@ -796,8 +796,9 @@ export function nouvelleFiche(partiel: Partial<Fiche>, origine: OrigineFiche, ev
  * La fiche est facultative. Les données de contexte (date de vacance, motif, agent remplacé, code poste,
  * nombre de postes, dates, commentaires de validation) ne sont jamais reprises.
  */
-// Formulaire vide : la nature de l'emploi et le temps de travail ne sont pas pré-remplis (retour Alice du 25/11/2026),
-// pour qu'ils soient choisis volontairement et qu'aucune étape ne paraisse complète sans avoir été ouverte.
+// Formulaire vide : aucun champ pré-rempli (retour Alice du 25/11/2026) — ni nature de l'emploi, temps de travail,
+// nombre de postes, descriptif de l'employeur, adresse, ni pièces demandées (toutes « Non demandé »).
+// Duplication : le nombre de postes est vidé.
 export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineContenu, depuis?: Offre, saisie?: Partial<Offre>): Offre {
   const annonce = depuis
     ? {
@@ -840,7 +841,7 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
         pieces: { ...depuis.pieces },
         questions: [...depuis.questions],
       }
-    : f ? contenuDepuisFiche(f) : ({ titre: '', categorie: '', statutPoste: '', metier: '', competences: [], presentation: '', missions: '', profil: '', lieu: '', ouvertA: [], tempsTravail: '', ...saisie } as Partial<Offre>)
+    : f ? contenuDepuisFiche(f) : ({ titre: '', categorie: '', statutPoste: '', metier: '', competences: [], presentation: '', missions: '', profil: '', lieu: '', ouvertA: [], tempsTravail: '', descriptifEmployeur: '', adresse: '', lieux: [], pieces: { cv: 'non', lm: 'non', portfolio: 'non', demo: 'non' }, ...saisie } as Partial<Offre>)
   const texte = {
     fiche: `Offre créée depuis la fiche ${f?.id}`,
     fichier: `Offre créée depuis un fichier (fiche ${f?.id})`,
@@ -850,6 +851,7 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
   const o = {
     ...socle(),
     ...annonce,
+    nbPostes: '',
     id: `OFF-2026-0${prochainNumero('', db.offres.filter(x => x.id.startsWith('OFF-2026-')))}`,
     ficheId: f?.id ?? '',
     etat: 'brouillon',

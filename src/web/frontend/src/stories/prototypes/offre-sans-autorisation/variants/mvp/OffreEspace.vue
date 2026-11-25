@@ -51,7 +51,7 @@ const meta = computed(() => [
   { icon: 'ri:map-pin-2-line', srLabel: 'Lieu', label: o.value.sansLieuFixe ? 'Pas de lieu fixe' : o.value.lieu || 'Lieu à préciser' },
   ...(o.value.categorie ? [{ icon: 'ri:price-tag-3-line', srLabel: 'Catégorie', label: `Catégorie ${o.value.categorie}` }] : []),
   ...(nature.value ? [{ icon: 'ri:user-line', srLabel: 'Nature de l\'emploi', label: nature.value }] : []),
-  { icon: 'ri:group-line', srLabel: 'Postes', label: `${o.value.nbPostes || 1} poste${Number(o.value.nbPostes) > 1 ? 's' : ''}` },
+  ...(o.value.nbPostes ? [{ icon: 'ri:group-line', srLabel: 'Postes', label: `${o.value.nbPostes} poste${Number(o.value.nbPostes) > 1 ? 's' : ''}` }] : []),
   o.value.etat === 'publiee'
     ? { icon: 'ri:calendar-line', srLabel: 'Publication', label: `En ligne jusqu'au ${dateLongue(o.value.dateFin)}` }
     : o.value.etat === 'retiree'
