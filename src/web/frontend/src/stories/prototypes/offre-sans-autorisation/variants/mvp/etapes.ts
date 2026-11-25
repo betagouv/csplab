@@ -17,7 +17,7 @@ export const ETAPES_OFFRE: { id: PartieOffre, groupe: GroupeOffre, titre: string
   { id: 'cadre', groupe: 'annonce', titre: 'Le cadre du recrutement', aide: 'Indique aux candidats les conditions d\'accès au poste.' },
   { id: 'metier', groupe: 'annonce', titre: 'Le métier', aide: 'Les compétences proposées décrivent aux candidats ce qui est attendu.' },
   { id: 'profil', groupe: 'annonce', titre: 'Le profil recherché', aide: 'Permet aux candidats de se projeter dans le poste.' },
-  { id: 'lieu', groupe: 'annonce', titre: 'L\'environnement de travail', aide: 'Présentez le futur environnement de travail.' },
+  { id: 'lieu', groupe: 'annonce', titre: 'L\'environnement de travail', aide: 'Permet aux candidats de mieux connaître leur futur employeur.' },
   { id: 'formulaire', groupe: 'candidature', titre: 'Formulaire', aide: 'Questions posées au candidat au moment où il postule.' },
   { id: 'documents', groupe: 'candidature', titre: 'Documents', aide: 'Pièces que les candidats joignent à leur candidature.' },
 ]
