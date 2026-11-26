@@ -53,6 +53,13 @@ class RecrutementDocumentTypeNonAutorise(RecrutementError):
         )
 
 
+class CandidatureNonRefusee(RecrutementError):
+    def __init__(self, candidature_id: UUID):
+        super().__init__(
+            f"La candidature {candidature_id} n'est pas à une étape de refus"
+        )
+
+
 class MotifRefusRequis(RecrutementError):
     def __init__(self, etape_id: UUID):
         super().__init__(

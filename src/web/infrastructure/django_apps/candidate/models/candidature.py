@@ -55,6 +55,15 @@ class CandidatureQuerySet(TaggedQuerySet):
     ) -> "CandidatureQuerySet":
         return self.filter(etape__recrutement_id=recrutement_id, pk=candidature_id)
 
+    def for_motif_refus_update(
+        self, recrutement_id: UUID, candidature_id: UUID
+    ) -> "CandidatureQuerySet":
+        return (
+            self.by_recrutement_and_candidature(recrutement_id, candidature_id)
+            .select_related("etape")
+            .select_for_update(of=("self",))
+        )
+
     def by_recrutement(self, recrutement_id) -> "CandidatureQuerySet":
         return (
             self.filter(etape__recrutement_id=recrutement_id)
