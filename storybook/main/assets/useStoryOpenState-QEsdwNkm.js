@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{b as t,et as n,gt as r,l as i}from"./iframe-BBV20dn0.js";function a(e){let i=r(!!e.open);n(()=>e.open,e=>{e!==void 0&&(i.value=e)});let a=t(()=>e.open===void 0?void 0:i.value);function o(e){i.value=e}return{open:i,controlledOpen:a,handleUpdateOpen:o}}function o(){return(o=e((()=>{i()})))()}export{a as n,o as t};

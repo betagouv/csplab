@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{b as t,gt as n,l as r}from"./iframe-j0MHhFER.js";import{i,r as a}from"./useId-BRvDEM9s.js";function o(e){let r=i({nonce:n()});return t(()=>e?.value||r.nonce?.value)}function s(){return(s=e((()=>{a(),r()})))()}export{o as n,s as t};
