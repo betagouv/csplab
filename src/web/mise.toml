@@ -22,6 +22,14 @@ sources = ["package.json", "pnpm-lock.yaml"]
 outputs = { auto = true }
 run = "pnpm install"
 
+[tasks."build:styles"]
+alias = "web:build:styles"
+description = "Compile the SCSS of the Django pages into presentation/static/css/main.css, incremental"
+depends = ["install:js"]
+sources = ["presentation/assets/styles/**/*.scss", "frontend/src/styles/breakpoints.scss", "package.json", "pnpm-lock.yaml"]
+outputs = ["presentation/static/css/main.css"]
+run = "pnpm run build:styles"
+
 [tasks."secrets:check"]
 alias = "web:secrets:check"
 description = "Check the Scaleway access and list the secret names of this service"
@@ -30,7 +38,7 @@ run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secret
 [tasks.dev]
 alias = "web:dev"
 description = "Django dev server (HOST and PORT override the 127.0.0.1:8000 default)"
-depends = ["install:py", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
+depends = ["install:py", "build:styles", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 shell = "bash -c"
 run = """
 python manage.py runserver "${HOST:-127.0.0.1}:${PORT:-8000}"
@@ -38,13 +46,13 @@ python manage.py runserver "${HOST:-127.0.0.1}:${PORT:-8000}"
 
 [tasks."dev:cv"]
 alias = "web:dev:cv"
-description = "Candidate/CV dev: Django + sass watch (DSFR SCSS styles) + vector services"
-depends = ["install:py", "install:js", "qdrant:init", "//:services:postgres", "//:services:redis"]
+description = "Candidate/CV dev: Django + SCSS watch (DSFR SCSS styles) + vector services"
+depends = ["install:py", "build:styles", "qdrant:init", "//:services:postgres", "//:services:redis"]
 shell = "bash -c"
 run = """
 rm -rf static_collected
 trap 'kill 0' EXIT
-../../bin/sass watch &
+pnpm run watch:styles &
 python manage.py runserver
 """
 
@@ -111,7 +119,7 @@ mise run '//src/web:seed'
 [tasks.emulate-prod]
 alias = "web:emulate-prod"
 description = "Emulate production: frontend build + collectstatic + runserver :8001"
-depends = ["install:py", "//src/web/frontend:build", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
+depends = ["install:py", "//src/web/frontend:build", "build:styles", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 env = { DJANGO_SETTINGS_MODULE = "config.settings.base", WEB_ALLOWED_HOSTS = "localhost,127.0.0.1" }
 run = [
   "python manage.py collectstatic --noinput --clear",
@@ -127,15 +135,15 @@ run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e
 
 [tasks."test:e2e"]
 alias = "web:test:e2e"
-description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
-depends = ["install:py", "//src/web/frontend:build", "//:services:postgres", "//:services:redis"]
+description = "Playwright e2e tests (live_server + browser, rebuilds the frontend and styles when needed)"
+depends = ["install:py", "//src/web/frontend:build", "build:styles", "//:services:postgres", "//:services:redis"]
 env = { _.file = "env.test" }
 run = "pytest -m e2e --no-cov"
 
 [tasks."test:a11y"]
 alias = "web:test:a11y"
 description = "Accessibility tests (Playwright + axe)"
-depends = ["install:py", "//:services:postgres", "//:services:redis"]
+depends = ["install:py", "build:styles", "//:services:postgres", "//:services:redis"]
 env = { _.file = "env.test" }
 run = "pytest -m accessibility --create-db --no-cov"
 
@@ -200,7 +208,6 @@ run = [
   "djlint presentation/templates --reformat",
   "pnpm run lint:candidate-js:fix || true",
   "pnpm run lint:styles:fix",
-  "../../bin/sass compile",
 ]
 
 [tasks.schema]

@@ -81,7 +81,7 @@ Les tâches de test chargent `env.test` (valeurs factices, versionnées) et tour
 
 ## Détection de changements
 
-Certaines tâches comparent leurs fichiers d'entrée et de sortie et ne s'exécutent que si nécessaire : le build du frontend, le build Storybook, les `install` (relancés quand `uv.lock` ou `pnpm-lock.yaml` change) et la conversion jupytext. Les tâches `dev` et `test` dépendent de `install` : après un pull qui change un lockfile, les dépendances se mettent à jour toutes seules au prochain lancement.
+Certaines tâches comparent leurs fichiers d'entrée et de sortie et ne s'exécutent que si nécessaire : le build du frontend, la compilation des styles des pages Django, le build Storybook, les `install` (relancés quand `uv.lock` ou `pnpm-lock.yaml` change) et la conversion jupytext. Les tâches `dev` et `test` dépendent de `install` : après un pull qui change un lockfile, les dépendances se mettent à jour toutes seules au prochain lancement.
 
 Les tâches d'un agrégat s'exécutent en parallèle. Les accès partagés sont sûrs : chaque suite de tests a sa propre base, et les tâches qui utilisent un venv ou node_modules déclarent leur `install` en dépendance (exécuté une seule fois par lancement, quelques millisecondes quand rien n'a changé). Pour forcer une exécution séquentielle, par exemple sur une machine chargée : `mise run check --jobs 1`.
 

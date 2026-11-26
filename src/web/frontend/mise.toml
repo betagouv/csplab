@@ -43,7 +43,7 @@ sources = [
   "pnpm-lock.yaml"
 ]
 outputs = [ "presentation/static/frontend/manifest.json" ]
-run = "pnpm run build"
+run = "pnpm run build:front"
 
 [tasks.check]
 alias = "front:check"
