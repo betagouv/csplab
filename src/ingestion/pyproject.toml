@@ -18,7 +18,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "referentiel",
     "scaleway_secrets",
-    "sentry-sdk>=2.54.0",
+    "sentry-sdk>=2.54.0,<3.0.0",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.42.0",
 ]

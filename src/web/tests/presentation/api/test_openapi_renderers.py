@@ -19,7 +19,8 @@ def _bare_digit_strings(text: str) -> list[str]:
         elif isinstance(node, yaml.SequenceNode):
             pending.extend(node.value)
         elif (
-            node.tag == "tag:yaml.org,2002:str"
+            isinstance(node, yaml.ScalarNode)
+            and node.tag == "tag:yaml.org,2002:str"
             and node.style is None
             and _YAML_12_INT.fullmatch(node.value)
         ):
