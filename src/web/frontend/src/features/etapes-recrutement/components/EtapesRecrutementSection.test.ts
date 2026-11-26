@@ -218,6 +218,7 @@ describe('etapesRecrutementSection', () => {
     expect(await screen.findByText(RECEPTION.nom)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Actions pour/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Ajouter une étape' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Réinitialiser' })).not.toBeInTheDocument()
   })
 
   it('allows adding above or below, moving up and deleting the last étape in progress, and disables moving it down', async () => {

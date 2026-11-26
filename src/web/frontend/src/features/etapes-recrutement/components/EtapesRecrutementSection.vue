@@ -31,6 +31,7 @@ const {
   saving,
   error,
   canAddEtape,
+  canEditEtapes,
   reorderEtapes,
   addEtape,
   addEtapeAt,
@@ -215,6 +216,7 @@ function getMenuSections(
         </h2>
         <div class="etapes-list__actions">
           <CspButton
+            v-if="loading || canEditEtapes"
             label="Réinitialiser"
             icon="ri:restart-line"
             variant="tertiary"

@@ -57,6 +57,7 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
     etapes.value.map(etape => can(etape.etape_actions, 'insert_etape_after')).lastIndexOf(true),
   )
   const canAddEtape = computed(() => lastInsertableIndex.value !== -1)
+  const canEditEtapes = computed(() => etapes.value.some(etape => etape.etape_actions.length > 0))
 
   function applyFreshEtapes(fresh: EtapeRecrutement[]): void {
     queryCache.setQueryData(queryOptions.key, fresh)
@@ -122,6 +123,7 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
     saving,
     error,
     canAddEtape,
+    canEditEtapes,
     reorderEtapes,
     addEtape,
     addEtapeAt,
