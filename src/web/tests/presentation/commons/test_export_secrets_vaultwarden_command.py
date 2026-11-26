@@ -22,13 +22,13 @@ def prod_env(monkeypatch):
     cache.delete("secrets_export:prod")
 
 
-def _run(secrets, answer="o"):
+def _run(secrets, answer="o", *args):
     stdout = StringIO()
     with (
         patch("scaleway_secrets.fetch.fetch_secrets", return_value=secrets),
         patch("builtins.input", return_value=answer) as mock_input,
     ):
-        call_command("export_secrets_vaultwarden", stdout=stdout)
+        call_command("export_secrets_vaultwarden", *args, stdout=stdout)
     return stdout.getvalue(), mock_input
 
 
@@ -61,6 +61,19 @@ def test_second_run_is_up_to_date_without_prompt_nor_saving():
     assert "Rien à recopier, état inchangé." in output
     mock_input.assert_not_called()
     assert cache.get("secrets_export:prod") == previous
+
+
+def test_force_prints_every_note_even_when_up_to_date():
+    _run(SECRETS)
+
+    output, mock_input = _run(SECRETS, "o", "--force")
+
+    assert "Dernière mise à jour des notes" in output
+    assert "/web/prod : à mettre à jour" in output
+    assert "SECRET_KEY=s3cr3t" in output
+    assert "k3y" in output
+    mock_input.assert_called_once()
+    assert "État enregistré." in output
 
 
 def test_refuses_a_service_without_secrets():

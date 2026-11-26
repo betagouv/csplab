@@ -18,9 +18,18 @@ class Command(BaseCommand):
         "confirmation."
     )
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help="Affiche toutes les notes, même celles à jour.",
+        )
+
     def handle(self, *args, **options):
         try:
-            export = prepare_secrets_export(os.environ.get("SCALEWAY_ENV", ""))
+            export = prepare_secrets_export(
+                os.environ.get("SCALEWAY_ENV", ""), force=options["force"]
+            )
         except (UnexportableEnvError, MissingSecretsError) as error:
             raise CommandError(error.message) from error
 

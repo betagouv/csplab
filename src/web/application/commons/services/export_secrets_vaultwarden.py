@@ -105,7 +105,7 @@ def _cache_key(env: str) -> str:
     return f"secrets_export:{env}"
 
 
-def prepare_secrets_export(env: str) -> SecretsExport:
+def prepare_secrets_export(env: str, force: bool = False) -> SecretsExport:
     if env not in EXPORTABLE_ENVS:
         raise UnexportableEnvError(
             f"SCALEWAY_ENV doit valoir {' ou '.join(EXPORTABLE_ENVS)}, pas « {env} »."
@@ -119,12 +119,11 @@ def prepare_secrets_export(env: str) -> SecretsExport:
             "et le projet Scaleway avant de recopier une note vide."
         )
     current = fingerprints(secrets, settings.SECRET_KEY)
+    previous = state["fingerprints"] if state and not force else None
     return SecretsExport(
         env=env,
         last_exported_at=state["exported_at"] if state else None,
-        notes=diff_notes(
-            secrets, current, state["fingerprints"] if state else None, env
-        ),
+        notes=diff_notes(secrets, current, previous, env),
         fingerprints=current,
     )
 
