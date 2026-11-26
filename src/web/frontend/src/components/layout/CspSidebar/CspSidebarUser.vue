@@ -20,7 +20,6 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
     side="right"
     :title="name"
     :description="role"
-    :aria-label="`Compte : ${name}`"
     :sections="[
       {
         items: [
