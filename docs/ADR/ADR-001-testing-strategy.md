@@ -9,6 +9,8 @@
 ---
 
 > ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
+>
+> Amended on 2026.11.26: the accessibility tests of the ATS pages run on every PR in a job that does not block the merge, see “Non-blocking tests” below.
 
 ## Context
 
@@ -66,8 +68,10 @@ without over-engineering lower-risk areas.
 > see [ADR-009](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes), “Impact on Existing ADRs” table.
 
 **Non-blocking tests** — these run but do not gate merges:
-- Accessibility and keyboard navigation tests are run at the start of each sprint
-  iteration, results are tracked but do not block PRs
+- Accessibility of the ATS pages is tested on every PR with **Playwright** and axe
+  (WCAG 2.1 A and AA rules), in a CI job whose failure does not block the merge
+- Keyboard navigation tests and the accessibility tests of the other pages are run at
+  the start of each sprint iteration, results are tracked but do not block PRs
 
 ### Positive Consequences
 
@@ -84,6 +88,8 @@ without over-engineering lower-risk areas.
   undetected until staging or production. Failure with third parties will be check with healthcheck services
 - Non-blocking accessibility tests may accumulate unaddressed issues if not reviewed
   consistently each sprint
+- A failing accessibility job of the ATS does not stop a merge: the author and the reviewer
+  read its result on each PR
 
 ---
 
