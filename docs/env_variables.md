@@ -134,13 +134,16 @@ The `export_secrets_vaultwarden` command of `web` prints what to paste:
 ```bash
 scalingo --app csplab-web run bash
 python manage.py export_secrets_vaultwarden
+# or, in one step:
+scalingo --app csplab-web run python manage.py export_secrets_vaultwarden
 ```
 
 - It reads `SCALEWAY_ENV` and refuses anything other than `demo` or `prod`.
-- It reads every secret under `/web/{env}`, `/ocr/{env}` and `/ingestion/{env}` with the app's `SCW_*` credentials, which must be allowed to read the three paths.
+- It reads every secret under `/web/{env}`, `/ocr/{env}` and `/ingestion/{env}` with the app's `SCW_*` credentials, which must be allowed to read the three paths. If one of the three paths returns no secret (missing rights, wrong project, typo), the command stops with an error instead of printing an empty note that would overwrite a valid backup.
 - For each note to update, it prints the added, removed and changed names, then the full note content to paste in place of the old one. Notes without changes are listed as up to date, without their content.
 - The state of the last export lives in the Django cache (Redis), under `secrets_export:{env}`, without expiry: the date of the last run and, for each secret name, an HMAC-SHA256 of its value keyed with `SECRET_KEY`. No value is stored in clear, and reading Redis does not allow brute-forcing a weak secret.
-- The state is saved only after answering `o` to « Notes mises à jour dans Vaultwarden ? [o/N] ». Answering anything else, or losing the session, keeps the previous state: the next run prints the same diff. If the state is lost (cache cleared, eviction), every note is printed again.
+- When every note is up to date, nothing is written: the printed date is the one of the last update of the notes.
+- Otherwise, the state of every note is saved only after answering `o` to « Toutes les notes à mettre à jour ont été recopiées dans Vaultwarden ? [o/N] »: the answer covers all the printed notes. Answering anything else, or losing the session, keeps the previous state: the next run prints the same diff. If the state is lost (cache cleared, eviction), every note is printed again.
 
 Values are printed in clear in the one-off container's terminal: run it from a trusted machine, and clear the terminal scrollback afterwards. Never run it with `scalingo run --detached`: a detached one-off's output goes to the application logs. Scalingo also records the input and output of one-off containers in the dashboard's Activity tab ([doc](https://doc.scalingo.com/platform/app/tasks)), so the printed values are readable there by the app's collaborators.
 

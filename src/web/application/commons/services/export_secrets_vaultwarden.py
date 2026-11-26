@@ -22,6 +22,10 @@ class UnexportableEnvError(ApplicationError):
     pass
 
 
+class MissingSecretsError(ApplicationError):
+    pass
+
+
 @dataclass(frozen=True)
 class NoteDiff:
     name: str
@@ -108,6 +112,12 @@ def prepare_secrets_export(env: str) -> SecretsExport:
         )
     state = cache.get(_cache_key(env))
     secrets = group_by_service(scaleway_secrets.fetch_secrets(SERVICES, env))
+    empty = [f"/{service}/{env}" for service, values in secrets.items() if not values]
+    if empty:
+        raise MissingSecretsError(
+            f"Aucun secret lu sous {', '.join(empty)} : vérifier les droits SCW_* "
+            "et le projet Scaleway avant de recopier une note vide."
+        )
     current = fingerprints(secrets, settings.SECRET_KEY)
     return SecretsExport(
         env=env,

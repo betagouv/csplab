@@ -4,6 +4,7 @@ import pytest
 from django.core.cache import cache
 
 from application.commons.services.export_secrets_vaultwarden import (
+    MissingSecretsError,
     UnexportableEnvError,
     diff_notes,
     fingerprint,
@@ -15,7 +16,11 @@ from application.commons.services.export_secrets_vaultwarden import (
 )
 
 KEY = "secret-key"
-SECRETS = [("web", "SECRET_KEY", "s3cr3t"), ("ocr", "API_KEY", "k3y")]
+SECRETS = [
+    ("web", "SECRET_KEY", "s3cr3t"),
+    ("ocr", "API_KEY", "k3y"),
+    ("ingestion", "TS_SECRET", "ts"),
+]
 
 
 def _diff(secrets, previous_secrets):
@@ -103,3 +108,10 @@ def test_saved_export_makes_next_one_up_to_date_without_storing_values(
     assert export.last_exported_at is not None
     assert not export.needs_update
     assert "s3cr3t" not in str(cache.get("secrets_export:prod"))
+
+
+def test_refuses_a_service_without_secrets(fetch_secrets):
+    fetch_secrets.return_value = SECRETS[:-1]
+
+    with pytest.raises(MissingSecretsError, match="/ingestion/prod"):
+        prepare_secrets_export("prod")
