@@ -47,6 +47,7 @@ from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
     OrganismeSerializer,
     authorized_actions_field,
+    etape_actions_field,
 )
 
 # Single source of choices for every `categorie` field of an etape. drf-spectacular
@@ -169,12 +170,12 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     uuid = serializers.UUIDField(required=False, source="etape_uuid")
 
 
-# Item du JSON OrganismeModel.etapes ; hérite des champs de EtapeRecrutementSerializer,
-# qui reste le composant du schéma.
 class EtapeOrganismeSerializer(EtapeRecrutementSerializer):
     uuid = serializers.UUIDField(source="entity_id")
     categorie = serializers.SerializerMethodField()
+    etape_actions = etape_actions_field()
 
+    @extend_schema_field(serializers.ChoiceField(choices=CATEGORIE_ETAPE_CHOICES))
     def get_categorie(self, etape: dict) -> str:
         return CategorieEtapeRecrutement(etape["categorie"]).name
 
@@ -302,10 +303,18 @@ class CategorieEtapeField(serializers.ChoiceField):
 class EtapeRecrutementModelSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
     categorie = CategorieEtapeField()
+    motif_refus_required = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = EtapeModel
-        fields = ["uuid", "nom", "categorie"]
+        fields = ["uuid", "nom", "categorie", "motif_refus_required"]
+
+
+class EtapeRecrutementActionsSerializer(EtapeRecrutementModelSerializer):
+    etape_actions = etape_actions_field()
+
+    class Meta(EtapeRecrutementModelSerializer.Meta):
+        fields = [*EtapeRecrutementModelSerializer.Meta.fields, "etape_actions"]
 
 
 # Computed fields of RecrutementDetailSerializer. They are plain (not read_only)
@@ -343,7 +352,7 @@ class OffreLocalisationSerializer(serializers.ModelSerializer):
         ]
 
 
-@extend_schema_field(EtapeRecrutementSerializer(many=True))
+@extend_schema_field(EtapeRecrutementModelSerializer(many=True))
 class EtapesOrdonneesField(serializers.Field):
     def get_attribute(self, instance: RecrutementModel) -> list[EtapeModel]:
         return etapes_ordonnees(instance)

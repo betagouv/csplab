@@ -2,6 +2,7 @@ import { cleanup } from '@testing-library/vue'
 import { createHead } from '@unhead/vue/client'
 import { config } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, vi } from 'vitest'
+import { useToast } from '@/composables/ui/useToast'
 import { createMediaQueryMock } from './browser'
 import { makeUser } from './fixtures/utilisateur'
 import { server } from './server'
@@ -14,6 +15,12 @@ vi.mock('@/api/utilisateur', async importOriginal => ({
   ...await importOriginal<typeof import('@/api/utilisateur')>(),
   getMe: vi.fn(async () => makeUser([])),
 }))
+
+const unhandledRequests: string[] = []
+
+server.events.on('request:unhandled', ({ request }) => {
+  unhandledRequests.push(`${request.method} ${request.url}`)
+})
 
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
@@ -35,6 +42,12 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  const { toasts, dismissToast } = useToast()
+  toasts.value.forEach(toast => dismissToast(toast.id))
+  const requests = unhandledRequests.splice(0)
+  if (requests.length > 0) {
+    throw new Error(`Requests without a Mock Service Worker handler: ${requests.join(', ')}`)
+  }
 })
 
 afterAll(() => {

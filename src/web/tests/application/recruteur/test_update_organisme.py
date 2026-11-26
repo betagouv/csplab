@@ -4,8 +4,8 @@ from uuid import uuid4
 import pytest
 from referentiel.value_objects.verse import Verse
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.update_organisme import update_organisme
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -13,7 +13,7 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
@@ -36,18 +36,16 @@ def _update(organisme_id, utilisateur):
     )
 
 
-@patch.object(
-    OrganismePermissionService, "can_execute", side_effect=OperationOrganismeRefusee()
-)
-def test_checks_permission_before_writing(can_execute):
+@patch.object(PermissionService, "authorize", side_effect=OperationOrganismeRefusee())
+def test_checks_permission_before_writing(authorize):
     organisme = OrganismeDjangoFactory()
     utilisateur = UtilisateurDjangoFactory(is_staff=False)
 
     with pytest.raises(OperationOrganismeRefusee):
         _update(organisme.id, utilisateur)
 
-    can_execute.assert_called_once_with(
-        action=OrganismeAction.UPDATE_ORGANISME,
+    authorize.assert_called_once_with(
+        action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme.id,
     )
@@ -55,7 +53,7 @@ def test_checks_permission_before_writing(can_execute):
     assert not AuditLogModel.objects.exists()
 
 
-@patch.object(OrganismePermissionService, "can_execute", new=Mock())
+@patch.object(PermissionService, "authorize", new=Mock())
 def test_raises_when_organisme_disappears_after_permission_check():
     organisme_id = uuid4()
 

@@ -3,8 +3,8 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
@@ -13,7 +13,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.tag_errors import TagNotFound
 from infrastructure.django_apps.tag.models import CandidatureTagModel, TagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -30,8 +30,8 @@ def add_candidature_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.MANAGE_TAG_ON_APPLICATION,
+    PermissionService().authorize(
+        action=PermissionAction.MANAGE_TAG_ON_APPLICATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

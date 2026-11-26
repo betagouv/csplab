@@ -32,7 +32,7 @@ function liste(rows: [candidatureUuid: string, etapeUuid: string][], etapeUuids:
       candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
       etape: { uuid: etapeUuid, nom: etapeUuid, categorie: 'EN_COURS' },
     })),
-    etapes: etapeUuids.map(uuid => ({ uuid, nom: uuid, categorie: 'EN_COURS' })),
+    etapes: etapeUuids.map(uuid => ({ uuid, nom: uuid, categorie: 'EN_COURS', motif_refus_required: false })),
   }
 }
 

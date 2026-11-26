@@ -1,21 +1,20 @@
 from typing import NamedTuple
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
-    authorized_actions_of,
+    authorized_actions_of_recrutement,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
 )
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.recruteur.models.etape import (
@@ -43,13 +42,13 @@ def get_candidature(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> CandidatureDetail:
-    role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_CANDIDATURE,
+    organisme_role = PermissionService().authorize(
+        action=PermissionAction.GET_CANDIDATURE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
-    if role is None:
+    if organisme_role is None:
         raise OperationOrganismeRefusee()
     contexte = RecrutementAgentService(
         organisme_id=organisme_id, recrutement_id=recrutement_id
@@ -87,7 +86,7 @@ def get_candidature(
                 "id", flat=True
             )
         ),
-        authorized_actions=authorized_actions_of(
-            role, AgentRecrutementRole(recrutement_role) if recrutement_role else None
+        authorized_actions=authorized_actions_of_recrutement(
+            organisme_role, recrutement_role
         ),
     )

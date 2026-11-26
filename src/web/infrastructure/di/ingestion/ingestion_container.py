@@ -17,7 +17,6 @@ from application.ingestion.usecases.get_offers_by_source import (
 from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
-from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.upsert_organismes import UpsertOrganismesUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from domain.ingestion.services.document_cleaner_interface import IDocumentCleaner
@@ -162,14 +161,6 @@ class IngestionContainer(containers.DeclarativeContainer):
         ArchiveOfferByReferenceUsecase,
         offers_repository=offers_repository,
         vector_repository=vector_repository,
-        user_source_repository=user_source_repository,
-        utilisateur_repository=utilisateur_repository,
-    )
-
-    upsert_offers_usecase = providers.Factory(
-        UpsertOffersUsecase,
-        offers_repository=offers_repository,
-        logger=logger_service,
         user_source_repository=user_source_repository,
         utilisateur_repository=utilisateur_repository,
     )

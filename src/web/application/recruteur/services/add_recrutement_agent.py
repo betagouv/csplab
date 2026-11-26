@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     attach_agent_to_organisme,
@@ -14,7 +14,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -33,9 +33,9 @@ def add_recrutement_agent(
     role: str,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    permissions = OrganismePermissionService()
-    demandeur_role = permissions.can_execute(
-        action=OrganismeAction.ADD_RECRUTEMENT_AGENT,
+    permissions = PermissionService()
+    demandeur_role = permissions.authorize(
+        action=PermissionAction.ADD_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

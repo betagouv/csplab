@@ -1,52 +1,28 @@
-import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
-import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
-import { getTags } from '@/features/tags/api'
+import { describe, expect, it, vi } from 'vitest'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
-import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_PARAMS, KANBAN_PATH, NOTE, SECONDE_NOTE } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
-import { renderWithApp, setupUser } from '@/test/render'
-import { addCandidatureNoteTag, deleteCandidatureNote, getCandidatureNotes, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
+import {
+  candidatureNotes,
+  candidatureNotesFailure,
+  noteDeletion,
+  noteTagAddition,
+  noteTagAdditionFailure,
+  noteTagRemoval,
+  noteTagRemovalFailure,
+  noteUpdate,
+  noteVisibiliteUpdate,
+} from '@/test/handlers/candidatures'
+import { tags } from '@/test/handlers/tags'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { server } from '@/test/server'
 import CandidatureNotes from './CandidatureNotes.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  getCandidatureNotes: vi.fn(),
-  updateCandidatureNote: vi.fn(),
-  deleteCandidatureNote: vi.fn(),
-  updateCandidatureNoteVisibilite: vi.fn(),
-  addCandidatureNoteTag: vi.fn(),
-  removeCandidatureNoteTag: vi.fn(),
-}))
-
-vi.mock('@/features/tags/api', () => ({
-  getTags: vi.fn(),
-}))
-
-function note(overrides: Partial<Note>): Note {
-  return {
-    uuid: 'ffffffff-0001-0001-0001-000000000001',
-    candidature_id: CANDIDATURE_PARAMS.candidatureUuid,
-    message: 'Profil solide',
-    publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
-    publie_par_prenom: 'Marie',
-    publie_par_nom: 'Dupont',
-    publie_le: '2025-06-10T09:15:00',
-    est_privee: false,
-    authorized_actions: ['update_note', 'delete_note'],
-    tags: [],
-    ...overrides,
-  }
-}
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
 async function openTagPicker() {
-  vi.mocked(getTags).mockResolvedValue([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL])
+  server.use(tags([TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL]))
   const user = setupUser()
   await renderNotes()
   await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
@@ -56,50 +32,43 @@ async function openTagPicker() {
   return { user, picker }
 }
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })),
-})
+const Host = withToaster(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })
 
 function renderNotes(route = NOTES_PATH) {
   return renderWithApp(Host, { route })
 }
 
-describe('candidatureNotes', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
-  })
+async function chooseNoteAction(user: ReturnType<typeof setupUser>, action: string) {
+  await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+  await user.click(await screen.findByRole('menuitem', { name: action }))
+}
 
+describe('candidatureNotes', () => {
   it('lists the notes with their author and publication date', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    server.use(candidatureNotes([NOTE, SECONDE_NOTE]))
     await renderNotes()
 
     expect(await screen.findByRole('heading', { name: '2 notes' })).toBeInTheDocument()
-    const [premiere, seconde] = screen.getAllByRole('listitem').map(item => within(item))
-    expect(premiere!.getByText('Marie Dupont')).toBeInTheDocument()
-    expect(premiere!.getByText('Profil solide')).toBeInTheDocument()
-    expect(premiere!.getByText('10/06/2025 à 09h15')).toBeInTheDocument()
-    expect(seconde!.getByText('Paul Bernard')).toBeInTheDocument()
-    expect(seconde!.getByText('À recontacter')).toBeInTheDocument()
+    const [premiere, seconde] = screen.getAllByRole('listitem')
+    expect(within(premiere).getByText('Marie Dupont')).toBeInTheDocument()
+    expect(within(premiere).getByText('Profil solide')).toBeInTheDocument()
+    expect(within(premiere).getByText('10/06/2025 à 09h15')).toBeInTheDocument()
+    expect(within(seconde).getByText('Paul Bernard')).toBeInTheDocument()
+    expect(within(seconde).getByText('À recontacter')).toBeInTheDocument()
   })
 
   it('says when the candidature has no note', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 0, results: [] })
+    server.use(candidatureNotes([]))
     await renderNotes()
 
     expect(await screen.findByText('Aucune note sur cette candidature')).toBeInTheDocument()
   })
 
   it.each([
-    { cas: 'with notes', results: [note({})] },
+    { cas: 'with notes', results: [NOTE] },
     { cas: 'without notes', results: [] },
   ])('opens the note form from the button $cas', async ({ results }) => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: results.length, results })
+    server.use(candidatureNotes(results))
     const user = setupUser()
     const { router } = await renderNotes()
 
@@ -110,26 +79,22 @@ describe('candidatureNotes', () => {
   })
 
   it('keeps the notes listed while a new note is typed', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ message: 'À recontacter' })] })
+    server.use(candidatureNotes([SECONDE_NOTE]))
     await renderNotes(`${NOTES_PATH}/nouvelle`)
 
     expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
-    expect(screen.getByText('À recontacter')).toBeInTheDocument()
+    expect(await screen.findByText('À recontacter')).toBeInTheDocument()
   })
 
   it('shows an error when the notes cannot be loaded', async () => {
-    vi.mocked(getCandidatureNotes).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureNotesFailure(500))
     await renderNotes()
 
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
   })
 
   it('offers no action on a note the user cannot change', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', authorized_actions: [] }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    server.use(candidatureNotes([NOTE, { ...SECONDE_NOTE, authorized_actions: [] }]))
     await renderNotes()
 
     expect(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' })).toBeInTheDocument()
@@ -137,17 +102,19 @@ describe('candidatureNotes', () => {
   })
 
   it('edits the note picked from its menu and keeps it private', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(updateCandidatureNote).mockResolvedValue()
+    const privee = { ...SECONDE_NOTE, est_privee: true }
+    const sent = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, privee]),
+      noteUpdate((...args) => {
+        sent(...args)
+        server.use(candidatureNotes([NOTE, { ...privee, message: 'À recontacter demain' }]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
+    await chooseNoteAction(user, 'Modifier la note')
     const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
     expect(field).toHaveValue('À recontacter')
     expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
@@ -155,55 +122,60 @@ describe('candidatureNotes', () => {
     await user.type(field, ' demain')
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
-    expect(updateCandidatureNote).toHaveBeenCalledWith(
-      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      { message: 'À recontacter demain', est_privee: true },
-    )
+    expect(await screen.findByText('À recontacter demain')).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(SECONDE_NOTE.uuid, { message: 'À recontacter demain', est_privee: true })
   })
 
   it('deletes the note picked from its menu once confirmed', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(deleteCandidatureNote).mockResolvedValue()
+    const deleted = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, SECONDE_NOTE]),
+      noteDeletion((noteUuid) => {
+        deleted(noteUuid)
+        server.use(candidatureNotes([NOTE]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Supprimer la note' }))
+    await chooseNoteAction(user, 'Supprimer la note')
     const dialog = await screen.findByRole('dialog', { name: 'Supprimer la note' })
     await user.click(within(dialog).getByRole('button', { name: 'Supprimer la note' }))
 
-    expect(deleteCandidatureNote).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' })
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(await screen.findByRole('heading', { name: '1 note' })).toBeInTheDocument()
+    expect(deleted).toHaveBeenCalledWith(SECONDE_NOTE.uuid)
   })
 
   it('makes public the private note picked from its menu', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(updateCandidatureNoteVisibilite).mockResolvedValue()
+    const privee = { ...SECONDE_NOTE, est_privee: true }
+    const sent = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, privee]),
+      noteVisibiliteUpdate((...args) => {
+        sent(...args)
+        server.use(candidatureNotes([NOTE, SECONDE_NOTE]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Rendre la note publique' }))
+    await screen.findByText('Privée')
+    await chooseNoteAction(user, 'Rendre la note publique')
 
-    expect(updateCandidatureNoteVisibilite).toHaveBeenCalledWith(
-      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      { est_privee: false },
-    )
+    await vi.waitFor(() => expect(screen.queryByText('Privée')).not.toBeInTheDocument())
+    expect(sent).toHaveBeenCalledWith(SECONDE_NOTE.uuid, { est_privee: false })
   })
 
   it('adds a note tag from the picker of the note menu and keeps the picker open', async () => {
-    vi.mocked(getCandidatureNotes)
-      .mockResolvedValueOnce({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
-      .mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW, TAG_SYNTHESIS] })] })
-    vi.mocked(addCandidatureNoteTag).mockResolvedValue()
+    const added = vi.fn()
+    server.use(
+      candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW] }]),
+      noteTagAddition((...args) => {
+        added(...args)
+        server.use(candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW, TAG_SYNTHESIS] }]))
+      }),
+    )
     const { user, picker } = await openTagPicker()
 
     const rows = within(within(picker).getByRole('list', { name: 'Étiquettes' })).getAllByRole('listitem')
@@ -212,12 +184,11 @@ describe('candidatureNotes', () => {
 
     await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
 
-    expect(addCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_SYNTHESIS.uuid })
     expect(await within(picker).findByRole('button', { name: 'L\'étiquette Synthèse est déjà ajoutée' })).toBeDisabled()
+    expect(added).toHaveBeenCalledWith(NOTE.uuid, TAG_SYNTHESIS.uuid)
   })
 
   it('filters the tags of the picker by name, accents ignored', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     const { user, picker } = await openTagPicker()
 
     await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synthese')
@@ -229,7 +200,6 @@ describe('candidatureNotes', () => {
   })
 
   it('says when no tag matches the search', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     const { user, picker } = await openTagPicker()
 
     await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'zzz')
@@ -238,7 +208,6 @@ describe('candidatureNotes', () => {
   })
 
   it('offers an empty search when the picker is opened again', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     const { user, picker } = await openTagPicker()
 
     await user.type(within(picker).getByRole('searchbox', { name: 'Rechercher une étiquette' }), 'synth')
@@ -253,7 +222,6 @@ describe('candidatureNotes', () => {
   })
 
   it('leaves the focus on the element clicked outside the picker', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
     const { user } = await openTagPicker()
 
     await user.click(screen.getByText('Profil solide'))
@@ -263,8 +231,7 @@ describe('candidatureNotes', () => {
   })
 
   it('keeps the picker open when a tag cannot be added', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
-    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureNotes([NOTE]), noteTagAdditionFailure(500))
     const { user, picker } = await openTagPicker()
 
     await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
@@ -274,19 +241,20 @@ describe('candidatureNotes', () => {
   })
 
   it('treats a tag already on the note as added', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
-    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(409, 'Conflict', undefined))
+    const requested = vi.fn()
+    server.use(candidatureNotes([NOTE]), noteTagAdditionFailure(409, requested))
     const { user, picker } = await openTagPicker()
 
-    await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
+    const button = within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' })
+    await user.click(button)
 
-    await vi.waitFor(() => expect(addCandidatureNoteTag).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(requested).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(button).toBeEnabled())
     expect(screen.queryByText('L\'ajout de l\'étiquette a échoué')).not.toBeInTheDocument()
   })
 
   it('warns and closes the picker when the tag or the note was deleted meanwhile', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({})] })
-    vi.mocked(addCandidatureNoteTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
+    server.use(candidatureNotes([NOTE]), noteTagAdditionFailure(404))
     const { user, picker } = await openTagPicker()
 
     await user.click(within(picker).getByRole('button', { name: 'Ajouter l\'étiquette Synthèse' }))
@@ -296,8 +264,14 @@ describe('candidatureNotes', () => {
   })
 
   it('removes a tag from a note the user can change', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
-    vi.mocked(removeCandidatureNoteTag).mockResolvedValue()
+    const removed = vi.fn()
+    server.use(
+      candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW] }]),
+      noteTagRemoval((...args) => {
+        removed(...args)
+        server.use(candidatureNotes([NOTE]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
@@ -305,14 +279,15 @@ describe('candidatureNotes', () => {
     expect(within(tags).getByText('Entretien')).toBeInTheDocument()
     await user.click(within(tags).getByRole('button', { name: 'Retirer l\'étiquette Entretien' }))
 
-    expect(removeCandidatureNoteTag).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: note({}).uuid, tagUuid: TAG_INTERVIEW.uuid })
+    await vi.waitFor(() => expect(screen.queryByRole('list', { name: 'Étiquettes de la note de Marie Dupont' })).not.toBeInTheDocument())
+    expect(removed).toHaveBeenCalledWith(NOTE.uuid, TAG_INTERVIEW.uuid)
   })
 
   it('refreshes the note without a message when its tag was removed meanwhile', async () => {
-    vi.mocked(getCandidatureNotes)
-      .mockResolvedValueOnce({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
-      .mockResolvedValue({ count: 1, results: [note({})] })
-    vi.mocked(removeCandidatureNoteTag).mockRejectedValue(new HttpError(404, 'Not Found', undefined))
+    server.use(
+      candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW] }]),
+      noteTagRemovalFailure(404, () => server.use(candidatureNotes([NOTE]))),
+    )
     const user = setupUser()
     await renderNotes()
 
@@ -323,8 +298,7 @@ describe('candidatureNotes', () => {
   })
 
   it('says when a tag cannot be removed', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW] })] })
-    vi.mocked(removeCandidatureNoteTag).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW] }]), noteTagRemovalFailure(500))
     const user = setupUser()
     await renderNotes()
 
@@ -334,7 +308,7 @@ describe('candidatureNotes', () => {
   })
 
   it('shows the tags of a note the user cannot change without a way to remove them', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ tags: [TAG_INTERVIEW], authorized_actions: [] })] })
+    server.use(candidatureNotes([{ ...NOTE, tags: [TAG_INTERVIEW], authorized_actions: [] }]))
     await renderNotes()
 
     const tags = await screen.findByRole('list', { name: 'Étiquettes de la note de Marie Dupont' })

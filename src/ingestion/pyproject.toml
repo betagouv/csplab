@@ -18,7 +18,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "referentiel",
     "scaleway_secrets",
-    "sentry-sdk>=2.54.0",
+    "sentry-sdk>=2.54.0,<3.0.0",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.42.0",
 ]
@@ -100,6 +100,9 @@ select = [
     "B008", # Function call in argument defaults (acceptable for FastAPI)
     "PLR0913", # Too many arguments (acceptable for FastAPI routes with injected dependencies)
     "PLR0917", # too many positionnal arguments
+]
+"bin/talentsoft_webhooks.py" = [
+    "T201", # interactive script: prompts and summary go to stdout
 ]
 "**/tests/*" = [
     "S101", # use of assert

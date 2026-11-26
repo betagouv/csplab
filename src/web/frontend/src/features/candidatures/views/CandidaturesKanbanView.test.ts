@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { useToast } from '@/composables/ui/useToast'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -13,27 +12,21 @@ import {
   ETAPE_ENTRETIEN,
   ETAPE_RECEPTION,
   ETAPE_REFUS,
+  etapeChangeBody,
   KANBAN_PATH,
-  MOTIFS_REFUS,
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
   USER_ORGANISME,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { candidatureListe, candidatureListeFailure, etapeChange } from '@/test/handlers/candidatures'
 import { recrutementDetail, recrutementDetailPending } from '@/test/handlers/recrutements'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import { getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
-
-vi.mock('../api', () => ({
-  getCandidatureListe: vi.fn(),
-  patchEtapeCandidatures: vi.fn(),
-  getMotifsRefus: vi.fn(),
-}))
 
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
-  return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
+  return renderWithApp(withToaster(RouterView), { route: KANBAN_PATH, global: { stubs } })
 }
 
 function dropButton(label: string, targetColumnId: string) {
@@ -64,25 +57,31 @@ async function selectColumns(columns: string[], search?: string) {
   for (const column of columns) {
     // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
     const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: `Sélectionner la colonne ${column}` })
-    await user.click(columnCheckbox!)
+    await user.click(columnCheckbox)
   }
   return user
+}
+
+function watchEtapeChanges() {
+  const sent = vi.fn()
+  const loads = vi.fn()
+  server.use(
+    etapeChange({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] }, sent),
+    candidatureListe(CANDIDATURE_LISTE, loads),
+  )
+  return { sent, reloaded: () => vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2)) }
 }
 
 async function refuseSelectedColumn(search?: string) {
   const user = await selectColumns(['Réception des candidatures'], search)
   await user.click(await screen.findByRole('button', { name: 'Refuser' }))
 
-  return { user, dialog: within(await screen.findByRole('dialog', { name: 'Refus de candidature' })) }
+  return { user, dialog: await screen.findByRole('dialog', { name: 'Refus de candidature' }) }
 }
 
 describe('candidaturesKanbanView', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
-    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })
   })
 
   it('shows the cards matching the search of the candidatures tab', async () => {
@@ -118,7 +117,7 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('shows an error when the kanban fails to load', async () => {
-    vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
+    server.use(candidatureListeFailure(500))
     await renderKanbanPage()
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
@@ -127,10 +126,11 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('keeps loading until the rights on the recrutement are known', async () => {
-    server.use(recrutementDetailPending())
+    const loaded = vi.fn()
+    server.use(recrutementDetailPending(), candidatureListe(CANDIDATURE_LISTE, loaded))
     await renderKanbanPage()
 
-    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalled())
+    await vi.waitFor(() => expect(loaded).toHaveBeenCalled())
     await new Promise(resolve => setTimeout(resolve, 500))
 
     expect(screen.getByRole('status', { name: 'Chargement des candidatures' })).toBeInTheDocument()
@@ -152,32 +152,31 @@ describe('candidaturesKanbanView', () => {
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: [...actions] }))
     await renderKanbanPage()
 
-    const card = (await screen.findByRole('link', { name: 'Alice Dupont' })).closest('article')
-    await vi.waitFor(() => expect(card?.getAttribute('draggable') ?? null).toBe(draggable))
+    const card = await screen.findByRole('article', { name: 'Alice Dupont' })
+    await vi.waitFor(() => expect(card.getAttribute('draggable')).toBe(draggable))
   })
 
   it('asks for a motif before refusing a selection, and sends it', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const { user, dialog } = await refuseSelectedColumn()
 
-    expect(dialog.getByText(/Vous êtes sur le point de refuser 2 candidatures/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Vous êtes sur le point de refuser 2 candidatures/)).toBeInTheDocument()
     expect(screen.queryByRole('dialog', { name: /Changer d'étape/ })).not.toBeInTheDocument()
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
 
-    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
+    await user.click(within(dialog).getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Autre' }))
-    await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Valider le refus' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
-      etapeCibleUuid: ETAPE_REFUS,
-      candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
-      motifRefus: 'autre',
-    }))
+    expect(await screen.findByRole('heading', { name: '2 candidatures sont passées à l\'étape Refus' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], 'autre'))
+    await reloaded()
   })
 
   it('counts in the refusal only the candidatures shown by the search', async () => {
     const { dialog } = await refuseSelectedColumn('Alice')
 
-    expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
   it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
@@ -197,12 +196,12 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('offers no refusal for a selection already in the refusal stage', async () => {
-    vi.mocked(getCandidatureListe).mockResolvedValue({
+    server.use(candidatureListe({
       ...CANDIDATURE_LISTE,
       results: CANDIDATURE_LISTE.results.map(candidature => candidature.uuid === CANDIDATURE_ALICE
         ? { ...candidature, etape: { uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS' } }
         : candidature),
-    })
+    }))
     await selectColumns(['Refus'])
 
     expect(await screen.findByRole('button', { name: 'Changer d\'étape' })).toBeInTheDocument()
@@ -210,16 +209,18 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('keeps the selection when the refusal is cancelled', async () => {
+    const { sent } = watchEtapeChanges()
     const { user, dialog } = await refuseSelectedColumn()
 
-    await user.click(dialog.getByRole('button', { name: 'Annuler' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Annuler' }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Refus de candidature' })).not.toBeInTheDocument())
     expect(screen.getByText('2 candidatures sélectionnées')).toBeInTheDocument()
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
   })
 
   it('goes back to the stage drawer when a refusal picked in it is cancelled', async () => {
+    const { sent } = watchEtapeChanges()
     const user = await selectColumns(['Réception des candidatures'])
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
@@ -231,10 +232,11 @@ describe('candidaturesKanbanView', () => {
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Refus de candidature' })).not.toBeInTheDocument())
     expect(screen.getByRole('button', { name: 'Valider le changement d\'étape' })).toBeInTheDocument()
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
   })
 
   it('moves the selection to a stage, without the candidatures hidden by the search, and confirms it', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
@@ -242,44 +244,40 @@ describe('candidaturesKanbanView', () => {
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
     await user.click(drawer.getByRole('button', { name: 'Valider le changement d\'étape' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
-      etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [CANDIDATURE_ALICE],
-    }))
-    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien'))
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Entretien' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_ENTRETIEN, [CANDIDATURE_ALICE]))
+    await reloaded()
   })
 
   it('sends a card dropped in another column, and ignores one dropped back in its own column', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const user = setupUser()
     await renderKanbanPage({ CandidaturesKanbanBoard: DroppingBoard })
 
     await user.click(await screen.findByRole('button', { name: 'Déposer dans sa colonne' }))
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
-
     await user.click(screen.getByRole('button', { name: 'Déposer en entretien' }))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
-      etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [CANDIDATURE_ALICE],
-    })
+
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Entretien' })).toBeInTheDocument()
+    expect(sent.mock.calls).toEqual([[ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_ENTRETIEN, [CANDIDATURE_ALICE])]])
+    await reloaded()
   })
 
   it('asks for a motif before refusing a card dropped in the refusal column, and sends it', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const user = setupUser()
     await renderKanbanPage({ CandidaturesKanbanBoard: DroppingBoard })
 
     await user.click(await screen.findByRole('button', { name: 'Déposer en refus' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
 
     await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Autre' }))
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
-      etapeCibleUuid: ETAPE_REFUS,
-      candidatureUuids: [CANDIDATURE_ALICE],
-      motifRefus: 'autre',
-    }))
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Refus' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE], 'autre'))
+    await reloaded()
   })
 })

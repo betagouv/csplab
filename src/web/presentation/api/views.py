@@ -28,7 +28,7 @@ from presentation.api.changelog_api import (
     Fragment,
     TypeChangement,
     assemble,
-    changelog_markdown,
+    changelog_preview_markdown,
     entry_html,
     published_fragments,
     published_routes,
@@ -43,7 +43,10 @@ class RedocView(TemplateView):
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            title="ReDoc", schema_url=reverse("api:public_schema"), **kwargs
+            schema_url=reverse("api:public_schema"),
+            tchap_url=settings.CSPLAB_TCHAP_URL,
+            ticket_form_url=settings.CSPLAB_TICKET_FORM_URL,
+            **kwargs,
         )
 
 
@@ -52,7 +55,7 @@ def _public_schema() -> dict:
     schema = yaml.safe_load((settings.STATIC_DIR / "api" / "schema.yaml").read_text())
     for tag in schema["tags"]:
         if tag["name"] == "changelog":
-            tag["description"] = changelog_markdown()
+            tag["description"] = changelog_preview_markdown()
     return schema
 
 

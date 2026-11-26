@@ -4,14 +4,14 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -28,8 +28,8 @@ def revoke_recrutement_agent(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+    PermissionService().authorize(
+        action=PermissionAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
@@ -40,7 +40,7 @@ def revoke_recrutement_agent(
     )
     contexte.check_recrutement_belongs_to_organisme()
     # TODO : duplicate query — same OrganismeAgentModel table already queried inside
-    # OrganismePermissionService.can_execute() above (for the acting utilisateur rather
+    # PermissionService.authorize() above (for the acting utilisateur rather
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)

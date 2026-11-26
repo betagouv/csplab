@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -257,11 +257,11 @@ class TestRecrutementsListViews:
 
         assert response.status_code == status.HTTP_200_OK
         actions = response.json()["results"][0]["authorized_actions"]
-        assert OrganismeAction.REVOKE_RECRUTEMENT_AGENT.value in actions
-        assert OrganismeAction.REPLY_CONVERSATION.value in actions
-        assert OrganismeAction.LIST_RECRUTEMENTS.value not in actions
+        assert PermissionAction.REVOKE_RECRUTEMENT_AGENT.value in actions
+        assert PermissionAction.REPLY_CONVERSATION.value in actions
+        assert PermissionAction.LIST_RECRUTEMENTS.value not in actions
         assert actions == sorted(
-            actions, key=[action.value for action in OrganismeAction].index
+            actions, key=[action.value for action in PermissionAction].index
         )
 
     def test_agent_actions_depend_on_the_role_on_each_recrutement(
@@ -291,11 +291,11 @@ class TestRecrutementsListViews:
         }
         responsable_actions = actions[str(as_responsable.offre_id)]
         contributeur_actions = actions[str(as_contributeur.offre_id)]
-        assert OrganismeAction.UPDATE_RECRUTEMENT_ETAPES.value in responsable_actions
+        assert PermissionAction.UPDATE_RECRUTEMENT_ETAPES.value in responsable_actions
         assert (
-            OrganismeAction.UPDATE_RECRUTEMENT_ETAPES.value not in contributeur_actions
+            PermissionAction.UPDATE_RECRUTEMENT_ETAPES.value not in contributeur_actions
         )
-        assert OrganismeAction.GET_RECRUTEMENT.value in contributeur_actions
+        assert PermissionAction.GET_RECRUTEMENT.value in contributeur_actions
 
 
 def test_counts_unread_conversations_per_recrutement_of_the_current_agent(

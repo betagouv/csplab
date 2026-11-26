@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSlots } from 'vue'
+import { computed, useId, useSlots } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspCardProps {
@@ -31,12 +31,16 @@ const hasBody = computed(() => Boolean(slots.default))
 const hasEnd = computed(() => Boolean(slots.end))
 const hasFooter = computed(() => Boolean(slots.footer))
 const isLink = computed(() => Boolean(props.href))
+const titleId = useId()
+const NAMED_ROOTS = ['article', 'section']
+const labelledBy = computed(() => (hasTitle.value && NAMED_ROOTS.includes(props.as) ? titleId : undefined))
 </script>
 
 <template>
   <component
     :is="as"
     class="csp-card"
+    :aria-labelledby="labelledBy"
     :class="[
       `csp-card--${variant}`,
       `csp-card--${size}`,
@@ -59,6 +63,7 @@ const isLink = computed(() => Boolean(props.href))
       <component
         :is="titleAs"
         v-if="hasTitle"
+        :id="titleId"
         class="csp-card__title"
       >
         <a

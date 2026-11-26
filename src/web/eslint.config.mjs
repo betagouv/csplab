@@ -1,6 +1,8 @@
 import { readdirSync } from 'node:fs'
 import antfu from '@antfu/eslint-config'
 import storybook from 'eslint-plugin-storybook'
+import testingLibrary from 'eslint-plugin-testing-library'
+import noApiModuleMock from './eslint/no-api-module-mock.mjs'
 
 const SRC = 'frontend/src'
 const TESTS = [`${SRC}/**/*.test.ts`]
@@ -13,6 +15,12 @@ function subfolders(path) {
 
 const FEATURES = subfolders(`./${SRC}/features`)
 const ROOT_FOLDERS = subfolders(`./${SRC}`).filter(folder => !['features', 'app', 'router', 'test'].includes(folder))
+
+const FEATURES_WITH_HANDLERS = readdirSync(new URL(`./${SRC}/test/handlers`, import.meta.url))
+  .map(file => file.replace(/\.ts$/, ''))
+  .filter(name => FEATURES.includes(name))
+
+const apiModuleMocks = { rules: { 'no-api-module-mock': noApiModuleMock } }
 
 const FEATURE_DEPENDENCIES = {
   'candidatures': ['recrutements', 'etapes-recrutement', 'messages', 'tags'],
@@ -95,6 +103,8 @@ export default antfu(
       '.venv/',
       'node_modules/',
       'frontend/storybook-static/',
+      '.stryker-tmp/',
+      'reports/',
       'frontend/src/types/',
       'presentation/static/api/',
       'presentation/static/css/**',
@@ -119,6 +129,26 @@ export default antfu(
     },
   },
   ...FEATURES.map(restrictFeatureImports),
+  {
+    files: TESTS,
+    plugins: { csplab: apiModuleMocks },
+    rules: { 'csplab/no-api-module-mock': ['error', FEATURES_WITH_HANDLERS] },
+  },
+  {
+    ...testingLibrary.configs['flat/vue'],
+    files: TESTS,
+    settings: { 'testing-library/custom-renders': ['renderWithApp'] },
+  },
+  {
+    files: TESTS,
+    rules: {
+      'test/expect-expect': 'error',
+      'test/no-conditional-expect': 'error',
+      'test/no-disabled-tests': 'error',
+      'test/no-standalone-expect': 'error',
+      'test/valid-expect': ['error', { maxArgs: 2 }],
+    },
+  },
   restrictImports(ROOT_FOLDERS.map(folder => `${SRC}/${folder}/**`), [
     { regex: '^(@/|(\\.\\./)+)features/', message: 'Root folders import no feature; router/ and app/ may.' },
   ]),

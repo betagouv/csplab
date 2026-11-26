@@ -3,11 +3,11 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import IntegrityError, transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
 from infrastructure.django_apps.tag.models import TagColor, TagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -24,8 +24,8 @@ def update_tag(
     name: str,
     color: TagColor,
 ) -> TagModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_TAG,
+    PermissionService().authorize(
+        action=PermissionAction.UPDATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

@@ -8,7 +8,7 @@ import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
 import { useCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 import CandidaturesFiltersDrawer from './CandidaturesFiltersDrawer.vue'
-import CandidaturesViewSwitch from './CandidaturesViewSwitch.vue'
+import CandidaturesLayoutSwitch from './CandidaturesLayoutSwitch.vue'
 
 defineProps<{
   organismeUuid: string
@@ -18,7 +18,7 @@ defineProps<{
 const toolbar = useCandidaturesToolbar()
 
 const route = useRoute()
-const currentView = computed(() => route.meta.candidaturesView ?? 'kanban')
+const currentLayout = computed(() => route.meta.candidaturesLayout ?? 'kanban')
 
 const filters = useCandidaturesFilters()
 
@@ -56,10 +56,10 @@ function applyFilters() {
     :selection-label="toolbar.selectionLabel"
   >
     <template #start>
-      <CandidaturesViewSwitch
+      <CandidaturesLayoutSwitch
         :organisme-uuid="organismeUuid"
         :recrutement-uuid="recrutementUuid"
-        :current="currentView"
+        :current="currentLayout"
       />
     </template>
     <template #selection-actions>

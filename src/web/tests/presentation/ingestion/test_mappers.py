@@ -1,6 +1,5 @@
 from dataclasses import replace
 from datetime import datetime, timezone
-from uuid import uuid4
 
 import pytest
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
@@ -13,11 +12,9 @@ from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguag
 from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
-from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from presentation.ingestion.mappers import (
     OfferDetailOutputMapper,
-    OfferInputMapper,
     OfferSummaryOutputMapper,
 )
 
@@ -134,105 +131,6 @@ def test_summary_output_mapper_renders_descriptions_in_html(markdown, expected):
     assert result["description2"] == markdown
     assert result["description1Formatted"] == expected
     assert result["description2Formatted"] == expected
-
-
-def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        profession={"domaine": "NUM", "metier": "ERNUM001", "referentiel": "RMFPv2"},
-    )
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.job_family_referential == "RMFPv2"
-
-
-def test_offer_input_mapper_maps_profession_domaine_to_functional_area_code():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        profession={"domaine": "NUM", "metier": "ERNUM001", "referentiel": "RMFPv2"},
-    )
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.functional_area_code == "NUM"
-
-
-def test_offer_input_mapper_maps_criteres_to_offer_criteria():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        criteres={
-            "diplome_niveau": 5,
-            "diplome": "Master",
-            "experience": "CONFIRME",
-            "specialisations": ["Droit public"],
-            "documents_requis": ["CV"],
-            "competences_requises": "- Rigueur\n- Autonomie",
-            "langues": [{"iso_code": "en", "niveau": "B2"}],
-        },
-    )
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.criteria == OfferCriteria(
-        diploma_level=Diploma(5),
-        diploma="Master",
-        experience_level=ExperienceLevel.CONFIRME,
-        specialisations=["Droit public"],
-        documents_requis=[RequiredDocument.CV],
-        competences_requises="- Rigueur\n- Autonomie",
-        languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
-    )
-
-
-def test_offer_input_mapper_maps_export_unif_fields():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        description={
-            "conditions_exercice": "Télétravail possible",
-            "descriptif_service": "Service des ressources humaines",
-        },
-        publication={
-            "fin_publication": datetime(2026, 12, 31, tzinfo=timezone.utc),
-            "fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc),
-            "debut_vacance_poste": datetime(2027, 1, 1, tzinfo=timezone.utc),
-        },
-    )
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.exercise_conditions == "Télétravail possible"
-    assert offer.service_description == "Service des ressources humaines"
-    assert offer.end_publication_date == datetime(2026, 12, 31, tzinfo=timezone.utc)
-    assert offer.application_deadline == datetime(2026, 11, 30, tzinfo=timezone.utc)
-    assert offer.job_vacancy_date == datetime(2027, 1, 1, tzinfo=timezone.utc)
-
-
-def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        description={"employeur": "", "conditions_exercice": ""},
-    )
-    del payload["description"]["descriptif_service"]
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.employer is None
-    assert offer.exercise_conditions is None
-    assert offer.service_description is None
-    assert offer.application_deadline is None
-    assert offer.job_vacancy_date is None
-
-
-def test_offer_input_mapper_maps_absent_criteres_to_none():
-    payload = PayloadOfferFactory.create(
-        identification={"reference": "REF-001", "versant": "FPT"},
-        criteres=None,
-    )
-
-    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
-
-    assert offer.criteria is None
 
 
 class TestOfferDetailOutputMapper:

@@ -9,8 +9,8 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import serializers, status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -122,7 +122,7 @@ def _etape_url(organisme_id, recrutement_id) -> str:
 
 
 def _authorized_actions(organisme_role, recrutement_role) -> list[str]:
-    permissions = OrganismePermissionService()
+    permissions = PermissionService()
     return [
         action.value
         for action in permissions.authorized_actions_recrutement(
@@ -245,7 +245,12 @@ class TestRecrutementDetailView:
         assert [etape["uuid"] for etape in payload["etapes"]] == (
             recrutement.ordre_etapes
         )
-        assert set(payload["etapes"][0]) == {"uuid", "nom", "categorie"}
+        assert set(payload["etapes"][0]) == {
+            "uuid",
+            "nom",
+            "categorie",
+            "motif_refus_required",
+        }
         assert {etape["uuid"]: etape["categorie"] for etape in payload["etapes"]} == {
             str(etape.id): CategorieEtapeRecrutement(etape.categorie).name
             for etape in etapes
@@ -448,6 +453,10 @@ def _etapes_attendues(recrutement) -> list[dict]:
             "uuid": etape_id,
             "nom": etapes[etape_id].nom,
             "categorie": CategorieEtapeRecrutement(etapes[etape_id].categorie).name,
+            "motif_refus_required": (
+                CategorieEtapeRecrutement(etapes[etape_id].categorie)
+                == CategorieEtapeRecrutement.REFUS
+            ),
         }
         for etape_id in recrutement.ordre_etapes
     ]
@@ -588,6 +597,45 @@ class TestRecrutementListeView:
 
         assert [e["uuid"] for e in etapes] == recrutement_liste.ordre_etapes
 
+    def test_only_the_refus_etape_requires_a_motif(
+        self, authenticated_client, recrutement_liste
+    ):
+        etapes = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["etapes"]
+
+        assert {e["categorie"]: e["motif_refus_required"] for e in etapes} == {
+            categorie.name: categorie == CategorieEtapeRecrutement.REFUS
+            for categorie in CategorieEtapeRecrutement
+        }
+
+    @pytest.mark.parametrize(
+        "role",
+        [
+            AgentRecrutementRole.CONTRIBUTEUR,
+            AgentRecrutementRole.RECRUTEUR,
+            AgentRecrutementRole.RESPONSABLE,
+        ],
+    )
+    def test_motif_refus_required_does_not_depend_on_the_role(
+        self, authenticated_client, test_user, role
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID)),
+            agent_link__agent=agent,
+            agent_link__role=role.value,
+        )
+
+        etapes = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["etapes"]
+
+        assert {e["categorie"] for e in etapes if e["motif_refus_required"]} == {
+            CategorieEtapeRecrutement.REFUS.name
+        }
+
     def test_etapes_include_etapes_without_candidatures(
         self, authenticated_client, recrutement_liste
     ):
@@ -726,8 +774,8 @@ class TestRecrutementListeView:
         self, authenticated_client, recrutement_liste
     ):
         with patch.object(
-            OrganismePermissionService,
-            "can_execute",
+            PermissionService,
+            "authorize",
             side_effect=Exception("unexpected"),
         ):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
@@ -1385,3 +1433,34 @@ class TestRecrutementCandidaturesEtapeViewDbVerified:
         candidature.refresh_from_db()
         assert candidature.etape_id == origine.id
         assert not AuditLogModel.objects.exists()
+
+    def test_motif_refus_required_matches_the_etape_change_rule(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme, offre=OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        )
+        candidature = CandidatureDjangoFactory(
+            etape=EtapeModel.objects.filter(recrutement=recrutement).first()
+        )
+        etapes = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["etapes"]
+
+        refused = {
+            etape["uuid"]: authenticated_client.patch(
+                RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+                data={
+                    "etape_cible_uuid": etape["uuid"],
+                    "candidatures": [{"candidature_uuid": str(candidature.id)}],
+                },
+                format="json",
+            ).status_code
+            == status.HTTP_400_BAD_REQUEST
+            for etape in etapes
+        }
+
+        assert refused == {e["uuid"]: e["motif_refus_required"] for e in etapes}

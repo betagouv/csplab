@@ -4,6 +4,137 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-23
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Signale les nouveaux messages des candidats ([#2165](https://github.com/betagouv/csplab/pull/2165))
+- N'affiche les actions d'une note qu'à son auteur ([#2343](https://github.com/betagouv/csplab/pull/2343))
+- Réserve le changement d'étape aux recruteurs ([#2345](https://github.com/betagouv/csplab/pull/2345))
+- Répond 304 sans charger la liste des candidatures quand elle n'a pas changé ([#2360](https://github.com/betagouv/csplab/pull/2360))
+- Empêche les données candidats de rester dans le cache du navigateur ([#2510](https://github.com/betagouv/csplab/pull/2510))
+
+
+### Design-system
+
+#### <!-- 1 --> Added
+
+- Ajoute les variables de rôle des rayons et le thème DSFR strict ([#2444](https://github.com/betagouv/csplab/pull/2444))
+
+#### <!-- 2 --> Modified
+
+- Ajoute la règle de nommage des variables CSS par rôle et son test ([#2409](https://github.com/betagouv/csplab/pull/2409))
+- Réunit dans table.ts la règle de valeur vide des cellules ([#2413](https://github.com/betagouv/csplab/pull/2413))
+- Ajoute un type générique aux valeurs de CspSelect et CspRadioGroup ([#2411](https://github.com/betagouv/csplab/pull/2411))
+- Ajoute les variables de rôle des filets et du gris neutre ([#2426](https://github.com/betagouv/csplab/pull/2426))
+- Ajoute les variables de rôle des champs et des contrôles ([#2427](https://github.com/betagouv/csplab/pull/2427))
+- Ajoute les variables de rôle des surfaces et du kanban ([#2428](https://github.com/betagouv/csplab/pull/2428))
+
+#### <!-- 3 --> Fixed
+
+- Donne un nom accessible au lien de retour de l'en-tête ([#2418](https://github.com/betagouv/csplab/pull/2418))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Permet de révoquer les jetons ou de désactiver un compte API depuis l'admin ([#2332](https://github.com/betagouv/csplab/pull/2332))
+
+#### <!-- 2 --> Modified
+
+- Retire is_staff et organisme_roles de /me ([#2367](https://github.com/betagouv/csplab/pull/2367))
+
+#### <!-- 3 --> Fixed
+
+- Ferme la session ProConnect après un échec de connexion ([#2391](https://github.com/betagouv/csplab/pull/2391))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Expose actif et le référentiel des métiers, ajoute des filtres ([#2351](https://github.com/betagouv/csplab/pull/2351))
+- Rattache les logs et erreurs Sentry au webhook traité ([#2370](https://github.com/betagouv/csplab/pull/2370))
+- Enregistre le statut de traitement de chaque webhook ([#2372](https://github.com/betagouv/csplab/pull/2372))
+- Ajoute un titre à chaque changement du changelog de l'API ([#2354](https://github.com/betagouv/csplab/pull/2354))
+- Affiche le titre de chaque changement sur la page du changelog de l'API ([#2355](https://github.com/betagouv/csplab/pull/2355))
+- Ajoute le titre des changements au JSON et au flux Atom du changelog ([#2356](https://github.com/betagouv/csplab/pull/2356))
+
+#### <!-- 3 --> Fixed
+
+- Retente les erreurs transitoires et ne journalise qu'une fois chaque échec ([#2371](https://github.com/betagouv/csplab/pull/2371))
+- Supprime les localisations incohérentes avec leur pays et l'impose en base ([#2508](https://github.com/betagouv/csplab/pull/2508))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Signale les conversations non lues ([#2172](https://github.com/betagouv/csplab/pull/2172))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Supprime une étiquette depuis la croix de sa pastille ([#2399](https://github.com/betagouv/csplab/pull/2399))
+- Expose les étiquettes dans la liste des notes ([#2393](https://github.com/betagouv/csplab/pull/2393))
+- Filtre la liste des organismes par nom ou siret ([#2402](https://github.com/betagouv/csplab/pull/2402))
+- Liste les étiquettes des agents d'un recrutement ([#2398](https://github.com/betagouv/csplab/pull/2398))
+- Journalise la pose et le retrait d'étiquette de note ([#2421](https://github.com/betagouv/csplab/pull/2421))
+- Lit les actions du staff dans le détail de l'organisme ([#2347](https://github.com/betagouv/csplab/pull/2347))
+- Pose une étiquette sur une candidature ([#2417](https://github.com/betagouv/csplab/pull/2417))
+- Pagine la liste des organismes côté serveur ([#2424](https://github.com/betagouv/csplab/pull/2424))
+- Retire une étiquette d'une candidature ([#2420](https://github.com/betagouv/csplab/pull/2420))
+- Pose et retire une étiquette sur une note ([#2437](https://github.com/betagouv/csplab/pull/2437))
+- Limite l'ajout d'un agent par un responsable aux rôles autorisés ([#2432](https://github.com/betagouv/csplab/pull/2432))
+- Expose le droit de nommer un responsable ([#2453](https://github.com/betagouv/csplab/pull/2453))
+- Ne propose le rôle responsable qu'à qui peut le nommer ([#2458](https://github.com/betagouv/csplab/pull/2458))
+- Journalise pose et retrait d'étiquette de candidature ([#2441](https://github.com/betagouv/csplab/pull/2441))
+- Pose et retire l'étiquette d'un membre d'équipe ([#2446](https://github.com/betagouv/csplab/pull/2446))
+- Expose les étiquettes dans la liste des candidatures ([#2465](https://github.com/betagouv/csplab/pull/2465))
+- Intègre l'affichage des étiquettes sur le kanban et la liste ([#2487](https://github.com/betagouv/csplab/pull/2487))
+- Répond 304 quand une réponse de l'API recruteur n'a pas changé ([#2359](https://github.com/betagouv/csplab/pull/2359))
+- Intègre la pose et le retrait des étiquettes d'une candidature ([#2479](https://github.com/betagouv/csplab/pull/2479))
+
+#### <!-- 2 --> Modified
+
+- Simplifie les actions sur les agents et membres ([#2378](https://github.com/betagouv/csplab/pull/2378))
+- Harmonise la signature des mutations API ([#2380](https://github.com/betagouv/csplab/pull/2380))
+- Porte les règles de pose d'étiquette au manager ([#2407](https://github.com/betagouv/csplab/pull/2407))
+- Réunit les formulaires de note et le nom d'une personne ([#2414](https://github.com/betagouv/csplab/pull/2414))
+- Remplace le choix d'étape recodé du kanban par CspRadioGroup ([#2412](https://github.com/betagouv/csplab/pull/2412))
+- Retire is staff et organisme roles du front ([#2362](https://github.com/betagouv/csplab/pull/2362))
+- Convertit update_recrutement_etapes en service ([#2435](https://github.com/betagouv/csplab/pull/2435))
+- Mutualise la récupération du modèle lié d'une relation ([#2567](https://github.com/betagouv/csplab/pull/2567))
+- Passe les agents d'organisme en services ([#2489](https://github.com/betagouv/csplab/pull/2489))
+- Convertit change_etape_candidatures en service ([#2475](https://github.com/betagouv/csplab/pull/2475))
+- Range les onglets routés dans views/ ([#2520](https://github.com/betagouv/csplab/pull/2520))
+- Sépare l'onglet étapes de la liste des étapes ([#2521](https://github.com/betagouv/csplab/pull/2521))
+- Retire le conteneur recruteur et son code mort ([#2571](https://github.com/betagouv/csplab/pull/2571))
+
+#### <!-- 3 --> Fixed
+
+- Ouvre directement le motif de refus après « Refuser » en lot ([#2400](https://github.com/betagouv/csplab/pull/2400))
+- Verrouille l'étiquette avant de la supprimer ([#2408](https://github.com/betagouv/csplab/pull/2408))
+- Corrige le type publié de la valeur d'un motif de refus ([#2410](https://github.com/betagouv/csplab/pull/2410))
+- Attend le droit d'accès avant d'afficher les étapes d'un recrutement ([#2415](https://github.com/betagouv/csplab/pull/2415))
+- Corrige l'affichage d'un échec d'enregistrement dans la liste des étapes ([#2416](https://github.com/betagouv/csplab/pull/2416))
+- Initialise les étapes par défaut d'un organisme ([#2431](https://github.com/betagouv/csplab/pull/2431))
+- Aligne le chargement du recrutement sur #2435 ([#2472](https://github.com/betagouv/csplab/pull/2472))
+
+
+### Tooling
+
+#### <!-- 4 --> Documentation
+
+- Ajoute l'ADR de la stratégie de tests du front ([#2419](https://github.com/betagouv/csplab/pull/2419))
+- Propose la granularité des écrans du front dans un ADR ([#2449](https://github.com/betagouv/csplab/pull/2449))
+
+
 ## [0.6.0] - 2026-11-10
 
 ### Candidatures

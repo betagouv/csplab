@@ -5,12 +5,12 @@ from django.db import transaction
 from django.utils import timezone
 from referentiel.value_objects.verse import Verse
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -26,8 +26,8 @@ def update_organisme(
     versant: Verse,
     gestion_ats: bool,
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_ORGANISME,
+    PermissionService().authorize(
+        action=PermissionAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

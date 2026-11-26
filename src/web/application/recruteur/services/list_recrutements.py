@@ -3,14 +3,14 @@ from uuid import UUID
 
 from django.db.models import Case, IntegerField, QuerySet, Value, When
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
-    set_authorized_actions,
+    set_recrutement_authorized_actions,
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.messagerie.models import unread_conversations_count
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -23,20 +23,20 @@ from infrastructure.django_apps.users.models import UserModel
 def _agent_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> RecrutementQuerySet:
-    role = OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_RECRUTEMENTS,
+    organisme_role = PermissionService().authorize(
+        action=PermissionAction.LIST_RECRUTEMENTS,
         organisme_id=organisme_id,
         utilisateur=utilisateur,
     )
-    if role is None:
+    if organisme_role is None:
         raise OperationOrganismeRefusee()
     recrutements = (
         RecrutementModel.objects.by_organisme(organisme_id)
         .with_offre()
         .with_role_of(utilisateur.username)
-        .with_organisme_role(role)
+        .with_organisme_role(organisme_role)
     )
-    if role == AgentOrganismeRole.SUPERVISEUR:
+    if organisme_role == AgentOrganismeRole.SUPERVISEUR:
         return recrutements
     return recrutements.by_agent(utilisateur.username)
 
@@ -46,7 +46,7 @@ def with_authorized_actions(
 ) -> list[RecrutementModel]:
     page = list(recrutements)
     for recrutement in page:
-        set_authorized_actions(recrutement)
+        set_recrutement_authorized_actions(recrutement)
     return page
 
 

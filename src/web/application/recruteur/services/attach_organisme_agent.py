@@ -3,14 +3,14 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import IntegrityError, transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     get_profil_agent,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.organisme_agent_errors import AgentDejaRattache
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
@@ -27,8 +27,8 @@ def attach_organisme_agent(
     role: AgentOrganismeRole,
     utilisateur: UserModel,
 ) -> OrganismeAgentModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.ATTACH_ORGANISME_AGENT,
+    PermissionService().authorize(
+        action=PermissionAction.ATTACH_ORGANISME_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

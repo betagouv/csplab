@@ -13,6 +13,7 @@ from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 
@@ -107,6 +108,13 @@ class OfferModel(BaseDatedModel):
         null=True,
         blank=True,
     )
+    organisme = models.ForeignKey(
+        OrganismeModel,
+        on_delete=models.PROTECT,
+        related_name="offers",
+        null=True,
+        blank=True,
+    )
 
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
@@ -152,6 +160,11 @@ class OfferModel(BaseDatedModel):
             models.CheckConstraint(
                 condition=~Q(long_title=F("title")),
                 name="offer_long_title_differs_from_title",
+            ),
+            models.CheckConstraint(
+                condition=Q(talentsoft_organisme_entity_code__isnull=True)
+                | Q(organisme__isnull=True),
+                name="offer_single_organisme_link",
             ),
         ]
 

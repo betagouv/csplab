@@ -3,12 +3,15 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
+)
+from application.recruteur.context_services.authorized_actions import (
+    set_etape_actions_of_organisme,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -19,8 +22,8 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def initialize_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.INITIALIZE_ORGANISME_STEPS,
+    PermissionService().authorize(
+        action=PermissionAction.INITIALIZE_ORGANISME_STEPS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
@@ -41,4 +44,5 @@ def initialize_organisme_etapes(
             ressource_kind="OrganismeRecruteur",
             event_name="OrganismeEtapesInitialises",
         )
+    set_etape_actions_of_organisme(organisme, utilisateur=utilisateur)
     return organisme

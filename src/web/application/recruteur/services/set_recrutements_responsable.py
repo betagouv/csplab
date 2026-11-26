@@ -5,15 +5,15 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.organisme_agent_service import (
     attach_agent_to_organisme,
     get_profil_agent,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -43,8 +43,8 @@ def set_recrutements_responsable(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> SetRecrutementsResponsableResult:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
+    PermissionService().authorize(
+        action=PermissionAction.SET_RECRUTEMENTS_RESPONSABLE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )

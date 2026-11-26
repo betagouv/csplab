@@ -11,3 +11,7 @@ Credentials come from the `scw` config file (`scw init`, or `SCW_CONFIG_PATH`)
 when it exists, and from the `SCW_*` env vars, which take precedence.
 
 `--names` prints the secret names only, for diagnostics (`mise run secrets:check`).
+
+`fetch_secrets(services, env)` returns `(service, NAME, value)` tuples for
+several services at once, regardless of the process env vars. It backs the
+web command `export_secrets_vaultwarden`.

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: CSPLab API
   version: 0.0.1
-  description: API for CSPLab
+  description: Référence des routes de l'API CSPLab.
 paths:
   /api/changelog.atom:
     get:
@@ -4949,6 +4949,7 @@ components:
         duree_contrat:
           type: string
           description: Durée du contrat, en texte libre (ex. `3 ans`).
+          maxLength: 100
         temps_travail:
           allOf:
           - $ref: '#/components/schemas/TempsTravailEnum'
@@ -5060,11 +5061,15 @@ components:
           type: array
           items:
             type: string
-          description: Spécialisations attendues, en libellés texte (ex. `Droit public`).
+            maxLength: 255
+          description: Spécialisations attendues, en libellés texte (ex. `Droit public`)
+            de 255 caractères au plus. Au plus 20 spécialisations ; les doublons sont
+            retirés, dans l'ordre reçu.
+          maxItems: 20
         diplome:
           type: string
           description: |-
-            Diplôme exigé, en texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État, à l'identique. Liste indicative, toute autre valeur reste acceptée :
+            Diplôme exigé, en texte libre, de 255 caractères au plus. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État, à l'identique. Liste indicative, toute autre valeur reste acceptée :
 
             - `Diplôme d'Etat d'infirmier`
             - `Diplôme d'Etat d'aide-soignant`
@@ -5092,6 +5097,7 @@ components:
             - `Diplôme d'Etat d'audioprothésiste`
             - `Diplôme d'Etat français de diététicien`
             - `Diplôme d'Etat d'audio-protésiste`
+          maxLength: 255
         documents_requis:
           type: array
           items:
@@ -5110,7 +5116,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LanguageInput'
-          description: Langues attendues, chacune avec son niveau.
+          description: Langues attendues, chacune avec son niveau. Chaque langue ne
+            peut être citée qu'une fois.
     DepartementEnum:
       enum:
       - '01'
@@ -6284,7 +6291,7 @@ components:
         iso_code:
           type: string
           description: Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`),
-            conservé tel quel.
+            enregistré en majuscules (`en` devient `EN`).
           maxLength: 2
         niveau:
           allOf:
@@ -6918,14 +6925,15 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         vacance_poste:
+          nullable: true
           description: |-
-            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Peut être vide.
+            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Omis ou `null` si l'information n'est pas connue.
 
             * `OUI` - Poste vacant
             * `NON` - Poste susceptible d'être vacant
           oneOf:
           - $ref: '#/components/schemas/VacancePosteEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         description:
           allOf:
           - $ref: '#/components/schemas/DescriptionInput'
@@ -6974,7 +6982,6 @@ components:
       - publication
       - titre
       - url_offre
-      - vacance_poste
     OrganismeDeleteInput:
       type: object
       properties:
@@ -6996,8 +7003,9 @@ components:
             par `GET /api/v1/organismes`.
         siret:
           type: string
-          description: SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes`
-            (filtres `nom` et `siret`).
+          description: 'SIRET de l''organisme, à retrouver avec `GET /api/v1/organismes`
+            (filtres `nom` et `siret`). L''offre est rattachée à cet organisme : un
+            SIRET vide, invalide ou qui ne correspond à aucun organisme est refusé.'
           maxLength: 14
         talentsoft_organisme_entity_code:
           type: string
@@ -7870,29 +7878,53 @@ components:
       schema:
         type: integer
       description: Nombre de secondes à attendre avant de pouvoir réessayer.
+x-tagGroups:
+- name: Présentation
+  tags:
+  - changelog
+  - contact
+- name: Référence des routes
+  tags:
+  - token
+  - offres
+  - metiers
+  - organismes
+  - concours
+  - fake-ts
+  - talentsoft_organisme
+- name: Documentation en formats bruts
+  tags:
+  - documentation
 tags:
 - name: changelog
-  x-displayName: Changelog
+  x-displayName: Derniers changements
   x-traitTag: true
 - name: token
+  x-displayName: Authentification
   description: Gestion de l'authentification
 - name: concours
+  x-displayName: Concours
   description: Ingestion des concours par import de fichiers CSV
 - name: offres
+  x-displayName: Offres
   description: Offres d'emploi de la Fonction Publique
 - name: metiers
+  x-displayName: Métiers
   description: Métiers du Référentiel des Métiers de la Fonction Publique
 - name: fake-ts
+  x-displayName: Simulation Talentsoft
   description: Endpoints de simulation au format Talentsoft
 - name: organismes
+  x-displayName: Organismes
   description: Organismes de la Fonction Publique
 - name: talentsoft_organisme
+  x-displayName: Organismes Talentsoft
   description: Organismes au format Talentsoft
 - name: documentation
-  x-displayName: Changelog et documentation
+  x-displayName: Markdown, JSON et Atom
   description: Le changelog et le guide de l'API en formats bruts, pour les outils
-    et les agents. Routes publiques, sans authentification, limitées à 60 appels par
-    minute et par adresse IP.
+    et les assistants IA. Routes publiques, sans authentification, limitées à 60 appels
+    par minute et par adresse IP.
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true

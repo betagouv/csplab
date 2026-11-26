@@ -5,20 +5,17 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
     MotifRefusRequis,
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
-)
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
@@ -38,8 +35,8 @@ def change_etape_candidatures(
     candidature_ids: Sequence[UUID],
     motif_refus: str | None = None,
 ) -> tuple[list[UUID], list[tuple[UUID, RecrutementCandidatureInexistante]]]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+    PermissionService().authorize(
+        action=PermissionAction.CHANGE_ETAPE_CANDIDATURES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
@@ -73,10 +70,7 @@ def change_etape_candidatures(
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=recrutement_id
             )
-        if (
-            etape_cible.categorie == CategorieEtapeRecrutement.REFUS.value
-            and not motif_refus
-        ):
+        if etape_cible.motif_refus_required and not motif_refus:
             raise MotifRefusRequis(etape_id=etape_cible_id)
 
         reussites = [

@@ -1,4 +1,5 @@
 import re
+from html import escape
 from itertools import groupby
 
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.views.generic import TemplateView
 from markdown_it import MarkdownIt
+from markdown_it.token import Token
 
 from presentation.api.changelog_api import (
     TYPE_LABELS,
@@ -19,6 +21,15 @@ from presentation.api.changelog_api import (
 )
 
 _TOC_MAX_LEVEL = 3
+_MARKDOWN_TOC_TITLE = "Sommaire"
+_ROUTE = re.compile(r"^(GET|POST|PUT|PATCH|DELETE) (/\S*)$")
+_METHOD_BADGES = {
+    "GET": "fr-badge--info",
+    "POST": "fr-badge--success",
+    "PUT": "fr-badge--warning",
+    "PATCH": "fr-badge--warning",
+    "DELETE": "fr-badge--error",
+}
 
 _markdown = MarkdownIt("commonmark", {"html": False}).enable("table")
 
@@ -48,9 +59,12 @@ def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
     used_ids: set[str] = set()
     menu: list[dict] = []
     parents: list[tuple[int, list[dict]]] = [(0, menu)]
+    title_seen = False
     for index, token in enumerate(tokens):
         if token.type == "hr":
             token.attrSet("class", "fr-hr fr-my-4w")
+        if token.type == "blockquote_open":
+            token.attrSet("class", "fr-callout fr-my-3w")
         if token.type != "heading_open":
             continue
         level = int(token.tag[1])
@@ -64,6 +78,10 @@ def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
         if level > _TOC_MAX_LEVEL:
             continue
         token.attrSet("class", f"fr-h{level}")
+        is_title = level == 1 and not title_seen
+        title_seen = True
+        if is_title:
+            continue
         while parents[-1][0] >= level:
             parents.pop()
         item: dict = {"label": label, "link": f"#{anchor}"}
@@ -73,9 +91,58 @@ def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
     return menu
 
 
+def _drop_markdown_toc(tokens: list) -> list:
+    for index, token in enumerate(tokens):
+        if token.type == "heading_open" and (
+            tokens[index + 1].content == _MARKDOWN_TOC_TITLE
+        ):
+            end = next(
+                (
+                    end
+                    for end in range(index + 1, len(tokens))
+                    if tokens[end].type == "heading_open"
+                    and tokens[end].tag <= token.tag
+                ),
+                len(tokens),
+            )
+            return tokens[:index] + tokens[end:]
+    return tokens
+
+
+def _route_badge(content: str) -> Token | None:
+    match = _ROUTE.match(content)
+    if match is None:
+        return None
+    method, path = match.groups()
+    badge = Token("html_inline", "", 0)
+    badge.content = (
+        f'<span class="fr-badge fr-badge--sm fr-badge--no-icon '
+        f'{_METHOD_BADGES[method]}">{method}</span> <code>{escape(path)}</code>'
+    )
+    return badge
+
+
+def _add_route_badges(tokens: list) -> None:
+    container = None
+    for token in tokens:
+        if token.type in ("heading_open", "th_open", "td_open"):
+            container = token.type
+        elif token.type in ("heading_close", "th_close", "td_close"):
+            container = None
+        elif token.type == "inline" and container and token.children:
+            token.children = [
+                _route_badge(child.content) or child
+                if child.type == "code_inline"
+                and (container == "heading_open" or position == 0)
+                else child
+                for position, child in enumerate(token.children)
+            ]
+
+
 def _render_guide(text: str) -> tuple[str, list[dict]]:
-    tokens = _markdown.parse(text)
+    tokens = _drop_markdown_toc(_markdown.parse(text))
     toc_items = _add_heading_ids_and_dsfr_classes(tokens)
+    _add_route_badges(tokens)
     html = _markdown.renderer.render(tokens, _markdown.options, {})
     return _wrap_dsfr_tables(html), toc_items
 

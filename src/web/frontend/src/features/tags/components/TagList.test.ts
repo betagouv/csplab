@@ -19,18 +19,21 @@ function rect(left: number, top: number, width: number): DOMRect {
   return { left, top, width, height: LINE_HEIGHT, right: left + width, bottom: top + LINE_HEIGHT, x: left, y: top, toJSON: () => ({}) }
 }
 
-// jsdom lays nothing out: two tags fit on each line of the measuring row
-function layOutTwoTagsPerLine(): void {
+// jsdom lays nothing out: the mocked getBoundingClientRect places each tag by its rank in TAGS
+function layOut(itemRect: (rank: number) => DOMRect): void {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
     if (this.hasAttribute('data-fitting-item')) {
-      const index = [...(this.parentElement?.querySelectorAll('[data-fitting-item]') ?? [])].indexOf(this)
-      return rect((index % 2) * (TAG_WIDTH + 10), Math.floor(index / 2) * LINE_HEIGHT, TAG_WIDTH)
+      return itemRect(TAGS.findIndex(tag => this.textContent?.includes(tag.name)))
     }
     if (this.hasAttribute('data-fitting-more')) {
       return rect(0, 0, MORE_WIDTH)
     }
     return rect(0, 0, ROW_WIDTH)
   })
+}
+
+function layOutTwoTagsPerLine(): void {
+  layOut(rank => rect((rank % 2) * (TAG_WIDTH + 10), Math.floor(rank / 2) * LINE_HEIGHT, TAG_WIDTH))
 }
 
 describe('tagList', () => {
@@ -57,16 +60,7 @@ describe('tagList', () => {
   })
 
   it('keeps the first tag with the count when it is wider than the row', async () => {
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-      if (this.hasAttribute('data-fitting-item')) {
-        const index = [...(this.parentElement?.querySelectorAll('[data-fitting-item]') ?? [])].indexOf(this)
-        return rect(0, index * LINE_HEIGHT, ROW_WIDTH + 10)
-      }
-      if (this.hasAttribute('data-fitting-more')) {
-        return rect(0, 0, MORE_WIDTH)
-      }
-      return rect(0, 0, ROW_WIDTH)
-    })
+    layOut(rank => rect(0, rank * LINE_HEIGHT, ROW_WIDTH + 10))
     render(TagList, { props: { 'tags': TAGS.slice(0, 2), 'maxLines': 1, 'aria-label': 'Étiquettes' } })
 
     await screen.findByRole('button', { name: '1 autre étiquette' })

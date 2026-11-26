@@ -3,41 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { setupUser } from '@/test/render'
 import CspLabel from './CspLabel.vue'
 
-function labelRoot(): HTMLElement {
-  const root = screen.getByText('Libellé').closest<HTMLElement>('.csp-label')
-  if (!root) {
-    throw new Error('label root not found')
-  }
-  return root
-}
-
 describe('cspLabel', () => {
-  it('reads the palette roles of its color', () => {
-    render(CspLabel, { props: { label: 'Libellé', color: 'mint' } })
-    expect(labelRoot().style.getPropertyValue('--csp-label-background')).toBe('var(--csp-palette-mint-background)')
-    expect(labelRoot().style.getPropertyValue('--csp-label-text')).toBe('var(--csp-palette-mint-text)')
-    expect(labelRoot().style.getPropertyValue('--csp-label-dot')).toBe('var(--csp-palette-mint-dot)')
-  })
-
-  it('draws a border by default, and none when bordered is false', async () => {
-    const { rerender } = render(CspLabel, { props: { label: 'Libellé' } })
-    expect(labelRoot()).toHaveClass('csp-label--bordered')
-    await rerender({ label: 'Libellé', bordered: false })
-    expect(labelRoot()).not.toHaveClass('csp-label--bordered')
-  })
-
-  it('shows a dot by default, and none when dot is false', async () => {
-    const { rerender } = render(CspLabel, { props: { label: 'Libellé' } })
-    expect(labelRoot().querySelector('.csp-label__dot')).not.toBeNull()
-    await rerender({ label: 'Libellé', dot: false })
-    expect(labelRoot().querySelector('.csp-label__dot')).toBeNull()
-  })
-
-  it('draws a neutral outline when outlined', () => {
-    render(CspLabel, { props: { label: 'Libellé', outlined: true } })
-    expect(labelRoot()).toHaveClass('csp-label--outlined')
-  })
-
   it('renders a button when clickable', async () => {
     const { emitted } = render(CspLabel, { props: { label: 'Libellé', clickable: true }, attrs: { 'aria-label': 'Modifier Libellé' } })
     const button = screen.getByRole('button', { name: 'Modifier Libellé' })
@@ -55,9 +21,12 @@ describe('cspLabel', () => {
     expect(screen.getByRole('button', { name: 'Modifier Libellé' })).toBeInTheDocument()
   })
 
-  it('keeps the class and style of the caller on the label', () => {
-    render(CspLabel, { props: { label: 'Libellé', clickable: true }, attrs: { class: 'mise-en-page', style: 'margin: 4px' } })
-    expect(labelRoot()).toHaveClass('mise-en-page')
-    expect(labelRoot().style.margin).toBe('4px')
+  it('puts the class and style of the caller on the element that wraps the label and its dismiss button', () => {
+    render(CspLabel, { props: { label: 'Libellé', dismissLabel: 'Retirer Libellé' }, attrs: { class: 'mise-en-page', style: 'margin: 4px' } })
+    // eslint-disable-next-line testing-library/no-node-access -- the wrapper has no role: it only lays out the label and its dismiss button
+    const wrapper = screen.getByRole('button', { name: 'Retirer Libellé' }).parentElement
+    expect(wrapper).toHaveClass('mise-en-page')
+    expect(wrapper).toHaveStyle({ margin: '4px' })
+    expect(wrapper).toContainElement(screen.getByText('Libellé'))
   })
 })

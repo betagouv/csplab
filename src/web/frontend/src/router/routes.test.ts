@@ -1,3 +1,4 @@
+import type { RouteRecordRaw } from 'vue-router'
 import { describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { routes } from './routes'
@@ -91,5 +92,33 @@ describe('not-found route', () => {
   it('does not shadow known paths', () => {
     expect(resolve('/').name).toBe('home')
     expect(resolve('/organismes').name).toBe('organismes')
+  })
+})
+
+type LazyComponent = () => Promise<{ default: unknown }>
+
+function mountedComponents(records: readonly RouteRecordRaw[]): unknown[] {
+  return records.flatMap(record => [
+    ...(record.component ? [record.component] : []),
+    ...Object.values(record.components ?? {}),
+    ...mountedComponents(record.children ?? []),
+  ])
+}
+
+async function screenFile(component: unknown): Promise<string> {
+  const resolved = typeof component === 'function' ? (await (component as LazyComponent)()).default : component
+  const file = (resolved as { __file?: string }).__file ?? ''
+  return file.slice(file.lastIndexOf('/src/') + 1)
+}
+
+const SCREEN_FILES = [...new Set(await Promise.all(mountedComponents(routes).map(screenFile)))]
+
+describe('screens mounted by the router', () => {
+  it('finds a file for every mounted component', () => {
+    expect(SCREEN_FILES).not.toContain('')
+  })
+
+  it.each(SCREEN_FILES)('%s is a screen of a views folder', (file) => {
+    expect(file).toMatch(/\/views\/[A-Za-z]+View\.vue$/)
   })
 })

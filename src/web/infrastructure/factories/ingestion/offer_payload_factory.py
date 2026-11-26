@@ -5,6 +5,9 @@ from faker import Faker
 
 fake = Faker("fr_FR")
 
+# SIRET sent by default: tests posting a payload create the matching organisme.
+PAYLOAD_SIRET = "13002526500013"
+
 
 def fake_datetime(future: bool = True) -> str:
     if future:
@@ -32,7 +35,7 @@ class PayloadOfferFactory:
             "identification": {},
             "titre": fake.text(max_nb_chars=150),
             "titre_long": fake.text(max_nb_chars=1500),
-            "organisation": {"nom": fake.company(), "siret": ""},
+            "organisation": {"nom": fake.company(), "siret": PAYLOAD_SIRET},
             "url_offre": None,
             "url_candidature": fake.url(),
             "profession": {
@@ -43,7 +46,7 @@ class PayloadOfferFactory:
             "categories": ["A"],
             "nature_offre": "TITULAIRE_CONTRACTUEL",
             "type_contrat": None,
-            "vacance_poste": "",
+            "vacance_poste": None,
             "description": {
                 "mission": fake.text(max_nb_chars=3000),
                 "profil": fake.text(max_nb_chars=3000),

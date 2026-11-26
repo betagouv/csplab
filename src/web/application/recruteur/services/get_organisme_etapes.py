@@ -1,10 +1,13 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
+)
+from application.recruteur.context_services.authorized_actions import (
+    set_etape_actions_of_organisme,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -12,12 +15,14 @@ from infrastructure.django_apps.users.models import UserModel
 def get_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_ORGANISME,
+    PermissionService().authorize(
+        action=PermissionAction.GET_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
     try:
-        return OrganismeModel.objects.etapes_of(organisme_id).get()
+        organisme = OrganismeModel.objects.etapes_of(organisme_id).get()
     except OrganismeModel.DoesNotExist as error:
         raise OrganismeNexistePas(str(organisme_id)) from error
+    set_etape_actions_of_organisme(organisme, utilisateur=utilisateur)
+    return organisme

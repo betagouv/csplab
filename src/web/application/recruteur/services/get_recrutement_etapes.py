@@ -1,9 +1,12 @@
 from uuid import UUID
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from application.recruteur.context_services.authorized_actions import (
+    set_etape_actions_of_recrutement,
+)
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.django_apps.recruteur.models.etape import (
     EtapeModel,
@@ -22,16 +25,25 @@ def recrutement_etapes(*, organisme_id: UUID, recrutement_id: UUID) -> list[Etap
         )
     except RecrutementModel.DoesNotExist as error:
         raise RecrutementInexistant(recrutement_id) from error
-    return etapes_ordonnees(recrutement)
+    return etapes_ordonnees(recrutement, recrutement.etapes.with_nb_candidatures())
 
 
 def get_recrutement_etapes(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
+    PermissionService().authorize(
+        action=PermissionAction.GET_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
-    return recrutement_etapes(organisme_id=organisme_id, recrutement_id=recrutement_id)
+    etapes = recrutement_etapes(
+        organisme_id=organisme_id, recrutement_id=recrutement_id
+    )
+    set_etape_actions_of_recrutement(
+        etapes,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+        utilisateur=utilisateur,
+    )
+    return etapes

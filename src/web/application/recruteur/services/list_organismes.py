@@ -2,13 +2,13 @@ from collections.abc import Iterable
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_organisme,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
@@ -17,12 +17,12 @@ from infrastructure.django_apps.users.models import UserModel
 def list_organismes(
     *, utilisateur: UserModel, recherche: str | None = None
 ) -> QuerySet[OrganismeModel]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.LIST_ORGANISMES,
+    PermissionService().authorize(
+        action=PermissionAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )
     return (
-        OrganismeModel.objects.not_supprimes()
+        OrganismeModel.objects.actives()
         .search(recherche)
         .with_counts()
         .with_superviseurs_actifs()

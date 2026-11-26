@@ -47,8 +47,8 @@ Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…
 `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
 champs et de leurs règles se trouve dans le [guide de l'API]({guide}).
 
-Il est aussi publié sur une [page filtrable]({page}), et pour les outils et les agents
-en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
+Il est aussi publié sur une [page filtrable]({page}), et pour les outils et les
+assistants IA en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
@@ -389,9 +389,23 @@ def published_fragments() -> tuple[Fragment, ...]:
     return tuple(ordered(load_fragments()))
 
 
+REDOC_PREVIEW_SIZE = 10
+
+
 @cache
-def changelog_markdown() -> str:
-    return assemble(published_fragments())
+def changelog_preview_markdown() -> str:
+    fragments = published_fragments()
+    preview = fragments[:REDOC_PREVIEW_SIZE]
+    older = len(fragments) - len(preview)
+    page = reverse("pages:api_changelog")
+    footer = f"[Voir le changelog complet]({page})\n"
+    if not older:
+        return f"{assemble(preview)}\n{footer}"
+    note = (
+        f"> Seuls les {len(preview)} changements les plus récents sont affichés ici. "
+        f"Les {older} précédents sont sur la [page du changelog]({page})."
+    )
+    return f"{assemble(preview, note=note)}\n{footer}"
 
 
 def cited_routes(fragments: Iterable[Fragment]) -> list[str]:

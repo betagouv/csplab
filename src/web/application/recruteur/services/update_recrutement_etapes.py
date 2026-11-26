@@ -4,14 +4,17 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
+)
+from application.recruteur.context_services.authorized_actions import (
+    set_etape_actions_of_recrutement,
 )
 from application.recruteur.errors.application_errors_recruteur import (
     RecrutementEtapeIncoherents,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
@@ -42,8 +45,8 @@ def update_recrutement_etapes(
     utilisateur: UserModel,
     etapes: Sequence[EtapeData],
 ) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+    PermissionService().authorize(
+        action=PermissionAction.UPDATE_RECRUTEMENT_ETAPES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
@@ -78,6 +81,7 @@ def update_recrutement_etapes(
                     categorie=etape_data.categorie.value,
                     nom=etape_data.nom,
                 )
+                etape.nb_candidatures = 0  # type: ignore[attr-defined]
                 ajoutees.append(etape)
                 journal.append((etape.id, "EtapeAjoutee"))
             else:
@@ -126,6 +130,12 @@ def update_recrutement_etapes(
             ressource_kind="Recrutement",
             event_name="RecrutementEtapesMisesAJour",
         )
+    set_etape_actions_of_recrutement(
+        finales,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+        utilisateur=utilisateur,
+    )
     return finales
 
 

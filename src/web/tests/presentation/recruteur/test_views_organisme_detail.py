@@ -1,14 +1,14 @@
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -16,7 +16,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -52,7 +52,7 @@ ORGANISME_URL = reverse(
 
 
 def _authorized_actions(*, is_staff: bool) -> list[str]:
-    permissions = OrganismePermissionService()
+    permissions = PermissionService()
     utilisateur = UserModel(is_staff=is_staff)
     actions = {
         *permissions.authorized_actions_organisme(
@@ -63,7 +63,7 @@ def _authorized_actions(*, is_staff: bool) -> list[str]:
         ),
         *permissions.authorized_actions_staff_organisme(utilisateur),
     }
-    return [action.value for action in OrganismeAction if action in actions]
+    return [action.value for action in PermissionAction if action in actions]
 
 
 ETAPES_URL = reverse(
@@ -78,6 +78,19 @@ MOTIFS_REFUS_URL = reverse(
     "recruteur:organisme_parametres_motifs_refus",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
+
+ACTIONS_PAR_CATEGORIE = {
+    "ENTREE": ["rename_etape", "insert_etape_after"],
+    "EN_COURS": [
+        "rename_etape",
+        "move_etape",
+        "delete_etape",
+        "insert_etape_before",
+        "insert_etape_after",
+    ],
+    "REFUS": ["rename_etape", "insert_etape_before"],
+    "ACCEPTE": ["rename_etape"],
+}
 
 VALID_ETAPES_PAYLOAD = [
     {"nom": "Réception", "categorie": "ENTREE"},
@@ -229,9 +242,7 @@ class TestOrganismeDetailView:
     ):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
 
-        with patch.object(
-            OrganismePermissionService, "can_execute", side_effect=exception
-        ):
+        with patch.object(PermissionService, "authorize", side_effect=exception):
             response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status
@@ -350,12 +361,65 @@ class TestEtapesRecrutementOrganismeView:
                 "uuid": "7f1d4c3a-1b2e-4c5d-8e9f-0a1b2c3d4e5f",
                 "nom": "Réception",
                 "categorie": "ENTREE",
+                "etape_actions": ["rename_etape", "insert_etape_after"],
             },
             {
                 "uuid": "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
                 "nom": "Recrutement",
                 "categorie": "ACCEPTE",
+                "etape_actions": ["rename_etape"],
             },
+        ]
+
+    @pytest.mark.parametrize(
+        "client_fixture",
+        ["authenticated_client", "staff_client"],
+        ids=["superviseur", "staff"],
+    )
+    def test_etapes_carry_their_actions(self, request, test_user, client_fixture):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.initialize_default_etapes()
+        organisme.save(update_fields=["etapes"])
+
+        response = request.getfixturevalue(client_fixture).get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [
+            (etape["categorie"], etape["etape_actions"]) for etape in response.json()
+        ] == [
+            ("ENTREE", ["rename_etape", "insert_etape_after"]),
+            ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
+            ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
+            ("EN_COURS", ACTIONS_PAR_CATEGORIE["EN_COURS"]),
+            ("REFUS", ["rename_etape", "insert_etape_before"]),
+            ("ACCEPTE", ["rename_etape"]),
+        ]
+
+    def test_the_only_en_cours_etape_cannot_be_deleted(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.etapes = [
+            {"entity_id": str(uuid4()), "categorie": categorie, "nom": categorie}
+            for categorie in ("entree", "en_cours", "refus", "accepte")
+        ]
+        organisme.save(update_fields=["etapes"])
+
+        response = authenticated_client.get(ETAPES_URL)
+
+        assert response.json()[1]["etape_actions"] == [
+            "rename_etape",
+            "move_etape",
+            "insert_etape_before",
+            "insert_etape_after",
         ]
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
@@ -435,7 +499,12 @@ class TestInitEtapesRecrutementOrganismeView:
             ("Recrutement", "ACCEPTE"),
         ]
         assert response.json() == [
-            {"uuid": etape["entity_id"], "nom": nom, "categorie": categorie}
+            {
+                "uuid": etape["entity_id"],
+                "nom": nom,
+                "categorie": categorie,
+                "etape_actions": ACTIONS_PAR_CATEGORIE[categorie],
+            }
             for etape, (nom, categorie) in zip(persisted, expected, strict=True)
         ]
 
@@ -744,6 +813,9 @@ class TestPutEtapesRecrutementOrganismeView:
                 "uuid": etape["entity_id"],
                 "nom": etape["nom"],
                 "categorie": CategorieEtapeRecrutement(etape["categorie"]).name,
+                "etape_actions": ACTIONS_PAR_CATEGORIE[
+                    CategorieEtapeRecrutement(etape["categorie"]).name
+                ],
             }
             for etape in organisme.etapes
         ]

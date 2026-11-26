@@ -1,24 +1,136 @@
+{% extends "layouts/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>{{ title }}</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700"
-              rel="stylesheet">
-        <style nonce="{{ csp_nonce }}">
-                body {
-                        margin: 0;
-                        padding: 0;
-                }
-        </style>
-    </head>
-    <body>
-        <div id="redoc-container"></div>
-        <script src="{% static 'js/redoc.standalone.js' %}" nonce="{{ csp_nonce }}"></script>
-        <script nonce="{{ csp_nonce }}">
-                Redoc.init("{{ schema_url }}", {nonce: "{{ csp_nonce }}"}, document.getElementById("redoc-container"));
-        </script>
-    </body>
-</html>
+{% block page_title %}
+    Documentation de l'API
+{% endblock page_title %}
+{% block meta_description %}
+    Documentation de référence de l'API publique CSPLab : routes, schémas, changelog et contacts.
+{% endblock meta_description %}
+{% block page_css %}
+    <link rel="stylesheet" href="{% static 'css/redoc.css' %}">
+{% endblock page_css %}
+{% block main %}
+    <div class="fr-container fr-pt-6w fr-pb-4w">
+        <h1>Documentation de l'API</h1>
+        <p class="fr-text--lead fr-mb-2w">La référence des routes de l'API publique CSPLab.</p>
+        <a class="fr-btn fr-btn--secondary fr-btn--sm fr-btn--icon-left fr-icon-download-line fr-mb-4w"
+           href="{{ schema_url }}"
+           download="csplab-openapi.json">Télécharger la spécification OpenAPI (JSON)</a>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-tile--vertical@lg fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h2 class="fr-tile__title">
+                                <a href="{% url 'pages:api_guide' %}">Guide de l'API</a>
+                            </h2>
+                            <p class="fr-tile__detail">Règles métier des routes et des champs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-tile--vertical@lg fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h2 class="fr-tile__title">
+                                <a href="{% url 'pages:api_changelog' %}">Changelog</a>
+                            </h2>
+                            <p class="fr-tile__detail">Historique complet, filtrable, et flux Atom</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-tile--vertical@lg fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h2 class="fr-tile__title">
+                                <a href="{{ tchap_url }}"
+                                   target="_blank"
+                                   rel="noopener"
+                                   title="Nous contacter sur Tchap - nouvelle fenêtre">Nous contacter sur Tchap</a>
+                            </h2>
+                            <p class="fr-tile__detail">Salon public CSPLab</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+                <div class="fr-tile fr-tile--sm fr-tile--horizontal fr-tile--vertical@lg fr-enlarge-link">
+                    <div class="fr-tile__body">
+                        <div class="fr-tile__content">
+                            <h2 class="fr-tile__title">
+                                <a href="{{ ticket_form_url }}"
+                                   target="_blank"
+                                   rel="noopener"
+                                   title="Créer un ticket - nouvelle fenêtre">Créer un ticket</a>
+                            </h2>
+                            <p class="fr-tile__detail">Bug ou demande d'évolution</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="redoc-container" class="csplab-redoc"></div>
+{% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/redoc.standalone.js' %}" nonce="{{ csp_nonce }}"></script>
+    <script src="{% static 'js/redoc-fr.js' %}" nonce="{{ csp_nonce }}"></script>
+    <script nonce="{{ csp_nonce }}">
+        const container = document.getElementById("redoc-container");
+        translateRedoc(container);
+        Redoc.init("{{ schema_url }}", {
+            nonce: "{{ csp_nonce }}",
+            hideDownloadButton: true,
+            requiredPropsFirst: true,
+            expandResponses: "200,201",
+            jsonSampleExpandLevel: 2,
+            theme: {
+                spacing: { unit: 5, sectionHorizontal: 40, sectionVertical: 32 },
+                breakpoints: { small: "50rem", medium: "75rem", large: "105rem" },
+                colors: {
+                    primary: { main: "#000091" },
+                    success: { main: "#18753c" },
+                    warning: { main: "#b34000" },
+                    error: { main: "#ce0500" },
+                    text: { primary: "#161616", secondary: "#3a3a3a" },
+                    border: { dark: "#929292", light: "#dddddd" },
+                    http: {
+                        get: "#0063cb",
+                        post: "#18753c",
+                        put: "#b34000",
+                        patch: "#695240",
+                        delete: "#ce0500",
+                        options: "#666666",
+                        head: "#666666",
+                    },
+                },
+                typography: {
+                    fontSize: "16px",
+                    lineHeight: "1.5rem",
+                    fontFamily: "Marianne, arial, sans-serif",
+                    headings: { fontFamily: "Marianne, arial, sans-serif", fontWeight: "700" },
+                    code: {
+                        fontSize: "14px",
+                        fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+                        color: "#000091",
+                        backgroundColor: "#eeeeee",
+                        wrap: true,
+                    },
+                    links: { color: "#000091", visited: "#000091", hover: "#1212ff" },
+                },
+                sidebar: {
+                    width: "300px",
+                    backgroundColor: "#f6f6f6",
+                    textColor: "#161616",
+                    activeTextColor: "#000091",
+                    groupItems: { textTransform: "none" },
+                },
+                rightPanel: { backgroundColor: "#1e1e1e", textColor: "#f6f6f6" },
+                codeBlock: { backgroundColor: "#2a2a2a" },
+            },
+        }, container);
+    </script>
+{% endblock page_js %}

@@ -2,10 +2,10 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.messagerie.models import unread_conversations_count
@@ -20,8 +20,8 @@ def list_candidatures(
     recrutement_id: UUID,
     utilisateur: UserModel,
 ) -> tuple[RecrutementModel, QuerySet[CandidatureModel], QuerySet[EtapeModel]]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT,
+    PermissionService().authorize(
+        action=PermissionAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

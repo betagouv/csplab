@@ -137,6 +137,7 @@ INSTALLED_APPS = [
     "presentation.identite",
     "presentation.recruteur",
     "presentation.ats",
+    "presentation.commons",
 ]
 
 MIDDLEWARE = [
@@ -347,12 +348,11 @@ FRET_ENABLED = env.bool("FRET_ENABLED")
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
-img_src = [CSP.SELF, "data:", "blob:", "https://cdn.redoc.ly"]
+img_src = [CSP.SELF, "data:", "blob:"]
 script_src = [CSP.SELF, CSP.NONCE, "https://tally.so"]
 style_src = [
     CSP.SELF,
     CSP.NONCE,
-    "https://fonts.googleapis.com",
     "'sha256-faU7yAF8NxuMTNEwVmBz+VcYeIoBQ2EMHW3WaVxCvnk='",  # DSFR inline style
     "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # Redoc inline style
     "'sha256-QMIg+bpjm3JdElJ388KYke01izlUW0UoNOeKjpMxdgc='",  # ReDoc inline style
@@ -368,7 +368,7 @@ SECURE_CSP = {
     "connect-src": connect_src,
     "img-src": img_src,
     "frame-src": [CSP.SELF, "https://tally.so"],
-    "font-src": [CSP.SELF, "https://fonts.gstatic.com/", "data:"],
+    "font-src": [CSP.SELF, "data:"],
     "script-src": script_src,
     "script-src-elem": script_src,
     "style-src": style_src,
@@ -423,13 +423,21 @@ require_min_key_length(SECRET_KEY=SECRET_KEY, JWT_SIGNING_KEY=SIMPLE_JWT["SIGNIN
 PUBLIC_API_PREFIX = "/api/"
 
 
+CSPLAB_TCHAP_URL = (
+    "https://tchap.gouv.fr/#/room/!qhvvUVvMxxOUAAMqzi:agent.dinum.tchap.gouv.fr"
+)
+CSPLAB_TICKET_FORM_URL = (
+    "https://grist.numerique.gouv.fr/o/csplab/forms/cDzzg3ygAyX6rvPsCtaVqa/257"
+)
+
+
 def _doc_api_markdown(filename: str) -> str:
     return (STATIC_DIR / "api" / filename).read_text().partition("\n")[2].lstrip()
 
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "CSPLab API",
-    "DESCRIPTION": "API for CSPLab",
+    "DESCRIPTION": "Référence des routes de l'API CSPLab.",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
     "PREPROCESSING_HOOKS": [
@@ -451,39 +459,54 @@ SPECTACULAR_SETTINGS = {
         # Le titre du fichier est retiré, Redoc affichant déjà x-displayName.
         {
             "name": "changelog",
-            "x-displayName": "Changelog",
+            "x-displayName": "Derniers changements",
             "x-traitTag": True,
             # Description added by PublicSchemaView from changelog_api.d/.
         },
-        {"name": "token", "description": "Gestion de l'authentification"},
+        {
+            "name": "token",
+            "x-displayName": "Authentification",
+            "description": "Gestion de l'authentification",
+        },
         {
             "name": "concours",
+            "x-displayName": "Concours",
             "description": "Ingestion des concours par import de fichiers CSV",
         },
-        {"name": "offres", "description": "Offres d'emploi de la Fonction Publique"},
+        {
+            "name": "offres",
+            "x-displayName": "Offres",
+            "description": "Offres d'emploi de la Fonction Publique",
+        },
         {
             "name": "metiers",
+            "x-displayName": "Métiers",
             "description": "Métiers du Référentiel des Métiers de la Fonction Publique",
         },
         {
             "name": "fake-ts",
+            "x-displayName": "Simulation Talentsoft",
             "description": "Endpoints de simulation au format Talentsoft",
         },
-        {"name": "organismes", "description": "Organismes de la Fonction Publique"},
+        {
+            "name": "organismes",
+            "x-displayName": "Organismes",
+            "description": "Organismes de la Fonction Publique",
+        },
         {
             "name": "talentsoft_organisme",
+            "x-displayName": "Organismes Talentsoft",
             "description": "Organismes au format Talentsoft",
         },
         {
             "name": "documentation",
-            "x-displayName": "Changelog et documentation",
+            "x-displayName": "Markdown, JSON et Atom",
             "description": (
                 "Le changelog et le guide de l'API en formats bruts, pour les outils "
-                "et les agents. Routes publiques, sans authentification, limitées à "
-                "60 appels par minute et par adresse IP."
+                "et les assistants IA. Routes publiques, sans authentification, "
+                "limitées à 60 appels par minute et par adresse IP."
             ),
         },
-        # Dernier tag, en bas du menu : déclarer tout tag d'endpoint avant.
         {
             "name": "contact",
             "x-displayName": "Aide et contact",
@@ -491,6 +514,25 @@ SPECTACULAR_SETTINGS = {
             "description": _doc_api_markdown("contact_api.md"),
         },
     ],
+    # Menu groups in Redoc: a tag left out of every group is hidden.
+    "EXTENSIONS_ROOT": {
+        "x-tagGroups": [
+            {"name": "Présentation", "tags": ["changelog", "contact"]},
+            {
+                "name": "Référence des routes",
+                "tags": [
+                    "token",
+                    "offres",
+                    "metiers",
+                    "organismes",
+                    "concours",
+                    "fake-ts",
+                    "talentsoft_organisme",
+                ],
+            },
+            {"name": "Documentation en formats bruts", "tags": ["documentation"]},
+        ]
+    },
 }
 
 _sentry_dsn = env.str("SENTRY_DSN")

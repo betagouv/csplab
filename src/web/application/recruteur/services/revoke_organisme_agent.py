@@ -4,11 +4,11 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.identite.context_services.permission_service import (
+    PermissionService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.users.models import UserModel
@@ -23,8 +23,8 @@ def revoke_organisme_agent(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> OrganismeAgentModel:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.REVOKE_ORGANISME_AGENT,
+    PermissionService().authorize(
+        action=PermissionAction.REVOKE_ORGANISME_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
