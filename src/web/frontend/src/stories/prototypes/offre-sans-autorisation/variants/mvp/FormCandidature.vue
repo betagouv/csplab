@@ -2,6 +2,7 @@
 import type { Offre } from './store'
 import { computed } from 'vue'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
+import CspSwitch from '@/components/base/CspSwitch/CspSwitch.vue'
 import ListEditor from '../../shared/ListEditor.vue'
 import { PIECES } from './store'
 
@@ -11,11 +12,18 @@ import { PIECES } from './store'
 const props = defineProps<{ offre: Offre, partie: 'formulaire' | 'documents', verrouille?: boolean }>()
 const o = computed(() => props.offre)
 
-// Posées à chaque candidat, au moment où il postule : pas de profil candidat à remplir (retour PO, 26/11/2026).
+// Posées au candidat au moment où il postule : pas de profil candidat à remplir (retour PO, 26/11/2026).
+// Affichées par défaut ; le recruteur peut masquer chacune.
 const QUESTIONS_FIXES = [
-  { question: 'Êtes-vous bénéficiaire d\'une RQTH ?', reponses: 'Oui / Non' },
-  { question: 'Êtes-vous fonctionnaire ?', reponses: 'Oui / Non' },
+  { id: 'rqth' as const, question: 'Êtes-vous bénéficiaire d\'une RQTH ?', reponses: 'Oui / Non' },
+  { id: 'fonctionnaire' as const, question: 'Êtes-vous fonctionnaire ?', reponses: 'Oui / Non' },
 ]
+function affichee(id: 'rqth' | 'fonctionnaire') {
+  return o.value.questionsFixes?.[id] !== false
+}
+function basculer(id: 'rqth' | 'fonctionnaire', v: boolean) {
+  o.value.questionsFixes = { ...o.value.questionsFixes, [id]: v }
+}
 
 const EXIGENCES = [
   { value: 'non', label: 'Non demandé' },
@@ -81,10 +89,10 @@ const EXIGENCES = [
     class="groupe"
   >
     <h3 class="groupe__titre">
-      Questions posées à tous les candidats
+      Questions oui / non
     </h3>
     <p class="groupe__desc">
-      Toujours demandées, pour toutes les offres : elles ne peuvent pas être retirées.
+      Affichées par défaut. Désactivez une question pour ne pas la poser aux candidats.
     </p>
     <ul class="fixes">
       <li
@@ -92,7 +100,17 @@ const EXIGENCES = [
         :key="q.question"
         class="fixe"
       >
-        <span>{{ q.question }}</span>
+        <span
+          v-if="verrouille"
+          :class="{ fixe__masquee: !affichee(q.id) }"
+        >{{ q.question }}{{ affichee(q.id) ? '' : ' (non posée)' }}</span>
+        <CspSwitch
+          v-else
+          :model-value="affichee(q.id)"
+          :label="q.question"
+          size="sm"
+          @update:model-value="(v: boolean) => basculer(q.id, v)"
+        />
         <span class="fixe__reponses">{{ q.reponses }}</span>
       </li>
     </ul>
@@ -170,6 +188,7 @@ const EXIGENCES = [
 
 .fixe {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding: var(--csp-space-3) 0;
@@ -179,6 +198,10 @@ const EXIGENCES = [
   &:last-child {
     border-bottom: 0;
   }
+}
+
+.fixe__masquee {
+  color: var(--text-mention-grey);
 }
 
 .fixe__reponses {

@@ -161,6 +161,14 @@ defineExpose({ aller })
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
+
+  // Écran étroit (retour Alice) : les deux parties côte à côte, au-dessus du formulaire, sans rester collées en haut.
+  @media (width <= 64rem) {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--csp-space-6);
+  }
 }
 
 .partie {

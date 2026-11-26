@@ -80,6 +80,8 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
     case 'formulaire':
       return [
         l('Mode de candidature', 'Dans l\'ATS'),
+        l('Question RQTH (oui / non)', o.questionsFixes?.rqth === false ? 'Non posée' : 'Posée'),
+        l('Question fonctionnaire (oui / non)', o.questionsFixes?.fonctionnaire === false ? 'Non posée' : 'Posée'),
         { label: 'Questions aux candidats', liste: o.questions.filter(q => q.trim()) },
       ]
     case 'documents':

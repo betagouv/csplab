@@ -185,7 +185,9 @@ Réponses aux questions
 7. « Ajouter une compétence » : seulement depuis la liste des compétences du RMFP (extrait fictif). Les compétences déjà
    saisies dans les données de démo restent affichées.
 8. Langues : choix dans une liste fixe (10 langues, proposition).
-9. Formulaire de candidature : « Questions posées à tous les candidats », RQTH (oui / non) et Fonctionnaire (oui / non),
-   toujours demandées, non retirables. Libellés proposés, à valider.
+9. Formulaire de candidature : bloc « Questions oui / non » avec RQTH et Fonctionnaire. Posées par défaut ; un interrupteur
+   par question permet de ne pas la poser (Alice). Rappelées dans le bloc Formulaire de la page de l'offre. Libellés proposés, à valider.
+- Écran étroit (Alice) : dans le formulaire en étapes, les parties 1 et 2 s'affichent côte à côte au-dessus du formulaire
+  (plus de liste collée en haut qui recouvrait les champs).
 - Besoin design system : sélection multiple dans une liste (combobox + étiquettes), faite ici dans ChoixMultiple (propre au proto) ;
   champ date au format JJ-MM-AAAA (ChampDate, propre au proto).

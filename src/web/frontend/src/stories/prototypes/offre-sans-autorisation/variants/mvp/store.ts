@@ -179,6 +179,8 @@ export interface Offre {
   urlCandidature: string
   pieces: Record<Piece, Exigence>
   questions: string[]
+  /** Questions RQTH et fonctionnaire (oui / non) : posées par défaut, le recruteur peut les masquer (retour PO, 26/11/2026). */
+  questionsFixes?: Partial<Record<'rqth' | 'fonctionnaire', boolean>>
 
   // 4. Processus et 5. Équipe
   processusPersonnalise: boolean
