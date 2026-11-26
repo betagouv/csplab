@@ -1,0 +1,418 @@
+{
+  "id": "offre-emploi",
+  "version": "0.1.0",
+  "titre": "Créer une offre d'emploi",
+  "note": "Prototype. Les listes de choix (familles, métiers, corps, grades, compétences…) sont des extraits FICTIFS repris du proto « Offres sans autorisation (MVP) », pas les référentiels officiels.",
+  "reponses": {
+    "titre": {
+      "type": "texte",
+      "libelle": "Intitulé de l'offre",
+      "obligatoire": true,
+      "aide": "Un intitulé compris hors de l'administration, sans sigle ni code interne.",
+      "placeholder": "Ex. : Gestionnaire de paie (H/F)"
+    },
+    "nbPostes": { "type": "nombre", "libelle": "Nombre de postes", "obligatoire": true, "defaut": "1" },
+    "missions": {
+      "type": "texte-long",
+      "libelle": "Descriptif du poste",
+      "obligatoire": true,
+      "aide": "Le quotidien concret, une mission par ligne, en commençant par un verbe."
+    },
+    "management": { "type": "oui-non", "libelle": "Management" },
+
+    "natureEmploi": {
+      "type": "choix",
+      "affichage": "radio",
+      "libelle": "Nature de l'emploi",
+      "obligatoire": true,
+      "choix": [
+        { "valeur": "titulaire", "libelle": "Fonctionnaires uniquement" },
+        { "valeur": "les_deux", "libelle": "Fonctionnaires et contractuels" },
+        { "valeur": "contractuel", "libelle": "Contractuels uniquement" }
+      ]
+    },
+    "natureContrat": {
+      "type": "choix",
+      "libelle": "Nature du contrat",
+      "visibleSi": "natureEmploi = les_deux || natureEmploi = contractuel",
+      "choix": ["Contrat à durée déterminée (CDD)", "Contrat à durée indéterminée (CDI)", "Contrat de projet"]
+    },
+    "fondementJuridique": {
+      "type": "choix",
+      "libelle": "Fondement juridique",
+      "obligatoire": true,
+      "aide": "Pour les contractuels",
+      "visibleSi": "natureEmploi = les_deux || natureEmploi = contractuel",
+      "choix": [
+        "Article L332-2 (besoins permanents)",
+        "Article L332-8 (emplois de catégorie A)",
+        "Article L332-23 (accroissement temporaire)",
+        "Article L332-24 (contrat de projet)"
+      ]
+    },
+    "statutPoste": {
+      "type": "choix",
+      "libelle": "Statut du poste",
+      "obligatoire": true,
+      "choix": ["Création de poste", "Poste vacant", "Poste susceptible d'être vacant"]
+    },
+    "dateVacance": { "type": "date", "libelle": "Date de vacance", "obligatoire": true },
+    "categorie": { "type": "choix", "libelle": "Catégorie", "obligatoire": true, "choix": ["A", "B", "C"] },
+    "corps": {
+      "type": "choix-multiple",
+      "libelle": "Corps",
+      "aide": "Plusieurs choix possibles · la liste suit la catégorie choisie",
+      "placeholder": "Rechercher un corps",
+      "filtrePar": "categorie",
+      "siParentVide": "tout",
+      "choix": [
+        { "valeur": "Attachés d'administration de l'État", "parent": "A" },
+        { "valeur": "Ingénieurs des travaux publics de l'État", "parent": "A" },
+        { "valeur": "Secrétaires administratifs", "parent": "B" },
+        { "valeur": "Techniciens supérieurs du développement durable", "parent": "B" },
+        { "valeur": "Adjoints administratifs", "parent": "C" }
+      ]
+    },
+    "grades": {
+      "type": "choix-multiple",
+      "libelle": "Grade",
+      "aide": "Grades des corps choisis · plusieurs choix possibles",
+      "placeholder": "Rechercher un grade",
+      "filtrePar": "corps",
+      "siParentVide": "desactive",
+      "texteParentVide": "Choisissez d'abord un corps",
+      "choix": [
+        { "valeur": "Attaché", "parent": "Attachés d'administration de l'État" },
+        { "valeur": "Attaché principal", "parent": "Attachés d'administration de l'État" },
+        { "valeur": "Attaché hors classe", "parent": "Attachés d'administration de l'État" },
+        { "valeur": "Ingénieur", "parent": "Ingénieurs des travaux publics de l'État" },
+        { "valeur": "Ingénieur divisionnaire", "parent": "Ingénieurs des travaux publics de l'État" },
+        { "valeur": "Ingénieur hors classe", "parent": "Ingénieurs des travaux publics de l'État" },
+        { "valeur": "Classe normale", "parent": "Secrétaires administratifs" },
+        { "valeur": "Classe supérieure", "parent": "Secrétaires administratifs" },
+        { "valeur": "Classe exceptionnelle", "parent": "Secrétaires administratifs" },
+        { "valeur": "Technicien", "parent": "Techniciens supérieurs du développement durable" },
+        { "valeur": "Technicien principal", "parent": "Techniciens supérieurs du développement durable" },
+        { "valeur": "Technicien en chef", "parent": "Techniciens supérieurs du développement durable" },
+        { "valeur": "Adjoint administratif", "parent": "Adjoints administratifs" },
+        { "valeur": "Adjoint administratif principal de 2e classe", "parent": "Adjoints administratifs" },
+        { "valeur": "Adjoint administratif principal de 1re classe", "parent": "Adjoints administratifs" }
+      ]
+    },
+    "lienJO": {
+      "type": "url",
+      "libelle": "Lien vers l'avis de vacance au Journal officiel",
+      "placeholder": "Ex. : https://www.legifrance.gouv.fr/jorf/id/…"
+    },
+
+    "famille": {
+      "type": "choix",
+      "libelle": "Famille (référentiel RMFP+)",
+      "obligatoire": true,
+      "placeholder": "Choisir une famille",
+      "choix": ["Administration générale", "Numérique et systèmes d'information", "Ressources humaines"]
+    },
+    "metier": {
+      "type": "choix",
+      "libelle": "Métier",
+      "obligatoire": true,
+      "aide": "Un seul métier. Ses compétences s'ajoutent à l'annonce.",
+      "placeholder": "Choisir un métier",
+      "filtrePar": "famille",
+      "siParentVide": "desactive",
+      "texteParentVide": "Choisissez d'abord une famille",
+      "choix": [
+        {
+          "valeur": "gest-paie",
+          "libelle": "Gestionnaire paie",
+          "parent": "Ressources humaines",
+          "donnees": { "competences": ["Réglementation statutaire et indemnitaire", "Maîtrise des outils de paie", "Contrôle des éléments variables", "Rigueur et confidentialité"] }
+        },
+        {
+          "valeur": "charge-recrut",
+          "libelle": "Chargé·e de recrutement",
+          "parent": "Ressources humaines",
+          "donnees": { "competences": ["Techniques de recrutement", "Statut de la fonction publique", "Conduite d'entretien", "Sens de la relation"] }
+        },
+        {
+          "valeur": "cp-si",
+          "libelle": "Chef·fe de projet maîtrise d'ouvrage SI",
+          "parent": "Numérique et systèmes d'information",
+          "donnees": { "competences": ["Gestion de projet", "Expression de besoins", "Pilotage de prestataires", "Conduite du changement"] }
+        },
+        {
+          "valeur": "resp-si",
+          "libelle": "Responsable des systèmes d'information",
+          "parent": "Numérique et systèmes d'information",
+          "donnees": { "competences": ["Management d'équipe", "Architecture des SI", "Sécurité des SI", "Pilotage budgétaire"] }
+        },
+        {
+          "valeur": "assist-admin",
+          "libelle": "Assistant·e administratif·ve",
+          "parent": "Administration générale",
+          "donnees": { "competences": ["Outils bureautiques", "Organisation", "Accueil du public", "Rédaction de courriers"] }
+        },
+        {
+          "valeur": "accueil",
+          "libelle": "Chargé·e d'accueil",
+          "parent": "Administration générale",
+          "donnees": { "competences": ["Accueil physique et téléphonique", "Orientation du public", "Gestion des situations difficiles"] }
+        }
+      ]
+    },
+    "competences": {
+      "type": "choix-multiple",
+      "libelle": "Compétences",
+      "aide": "Pré-remplies avec les compétences du métier, modifiables. On n'ajoute que depuis la liste du RMFP.",
+      "placeholder": "Ajouter une compétence du RMFP",
+      "preRempliPar": { "question": "metier", "donnee": "competences" },
+      "choix": [
+        "Accueil du public",
+        "Accueil physique et téléphonique",
+        "Analyse et synthèse",
+        "Architecture des SI",
+        "Communication écrite",
+        "Conduite de réunion",
+        "Conduite d'entretien",
+        "Conduite du changement",
+        "Contrôle des éléments variables",
+        "Droit administratif",
+        "Expression de besoins",
+        "Gestion budgétaire",
+        "Gestion de projet",
+        "Gestion des situations difficiles",
+        "Maîtrise des outils de paie",
+        "Management d'équipe",
+        "Organisation",
+        "Orientation du public",
+        "Outils bureautiques",
+        "Pilotage budgétaire",
+        "Pilotage de prestataires",
+        "Rédaction de courriers",
+        "Réglementation statutaire et indemnitaire",
+        "Rigueur et confidentialité",
+        "Sécurité des SI",
+        "Sens de la relation",
+        "Statut de la fonction publique",
+        "Techniques de recrutement",
+        "Travail en équipe",
+        "Veille réglementaire"
+      ]
+    },
+
+    "profil": {
+      "type": "texte-long",
+      "libelle": "Descriptif du profil recherché",
+      "aide": "La personne recherchée plutôt que la fiche de poste ; restez ouvert aux parcours variés."
+    },
+    "niveauExperience": { "type": "choix", "libelle": "Niveau d'expérience", "choix": ["Débutant accepté", "Confirmé (2 à 5 ans)", "Expert (plus de 5 ans)"] },
+    "niveauEtudes": { "type": "choix", "libelle": "Niveau d'études", "choix": ["Sans diplôme", "CAP, BEP", "Baccalauréat", "Bac + 2", "Bac + 3", "Bac + 5 et plus"] },
+    "diplomeEtat": {
+      "type": "choix",
+      "libelle": "Diplôme d'État requis",
+      "choix": ["Infirmier", "Assistant de service social", "Éducateur spécialisé", "Masseur-kinésithérapeute", "Sage-femme", "Psychomotricien", "Ergothérapeute", "Manipulateur en électroradiologie médicale"]
+    },
+    "specialisation": {
+      "type": "choix",
+      "libelle": "Spécialisation",
+      "choix": ["Administration générale", "Droit public", "Finances publiques", "Ressources humaines", "Numérique", "Environnement", "Urbanisme", "Santé", "Social"]
+    },
+    "langues": {
+      "type": "repetable",
+      "libelle": "Langues",
+      "aide": "Le niveau est obligatoire pour chaque langue ajoutée.",
+      "ajouter": "Ajouter une langue",
+      "champs": {
+        "langue": { "type": "choix", "libelle": "Langue", "obligatoire": true, "choix": ["Allemand", "Anglais", "Arabe", "Chinois", "Espagnol", "Italien", "Langue des signes française", "Néerlandais", "Portugais", "Russe"] },
+        "niveau": { "type": "choix", "libelle": "Niveau", "obligatoire": true, "choix": ["A1", "A2", "B1", "B2", "C1", "C2", "Langue maternelle"] }
+      }
+    },
+    "tempsTravail": {
+      "type": "choix",
+      "libelle": "Temps de travail",
+      "obligatoire": true,
+      "choix": [
+        { "valeur": "complet", "libelle": "Temps complet" },
+        { "valeur": "non_complet", "libelle": "Temps non complet" },
+        { "valeur": "incomplet", "libelle": "Temps incomplet" }
+      ]
+    },
+    "teletravail": { "type": "oui-non", "libelle": "Télétravail" },
+    "conditions": {
+      "type": "texte-long",
+      "libelle": "Conditions particulières",
+      "aide": "Horaires, déplacements, sujétions liées au cycle de travail (nuit, week-end, astreintes)."
+    },
+    "remuneration": {
+      "type": "texte",
+      "libelle": "Rémunération des fonctionnaires",
+      "aide": "Une fourchette ou une indication : l'une des informations les plus recherchées."
+    },
+    "remunerationContractuels": {
+      "type": "texte",
+      "libelle": "Rémunération des contractuels",
+      "visibleSi": "natureEmploi = les_deux || natureEmploi = contractuel"
+    },
+    "infosComplementaires": { "type": "texte-long", "libelle": "Informations complémentaires" },
+
+    "descriptifEmployeur": { "type": "texte-long", "libelle": "Descriptif de l'employeur", "obligatoire": true },
+    "presentation": {
+      "type": "texte-long",
+      "libelle": "Descriptif du service",
+      "aide": "2 ou 3 phrases : l'équipe, la finalité du poste, ce qui le rend intéressant."
+    },
+    "sansLieuFixe": { "type": "interrupteur", "libelle": "Pas de lieu fixe (poste itinérant)" },
+    "lieux": {
+      "type": "liste-texte",
+      "libelle": "Lieux du poste",
+      "obligatoire": true,
+      "aide": "Une adresse par lieu. Dans cette variante, l'adresse n'est pas géolocalisée.",
+      "placeholder": "Ex. : 20 avenue de Ségur, 75007 Paris",
+      "ajouter": "Ajouter un lieu",
+      "visibleSi": "!sansLieuFixe"
+    },
+
+    "poserRqth": {
+      "type": "interrupteur",
+      "libelle": "Êtes-vous bénéficiaire d'une RQTH ?",
+      "aide": "Réponse du candidat : Oui / Non. Posée par défaut.",
+      "defaut": true
+    },
+    "poserFonctionnaire": {
+      "type": "interrupteur",
+      "libelle": "Êtes-vous fonctionnaire ?",
+      "aide": "Réponse du candidat : Oui / Non. Posée par défaut.",
+      "defaut": true
+    },
+    "questionsLibres": {
+      "type": "liste-texte",
+      "libelle": "Questions libres",
+      "aide": "Réponse en texte libre, au moment de la candidature.",
+      "placeholder": "Ex. : Quelle expérience avez-vous de la paie publique ?",
+      "ajouter": "Ajouter une question"
+    },
+
+    "pieceCv": { "type": "choix", "affichage": "segments", "libelle": "CV", "defaut": "non", "choix": [{ "valeur": "non", "libelle": "Non demandé" }, { "valeur": "facultatif", "libelle": "Facultatif" }, { "valeur": "obligatoire", "libelle": "Obligatoire" }] },
+    "pieceLm": { "type": "choix", "affichage": "segments", "libelle": "Lettre de motivation", "defaut": "non", "choix": [{ "valeur": "non", "libelle": "Non demandé" }, { "valeur": "facultatif", "libelle": "Facultatif" }, { "valeur": "obligatoire", "libelle": "Obligatoire" }] },
+    "piecePortfolio": { "type": "choix", "affichage": "segments", "libelle": "Portfolio", "defaut": "non", "choix": [{ "valeur": "non", "libelle": "Non demandé" }, { "valeur": "facultatif", "libelle": "Facultatif" }, { "valeur": "obligatoire", "libelle": "Obligatoire" }] },
+    "pieceDemo": { "type": "choix", "affichage": "segments", "libelle": "Bande démo", "defaut": "non", "choix": [{ "valeur": "non", "libelle": "Non demandé" }, { "valeur": "facultatif", "libelle": "Facultatif" }, { "valeur": "obligatoire", "libelle": "Obligatoire" }] }
+  },
+
+  "questionnaire": {
+    "parties": [
+      {
+        "id": "annonce",
+        "titre": "Annonce visible du candidat",
+        "aide": "Ce que liront les candidats sur Choisir le Service Public.",
+        "etapes": [
+          {
+            "id": "poste",
+            "titre": "Le poste",
+            "aide": "Ce que les candidats liront en premier.",
+            "pages": [
+              { "id": "poste", "questions": ["titre", { "id": "nbPostes", "largeur": "tiers" }, "missions", { "id": "management", "largeur": "tiers" }] }
+            ]
+          },
+          {
+            "id": "cadre",
+            "titre": "Le cadre du recrutement",
+            "aide": "Indique aux candidats les conditions d'accès au poste.",
+            "pages": [
+              {
+                "id": "cadre",
+                "questions": [
+                  "natureEmploi",
+                  { "id": "natureContrat", "largeur": "demi" },
+                  { "id": "fondementJuridique", "largeur": "demi" },
+                  { "id": "statutPoste", "largeur": "demi" },
+                  { "id": "dateVacance", "largeur": "demi" },
+                  { "id": "categorie", "largeur": "demi" },
+                  { "id": "corps", "largeur": "demi" },
+                  { "id": "grades", "largeur": "demi" },
+                  "lienJO"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "metier",
+            "titre": "Le métier",
+            "aide": "Les compétences proposées décrivent aux candidats ce qui est attendu.",
+            "pages": [
+              { "id": "metier", "questions": [{ "id": "famille", "largeur": "demi" }, { "id": "metier", "largeur": "demi" }, "competences"] }
+            ]
+          },
+          {
+            "id": "profil",
+            "titre": "Le profil recherché",
+            "aide": "Permet aux candidats de se projeter dans le poste.",
+            "pages": [
+              {
+                "id": "profil",
+                "titre": "Profil recherché",
+                "questions": [
+                  "profil",
+                  { "id": "niveauExperience", "largeur": "demi" },
+                  { "id": "niveauEtudes", "largeur": "demi" },
+                  { "id": "diplomeEtat", "largeur": "demi" },
+                  { "id": "specialisation", "largeur": "demi" },
+                  "langues"
+                ]
+              },
+              {
+                "id": "conditions",
+                "titre": "Conditions de travail",
+                "questions": [
+                  { "id": "tempsTravail", "largeur": "demi" },
+                  { "id": "teletravail", "largeur": "demi" },
+                  "conditions",
+                  { "id": "remuneration", "largeur": "demi" },
+                  { "id": "remunerationContractuels", "largeur": "demi" },
+                  "infosComplementaires"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lieu",
+            "titre": "L'environnement de travail",
+            "aide": "Permet aux candidats de mieux connaître leur futur employeur.",
+            "pages": [
+              { "id": "employeur", "questions": ["descriptifEmployeur", "presentation"] },
+              { "id": "lieux", "titre": "Lieux", "questions": ["sansLieuFixe", "lieux"] }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "candidature",
+        "titre": "Paramétrage des candidatures",
+        "aide": "Ce que vous demandez aux candidats quand ils postulent. Les candidatures arrivent dans l'ATS.",
+        "etapes": [
+          {
+            "id": "formulaire",
+            "titre": "Formulaire",
+            "aide": "Questions posées au candidat au moment où il postule.",
+            "pages": [
+              {
+                "id": "fixes",
+                "titre": "Questions posées par défaut",
+                "description": "Désactivez une question pour ne pas la poser aux candidats.",
+                "questions": ["poserRqth", "poserFonctionnaire"]
+              },
+              { "id": "libres", "titre": "Questions aux candidats", "questions": ["questionsLibres"] }
+            ]
+          },
+          {
+            "id": "documents",
+            "titre": "Documents",
+            "aide": "Pièces que les candidats joignent à leur candidature.",
+            "pages": [
+              { "id": "pieces", "questions": ["pieceCv", "pieceLm", "piecePortfolio", "pieceDemo"] }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
