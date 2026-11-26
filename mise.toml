@@ -168,11 +168,12 @@ hk install --mise
 """
 
 [tasks.bootstrap]
-description = "Prepare the full dev environment (services, dependencies, git hooks, migrations, superuser)"
+description = "Prepare the full dev environment (services, dependencies, styles, git hooks, migrations, superuser)"
 depends = [
   "services",
   "git-hooks",
   "install",
+  "//src/web:build:styles",
   "//src/web:qdrant:init",
   "//src/web:s3:init",
   "//src/web:superuser",

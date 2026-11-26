@@ -6,6 +6,7 @@ src/web/static_collected/
 
 node_modules/
 src/web/presentation/static/frontend/
+src/web/presentation/static/css/main.css
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

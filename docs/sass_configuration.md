@@ -2,26 +2,18 @@
 
 This project uses the npm `sass` package from the `src/web` workspace for compiling Sass/SCSS files.
 
-## Prerequisites
-
-Install web dependencies first:
-
-```bash
-mise run install
-```
-
-`mise run bootstrap` includes this step automatically.
-
 ## Usage
 
 Compile once:
 ```bash
-bin/sass compile
+mise run web:build:styles
 ```
 
-Watch mode (auto-compile on save):
+The task skips the compilation when no SCSS source changed since the last run. `bootstrap` and the tasks that serve the Django pages run it first.
+
+Watch mode (auto-compile on save), started by `mise run web:dev:cv`:
 ```bash
-bin/sass watch
+cd src/web && pnpm run watch:styles
 ```
 
 ## File Structure
@@ -36,10 +28,9 @@ assets/styles/
 └── pages/              # Page-specific styles
 ```
 
-- **Sources**: `src/web/presentation/assets/styles/`
-- **Compiled**: `src/web/presentation/static/css/main.css`
+The sources are in `src/web/presentation/assets/styles/`. Sass compiles them into `src/web/presentation/static/css/main.css`, which git ignores.
 
-The compiled CSS is committed to the repository.
+On Scalingo, the `build` script of `src/web/package.json` compiles the styles with the frontend.
 
 ## DSFR Integration
 

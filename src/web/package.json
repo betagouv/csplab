@@ -8,7 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit -p frontend && vite build",
+    "build": "pnpm run build:front && pnpm run build:styles",
+    "build:front": "vue-tsc --noEmit -p frontend && vite build",
+    "build:styles": "sass presentation/assets/styles:presentation/static/css --no-source-map",
+    "watch:styles": "pnpm run build:styles --watch",
     "typecheck": "vue-tsc --noEmit -p frontend",
     "preview": "vite preview",
     "lint": "eslint . && node frontend/scripts/build-icons.mjs --check",
