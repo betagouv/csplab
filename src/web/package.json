@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "pnpm run build:front && pnpm run build:styles",
     "build:front": "vue-tsc --noEmit -p frontend && vite build",
-    "build:styles": "sass presentation/assets/styles:presentation/static/css --no-source-map",
+    "build:styles": "sass presentation/assets/styles/main.scss:presentation/static/css/main.css --no-source-map",
     "watch:styles": "pnpm run build:styles --watch",
     "typecheck": "vue-tsc --noEmit -p frontend",
     "preview": "vite preview",

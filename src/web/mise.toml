@@ -24,7 +24,7 @@ run = "pnpm install"
 
 [tasks."build:styles"]
 alias = "web:build:styles"
-description = "Compile the SCSS of the Django pages into presentation/static/css, incremental"
+description = "Compile the SCSS of the Django pages into presentation/static/css/main.css, incremental"
 depends = ["install:js"]
 sources = ["presentation/assets/styles/**/*.scss", "frontend/src/styles/breakpoints.scss", "package.json", "pnpm-lock.yaml"]
 outputs = ["presentation/static/css/main.css"]
