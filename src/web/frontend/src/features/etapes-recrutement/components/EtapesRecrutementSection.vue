@@ -216,21 +216,21 @@ function getMenuSections(
         </h2>
         <div class="etapes-list__actions">
           <CspButton
-            v-if="loading || canEditEtapes"
+            v-if="canEditEtapes"
             label="Réinitialiser"
             icon="ri:restart-line"
             variant="tertiary"
             is-icon-left
-            :disabled="saving || loading"
+            :disabled="saving"
             @click="resetModalOpen = true"
           />
           <CspButton
-            v-if="loading || canAddEtape"
+            v-if="canAddEtape"
             label="Ajouter une étape"
             icon="ri:add-line"
             variant="secondary"
             is-icon-left
-            :disabled="saving || loading"
+            :disabled="saving"
             @click="openAddModal"
           />
         </div>
@@ -403,6 +403,7 @@ function getMenuSections(
   align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-3);
+  min-height: 2.5rem;
   margin-bottom: var(--csp-space-6);
 }
 
