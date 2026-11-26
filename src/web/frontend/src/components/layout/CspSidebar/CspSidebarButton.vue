@@ -21,7 +21,10 @@ const { showLabels } = useSidebar()
     class="csp-sidebar-button"
     :class="{ 'csp-sidebar-button--static': static }"
   >
-    <span class="csp-sidebar-button__leading">
+    <span
+      class="csp-sidebar-button__leading"
+      aria-hidden="true"
+    >
       <slot name="leading" />
     </span>
     <template v-if="showLabels">
@@ -40,7 +43,7 @@ const { showLabels } = useSidebar()
       />
     </template>
     <span
-      v-else-if="static"
+      v-else
       class="sr-only"
     >{{ title }}</span>
   </component>
