@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from '@/router/routes'
+import { initUiSettings } from '@/styles/uiSettings'
 import App from './App.vue'
 import '@/app/icons'
 import '@/styles/index.css'
@@ -44,4 +45,5 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   })
 }
 
+initUiSettings()
 app.mount('#ats-app')

@@ -2,10 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { UI_AXES } from './uiSettings'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OWNER = 'styles/csp-variables.css'
-const UI_THEME_SHEETS = { shape: 'styles/shapes.css', density: 'styles/densities.css' } as const
+const UI_THEME_SHEETS = { shape: 'styles/shapes.css', density: 'styles/densities.css' } as const satisfies Record<keyof typeof UI_AXES, string>
 
 const sources = readdirSync(SRC, { recursive: true, encoding: 'utf8' })
   .filter(file => /\.(?:vue|ts|css|scss)$/.test(file) && !file.endsWith('.test.ts'))
@@ -99,6 +100,12 @@ describe.each(Object.entries(UI_THEME_SHEETS))('ui theme sheet of the %s axis', 
       .filter(prelude => !selector.test(prelude))
       .map(prelude => `${prelude} in ${sheet}: write the rules of a theme under :root[data-csp-${axis}='…']`)
     expect(misplaced).toEqual([])
+  })
+
+  it('has a rule for each value of its axis but the default, and for no other value', () => {
+    const [, ...themed] = UI_AXES[axis as keyof typeof UI_AXES].values
+    const valued = rules.map(rule => rule.prelude.match(/='([\w-]+)'/)?.[1])
+    expect([...valued].sort()).toEqual([...themed].sort())
   })
 
   it('nests no block inside @variant xxl', () => {

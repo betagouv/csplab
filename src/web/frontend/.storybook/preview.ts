@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/vue3'
 import { setup } from '@storybook/vue3'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { applyUiSettings } from '../src/styles/uiSettings'
 import '../src/app/icons'
 import '../src/styles/index.css'
 import './storybook.css'
@@ -17,15 +18,6 @@ setup((app) => {
 function applyTheme(theme: string) {
   localStorage.setItem('csp_color_mode', theme)
   document.documentElement.setAttribute('data-fr-theme', theme)
-}
-
-function applyShape(shape: string) {
-  if (shape === 'rounded') {
-    document.documentElement.setAttribute('data-csp-shape', shape)
-  }
-  else {
-    document.documentElement.removeAttribute('data-csp-shape')
-  }
 }
 
 const preview: Preview = {
@@ -62,7 +54,7 @@ const preview: Preview = {
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
-      applyShape(context.globals.shape ?? 'dsfr')
+      applyUiSettings({ shape: context.globals.shape ?? 'dsfr', density: 'standard' })
       return { components: { story }, template: '<story />' }
     },
   ],
