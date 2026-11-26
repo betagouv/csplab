@@ -82,6 +82,17 @@ function enregistrer() {
         :partie="partie"
       />
       <div class="bloc__actions">
+        <!-- Offre en ligne : prévenir à côté des boutons, au moment de modifier (Alice, 26/11/2026) -->
+        <p
+          v-if="offre.etat === 'publiee'"
+          class="bloc__en-ligne"
+        >
+          <CspIcon
+            name="ri:information-line"
+            :size="16"
+          />
+          Offre en ligne : les modifications seront visibles tout de suite par les candidats.
+        </p>
         <CspButton
           label="Annuler"
           variant="secondary"
@@ -190,10 +201,21 @@ function enregistrer() {
 
 .bloc__actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: var(--csp-space-3);
   padding-top: var(--csp-space-4);
   border-top: 1px solid var(--border-default-grey);
+}
+
+.bloc__en-ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  margin: 0 auto 0 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-info);
 }
 
 .lecture {

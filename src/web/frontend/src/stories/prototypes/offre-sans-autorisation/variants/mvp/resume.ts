@@ -48,7 +48,7 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
         l('Nature de l\'emploi', nature(o)),
         ...(contractuels ? [l('Nature du contrat', o.natureContrat), l('Fondement juridique', o.fondementJuridique)] : []),
         l('Statut du poste', o.statutPoste),
-        l('Date de vacance', o.dateVacance),
+        l('Date de vacance', /^\d{4}-\d{2}-\d{2}$/.test(o.dateVacance) ? o.dateVacance.split('-').reverse().join('-') : o.dateVacance),
         l('Catégorie', o.categorie),
         l('Corps', o.corps),
         l('Grade', o.grade),

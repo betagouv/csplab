@@ -99,8 +99,8 @@ const menu = computed(() => [
     ? [{ items: [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => (retrait.value = true) }] }]
     : []),
 ])
-// Le rappel « offre en ligne » ne s'affiche que pendant une modification (Alice, 26/11/2026).
-const bandeaux = computed(() => (o.value.etat === 'publiee' && edition.value ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.'] : []))
+// Le rappel « offre en ligne » est affiché près des boutons du bloc modifié (BlocEtape), plus en bandeau (Alice, 26/11/2026).
+const bandeaux = computed<string[]>(() => [])
 
 // --- Prolonger (publiée ou dépubliée) ---
 const prolongation = ref(false)
