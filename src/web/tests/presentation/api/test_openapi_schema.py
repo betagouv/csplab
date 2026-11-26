@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from presentation.api.authentication import UnauthenticatedMixin
 from presentation.api.openapi_schema import format_rate, rate_limits_markdown
+from presentation.api.token_views import TokenRefreshView
 from presentation.api.views import ChangelogJsonView
 from presentation.ingestion.views.offers import OffersListView
 from presentation.ingestion.views.organismes import OrganismesUpsertView
@@ -78,6 +79,12 @@ class TestRateLimitsMarkdown:
     def test_documentation_view(self):
         assert rate_limits_markdown(ChangelogJsonView()) == _table(
             "| Sans authentification | 60 appels par minute | par adresse IP |",
+        )
+
+    def test_unauthenticated_view_rejecting_authentication(self):
+        assert rate_limits_markdown(TokenRefreshView()) == _table(
+            "| Sans authentification | 5 appels par minute | par adresse IP |",
+            "| Authentification refusée | 10 appels par minute | par adresse IP |",
         )
 
     def test_omits_disabled_rate(self):

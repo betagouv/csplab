@@ -1795,6 +1795,7 @@ paths:
         | Appel | Limite | Décompte |
         |---|---|---|
         | Sans authentification | 5 appels par minute | par adresse IP |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       tags:
       - token
       requestBody:

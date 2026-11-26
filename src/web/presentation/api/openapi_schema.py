@@ -98,9 +98,12 @@ def rate_limits_markdown(view: APIView) -> str:
             doc = _throttle_doc(throttle)
             if caller in doc.callers and throttle.rate:
                 rows.append((caller.value, format_rate(throttle.rate), doc.counted))
-    # Raised by the authentication classes themselves, before the view throttles.
-    rejection_rate = AuthRejectionRateThrottle().rate
-    if authenticators and rejection_rate:
+    # Raised by reject() itself, before the view throttles.
+    rejection_rate = AuthRejectionRateThrottle.THROTTLE_RATES.get(
+        AuthRejectionRateThrottle.scope
+    )
+    rejects = authenticators or getattr(view, "throttles_auth_rejection", False)
+    if rejects and rejection_rate:
         rows.append(
             ("Authentification refusée", format_rate(rejection_rate), "par adresse IP")
         )

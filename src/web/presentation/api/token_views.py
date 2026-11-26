@@ -55,6 +55,9 @@ class LoggedTokenObtainPairView(  # type: ignore[misc]
 class TokenRefreshView(  # type: ignore[misc]
     UnauthenticatedMixin, SimpleJWTTokenRefreshView
 ):
+    # ensure_refresh_ip_allowed() goes through the throttled reject().
+    throttles_auth_rejection = True
+
     def post(self, request: Request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         try:
