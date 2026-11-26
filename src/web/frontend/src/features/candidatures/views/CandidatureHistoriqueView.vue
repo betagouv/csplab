@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -7,19 +8,12 @@ import CandidatureActivitesList from '../components/CandidatureActivitesList.vue
 import { useCandidatureActivites } from '../composables/useCandidatureActivites'
 
 const props = defineProps<{
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
+  candidature: CandidatureParams
 }>()
 
 const HISTORIQUE_SKELETON_COUNT = 5
 
-const candidatureParams = computed(() => ({
-  organismeUuid: props.organismeUuid,
-  recrutementUuid: props.recrutementUuid,
-  candidatureUuid: props.candidatureUuid,
-}))
-const { activites, total, pending, error } = useCandidatureActivites(() => candidatureParams.value)
+const { activites, total, pending, error } = useCandidatureActivites(() => props.candidature)
 
 const showSkeleton = useMinimumPending(pending)
 

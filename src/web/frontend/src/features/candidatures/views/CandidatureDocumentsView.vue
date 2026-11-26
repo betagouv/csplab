@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DocumentListe } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import { checkCandidatureDocument } from '@/api/documents'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -15,23 +16,16 @@ import { useCandidatureDocuments } from '../composables/useCandidatureDocuments'
 import { TYPE_DOCUMENT_LABELS } from '../constants/candidature'
 
 const props = defineProps<{
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
+  candidature: CandidatureParams
 }>()
 
 const SKELETON_ROWS = 2
 
-const candidatureParams = computed(() => ({
-  organismeUuid: props.organismeUuid,
-  recrutementUuid: props.recrutementUuid,
-  candidatureUuid: props.candidatureUuid,
-}))
-const { documents, total, pending, error, documentUrl } = useCandidatureDocuments(() => candidatureParams.value)
+const { documents, total, pending, error, documentUrl } = useCandidatureDocuments(() => props.candidature)
 const { open } = useOpenDocument()
 
 function openDocument(event: MouseEvent, document: DocumentListe): void {
-  open(event, documentUrl(document), () => checkCandidatureDocument({ ...candidatureParams.value, documentUuid: document.uuid }))
+  open(event, documentUrl(document), () => checkCandidatureDocument({ ...props.candidature, documentUuid: document.uuid }))
 }
 
 const showSkeleton = useMinimumPending(pending)

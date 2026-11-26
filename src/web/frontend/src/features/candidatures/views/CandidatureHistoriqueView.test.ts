@@ -11,7 +11,7 @@ describe('candidatureHistoriqueView', () => {
     const requested = vi.fn()
     const results = ['NoteAjoutee', 'CandidatureEtapeModifiee', 'NoteEditee', 'CandidatureRecue'].map(event_name => ({ ...ACTIVITE, event_name }))
     server.use(candidatureActivites(results, requested))
-    await renderWithApp(CandidatureHistoriqueView, { props: CANDIDATURE_PARAMS })
+    await renderWithApp(CandidatureHistoriqueView, { props: { candidature: CANDIDATURE_PARAMS } })
 
     expect(await screen.findByRole('heading', { name: '4 activités récentes' })).toBeInTheDocument()
     expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(4)

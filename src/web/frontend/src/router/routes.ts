@@ -1,5 +1,6 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
+import type { CandidatureParams } from '@/api/params'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { CANDIDATURE_PANEL_TAB_LABELS } from '@/features/candidatures/constants/candidature'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
@@ -37,6 +38,16 @@ function paramsAsProps(...names: string[]) {
 const recrutementProps = paramsAsProps('organismeUuid', 'recrutementUuid')
 const candidatureProps = paramsAsProps('organismeUuid', 'recrutementUuid', 'candidatureUuid')
 
+function candidatureTabProps({ params }: RouteLocationNormalized) {
+  return {
+    candidature: {
+      organismeUuid: String(params.organismeUuid),
+      recrutementUuid: String(params.recrutementUuid),
+      candidatureUuid: String(params.candidatureUuid),
+    } satisfies CandidatureParams,
+  }
+}
+
 function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanelRouteNames): RouteRecordRaw[] {
   return [
     {
@@ -48,56 +59,56 @@ function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanel
           path: '',
           name: tabs.candidature,
           component: () => import('@/features/candidatures/views/CandidatureCvView.vue'),
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('candidature'),
         },
         {
           path: 'historique',
           name: tabs.historique,
           component: () => import('@/features/candidatures/views/CandidatureHistoriqueView.vue'),
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('historique'),
         },
         {
           path: 'documents',
           name: tabs.documents,
           component: () => import('@/features/candidatures/views/CandidatureDocumentsView.vue'),
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('documents'),
         },
         {
           path: 'notes',
           name: tabs.notes,
           component: CandidatureNotesView,
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('notes'),
         },
         {
           path: 'notes/nouvelle',
           name: notes.create,
           component: CandidatureNotesView,
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('notes'),
         },
         {
           path: 'messages',
           name: tabs.messages,
           component: CandidatureMessagesView,
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('messages'),
         },
         {
           path: 'messages/nouveau',
           name: conversations.create,
           component: CandidatureMessagesView,
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('messages'),
         },
         {
           path: `messages/:conversationUuid${UUID}`,
           name: conversations.conversation,
           component: CandidatureMessagesView,
-          props: candidatureProps,
+          props: candidatureTabProps,
           meta: panelTabMeta('messages'),
         },
       ],

@@ -19,7 +19,7 @@ function renderCv(...handlers: RequestHandler[]) {
   const checked = vi.fn()
   server.use(...handlers, candidatureDocumentFile(checked))
   render(CandidatureCvView, {
-    props: CANDIDATURE_PARAMS,
+    props: { candidature: CANDIDATURE_PARAMS },
     global: { plugins: [createPinia(), PiniaColada] },
   })
   return { checked }

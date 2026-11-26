@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DocumentListe } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, useId } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -11,27 +12,20 @@ import { useCandidatureDocumentCheck, useCandidatureDocuments } from '../composa
 import { formatCandidatName } from '../format'
 
 const props = defineProps<{
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
+  candidature: CandidatureParams
 }>()
 
-const candidatureParams = computed(() => ({
-  organismeUuid: props.organismeUuid,
-  recrutementUuid: props.recrutementUuid,
-  candidatureUuid: props.candidatureUuid,
-}))
-const { candidature } = useCandidatureDetail(() => candidatureParams.value)
-const { documents, pending, error, pdfUrl } = useCandidatureDocuments(() => candidatureParams.value)
+const { candidature: detail } = useCandidatureDetail(() => props.candidature)
+const { documents, pending, error, pdfUrl } = useCandidatureDocuments(() => props.candidature)
 
 const cv = computed<DocumentListe | null>(() => documents.value.find(document => document.type === 'cv') ?? null)
 const cvUrl = computed(() => cv.value ? pdfUrl(cv.value) : null)
 
-const cvCheck = useCandidatureDocumentCheck(() => candidatureParams.value, () => cv.value && cvUrl.value ? cv.value.uuid : null)
+const cvCheck = useCandidatureDocumentCheck(() => props.candidature, () => cv.value && cvUrl.value ? cv.value.uuid : null)
 
 const showSkeleton = useMinimumPending(computed(() => pending.value || cvCheck.pending.value))
 const loadError = computed(() => error.value ?? cvCheck.error.value)
-const title = computed(() => candidature.value ? `CV de ${formatCandidatName(candidature.value.candidat)}` : 'CV')
+const title = computed(() => detail.value ? `CV de ${formatCandidatName(detail.value.candidat)}` : 'CV')
 const titleId = useId()
 </script>
 

@@ -10,7 +10,7 @@ import CandidatureDocumentsView from './CandidatureDocumentsView.vue'
 async function renderDocuments() {
   server.use(candidatureDocuments([CV_DOCUMENT, LETTRE_DOCUMENT]))
   render(CandidatureDocumentsView, {
-    props: CANDIDATURE_PARAMS,
+    props: { candidature: CANDIDATURE_PARAMS },
     global: { plugins: [createPinia(), PiniaColada] },
   })
   await screen.findByText('2 documents')
