@@ -99,7 +99,8 @@ const menu = computed(() => [
     ? [{ items: [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => (retrait.value = true) }] }]
     : []),
 ])
-const bandeaux = computed(() => (o.value.etat === 'publiee' ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.'] : []))
+// Le rappel « offre en ligne » ne s'affiche que pendant une modification (Alice, 26/11/2026).
+const bandeaux = computed(() => (o.value.etat === 'publiee' && edition.value ? ['Offre en ligne : vos modifications sont visibles tout de suite par les candidats.'] : []))
 
 // --- Prolonger (publiée ou dépubliée) ---
 const prolongation = ref(false)
