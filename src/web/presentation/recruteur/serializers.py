@@ -786,6 +786,12 @@ class CandidatDetailSerializer(serializers.Serializer):
     prenom = serializers.CharField(source="candidat.utilisateur.first_name")
     nom = serializers.CharField(source="candidat.utilisateur.last_name")
     email = serializers.EmailField(source="candidat.utilisateur.email")
+    telephone = serializers.CharField(
+        source="candidat.telephone", allow_null=True, required=False
+    )
+    ville = serializers.CharField(
+        source="candidat.ville", allow_null=True, required=False
+    )
 
 
 @extend_schema_field(MotifRefusSerializer(allow_null=True))
