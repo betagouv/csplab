@@ -72,6 +72,9 @@ _ROLES_REQUIS: dict[PermissionAction, frozenset[AgentOrganismeRole]] = {
     PermissionAction.CHANGE_ETAPE_CANDIDATURES: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    PermissionAction.UPDATE_MOTIF_REFUS: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
     PermissionAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     PermissionAction.SEARCH_AGENT: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
@@ -201,6 +204,9 @@ _ROLES_RECRUTEMENT_REQUIS: dict[PermissionAction, frozenset[AgentRecrutementRole
         }
     ),
     PermissionAction.CHANGE_ETAPE_CANDIDATURES: frozenset(
+        {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
+    ),
+    PermissionAction.UPDATE_MOTIF_REFUS: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
     PermissionAction.LIST_RECRUTEMENT_AGENTS: frozenset(

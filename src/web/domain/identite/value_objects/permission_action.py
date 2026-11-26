@@ -9,6 +9,7 @@ class PermissionAction(Enum):
     GET_RECRUTEMENT = "get_recrutement"
     GET_CANDIDATURE = "get_candidature"
     CHANGE_ETAPE_CANDIDATURES = "change_etape_candidatures"
+    UPDATE_MOTIF_REFUS = "update_motif_refus"
     GET_RECRUTEMENT_ETAPES = "get_recrutement_etapes"
     UPDATE_RECRUTEMENT_ETAPES = "update_recrutement_etapes"
     INIT_RECRUTEMENT_ETAPES = "init_recrutement_etapes"
