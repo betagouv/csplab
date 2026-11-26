@@ -33,14 +33,15 @@ def _count_subquery(queryset: models.QuerySet) -> Coalesce:
 
 
 class OrganismeQuerySet(models.QuerySet):
-    def not_supprimes(self) -> "OrganismeQuerySet":
+    def actives(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
 
     def open(self) -> "OrganismeQuerySet":
-        return self.not_supprimes().filter(gestion_ats=True)
+        return self.actives().filter(gestion_ats=True)
 
+    # Excludes deleted organismes, as RecrutementQuerySet.active_by_id
     def by_id(self, organisme_id) -> "OrganismeQuerySet":
-        return self.not_supprimes().filter(pk=organisme_id)
+        return self.actives().filter(pk=organisme_id)
 
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)

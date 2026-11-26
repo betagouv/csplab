@@ -105,6 +105,8 @@ La construction des querysets (`select_related`, `prefetch_related`, `annotate`)
 un `QuerySet` custom sur le modèle, exposé par `objects = XQuerySet.as_manager()`. Le
 service compose deux ou trois méthodes ; il ne devient pas une usine à querysets.
 
+`active(s)` = non supprimé pour une entité, non révoqué pour un rattachement
+
 ### 2. Le `Model` Django est l'entité
 
 Une seule représentation par notion métier. Les mappers `to_domain` / `from_domain`

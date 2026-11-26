@@ -72,7 +72,7 @@ def _upsert(*data: OrganismeUpsertData):
 
 
 def _siret_holder(siret: str = SIRET_A) -> OrganismeModel:
-    return OrganismeModel.objects.not_supprimes().get(siret=siret)
+    return OrganismeModel.objects.actives().get(siret=siret)
 
 
 @pytest.mark.parametrize(

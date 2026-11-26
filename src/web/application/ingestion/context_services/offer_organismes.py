@@ -16,7 +16,7 @@ class OfferOrganismes:
     def organisme_id(self, siret: str) -> UUID | None:
         if siret not in self._organisme_ids:
             self._organisme_ids[siret] = (
-                OrganismeModel.objects.not_supprimes()
+                OrganismeModel.objects.actives()
                 .by_siret(siret)
                 .values_list("id", flat=True)
                 .first()
