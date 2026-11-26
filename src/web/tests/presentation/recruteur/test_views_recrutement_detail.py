@@ -849,7 +849,7 @@ def _modify_candidature(recrutement, candidature, agent):
 
 
 def _change_etape(recrutement, candidature, agent):
-    cible = (
+    target = (
         EtapeModel.objects.filter(recrutement=recrutement)
         .exclude(pk=candidature.etape_id)
         .exclude(categorie=CategorieEtapeRecrutement.REFUS.value)
@@ -859,7 +859,7 @@ def _change_etape(recrutement, candidature, agent):
         organisme_id=recrutement.organisme_id,
         recrutement_id=recrutement.pk,
         utilisateur=agent,
-        etape_cible_id=cible.pk,
+        etape_cible_id=target.pk,
         candidature_ids=[candidature.pk],
     )
 
