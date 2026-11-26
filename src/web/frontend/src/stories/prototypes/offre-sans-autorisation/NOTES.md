@@ -169,3 +169,23 @@ Réponses aux questions
   l'offre s'il n'y en a qu'une, puis bouton : l'action (Prolonger, Publier) pour une offre, « Voir les offres » (filtre) sinon.
 - Puis retour à la flèche (Alice) : un utilisateur rouvre l'offre avant de publier ou prolonger. Toute la carte est cliquable ;
   une offre → sa page ; plusieurs → le tableau filtré. Plus de bouton dans les cartes.
+
+## Retours PO sur la liste et le formulaire (26/11/2026)
+
+1. Carte « À faire » orange : « Une offre sera dépubliée automatiquement dans 4 jours » (plusieurs : « N offres seront
+   dépubliées automatiquement dans moins de 7 jours »). Interprétation à valider : la PO a cité « Une offre va être dépubliée
+   automatiquement… ». Le statut obtenu reste « En pause ».
+2. Onglet « En préparation » : colonne « Champs obligatoires remplis » (x / y + jauge, verte quand c'est complet).
+3. Action d'un brouillon incomplet : « Compléter » (au lieu de « Continuer »).
+4. Dates saisies au format JJ-MM-AAAA (date de vacance, fin de publication, prolongation) ; stockées en AAAA-MM-JJ.
+5. Corps et grades : plusieurs choix dans une liste fixe ; les corps proposés suivent la catégorie, les grades suivent les
+   corps choisis. Liste illustrative (5 corps), à remplacer par le référentiel officiel.
+6. Étape « Le métier » : Famille puis Métier (RMFP+) ; le sous-texte « Le domaine et le sous-domaine en sont déduits » est retiré.
+   Familles fictives (reprises des domaines de l'extrait RMFP+ du proto).
+7. « Ajouter une compétence » : seulement depuis la liste des compétences du RMFP (extrait fictif). Les compétences déjà
+   saisies dans les données de démo restent affichées.
+8. Langues : choix dans une liste fixe (10 langues, proposition).
+9. Formulaire de candidature : « Questions posées à tous les candidats », RQTH (oui / non) et Fonctionnaire (oui / non),
+   toujours demandées, non retirables. Libellés proposés, à valider.
+- Besoin design system : sélection multiple dans une liste (combobox + étiquettes), faite ici dans ChoixMultiple (propre au proto) ;
+  champ date au format JJ-MM-AAAA (ChampDate, propre au proto).

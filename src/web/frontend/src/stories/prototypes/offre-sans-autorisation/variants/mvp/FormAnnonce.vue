@@ -4,17 +4,20 @@ import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
+import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
+import ChampDate from './ChampDate.vue'
 import ChampOffre from './ChampOffre.vue'
 import ChampSimple from './ChampSimple.vue'
+import ChoixMultiple from './ChoixMultiple.vue'
 import LieuxPoste from './LieuxPoste.vue'
 import { useNav } from './nav'
-import { CATEGORIES, contenuDepuisFiche, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import { CATEGORIES, COMPETENCES_RMFP, contenuDepuisFiche, CORPS, FAMILLES, LANGUES, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
 
 // Champs de l'annonce (ce que lit le candidat sur Choisir le Service Public, D311-8), découpés en étapes (retour PO, F1) :
 // `partie` choisit l'étape affichée. Les champs obligatoires portent un astérisque (F5) et ne sont contrôlés qu'au moment
@@ -73,6 +76,10 @@ const langues = computed(() => o.value.languesListe ?? [])
 function synchroLangues() {
   o.value.langues = langues.value.filter(l => l.langue.trim()).map(l => (l.niveau ? `${l.langue} (${l.niveau})` : l.langue)).join(', ')
 }
+// Langue choisie dans une liste fixe (retour PO) ; une langue déjà ajoutée n'est plus proposée.
+function optionsLangue(actuelle: string) {
+  return opts(LANGUES.filter(x => x === actuelle || !langues.value.some(y => y.langue === x)), 'Choisir une langue')
+}
 function ajouterLangue() {
   o.value.languesListe = [...langues.value, { langue: '', niveau: '' }]
 }
@@ -81,8 +88,19 @@ function retirerLangue(i: number) {
   synchroLangues()
 }
 
-// Métier RMFP+ (à gauche) : ses compétences s'affichent à droite, déjà cochées ; on peut en retirer
-// ou en ajouter librement (doc « Création manuelle des offres »).
+// Famille puis métier du RMFP+ (retour PO, 26/11/2026) : les compétences du métier s'affichent déjà cochées ;
+// on peut en retirer, et en ajouter seulement depuis la liste des compétences du RMFP.
+const famille = computed({
+  get: () => o.value.famille || metier(o.value.metier)?.domaine || 'aucun',
+  set: (v: string) => {
+    o.value.famille = v === 'aucun' ? '' : v
+    if (metier(o.value.metier)?.domaine !== o.value.famille) {
+      o.value.metier = ''
+      o.value.competences = []
+    }
+  },
+})
+const OPTIONS_FAMILLE = [{ value: 'aucun', label: 'Choisir une famille' }, ...FAMILLES.map(f => ({ value: f, label: f }))]
 const metierChoisi = computed({
   get: () => o.value.metier || 'aucun',
   set: (v: string) => {
@@ -90,16 +108,38 @@ const metierChoisi = computed({
     o.value.competences = [...(metier(o.value.metier)?.competences ?? [])]
   },
 })
-const OPTIONS_METIER = [{ value: 'aucun', label: 'Choisir un métier' }, ...METIERS.map(m => ({ value: m.id, label: `${m.libelle} — ${m.domaine}` }))]
+const OPTIONS_METIER = computed(() => [{ value: 'aucun', label: famille.value === 'aucun' ? 'Choisissez d\'abord une famille' : 'Choisir un métier' }, ...METIERS.filter(m => m.domaine === famille.value).map(m => ({ value: m.id, label: m.libelle }))])
 const optionsCompetences = computed(() => [...new Set([...(metier(o.value.metier)?.competences ?? []), ...o.value.competences])].map(c => ({ value: c, label: c })))
-const nouvelle = ref('')
-function ajouterCompetence() {
-  const c = nouvelle.value.trim()
+const rechercheCompetence = ref('')
+const competencesProposees = computed(() => COMPETENCES_RMFP
+  .filter(c => !o.value.competences.includes(c) && c.toLowerCase().includes(rechercheCompetence.value.trim().toLowerCase()))
+  .map(c => ({ value: c, label: c })))
+function ajouterCompetence(c: string | null) {
   if (c && !o.value.competences.includes(c)) {
     o.value.competences = [...o.value.competences, c]
   }
-  nouvelle.value = ''
+  rechercheCompetence.value = ''
 }
+
+// Corps et grades : plusieurs choix dans une liste fixe ; les grades proposés sont ceux des corps choisis (retour PO).
+const optionsCorps = computed(() => CORPS.filter(c => !o.value.categorie || c.categorie === o.value.categorie).map(c => c.nom))
+const corpsActuels = computed(() => o.value.corpsListe ?? (o.value.corps ? [o.value.corps] : []))
+const optionsGrades = computed(() => [...new Set(CORPS.filter(c => corpsActuels.value.includes(c.nom)).flatMap(c => c.grades))])
+const gradesChoisis = computed({
+  get: () => o.value.gradesListe ?? (o.value.grade ? [o.value.grade] : []),
+  set: (v: string[]) => {
+    o.value.gradesListe = v
+    o.value.grade = v.join(', ')
+  },
+})
+const corpsChoisis = computed({
+  get: () => corpsActuels.value,
+  set: (v: string[]) => {
+    o.value.corpsListe = v
+    o.value.corps = v.join(', ')
+    gradesChoisis.value = gradesChoisis.value.filter(g => optionsGrades.value.includes(g))
+  },
+})
 
 // Nature de l'emploi (retour PO, F8) : un seul choix parmi trois, plutôt que deux cases à cocher.
 const OUVERT = [
@@ -216,22 +256,34 @@ function formater() {
       class="groupe"
     >
       <div class="metier">
-        <ChampOffre
-          :offre="o"
-          champ="metier"
-          label="Métier (référentiel RMFP+)"
-          obligatoire
-          hint="Le domaine et le sous-domaine en sont déduits"
-          for-id="a-metier"
-        >
-          <CspSelect
-            id="a-metier"
-            v-model="metierChoisi"
+        <FieldRow :cols="2">
+          <ChampSimple
+            label="Famille (référentiel RMFP+)"
+            obligatoire
+          >
+            <CspSelect
+              v-model="famille"
+              label="Famille"
+              :options="OPTIONS_FAMILLE"
+            />
+          </ChampSimple>
+          <ChampOffre
+            :offre="o"
+            champ="metier"
             label="Métier"
-            class="sans-label"
-            :options="OPTIONS_METIER"
-          />
-        </ChampOffre>
+            obligatoire
+            for-id="a-metier"
+          >
+            <CspSelect
+              id="a-metier"
+              v-model="metierChoisi"
+              label="Métier"
+              class="sans-label"
+              :options="OPTIONS_METIER"
+              :disabled="famille === 'aucun'"
+            />
+          </ChampOffre>
+        </FieldRow>
         <ChampOffre
           :offre="o"
           champ="competences"
@@ -252,19 +304,14 @@ function formater() {
             Choisissez un métier pour afficher ses compétences du RMFP+.
           </p>
           <div class="ajout">
-            <CspInput
-              v-model="nouvelle"
-              label="Ajouter une compétence"
-              size="sm"
-              @keydown.enter.prevent="ajouterCompetence"
-            />
-            <CspButton
-              label="Ajouter"
-              size="sm"
-              variant="secondary"
-              icon="ri:add-line"
-              is-icon-left
-              @click="ajouterCompetence"
+            <CspCombobox
+              v-model:search-term="rechercheCompetence"
+              :model-value="null"
+              :options="competencesProposees"
+              label="Ajouter une compétence du RMFP"
+              placeholder="Rechercher une compétence"
+              empty-label="Aucune compétence du RMFP ne correspond"
+              @update:model-value="ajouterCompetence"
             />
           </div>
         </ChampOffre>
@@ -329,10 +376,9 @@ function formater() {
           label="Date de vacance"
           obligatoire
         >
-          <CspInput
+          <ChampDate
             v-model="o.dateVacance"
             label="Date de vacance"
-            placeholder="AAAA-MM-JJ"
           />
         </ChampSimple>
       </FieldRow>
@@ -349,18 +395,35 @@ function formater() {
         </ChampSimple>
       </FieldRow>
       <FieldRow :cols="2">
-        <CspInput
-          v-model="o.corps"
+        <ChoixMultiple
+          v-model="corpsChoisis"
           label="Corps"
-          placeholder="Ex. : attachés d'administration de l'État"
+          :hint="o.categorie ? `Corps de catégorie ${o.categorie} · plusieurs choix possibles` : 'Plusieurs choix possibles'"
+          :options="optionsCorps"
+          placeholder="Rechercher un corps"
         />
       </FieldRow>
       <FieldRow :cols="2">
-        <CspInput
-          v-model="o.grade"
+        <ChoixMultiple
+          v-if="corpsChoisis.length"
+          v-model="gradesChoisis"
           label="Grade"
-          hint="Dépend du corps"
+          hint="Grades des corps choisis · plusieurs choix possibles"
+          :options="optionsGrades"
+          placeholder="Rechercher un grade"
         />
+        <ChampSimple
+          v-else
+          label="Grade"
+          hint="Choisissez d'abord un corps"
+        >
+          <CspSelect
+            model-value="aucun"
+            label="Grade"
+            :options="[{ value: 'aucun', label: 'Choisissez d\'abord un corps' }]"
+            disabled
+          />
+        </ChampSimple>
       </FieldRow>
       <CspInput
         v-model="o.lienJO"
@@ -424,11 +487,11 @@ function formater() {
             :key="i"
             class="langue"
           >
-            <CspInput
-              v-model="l.langue"
+            <CspSelect
+              :model-value="l.langue || 'aucun'"
               :label="`Langue ${i + 1}`"
-              placeholder="Ex. : anglais"
-              @update:model-value="synchroLangues"
+              :options="optionsLangue(l.langue)"
+              @update:model-value="(v?: string) => { l.langue = !v || v === 'aucun' ? '' : v; synchroLangues() }"
             />
             <ChampSimple
               label="Niveau"
@@ -615,10 +678,7 @@ function formater() {
 }
 
 .ajout {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--csp-space-3);
-  align-items: end;
+  max-width: 30rem;
   margin-top: var(--csp-space-3);
 }
 

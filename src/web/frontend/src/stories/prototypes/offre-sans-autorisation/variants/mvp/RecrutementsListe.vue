@@ -6,7 +6,6 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useTableSelection } from '@/composables/data/useTableSelection'
@@ -17,6 +16,7 @@ import FinCell from './cellules/FinCell.vue'
 import NouvellesCell from './cellules/NouvellesCell.vue'
 import ResponsableCell from './cellules/ResponsableCell.vue'
 import TitreCell from './cellules/TitreCell.vue'
+import ChampDate from './ChampDate.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { aProlonger, aRetirer, candidatures } from './recrutement'
@@ -178,10 +178,9 @@ function confirmerRetrait() {
         {{ aProlonger?.titre }} : en ligne jusqu'au {{ aProlonger ? dateLongue(aProlonger.dateFin) : '' }}.
         La nouvelle date est aussi la date limite de candidature. Pas de nouvelle validation.
       </p>
-      <CspInput
+      <ChampDate
         v-model="nouvelleFin"
         label="Nouvelle date limite"
-        placeholder="AAAA-MM-JJ"
         :hint="nouvelleFin ? dateLongue(nouvelleFin) : ''"
       />
       <template #footer>

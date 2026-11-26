@@ -11,6 +11,12 @@ import { PIECES } from './store'
 const props = defineProps<{ offre: Offre, partie: 'formulaire' | 'documents', verrouille?: boolean }>()
 const o = computed(() => props.offre)
 
+// Posées à chaque candidat, au moment où il postule : pas de profil candidat à remplir (retour PO, 26/11/2026).
+const QUESTIONS_FIXES = [
+  { question: 'Êtes-vous bénéficiaire d\'une RQTH ?', reponses: 'Oui / Non' },
+  { question: 'Êtes-vous fonctionnaire ?', reponses: 'Oui / Non' },
+]
+
 const EXIGENCES = [
   { value: 'non', label: 'Non demandé' },
   { value: 'facultatif', label: 'Facultatif' },
@@ -75,6 +81,28 @@ const EXIGENCES = [
     class="groupe"
   >
     <h3 class="groupe__titre">
+      Questions posées à tous les candidats
+    </h3>
+    <p class="groupe__desc">
+      Toujours demandées, pour toutes les offres : elles ne peuvent pas être retirées.
+    </p>
+    <ul class="fixes">
+      <li
+        v-for="q in QUESTIONS_FIXES"
+        :key="q.question"
+        class="fixe"
+      >
+        <span>{{ q.question }}</span>
+        <span class="fixe__reponses">{{ q.reponses }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <div
+    v-if="partie === 'formulaire'"
+    class="groupe"
+  >
+    <h3 class="groupe__titre">
       Questions aux candidats
     </h3>
     <p class="groupe__desc">
@@ -130,6 +158,32 @@ const EXIGENCES = [
   border-left: 3px solid var(--border-plain-grey);
   background: var(--background-alt-grey);
   font-size: var(--csp-font-size-sm);
+}
+
+.fixes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fixe {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--csp-space-4);
+  padding: var(--csp-space-3) 0;
+  border-bottom: 1px solid var(--border-default-grey);
+  font-size: var(--csp-font-size-sm);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.fixe__reponses {
+  color: var(--text-mention-grey);
+  white-space: nowrap;
 }
 
 .pieces {

@@ -3,6 +3,7 @@ import type { Offre } from './store'
 import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useNav } from './nav'
+import { joursRestants } from './store'
 
 export type CarteAFaire = 'prolonger' | 'publier'
 
@@ -16,8 +17,13 @@ const props = defineProps<{ offres: Record<CarteAFaire, Offre[]> }>()
 const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 const { aller } = useNav()
 
+function dans(o: Offre) {
+  const j = joursRestants(o.dateFin)
+  return j <= 0 ? 'aujourd\'hui' : j === 1 ? 'demain' : `dans ${j} jours`
+}
 const cartes = computed(() => ([
-  { id: 'prolonger' as const, icone: 'ri:time-line', titre: (n: number) => (n > 1 ? `${n} offres arrivent à échéance` : 'Une offre arrive à échéance') },
+  // Retour PO (26/11/2026) : dire clairement que l'offre sera dépubliée automatiquement, et quand.
+  { id: 'prolonger' as const, icone: 'ri:time-line', titre: (n: number, o?: Offre) => (n > 1 ? `${n} offres seront dépubliées automatiquement dans moins de 7 jours` : `Une offre sera dépubliée automatiquement ${dans(o!)}`) },
   { id: 'publier' as const, icone: 'ri:send-plane-line', titre: (n: number) => (n > 1 ? `${n} offres prêtes à publier` : 'Une offre prête à publier') },
 ]).filter(c => props.offres[c.id].length > 0).map(c => ({ ...c, n: props.offres[c.id].length, seule: props.offres[c.id].length === 1 ? props.offres[c.id][0]! : null })))
 </script>
@@ -52,7 +58,7 @@ const cartes = computed(() => ([
                 :size="20"
                 class="carte__icone"
               />
-              {{ c.titre(c.n) }}
+              {{ c.titre(c.n, c.seule ?? undefined) }}
             </span>
             <span
               v-if="c.seule"

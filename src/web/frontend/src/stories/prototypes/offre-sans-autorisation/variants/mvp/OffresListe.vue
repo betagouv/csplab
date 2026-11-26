@@ -16,9 +16,11 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import AFaire from './AFaire.vue'
+import { champsObligatoires } from './aide'
 import ActionsOffreCell from './cellules/ActionsOffreCell.vue'
 import ActiviteOffreCell from './cellules/ActiviteOffreCell.vue'
 import CandidaturesCell from './cellules/CandidaturesCell.vue'
+import CompletionCell from './cellules/CompletionCell.vue'
 import DepublicationCell from './cellules/DepublicationCell.vue'
 import EtatPreparationCell from './cellules/EtatPreparationCell.vue'
 import IntituleCell from './cellules/IntituleCell.vue'
@@ -165,6 +167,8 @@ const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
   const avecCandidatures = onglet.value !== 'brouillon'
   return [
     { id: 'intitule', header: 'Offre d\'emploi', accessor: o => o.titre, cellComponent: IntituleCell },
+    // Champs obligatoires remplis, dans « En préparation » (retour PO, 26/11/2026).
+    ...(onglet.value === 'brouillon' ? [{ id: 'completion', header: 'Champs obligatoires remplis', wrapHeader: true, sortable: true, accessor: (o: Offre) => champsObligatoires(o).filter(c => c.ok).length / Math.max(1, champsObligatoires(o).length), cellComponent: CompletionCell, width: '8.5rem' }] : []),
     // Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon, Prête à publier) ; rien ailleurs.
     ...(onglet.value === 'toutes' ? [{ id: 'statut', header: 'Statut', sortable: true, accessor: (o: Offre) => ORDRE.indexOf(categorieOffre(o)), cellComponent: StatutDepuisCell, width: '7.5rem' }] : []),
     ...(onglet.value === 'brouillon' ? [{ id: 'statut', header: 'Statut', sortable: true, accessor: (o: Offre) => etatPreparation(o), cellComponent: EtatPreparationCell, width: '8rem' }] : []),

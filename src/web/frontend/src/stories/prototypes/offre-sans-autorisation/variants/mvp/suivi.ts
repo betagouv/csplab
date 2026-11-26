@@ -206,7 +206,7 @@ export type TypeAction = 'continuer' | 'publier' | 'prolonger'
 export function actionOffre(o: Offre, peutPublier = true): { type: TypeAction, label: string, ecran: Ecran } | null {
   if (o.etat === 'brouillon') {
     if (champsObligatoires(o).some(c => !c.ok)) {
-      return { type: 'continuer', label: 'Continuer', ecran: { nom: 'rediger', id: o.id } }
+      return { type: 'continuer', label: 'Compléter', ecran: { nom: 'rediger', id: o.id } }
     }
     return peutPublier ? { type: 'publier', label: 'Publier', ecran: { nom: 'publier', id: o.id } } : null
   }

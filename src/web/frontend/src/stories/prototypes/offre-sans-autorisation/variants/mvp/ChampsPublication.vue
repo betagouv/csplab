@@ -2,8 +2,8 @@
 import type { Offre } from './store'
 import { computed } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { manquesDates } from './aide'
+import ChampDate from './ChampDate.vue'
 import { aujourdhui, dateLongue, plusUnMois, SUPPORT_MAITRE } from './store'
 
 // Publication (doc PO) : l'offre est mise en ligne le jour où on publie (pas de programmation). Date de fin de
@@ -22,9 +22,8 @@ const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : unde
     <p class="mention mention--haut">
       Publication sur {{ SUPPORT_MAITRE.nom }}. L'offre est mise en ligne dès que vous publiez.
     </p>
-    <CspInput
+    <ChampDate
       v-model="o.dateFin"
-      placeholder="AAAA-MM-JJ"
       label="Date de fin de publication"
       hint="Champ obligatoire · au moins un mois après aujourd'hui"
       :error="Boolean(erreur)"

@@ -7,11 +7,11 @@ import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import { champsObligatoires } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import BlocEtape from './BlocEtape.vue'
+import ChampDate from './ChampDate.vue'
 import { dupliquer } from './dupliquer'
 import { ETAPES_OFFRE, GROUPES } from './etapes'
 import { useNav } from './nav'
@@ -354,9 +354,8 @@ function confirmerRetrait() {
         L'offre sera de nouveau visible des candidats et pourra recevoir de nouvelles candidatures.
         {{ finPassee ? 'Sa date de fin est passée : choisissez-en une nouvelle.' : 'Vous pouvez garder sa date de fin ou la modifier.' }}
       </p>
-      <CspInput
+      <ChampDate
         v-model="nouvelleFin"
-        placeholder="AAAA-MM-JJ"
         :label="pause ? 'Date de fin de publication' : 'Nouvelle date de fin'"
         hint="C'est aussi la date limite de candidature."
         :error="Boolean(erreurFin)"

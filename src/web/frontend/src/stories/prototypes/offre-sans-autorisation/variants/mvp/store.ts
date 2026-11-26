@@ -152,6 +152,11 @@ export interface Offre {
   management?: string
   corps?: string
   grade?: string
+  /** Plusieurs corps et grades possibles, choisis dans une liste fixe (retour PO, 26/11/2026). `corps` et `grade` en sont le texte. */
+  corpsListe?: string[]
+  gradesListe?: string[]
+  /** Famille du RMFP+, choisie avant le métier. */
+  famille?: string
   infosComplementaires?: string
   /** Lien URL vers l'avis de vacance au Journal officiel. */
   lienJO?: string
@@ -261,6 +266,35 @@ export const METIERS = [
   { id: 'resp-si', libelle: 'Responsable des systèmes d\'information', domaine: 'Numérique et systèmes d\'information', competences: ['Management d\'équipe', 'Architecture des SI', 'Sécurité des SI', 'Pilotage budgétaire'] },
 ]
 export const metier = (id: string) => METIERS.find(m => m.id === id)
+/** Familles du RMFP+ (fictif : reprend les domaines de l'extrait ci-dessus). On choisit la famille, puis le métier. */
+export const FAMILLES = [...new Set(METIERS.map(m => m.domaine))]
+
+/** Extrait fictif de la liste des compétences du RMFP : on n'ajoute une compétence que depuis cette liste (retour PO). */
+export const COMPETENCES_RMFP = [...new Set([
+  ...METIERS.flatMap(m => m.competences),
+  'Analyse et synthèse',
+  'Communication écrite',
+  'Conduite de réunion',
+  'Droit administratif',
+  'Gestion budgétaire',
+  'Travail en équipe',
+  'Veille réglementaire',
+])].sort((a, b) => a.localeCompare(b, 'fr'))
+
+/**
+ * Corps et grades (liste fixe, retour PO). Extrait illustratif, à remplacer par le référentiel officiel :
+ * plusieurs corps et plusieurs grades peuvent être choisis, les grades proposés dépendent des corps choisis.
+ */
+export const CORPS: { nom: string, categorie: string, grades: string[] }[] = [
+  { nom: 'Attachés d\'administration de l\'État', categorie: 'A', grades: ['Attaché', 'Attaché principal', 'Attaché hors classe'] },
+  { nom: 'Ingénieurs des travaux publics de l\'État', categorie: 'A', grades: ['Ingénieur', 'Ingénieur divisionnaire', 'Ingénieur hors classe'] },
+  { nom: 'Secrétaires administratifs', categorie: 'B', grades: ['Classe normale', 'Classe supérieure', 'Classe exceptionnelle'] },
+  { nom: 'Techniciens supérieurs du développement durable', categorie: 'B', grades: ['Technicien', 'Technicien principal', 'Technicien en chef'] },
+  { nom: 'Adjoints administratifs', categorie: 'C', grades: ['Adjoint administratif', 'Adjoint administratif principal de 2e classe', 'Adjoint administratif principal de 1re classe'] },
+]
+
+/** Langues proposées (liste fixe, retour PO). */
+export const LANGUES = ['Allemand', 'Anglais', 'Arabe', 'Chinois', 'Espagnol', 'Italien', 'Langue des signes française', 'Néerlandais', 'Portugais', 'Russe']
 const MOTS_METIER: [string, string][] = [['paie', 'gest-paie'], ['recrutement', 'charge-recrut'], ['projet', 'cp-si'], ['assistant', 'assist-admin'], ['accueil', 'accueil'], ['informatique', 'resp-si']]
 
 /** Support maître : toute publication passe par lui (simple diffusion). */
@@ -538,7 +572,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v6'
+const CLE = 'csplab-proto-offre-mvp-v7'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
