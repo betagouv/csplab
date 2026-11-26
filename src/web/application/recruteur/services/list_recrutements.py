@@ -82,6 +82,7 @@ def list_archived_recrutements(
         .archived()
         .with_responsables()
         .with_recrute()
+        .with_candidatures_total()
         .annotate(unread_conversations=Value(0, output_field=IntegerField()))
         .order_by("offre_id")
     )

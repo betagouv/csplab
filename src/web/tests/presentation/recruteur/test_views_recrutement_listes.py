@@ -516,6 +516,7 @@ class TestRecrutementsArchivesView:
         assert result["responsables"] == [{"nom": membre.utilisateur.get_full_name()}]
         assert result["finalise"] is True
         assert result["recrute"] == candidature.candidat.utilisateur.get_full_name()
+        assert result["candidatures"] == {"total": 1}
         assert result["unread_conversations"] == 0
         assert result["date_archivage"].startswith("2025-06-01")
 

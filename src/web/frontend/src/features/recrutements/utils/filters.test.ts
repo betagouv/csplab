@@ -1,4 +1,4 @@
-import type { RecrutementBase } from '../types'
+import type { RecrutementBase, RecrutementsActifs } from '../types'
 import { describe, expect, it } from 'vitest'
 import {
   emptyRecrutementsFilters,
@@ -6,7 +6,7 @@ import {
   recrutementSearchableText,
 } from './filters'
 
-function makeRow(overrides: Partial<RecrutementBase> = {}): RecrutementBase {
+function makeRow(overrides: Partial<RecrutementsActifs> = {}): RecrutementsActifs {
   return {
     uuid: 'rec-1',
     intitule: 'Chargé·e de mission',

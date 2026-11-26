@@ -197,6 +197,10 @@ class CandidaturesActivesSerializer(serializers.Serializer):
     en_cours = serializers.IntegerField(source="candidatures_en_cours", allow_null=True)
 
 
+class CandidaturesTotalSerializer(serializers.Serializer):
+    total = serializers.IntegerField(source="candidatures_total")
+
+
 class UnreadConversationsSerializer(serializers.Serializer):
     unread_conversations = serializers.SerializerMethodField()
 
@@ -260,6 +264,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
     date_archivage = serializers.DateTimeField(source="offre.archived_at")
     finalise = serializers.BooleanField()
     recrute = RecruteField(allow_null=True)
+    candidatures = CandidaturesTotalSerializer(source="*")
 
     class Meta:
         model = RecrutementModel
@@ -274,6 +279,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
             "date_archivage",
             "finalise",
             "recrute",
+            "candidatures",
         ]
 
 

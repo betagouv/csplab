@@ -147,13 +147,17 @@ class RecrutementQuerySet(models.QuerySet):
             )
         )
 
-    def with_compteurs_candidatures(self) -> "RecrutementQuerySet":
+    def with_candidatures_total(self) -> "RecrutementQuerySet":
         return self.annotate(
+            candidatures_total=Coalesce(_candidatures_subquery(Count("pk")), 0)
+        )
+
+    def with_compteurs_candidatures(self) -> "RecrutementQuerySet":
+        return self.with_candidatures_total().annotate(
             derniere_activite=Coalesce(
                 _candidatures_subquery(Max("updated_at")),
                 F("offre__publication_date"),
             ),
-            candidatures_total=Coalesce(_candidatures_subquery(Count("pk")), 0),
             candidatures_a_traiter=Coalesce(
                 _candidatures_subquery(
                     Count("pk"), categorie=CategorieEtapeRecrutement.ENTREE.value

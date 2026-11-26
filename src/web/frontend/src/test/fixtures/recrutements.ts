@@ -94,6 +94,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     date_archivage: daysAgo(120),
     finalise: true,
     recrute: 'Nadia Lefèvre',
+    candidatures: { total: 18 },
   },
   {
     uuid: 'arch-2',
@@ -106,6 +107,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     date_archivage: daysAgo(110),
     finalise: false,
     recrute: null,
+    candidatures: { total: 7 },
   },
   {
     uuid: 'arch-3',
@@ -118,5 +120,6 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     date_archivage: daysAgo(100),
     finalise: true,
     recrute: 'Yanis Moreau',
+    candidatures: { total: 5 },
   },
 ]
