@@ -756,7 +756,7 @@ wheels = [
 
 [[package]]
 name = "scaleway-secrets"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "../../libs/scaleway_secrets" }
 dependencies = [
     { name = "scaleway" },
