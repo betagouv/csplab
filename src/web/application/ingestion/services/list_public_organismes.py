@@ -16,7 +16,7 @@ def list_public_organismes(
     referentiel: str | None = None,
 ) -> QuerySet[OrganismeModel]:
     return (
-        OrganismeModel.objects.not_supprimes()
+        OrganismeModel.objects.actives()
         .by_referentiels(PUBLIC_ORGANISME_REFERENTIELS)
         .by_versants(versants)
         .by_siret(siret)
