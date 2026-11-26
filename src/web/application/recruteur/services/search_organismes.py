@@ -15,6 +15,4 @@ def search_organismes(
         action=PermissionAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )
-    return (
-        OrganismeModel.objects.not_supprimes().search_name(nom).stable_order()[:taille]
-    )
+    return OrganismeModel.objects.actives().search_name(nom).stable_order()[:taille]

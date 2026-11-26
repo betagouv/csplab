@@ -163,7 +163,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
     ) -> dict[tuple[str, str], Organisme]:
         models = OrganismeModel.objects.by_referentiel_and_external_id_pairs(
             pairs
-        ).not_supprimes()
+        ).actives()
         return {
             (
                 str(model.referentiel),
@@ -179,6 +179,6 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
         ids = [organisme.entity_id for organisme in organismes]
         return (
             OrganismeModel.objects.filter(id__in=ids)
-            .not_supprimes()
+            .actives()
             .update(supprime_le=timezone.now())
         )

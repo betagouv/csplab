@@ -1,7 +1,7 @@
 import operator
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import reduce
-from typing import Dict, List
+from typing import List
 from uuid import UUID
 
 from ddd.page_interface import IPage
@@ -27,15 +27,11 @@ from referentiel.value_objects.verse import Verse
 
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
-    IOffersUpsertResult,
 )
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.django_apps.referentiel.models.offer_localisation import (
-    OfferLocalisationModel,
-)
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
@@ -51,125 +47,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
     def __init__(self, logger: ILogger, mapper: OfferMapper):
         self.logger = logger
         self.mapper = mapper
-
-    def upsert_batch(self, offers_list: List[Offer]) -> IOffersUpsertResult:
-        if not offers_list:
-            return {"created": 0, "updated": 0, "errors": [], "offres": []}
-
-        try:
-            source_ids = {offer.source_id for offer in offers_list}
-            if len(source_ids) > 1:
-                raise ValueError(f"Batch with multiple sources: {source_ids}")
-            (source_id,) = source_ids
-
-            with transaction.atomic():
-                existing_models = list(
-                    OfferModel.objects.filter(
-                        source_id=source_id,
-                        reference__in={offer.reference for offer in offers_list},
-                    ).select_for_update(of=("self",))
-                )
-                existing_models_map = {
-                    model.reference: model for model in existing_models
-                }
-
-                partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
-                for offer in offers_list:
-                    if offer.reference in existing_models_map:
-                        partitioned["existing"].append(offer)
-                    else:
-                        partitioned["new"].append(offer)
-
-                created = 0
-                updated = 0
-                offer_ids: Dict[str, UUID] = {}
-
-                if partitioned["new"]:
-                    created_models = OfferModel.objects.bulk_create(
-                        [self.mapper.from_domain(offer) for offer in partitioned["new"]]
-                    )
-                    created = len(created_models)
-                    offer_ids.update({m.reference: m.id for m in created_models})
-
-                if partitioned["existing"]:
-                    models_to_update = []
-                    for offer in partitioned["existing"]:
-                        existing_model = existing_models_map[offer.reference]
-                        updated_model = self.mapper.from_domain(offer)
-                        updated_model.id = existing_model.id
-                        offer_ids[offer.reference] = existing_model.id
-                        updated_model.updated_at = timezone.make_aware(datetime.now())
-                        models_to_update.append(updated_model)
-
-                    if models_to_update:
-                        updated = OfferModel.objects.bulk_update(
-                            models_to_update,
-                            fields=[
-                                "reference",
-                                "verse",
-                                "title",
-                                "profile",
-                                "mission",
-                                "categories",
-                                "offer_nature",
-                                "organization",
-                                "offer_url",
-                                "code_emploi_csp",
-                                "job_family_referential",
-                                "local_job_code",
-                                "functional_area_code",
-                                "publication_date",
-                                "end_publication_date",
-                                "beginning_date",
-                                "application_deadline",
-                                "job_vacancy_date",
-                                "updated_at",
-                                "archived_at",
-                                "long_title",
-                                "application_url",
-                                "application_email",
-                                "contract_kind",
-                                "job_vacancy",
-                                "employer",
-                                "complements",
-                                "exercise_conditions",
-                                "service_description",
-                                "criteria",
-                                "conditions",
-                                "contacts",
-                                "talentsoft_organisme_entity_code",
-                            ],
-                        )
-
-                OfferLocalisationModel.objects.filter(
-                    offer_id__in=offer_ids.values()
-                ).delete()
-                OfferLocalisationModel.objects.bulk_create(
-                    OfferLocalisationModel.from_localisation(
-                        offer_ids[offer.reference], position, localisation
-                    )
-                    for offer in offers_list
-                    for position, localisation in enumerate(offer.localisations)
-                )
-
-            return {
-                "created": created,
-                "updated": updated,
-                "errors": [],
-                "offres": [
-                    {
-                        "reference": offer.reference,
-                        "statut": "updated"
-                        if offer.reference in existing_models_map
-                        else "created",
-                    }
-                    for offer in offers_list
-                ],
-            }
-
-        except Exception as e:
-            self.logger.error("Database error during bulk upsert: %s", str(e))
-            raise DatabaseError(f"Database error during bulk upsert: {e}") from e
 
     def get_by_id(self, offer_id: UUID) -> Offer:
         try:

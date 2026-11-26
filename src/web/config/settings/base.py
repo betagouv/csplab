@@ -137,6 +137,7 @@ INSTALLED_APPS = [
     "presentation.identite",
     "presentation.recruteur",
     "presentation.ats",
+    "presentation.commons",
 ]
 
 MIDDLEWARE = [

@@ -1,7 +1,8 @@
+import { render, screen } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '@/api/errors'
+import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useOpenDocument } from './useOpenDocument'
-import { useToast } from './useToast'
 
 const URL = '/documents/1'
 
@@ -9,13 +10,6 @@ function mockTab() {
   const tab = { opener: window as Window | null, location: { href: '' }, close: vi.fn() }
   vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
   return tab
-}
-
-function lastToast() {
-  const { toasts, dismissToast } = useToast()
-  const toast = toasts.value.at(-1)!
-  dismissToast(toast.id)
-  return toast
 }
 
 describe('useOpenDocument', () => {
@@ -39,6 +33,7 @@ describe('useOpenDocument', () => {
     [new HttpError(415, 'Unsupported Media Type'), 'Ce format de document ne peut pas être affiché'],
     [new NetworkError(new TypeError('Failed to fetch')), 'L\'ouverture du document a échoué'],
   ])('closes the tab and explains the failure (%s)', async (error, title) => {
+    render(CspToaster)
     const tab = mockTab()
 
     await useOpenDocument().open(new MouseEvent('click'), URL, async () => {
@@ -46,15 +41,16 @@ describe('useOpenDocument', () => {
     })
 
     expect(tab.close).toHaveBeenCalled()
-    expect(lastToast()).toMatchObject({ variant: 'error', title })
+    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument()
   })
 
   it('explains when the browser blocks the new tab', async () => {
+    render(CspToaster)
     vi.spyOn(window, 'open').mockReturnValue(null)
 
     await useOpenDocument().open(new MouseEvent('click'), URL, async () => {})
 
-    expect(lastToast()).toMatchObject({ variant: 'error', title: 'Le navigateur a bloqué l\'ouverture du document' })
+    expect(await screen.findByRole('heading', { name: 'Le navigateur a bloqué l\'ouverture du document' })).toBeInTheDocument()
   })
 
   it('lets the browser handle a click with a modifier key', async () => {

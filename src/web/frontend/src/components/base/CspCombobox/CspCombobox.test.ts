@@ -9,10 +9,10 @@ const OPTIONS = [
 ]
 
 function renderCombobox(props: Record<string, unknown> = {}) {
-  const result = render(CspCombobox, {
+  const view = render(CspCombobox, {
     props: { options: OPTIONS, label: 'Rechercher un élément', ...props },
   })
-  return { ...result, input: result.getByRole('combobox', { name: /Rechercher un élément/ }) }
+  return { ...view, input: screen.getByRole('combobox', { name: /Rechercher un élément/ }) }
 }
 
 async function openList(user: ReturnType<typeof setupUser>, input: HTMLElement) {
@@ -78,24 +78,24 @@ describe('cspCombobox', () => {
   it('announces the result count in the status region after debounce', async () => {
     vi.useFakeTimers()
     const user = setupUser({ advanceTimers: vi.advanceTimersByTime })
-    const { input, getByRole } = renderCombobox()
+    const { input } = renderCombobox()
     await openList(user, input)
 
-    expect(getByRole('status').textContent).toBe('')
+    expect(screen.getByRole('status').textContent).toBe('')
 
     await vi.advanceTimersByTimeAsync(1000)
 
-    expect(getByRole('status')).toHaveTextContent('2 résultats')
+    expect(screen.getByRole('status')).toHaveTextContent('2 résultats')
   })
 
   it('falls back to the empty label in the status region when no option matches', async () => {
     vi.useFakeTimers()
     const user = setupUser({ advanceTimers: vi.advanceTimersByTime })
-    const { input, getByRole } = renderCombobox({ options: [], emptyLabel: 'Aucun résultat' })
+    const { input } = renderCombobox({ options: [], emptyLabel: 'Aucun résultat' })
     await user.type(input, 'élément')
 
     await vi.advanceTimersByTimeAsync(1000)
 
-    expect(getByRole('status')).toHaveTextContent('Aucun résultat')
+    expect(screen.getByRole('status')).toHaveTextContent('Aucun résultat')
   })
 })

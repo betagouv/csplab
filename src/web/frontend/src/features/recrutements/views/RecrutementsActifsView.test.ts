@@ -1,42 +1,23 @@
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
-import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { searchAgentByEmail } from '@/features/agents/api'
-import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
-import { getOrganismeAgents } from '@/features/organismes/api'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, USER_ORGANISME } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
-import { AGENT_ORGANISME, AGENT_RECHERCHE, ORGANISME_DETAIL } from '@/test/fixtures/organismes'
+import { AGENT_ORGANISME, ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { equipe } from '@/test/handlers/equipe-recrutement'
+import { organismeAgents, organismeDetail } from '@/test/handlers/organismes'
 import {
   recrutementDetail,
   recrutementsActifs,
   responsableAssignment,
 } from '@/test/handlers/recrutements'
-import { renderWithApp, RoutesWithToasts, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-
-vi.mock('@/features/agents/api', () => ({
-  searchAgentByEmail: vi.fn(),
-  createAgent: vi.fn(),
-}))
-
-vi.mock('@/features/equipe-recrutement/api', () => ({
-  getEquipeRecrutement: vi.fn(),
-}))
-
-vi.mock('@/api/organismes', () => ({
-  getOrganismeDetail: vi.fn(),
-}))
-
-vi.mock('@/features/organismes/api', async importOriginal => ({
-  ...await importOriginal<typeof import('@/features/organismes/api')>(),
-  getOrganismeAgents: vi.fn(),
-}))
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 const ORGANISME_PATH = `/organismes/${ORGANISME_UUID}`
@@ -72,8 +53,7 @@ async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
 
 describe('recrutementsActifsView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(RESPONSABLE_ASSIGNABLE)
-    vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
+    vi.mocked(getMe).mockResolvedValue(RESPONSABLE_ASSIGNABLE)
   })
 
   it('starts a new search each time the assignment drawer opens', async () => {
@@ -135,7 +115,7 @@ describe('recrutementsActifsView', () => {
       reussites: [FIRST_RECRUTEMENT.uuid],
       echecs: [{ recrutement_uuid: SECOND_RECRUTEMENT.uuid, raison: 'archive' }],
     }))
-    await renderWithApp(RoutesWithToasts, { route: RECRUTEMENTS_PATH })
+    await renderWithApp(withToaster(RouterView), { route: RECRUTEMENTS_PATH })
     await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('checkbox', { name: `Sélectionner ${SECOND_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))
@@ -170,10 +150,11 @@ describe('recrutementsActifsView', () => {
   })
 
   it('shows the assigned responsable in the équipe of the recrutement', async () => {
-    vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValueOnce([]).mockResolvedValue([MEMBRE_EQUIPE])
     server.use(
+      equipe([]),
       recrutementsActifs([{ ...SECOND_RECRUTEMENT, uuid: RECRUTEMENT_UUID, responsables: [] }]),
       recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] }),
+      responsableAssignment({ reussites: [RECRUTEMENT_UUID], echecs: [] }, () => server.use(equipe([MEMBRE_EQUIPE]))),
     )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: EQUIPE_PATH })
@@ -188,9 +169,12 @@ describe('recrutementsActifsView', () => {
   })
 
   it('shows the assigned responsable among the agents of the organisme', async () => {
-    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: ORGANISME_UUID })
-    vi.mocked(getOrganismeAgents).mockReset().mockResolvedValueOnce([]).mockResolvedValue([AGENT_ORGANISME])
-    server.use(recrutementsActifs(SECOND_WITHOUT_RESPONSABLE))
+    server.use(
+      organismeDetail({ ...ORGANISME_DETAIL, uuid: ORGANISME_UUID }),
+      organismeAgents([]),
+      recrutementsActifs(SECOND_WITHOUT_RESPONSABLE),
+      responsableAssignment(undefined, () => server.use(organismeAgents([AGENT_ORGANISME]))),
+    )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: ORGANISME_PATH })
     await screen.findByText('0 compte utilisateur')

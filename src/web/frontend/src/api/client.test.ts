@@ -90,15 +90,11 @@ describe('api client', () => {
   it('throws HttpError on non-validation 4xx', async () => {
     mockFetchResponse({ detail: 'Not found' }, 404, 'Not Found')
 
-    try {
-      await api.GET('/utilisateur/me')
-      expect.fail('Should have thrown')
-    }
-    catch (error) {
-      expect(error).toBeInstanceOf(HttpError)
-      expect(error).not.toBeInstanceOf(ValidationError)
-      expect((error as HttpError).status).toBe(404)
-    }
+    const request = api.GET('/utilisateur/me')
+
+    await expect(request).rejects.toBeInstanceOf(HttpError)
+    await expect(request).rejects.not.toBeInstanceOf(ValidationError)
+    await expect(request).rejects.toMatchObject({ status: 404 })
   })
 
   it('throws ValidationError with parsed field errors on 400', async () => {
@@ -108,31 +104,23 @@ describe('api client', () => {
     }
     mockFetchResponse(payload, 400, 'Bad Request')
 
-    try {
-      await api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
-        params: { path: { organisme_uuid: 'xxx' } },
-        body: [],
-      })
-      expect.fail('Should have thrown')
-    }
-    catch (error) {
-      expect(error).toBeInstanceOf(ValidationError)
-      expect((error as ValidationError).fieldErrors).toEqual(payload)
-    }
+    const request = api.PUT('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
+      params: { path: { organisme_uuid: 'xxx' } },
+      body: [],
+    })
+
+    await expect(request).rejects.toBeInstanceOf(ValidationError)
+    await expect(request).rejects.toMatchObject({ fieldErrors: payload })
   })
 
   it('wraps fetch failures as NetworkError', async () => {
     const cause = new TypeError('Failed to fetch')
     vi.mocked(fetch).mockRejectedValueOnce(cause)
 
-    try {
-      await api.GET('/utilisateur/me')
-      expect.fail('Should have thrown')
-    }
-    catch (error) {
-      expect(error).toBeInstanceOf(NetworkError)
-      expect((error as NetworkError).cause).toBe(cause)
-    }
+    const request = api.GET('/utilisateur/me')
+
+    await expect(request).rejects.toBeInstanceOf(NetworkError)
+    await expect(request).rejects.toMatchObject({ cause })
   })
 
   it('propagates AbortError as-is', async () => {

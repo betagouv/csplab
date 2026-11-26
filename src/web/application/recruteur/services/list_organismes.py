@@ -22,7 +22,7 @@ def list_organismes(
         utilisateur=utilisateur,
     )
     return (
-        OrganismeModel.objects.not_supprimes()
+        OrganismeModel.objects.actives()
         .search(recherche)
         .with_counts()
         .with_superviseurs_actifs()

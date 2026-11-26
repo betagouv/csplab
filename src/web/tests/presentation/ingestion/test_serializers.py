@@ -1,8 +1,12 @@
-from unittest.mock import MagicMock
-
 import pytest
 
-from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
+from infrastructure.factories.ingestion.offer_payload_factory import (
+    PAYLOAD_SIRET,
+    PayloadOfferFactory,
+)
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
@@ -17,6 +21,7 @@ from presentation.ingestion.serializers import (
 
 
 def test_offers_input_serializer_never_exposes_archived_at(db):
+    OrganismeDjangoFactory(siret=PAYLOAD_SIRET)
     assert "archived_at" not in OffersInputSerializer().fields
 
     payload = PayloadOfferFactory.create(
@@ -178,9 +183,7 @@ def test_profession_input_serializer_rejects_invalid_referentiel():
     assert "referentiel" in serializer.errors
 
 
-def test_profession_input_serializer_skips_metier_check_without_repository_in_context(
-    db,
-):
+def test_profession_input_serializer_skips_metier_check_without_context_flag(db):
     payload = {"domaine": "NUM", "metier": "INCONNU"}
 
     serializer = ProfessionInputSerializer(data=payload)
@@ -188,29 +191,19 @@ def test_profession_input_serializer_skips_metier_check_without_repository_in_co
     assert serializer.is_valid(), serializer.errors
 
 
-def test_profession_input_serializer_accepts_metier_known_by_repository(db):
-    metiers_repository = MagicMock()
-    metiers_repository.get_filtered.return_value = [MagicMock()]
+def test_profession_input_serializer_accepts_known_metier(db):
+    MetierDjangoFactory(offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM")
     payload = {"domaine": "NUM", "metier": "ERNUM001"}
 
-    serializer = ProfessionInputSerializer(
-        data=payload, context={"metiers_repository": metiers_repository}
-    )
+    serializer = ProfessionInputSerializer(data=payload, context={"check_metier": True})
 
     assert serializer.is_valid(), serializer.errors
-    metiers_repository.get_filtered.assert_called_once_with(
-        {"offer_family_code": "ERNUM001"}
-    )
 
 
-def test_profession_input_serializer_rejects_metier_unknown_by_repository():
-    metiers_repository = MagicMock()
-    metiers_repository.get_filtered.return_value = []
+def test_profession_input_serializer_rejects_unknown_metier(db):
     payload = {"domaine": "NUM", "metier": "ERNUM999"}
 
-    serializer = ProfessionInputSerializer(
-        data=payload, context={"metiers_repository": metiers_repository}
-    )
+    serializer = ProfessionInputSerializer(data=payload, context={"check_metier": True})
 
     assert not serializer.is_valid()
     assert "metier" in serializer.errors
@@ -230,16 +223,12 @@ def test_profession_input_serializer_skips_checks_for_other_referentiel():
     # itself blocks any other value before reaching validate() through the public
     # API. Calling validate() directly exercises the skip branch that protects
     # future referentiels from being checked against RMFP-specific data.
-    metiers_repository = MagicMock()
-    serializer = ProfessionInputSerializer(
-        context={"metiers_repository": metiers_repository}
-    )
+    serializer = ProfessionInputSerializer(context={"check_metier": True})
     data = {"referentiel": "AUTRE", "domaine": "ZZZ", "metier": "INCONNU"}
 
     validated = serializer.validate(data)
 
     assert validated == data
-    metiers_repository.get_filtered.assert_not_called()
 
 
 def test_profession_input_serializer_rejects_domaine_outside_ambiguous_metier(db):

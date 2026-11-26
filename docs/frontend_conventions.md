@@ -301,17 +301,24 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - Interact through `setupUser()` from `src/test/render.ts`.
 - Assert what is displayed, the route and the arguments of the API call. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
+- Vitest resets every mock before each test (`mockReset` in `vite.config.ts`): a mock gets back the implementation given to `vi.fn()`, and a value set by a previous test does not carry over.
+- A test checks a notification on screen: `withToaster(component, props)` from `src/test/render.ts` mounts the component inside `CspToaster`, and the test finds the title of the toast with `findByRole('heading', { name })`. `src/test/setup.ts` dismisses the toasts after each test.
 - Data used by several test files goes in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
+- ESLint applies the Vue rules of `eslint-plugin-testing-library` to the tests and refuses a skipped test, a test without assertion, an `expect` inside a condition, an `expect` outside a test and an `expect` without a matcher.
 
 Tests answer API calls with [Mock Service Worker](https://mswjs.io/docs/):
 
 - `src/test/server.ts` starts the server with the default handlers of each migrated feature, and `src/test/setup.ts` resets them after each test.
 - The default handlers of a feature and the factories for other answers are in `src/test/handlers/<feature>.ts`.
 - A test that needs another answer passes a factory to `server.use(...)`.
+- A request without a handler fails the test.
+- ESLint refuses a `vi.mock` of the `api` module of a feature that has a file in `src/test/handlers/`.
 - In a feature without handlers, tests mock its API module with `vi.mock`.
 
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
+
+`mise run front:mutation -- recrutements` runs Stryker on the TypeScript files of a feature: it changes the code one small step at a time and reruns the tests. A mutation that survives shows a behavior that no test protects. A person reads the report (`src/web/reports/mutation/index.html`) and chooses the mutations that deserve a test.
 
 ## API Calls
 

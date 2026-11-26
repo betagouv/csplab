@@ -1,6 +1,9 @@
 from urllib.parse import urlparse
+from uuid import UUID, uuid4
 
+import pycountry
 from drf_spectacular.utils import extend_schema_field
+from pydantic import HttpUrl
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
@@ -16,6 +19,7 @@ from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.job_family_referential import JobFamilyReferential
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
     Management,
@@ -23,23 +27,29 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.context_services.offer_organismes import OfferOrganismes
+from application.ingestion.services.list_metiers import list_metiers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
 )
 from application.ingestion.services.metier_functional_areas import (
     get_metier_functional_areas,
 )
+from application.ingestion.services.upsert_offers import PendingOffer
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.countries import COUNTRY_NAMES
 from presentation.commons.markdown import forbidden_markdown
@@ -50,6 +60,27 @@ from presentation.commons.serializers import (
 )
 
 LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
+
+ISO_639_1_CODES = frozenset(
+    language.alpha_2.upper()
+    for language in pycountry.languages
+    if hasattr(language, "alpha_2")
+)
+MAX_SPECIALISATIONS_PER_OFFER = 20
+MAX_SPECIALISATION_LENGTH = 255
+MAX_DIPLOMA_LENGTH = 255
+INVALID_LANGUAGE_CODE = (
+    "Code de langue invalide, un code ISO 639-1 sur 2 lettres est attendu (ex. EN)."
+)
+DUPLICATE_LANGUAGE = "Chaque langue ne peut être citée qu'une fois."
+INVALID_SIRET = "SIRET invalide : 14 chiffres avec une clé de contrôle valide attendus."
+MISSING_SIRET = "SIRET obligatoire : retrouvez-le avec `GET /api/v1/organismes`."
+UNKNOWN_SIRET = (
+    "Aucun organisme avec ce SIRET : retrouvez-le avec `GET /api/v1/organismes`."
+)
+SIRET_WITH_TALENTSOFT_ORGANISME = (
+    "SIRET à laisser vide pour une offre rattachée à un organisme Talentsoft."
+)
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -933,7 +964,8 @@ class OrganismeInputSerializer(OrganismeSerializer):
         max_length=14,
         allow_blank=True,
         help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
-        "(filtres `nom` et `siret`).",
+        "(filtres `nom` et `siret`). L'offre est rattachée à cet organisme : un "
+        "SIRET vide, invalide ou qui ne correspond à aucun organisme est refusé.",
     )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
@@ -951,11 +983,39 @@ class OrganismeInputSerializer(OrganismeSerializer):
             raise serializers.ValidationError(
                 "Champ réservé au service ingestion de CSPLab."
             )
-        if not TalentsoftOrganismeModel.objects.by_entity_code(value).exists():
+        if not self._offer_organismes().talentsoft_organisme_exists(value):
             raise serializers.ValidationError(
                 f"Organisme Talentsoft inconnu : {value}."
             )
         return value
+
+    def validate_siret(self, value):
+        if not value:
+            return value
+        try:
+            SIRET(code=value)
+        except ValueError as e:
+            raise serializers.ValidationError(INVALID_SIRET) from e
+        return value
+
+    def validate(self, data):
+        if data["siret"] and data.get("talentsoft_organisme_entity_code"):
+            raise serializers.ValidationError(
+                {"siret": [SIRET_WITH_TALENTSOFT_ORGANISME]}
+            )
+        if not data["siret"]:
+            # Talentsoft provides no SIRET: the ingestion service, the only one
+            # allowed to send a Talentsoft organisme, identifies it instead.
+            if not data.get("talentsoft_organisme_entity_code"):
+                raise serializers.ValidationError({"siret": [MISSING_SIRET]})
+            return data
+        organisme_id = self._offer_organismes().organisme_id(data["siret"])
+        if organisme_id is None:
+            raise serializers.ValidationError({"siret": [UNKNOWN_SIRET]})
+        return {**data, "organisme_id": organisme_id}
+
+    def _offer_organismes(self) -> OfferOrganismes:
+        return self.context.get("offer_organismes") or OfferOrganismes()
 
 
 class ProfessionInputSerializer(serializers.Serializer):
@@ -1002,9 +1062,9 @@ class ProfessionInputSerializer(serializers.Serializer):
             )
 
         metier = data.get("metier")
-        metiers_repository = self.context.get("metiers_repository")
-        if metiers_repository is not None and not metiers_repository.get_filtered(
-            {"offer_family_code": metier}
+        if (
+            self.context.get("check_metier")
+            and not list_metiers(codes=[metier]).exists()
         ):
             raise serializers.ValidationError(
                 {"metier": f"Code métier inconnu : {metier}."}
@@ -1109,13 +1169,19 @@ class LanguageInputSerializer(serializers.Serializer):
     iso_code = serializers.CharField(
         max_length=2,
         help_text="Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`), "
-        "conservé tel quel.",
+        "enregistré en majuscules (`en` devient `EN`).",
     )
     niveau = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in LanguageLevel],
         help_text="Niveau attendu selon le cadre européen commun de référence "
         "pour les langues (CECRL), de `A1` à `C2`.",
     )
+
+    def validate_iso_code(self, value):
+        iso_code = value.upper()
+        if iso_code not in ISO_639_1_CODES:
+            raise serializers.ValidationError(INVALID_LANGUAGE_CODE)
+        return iso_code
 
 
 class CriteriaInputSerializer(serializers.Serializer):
@@ -1130,13 +1196,20 @@ class CriteriaInputSerializer(serializers.Serializer):
         help_text="Niveau d'expérience attendu.",
     )
     specialisations = serializers.ListField(
-        child=serializers.CharField(),
+        child=serializers.CharField(max_length=MAX_SPECIALISATION_LENGTH),
+        max_length=MAX_SPECIALISATIONS_PER_OFFER,
         required=False,
-        help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`).",
+        help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`) "
+        f"de {MAX_SPECIALISATION_LENGTH} caractères au plus. "
+        f"Au plus {MAX_SPECIALISATIONS_PER_OFFER} "
+        "spécialisations ; les doublons sont retirés, dans l'ordre reçu.",
     )
     diplome = serializers.CharField(
+        max_length=MAX_DIPLOMA_LENGTH,
         required=False,
-        help_text="Diplôme exigé, en texte libre. Indiquez de préférence l'un des "
+        help_text="Diplôme exigé, en texte libre, "
+        f"de {MAX_DIPLOMA_LENGTH} caractères au plus. "
+        "Indiquez de préférence l'un des "
         "libellés du référentiel des diplômes d'État, à l'identique. Liste "
         "indicative, toute autre valeur reste acceptée :\n\n"
         + "\n".join(f"- `{d.label}`" for d in TALENTSOFT_STATE_DIPLOMAS),
@@ -1162,8 +1235,18 @@ class CriteriaInputSerializer(serializers.Serializer):
     langues = LanguageInputSerializer(
         many=True,
         required=False,
-        help_text="Langues attendues, chacune avec son niveau.",
+        help_text="Langues attendues, chacune avec son niveau. Chaque langue ne "
+        "peut être citée qu'une fois.",
     )
+
+    def validate_specialisations(self, value):
+        return list(dict.fromkeys(value))
+
+    def validate_langues(self, value):
+        iso_codes = [langue["iso_code"] for langue in value]
+        if len(iso_codes) != len(set(iso_codes)):
+            raise serializers.ValidationError(DUPLICATE_LANGUAGE)
+        return value
 
     def validate_documents_requis(self, value):
         if len(value) != len(set(value)):
@@ -1199,6 +1282,7 @@ class ConditionsInputSerializer(serializers.Serializer):
         help_text=f"Date de fin du contrat. {_DATE_HELP_TEXT}",
     )
     duree_contrat = serializers.CharField(
+        max_length=100,
         allow_blank=True,
         required=False,
         help_text="Durée du contrat, en texte libre (ex. `3 ans`).",
@@ -1365,9 +1449,10 @@ class OffersInputSerializer(serializers.Serializer):
     )
     vacance_poste = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in JobVacancy],
-        allow_blank=True,
+        allow_null=True,
+        required=False,
         help_text="`OUI` si le poste est vacant, `NON` s'il est susceptible d'être "
-        "vacant. Peut être vide.",
+        "vacant. Omis ou `null` si l'information n'est pas connue.",
     )
 
     description = DescriptionInputSerializer(
@@ -1443,6 +1528,79 @@ class OffersInputSerializer(serializers.Serializer):
                 "mais pas les deux."
             )
         return data
+
+    def to_pending_offer(self, source_id: UUID) -> PendingOffer:
+        data = self.validated_data
+        description = data["description"]
+        profession = data["profession"]
+        publication = data["publication"]
+        conditions = data.get("conditions") or None
+        debut_contrat = conditions.get("debut_contrat") if conditions else None
+        criteria = OfferCriteria.from_dict(data.get("criteres"))
+        application_url = data.get("url_candidature")
+
+        offer = OfferModel(
+            id=uuid4(),
+            source_id=source_id,
+            reference=data["identification"]["reference"],
+            verse=Verse(data["identification"]["versant"]).value,
+            title=data["titre"],
+            long_title=data.get("titre_long") or None,
+            profile=description["profil"],
+            mission=description["mission"],
+            employer=description.get("employeur") or None,
+            complements=description.get("complements") or None,
+            exercise_conditions=description.get("conditions_exercice") or None,
+            service_description=description.get("descriptif_service") or None,
+            organization=data["organisation"]["nom"],
+            talentsoft_organisme_entity_code_id=data["organisation"].get(
+                "talentsoft_organisme_entity_code"
+            )
+            or None,
+            organisme_id=data["organisation"].get("organisme_id"),
+            categories=[Category(category).value for category in data["categories"]],
+            offer_nature=OfferNature(data["nature_offre"]).value,
+            offer_url=data.get("url_offre") or None,
+            code_emploi_csp=profession["metier"],
+            job_family_referential=profession.get("referentiel"),
+            local_job_code=profession.get("code_emploi_local"),
+            functional_area_code=profession.get("domaine"),
+            publication_date=publication["debut_publication"],
+            end_publication_date=publication["fin_publication"],
+            application_deadline=publication.get("fin_candidature"),
+            job_vacancy_date=publication.get("debut_vacance_poste"),
+            beginning_date=debut_contrat or None,
+            application_url=str(HttpUrl(application_url)) if application_url else None,
+            application_email=data.get("email_candidature"),
+            contract_kind=data.get("type_contrat") or None,
+            job_vacancy=data.get("vacance_poste") or None,
+            criteria=criteria.to_dict() if criteria else None,
+            conditions=conditions,
+            contacts=list(data["contacts"]) if data.get("contacts") else None,
+            archived_at=None,
+        )
+        return PendingOffer(
+            offer=offer,
+            localisations=[
+                _to_localisation(localisation)
+                for localisation in data.get("localisation") or []
+                if localisation
+            ],
+        )
+
+
+def _to_localisation(data: dict) -> Localisation:
+    return Localisation(
+        area=GeographicalArea(data["zone_geographique"]),
+        country=Country(data["pays"]),
+        region=Region(code=data["region"]) if data["region"] else None,
+        department=(
+            Department(code=data["departement"]) if data["departement"] else None
+        ),
+        label=data.get("localisation_label") or None,
+        latitude=data.get("latitude"),
+        longitude=data.get("longitude"),
+    )
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):

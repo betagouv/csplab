@@ -1,19 +1,16 @@
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router/routes'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { BRIANCON_UUID as BRIANCON, ORGANISME_INCONNU_UUID as INCONNU, makeUser, MTE_UUID as MTE, ORGANISME_BRIANCON, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
+import { organismeDetail } from '@/test/handlers/organismes'
+import { server } from '@/test/server'
 import { useRouteOrganisme } from './routeOrganisme'
-
-vi.mock('@/api/organismes', () => ({
-  getOrganismeDetail: vi.fn(),
-}))
 
 async function mountAt(path: string) {
   const router = createRouter({ history: createMemoryHistory(), routes })
@@ -36,11 +33,6 @@ async function mountAt(path: string) {
 }
 
 describe('useRouteOrganisme', () => {
-  beforeEach(() => {
-    vi.mocked(getMe).mockReset()
-    vi.mocked(getOrganismeDetail).mockReset()
-  })
-
   it('takes the organisme from the url', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE, ORGANISME_BRIANCON]))
 
@@ -61,7 +53,8 @@ describe('useRouteOrganisme', () => {
 
   it('reads the actions of an organisme a staff user holds no role on from its detail', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
-    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: INCONNU, authorized_actions: ['list_organisme_agents'] })
+    const requested = vi.fn()
+    server.use(organismeDetail({ ...ORGANISME_DETAIL, uuid: INCONNU, authorized_actions: ['list_organisme_agents'] }, requested))
 
     const { organismeUuid, organisme, canOnOrganisme } = await mountAt(
       `/organismes/${INCONNU}/recrutements`,
@@ -69,24 +62,25 @@ describe('useRouteOrganisme', () => {
 
     await vi.waitFor(() => expect(canOnOrganisme('list_organisme_agents')).toBe(true))
     expect(canOnOrganisme('set_recrutements_responsable')).toBe(false)
-    expect(getOrganismeDetail).toHaveBeenCalledWith({ organismeUuid: INCONNU })
+    expect(requested).toHaveBeenCalledWith(INCONNU)
     expect(organismeUuid.value).toBe(INCONNU)
     expect(organisme.value).toBeNull()
   })
 
   it('tells the actions of an organisme a staff user holds no role on are loading until its detail arrives', async () => {
-    let resolveDetail!: (detail: typeof ORGANISME_DETAIL) => void
-    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
-    vi.mocked(getOrganismeDetail).mockReturnValue(new Promise((resolve) => {
-      resolveDetail = resolve
+    let releaseDetail!: () => void
+    const requested = vi.fn(() => new Promise<void>((resolve) => {
+      releaseDetail = resolve
     }))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
+    server.use(organismeDetail({ ...ORGANISME_DETAIL, uuid: INCONNU }, requested))
 
     const { actionsPending } = await mountAt(`/organismes/${INCONNU}/recrutements`)
 
-    await vi.waitFor(() => expect(getOrganismeDetail).toHaveBeenCalled())
+    await vi.waitFor(() => expect(requested).toHaveBeenCalled())
     expect(actionsPending.value).toBe(true)
 
-    resolveDetail({ ...ORGANISME_DETAIL, uuid: INCONNU })
+    releaseDetail()
 
     await vi.waitFor(() => expect(actionsPending.value).toBe(false))
   })
@@ -96,10 +90,13 @@ describe('useRouteOrganisme', () => {
       { ...ORGANISME_MTE, authorized_actions: ['list_organisme_agents'] },
     ], STAFF_ACTIONS))
 
+    const requested = vi.fn()
+    server.use(organismeDetail(ORGANISME_DETAIL, requested))
+
     const { canOnOrganisme } = await mountAt(`/organismes/${MTE}/recrutements`)
 
     await vi.waitFor(() => expect(canOnOrganisme('list_organisme_agents')).toBe(true))
-    expect(getOrganismeDetail).not.toHaveBeenCalled()
+    expect(requested).not.toHaveBeenCalled()
   })
 
   it('reads the authorized actions of the organisme in the url', async () => {

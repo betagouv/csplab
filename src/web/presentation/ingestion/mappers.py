@@ -1,19 +1,14 @@
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
 
 from ddd.mapper_interface import IToDomainMapper
-from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects._choices import TextChoices
 from referentiel.value_objects.area import GeographicalArea
-from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
-from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
@@ -22,7 +17,6 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
-from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import (
     TALENTSOFT_REQUIRED_DOCUMENTS,
@@ -54,67 +48,6 @@ class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
             label=data.get("localisation_label") or None,
             latitude=data.get("latitude"),
             longitude=data.get("longitude"),
-        )
-
-
-class OfferInputMapper(IToDomainMapper[dict, Offer]):
-    def __init__(self) -> None:
-        self._localisation_mapper = LocalisationInputMapper()
-
-    def to_domain(self, data: Optional[dict], source_id: UUID) -> Optional[Offer]:
-        if not data:
-            return None
-
-        conditions = data.get("conditions") or None
-        debut_contrat = conditions.get("debut_contrat") if conditions else None
-
-        localisations = [
-            localisation
-            for raw_localisation in data.get("localisation") or []
-            if (localisation := self._localisation_mapper.to_domain(raw_localisation))
-        ]
-
-        return Offer(
-            reference=data["identification"]["reference"],
-            title=data["titre"],
-            profile=data["description"]["profil"],
-            mission=data["description"]["mission"],
-            organization=data["organisation"]["nom"],
-            publication_date=data["publication"]["debut_publication"],
-            end_publication_date=data["publication"]["fin_publication"],
-            verse=Verse(data["identification"]["versant"]),
-            categories=[Category(c) for c in data["categories"]],
-            offer_nature=OfferNature(data["nature_offre"]),
-            offer_url=data.get("url_offre"),
-            localisations=localisations,
-            beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
-            family_code=data["profession"]["metier"],
-            job_family_referential=data["profession"].get("referentiel"),
-            local_job_code=data["profession"].get("code_emploi_local"),
-            functional_area_code=data["profession"].get("domaine"),
-            source_id=source_id,
-            long_title=data.get("titre_long") or None,
-            application_url=HttpUrl(data["url_candidature"])
-            if data.get("url_candidature")
-            else None,
-            application_email=data.get("email_candidature"),
-            contract_kind=ContractKind[data["type_contrat"]]
-            if data.get("type_contrat")
-            else None,
-            job_vacancy=data.get("vacance_poste") or None,
-            employer=data["description"].get("employeur") or None,
-            complements=data["description"].get("complements") or None,
-            exercise_conditions=data["description"].get("conditions_exercice") or None,
-            service_description=data["description"].get("descriptif_service") or None,
-            application_deadline=data["publication"].get("fin_candidature"),
-            job_vacancy_date=data["publication"].get("debut_vacance_poste"),
-            criteria=OfferCriteria.from_dict(data.get("criteres")),
-            conditions=conditions,
-            contacts=list(data["contacts"]) if data.get("contacts") else None,
-            talentsoft_organisme_entity_code=data["organisation"].get(
-                "talentsoft_organisme_entity_code"
-            )
-            or None,
         )
 
 

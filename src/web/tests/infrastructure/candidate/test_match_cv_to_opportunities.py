@@ -29,7 +29,6 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 )
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
-from infrastructure.mappers.offer_mapper import OfferMapper
 from tests.utils.mock_api_response_factory import MockApiResponseFactory
 from tests.utils.shared_fixtures import (
     create_shared_qdrant_repository,
@@ -122,7 +121,6 @@ def test_execute_with_valid_cv_returns_opportunities(
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     metiers_repo = candidate_container.shared_container.metiers_repository()
     metiers_repo.upsert_batch([MetierMapper().to_domain(metier) for metier in metiers])
@@ -183,14 +181,13 @@ def test_vectorize_qdrant_search_empty_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create test data like in the working test
-    offers = OfferDjangoFactory.create_batch(3, source=SourceDjangoFactory())
+    OfferDjangoFactory.create_batch(3, source=SourceDjangoFactory())
 
     # Setup CV metadata in real DB
     cv_repo = candidate_container.postgres_cv_metadata_repository()
     cv_repo.save(cv_metadata)
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     vectorized_offers = []
     for offer_entity in offers_repo.get_all():
@@ -227,13 +224,11 @@ def test_vectorize_qdrant_search_list_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     source = SourceDjangoFactory()
-    offers = [
-        OfferDjangoFactory(
-            verse=Verse.FPE, categories=[Category.A, Category.B], source=source
-        ),
-        OfferDjangoFactory(verse=Verse.FPH, categories=[Category.B], source=source),
-        OfferDjangoFactory(verse=Verse.FPT, categories=[Category.C], source=source),
-    ]
+    OfferDjangoFactory(
+        verse=Verse.FPE, categories=[Category.A, Category.B], source=source
+    )
+    OfferDjangoFactory(verse=Verse.FPH, categories=[Category.B], source=source)
+    OfferDjangoFactory(verse=Verse.FPT, categories=[Category.C], source=source)
 
     concours = [
         ConcoursDjangoFactory(category=Category.A),
@@ -245,7 +240,6 @@ def test_vectorize_qdrant_search_list_filters(
     cv_repo.save(cv_metadata)
 
     offers_repo = candidate_container.shared_container.offers_repository()
-    offers_repo.upsert_batch([OfferMapper().to_domain(offer) for offer in offers])
 
     concours_repo = candidate_container.shared_container.concours_repository()
     concours_repo.upsert_batch([ConcoursModel.to_entity(c) for c in concours])

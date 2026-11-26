@@ -5,7 +5,7 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { render } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
-import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { routes } from '@/router/routes'
 
@@ -13,9 +13,11 @@ export function setupUser(options: Parameters<typeof userEvent.setup>[0] = {}) {
   return userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never, ...options })
 }
 
-export const RoutesWithToasts = defineComponent({
-  render: () => h(CspToaster, null, { default: () => h(RouterView) }),
-})
+export function withToaster(component: Component, props: Record<string, unknown> = {}) {
+  return defineComponent({
+    setup: () => () => h(CspToaster, null, () => h(component, props)),
+  })
+}
 
 export function createTestRouter() {
   return createRouter({ history: createMemoryHistory(), routes })
