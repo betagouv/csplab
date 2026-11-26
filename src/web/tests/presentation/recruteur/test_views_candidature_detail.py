@@ -8,15 +8,10 @@ from rest_framework import status
 from application.identite.context_services.permission_service import (
     PermissionService,
 )
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
-)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
-from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
-from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.tag.models import CandidatureTagModel, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
@@ -205,13 +200,10 @@ class TestCandidatureDetailView:
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+            create_recrutement_and_candidature_for_agent(
+                utilisateur=test_user, candidature_kwargs={"refusee": True}
+            )
         )
-        candidature.etape = EtapeModel.objects.get(
-            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
-        )
-        candidature.motif_refus = MotifRefus.EXPERIENCE_INSUFFISANTE
-        candidature.save(update_fields=["etape", "motif_refus"])
 
         response = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk, candidature.id)

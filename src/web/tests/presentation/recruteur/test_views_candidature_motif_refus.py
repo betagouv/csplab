@@ -42,30 +42,16 @@ def _url(organisme_id, recrutement_id, candidature_id) -> str:
     )
 
 
-def _set_categorie(candidature, categorie, motif_refus=None) -> None:
-    etape = EtapeModel.objects.filter(
-        recrutement_id=candidature.etape.recrutement_id, categorie=categorie.value
-    ).first()
-    CandidatureModel.objects.filter(pk=candidature.pk).update(
-        etape=etape, motif_refus=motif_refus
-    )
-
-
-def _refuse(candidature) -> None:
-    _set_categorie(
-        candidature, CategorieEtapeRecrutement.REFUS, motif_refus=INITIAL_MOTIF
-    )
-
-
 def _refused_candidature(role, recrutement_role, utilisateur):
     agent, organisme, recrutement, candidature = (
-        create_recrutement_and_candidature_for_agent(role=role, utilisateur=utilisateur)
+        create_recrutement_and_candidature_for_agent(
+            role=role, utilisateur=utilisateur, candidature_kwargs={"refusee": True}
+        )
     )
     if recrutement_role is not None:
         RecrutementAgentDjangoFactory(
             recrutement=recrutement, agent=agent, role=recrutement_role.value
         )
-    _refuse(candidature)
     return organisme, recrutement, candidature
 
 
@@ -111,7 +97,10 @@ class TestCandidatureMotifRefusView:
         organisme, recrutement, candidature = _refused_candidature(
             role, recrutement_role, test_user
         )
-        etape_id = CandidatureModel.objects.get(pk=candidature.pk).etape_id
+        refus_id = EtapeModel.objects.get(
+            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
+        ).pk
+        assert CandidatureModel.objects.refused().filter(pk=candidature.pk).exists()
 
         response = _patch(authenticated_client, organisme, recrutement, candidature)
 
@@ -119,7 +108,7 @@ class TestCandidatureMotifRefusView:
         assert response.json() == {"value": "autre", "label": "Autre"}
         candidature.refresh_from_db()
         assert candidature.motif_refus == MotifRefus.AUTRE.value
-        assert candidature.etape_id == etape_id
+        assert candidature.etape_id == refus_id
         assert candidature.updated_by_recruteur is not None
         assert AuditLogModel.objects.filter(ressource_id=candidature.id).count() == 1
 
@@ -159,9 +148,10 @@ class TestCandidatureMotifRefusView:
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=None)
+            create_recrutement_and_candidature_for_agent(
+                utilisateur=None, candidature_kwargs={"refusee": True}
+            )
         )
-        _refuse(candidature)
 
         response = _patch(authenticated_client, organisme, recrutement, candidature)
 
@@ -174,8 +164,9 @@ class TestCandidatureMotifRefusView:
         organisme, recrutement, _ = _refused_candidature(
             AgentOrganismeRole.SUPERVISEUR, None, test_user
         )
-        _, other = create_recrutement_with_candidature(organisme)
-        _refuse(other)
+        _, other = create_recrutement_with_candidature(
+            organisme, candidature_kwargs={"refusee": True}
+        )
 
         response = _patch(authenticated_client, organisme, recrutement, other)
 
@@ -188,8 +179,9 @@ class TestCandidatureMotifRefusView:
         organisme, _, _ = _refused_candidature(
             AgentOrganismeRole.SUPERVISEUR, None, test_user
         )
-        other_recrutement, other = create_recrutement_with_candidature()
-        _refuse(other)
+        other_recrutement, other = create_recrutement_with_candidature(
+            candidature_kwargs={"refusee": True}
+        )
 
         response = _patch(authenticated_client, organisme, other_recrutement, other)
 
@@ -212,10 +204,9 @@ class TestCandidatureMotifRefusView:
     def test_candidature_not_refused_is_a_conflict(
         self, authenticated_client, test_user
     ):
-        organisme, recrutement, candidature = _refused_candidature(
-            AgentOrganismeRole.SUPERVISEUR, None, test_user
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
         )
-        _set_categorie(candidature, CategorieEtapeRecrutement.EN_COURS)
 
         response = _patch(authenticated_client, organisme, recrutement, candidature)
 
