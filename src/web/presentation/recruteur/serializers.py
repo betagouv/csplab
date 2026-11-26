@@ -185,6 +185,10 @@ class MotifRefusSerializer(serializers.Serializer):
     label = serializers.CharField()
 
 
+class UpdateMotifRefusSerializer(serializers.Serializer):
+    motif_refus = serializers.ChoiceField(choices=MotifRefus.choices)
+
+
 class ResponsableSerializer(serializers.Serializer):
     nom = serializers.CharField()
 
