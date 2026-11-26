@@ -48,6 +48,7 @@ env = environ.Env(
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
     WEB_UI_SHAPE=(str, ""),
+    WEB_UI_DENSITY=(str, ""),
     WEB_FRET_ENABLED=(bool, False),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
@@ -342,9 +343,10 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
 
-# UI SHAPE
+# UI THEME
 # ---------------------------------------
 UI_SHAPE = env.str("UI_SHAPE")
+UI_DENSITY = env.str("UI_DENSITY")
 
 # FRET
 # ---------------------------------------

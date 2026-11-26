@@ -1,6 +1,6 @@
 {% load static vite_tags %}
 <!DOCTYPE html>
-<html lang="fr"{% if ui_shape %} data-csp-shape="{{ ui_shape }}"{% endif %}>
+<html lang="fr"{% if ui_shape %} data-csp-shape="{{ ui_shape }}"{% endif %}{% if ui_density %} data-csp-density="{{ ui_density }}"{% endif %}{% if ui_preview %} data-csp-ui-preview{% endif %}>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">

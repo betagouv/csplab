@@ -1,4 +1,3 @@
-/* Rounded radius theme, set by data-csp-shape='rounded' outside production */
 :root[data-csp-shape='rounded'] {
   --csp-action-radius: 0.25rem;
   --csp-menu-item-radius: 0.25rem;

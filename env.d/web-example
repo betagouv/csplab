@@ -35,5 +35,6 @@ WEB_S3_ACCESS_KEY_ID=rustfsadmin
 WEB_S3_SECRET_ACCESS_KEY=rustfsadmin
 WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME=csplab-candidature-documents-dev
 
-# Radius theme of the interface outside production: rounded applies the rounded theme of src/web/frontend/src/styles/shapes.css.
+# Theme of the interface on this instance, production included: values of src/web/frontend/src/styles/shapes.css and densities.css.
 # WEB_UI_SHAPE=rounded
+# WEB_UI_DENSITY=compact

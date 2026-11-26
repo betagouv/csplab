@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -11,5 +13,7 @@ def base(request):
         {
             "debug": settings.DEBUG,
             "ui_shape": settings.UI_SHAPE,
+            "ui_density": settings.UI_DENSITY,
+            "ui_preview": os.environ.get("SCALEWAY_ENV") != "prod",
         },
     )
