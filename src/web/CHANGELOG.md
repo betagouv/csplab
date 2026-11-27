@@ -4,6 +4,81 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-11-27
+
+### Design-system
+
+#### <!-- 3 --> Fixed
+
+- Nomme les cartes d'après leur titre ([#2592](https://github.com/betagouv/csplab/pull/2592))
+
+
+### Identite
+
+#### <!-- 2 --> Modified
+
+- Renomme OrganismeAction en PermissionAction ([#2581](https://github.com/betagouv/csplab/pull/2581))
+- Renomme PermissionService et sa méthode authorize ([#2590](https://github.com/betagouv/csplab/pull/2590))
+
+
+### Ingestion
+
+#### <!-- 0 --> Breaking Changes
+
+- Borne et normalise criteres et conditions dans l'API offres ([#2580](https://github.com/betagouv/csplab/pull/2580))
+- Rattache l'offre à l'organisme de son SIRET dans l'API offres ([#2586](https://github.com/betagouv/csplab/pull/2586))
+
+#### <!-- 1 --> Added
+
+- Habille la documentation Redoc de l'API aux couleurs du DSFR ([#2610](https://github.com/betagouv/csplab/pull/2610))
+- Ajoute un script interactif pour créer et supprimer les webhooks Talentsoft ([#2509](https://github.com/betagouv/csplab/pull/2509))
+- Ajoute le lien entre une offre et un organisme ([#2585](https://github.com/betagouv/csplab/pull/2585))
+
+#### <!-- 2 --> Modified
+
+- Ajoute le service d'enregistrement des offres ([#2582](https://github.com/betagouv/csplab/pull/2582))
+- Enregistre les offres de l'API via le service ([#2583](https://github.com/betagouv/csplab/pull/2583))
+- Retire le use case d'enregistrement des offres ([#2584](https://github.com/betagouv/csplab/pull/2584))
+
+#### <!-- 3 --> Fixed
+
+- Garde l'URL des routes lisible au survol dans la documentation de l'API ([#2645](https://github.com/betagouv/csplab/pull/2645))
+- Réserve l'import de concours à la clé d'API ([#2688](https://github.com/betagouv/csplab/pull/2688))
+
+#### <!-- 4 --> Documentation
+
+- Met à jour le guide de l'API et le rend plus lisible avec le DSFR ([#2627](https://github.com/betagouv/csplab/pull/2627))
+- Documente les limites d'appels de chaque route dans Redoc ([#2611](https://github.com/betagouv/csplab/pull/2611))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Expose les actions autorisées des étapes d'organisme ([#2527](https://github.com/betagouv/csplab/pull/2527))
+- Ajoute les actions autorisées aux étapes de recrutement ([#2538](https://github.com/betagouv/csplab/pull/2538))
+- Indique si un motif de refus est requis par étape ([#2568](https://github.com/betagouv/csplab/pull/2568))
+
+#### <!-- 2 --> Modified
+
+- Réserve View aux écrans et Section aux blocs ([#2525](https://github.com/betagouv/csplab/pull/2525))
+- Découpe les recrutements en un écran par onglet ([#2528](https://github.com/betagouv/csplab/pull/2528))
+- Renomme not_supprimes en actives (organismes) ([#2654](https://github.com/betagouv/csplab/pull/2654))
+- Ouvre la modale de refus selon motif_refus_required ([#2624](https://github.com/betagouv/csplab/pull/2624))
+
+#### <!-- 3 --> Fixed
+
+- Uniformise le 404 des endpoints de candidature ([#2636](https://github.com/betagouv/csplab/pull/2636))
+- Met à jour la liste du kanban après un changement d'étape ([#2666](https://github.com/betagouv/csplab/pull/2666))
+
+
+### Tooling
+
+#### <!-- 1 --> Added
+
+- Affiche les secrets de démo et de prod à recopier dans Vaultwarden ([#2626](https://github.com/betagouv/csplab/pull/2626))
+
+
 ## [0.7.0] - 2026-11-23
 
 ### Candidatures
