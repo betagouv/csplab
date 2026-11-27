@@ -2,6 +2,7 @@ import type { Utilisateur } from '@/api/utilisateur'
 import { defineQueryOptions, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import { getMe } from '@/api/utilisateur'
+import { formatPersonName } from '@/utils/format'
 
 export const CURRENT_USER_QUERY_KEY = ['currentUser'] as const
 
@@ -21,9 +22,7 @@ export function useCurrentUser() {
   const query = useQuery(currentUserQuery)
 
   const user = computed(() => query.data.value ?? null)
-  const displayName = computed(() =>
-    user.value ? `${user.value.prenom} ${user.value.nom}` : '',
-  )
+  const displayName = computed(() => (user.value ? formatPersonName(user.value) : ''))
 
   return {
     user,
