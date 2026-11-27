@@ -1,5 +1,5 @@
 :root[data-csp-density='compact'] {
-  --csp-page-container-padding-inline: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --csp-page-container-padding-inline-fluid: clamp(1rem, 0.5rem + 2vw, 2rem);
   --csp-page-content-padding-block: var(--csp-space-4);
   --csp-page-header-padding-top: var(--csp-space-2);
   --csp-page-header-breadcrumb-gap: var(--csp-space-3);
@@ -13,7 +13,7 @@
   --csp-kanban-column-gap: var(--csp-space-2);
 
   @variant xxl {
-    --csp-page-container-padding-inline: clamp(1rem, 0.5rem + 2vw, 3rem);
+    --csp-page-container-padding-inline-fluid: clamp(1rem, 0.5rem + 2vw, 3rem);
     --csp-page-content-padding-block: var(--csp-space-6);
     --csp-page-header-padding-top: var(--csp-space-4);
     --csp-page-header-breadcrumb-gap: var(--csp-space-4);
@@ -23,7 +23,7 @@
 }
 
 :root[data-csp-density='comfortable'] {
-  --csp-page-container-padding-inline: clamp(2rem, 1.5rem + 3vw, 4rem);
+  --csp-page-container-padding-inline-fluid: clamp(2rem, 1.5rem + 3vw, 4rem);
   --csp-page-content-padding-block: var(--csp-space-8);
   --csp-page-header-padding-top: var(--csp-space-4);
   --csp-page-header-breadcrumb-gap: var(--csp-space-6);
@@ -39,7 +39,7 @@
   --csp-kanban-column-gap: var(--csp-space-4);
 
   @variant xxl {
-    --csp-page-container-padding-inline: clamp(2rem, 1.5rem + 3vw, 5rem);
+    --csp-page-container-padding-inline-fluid: clamp(2rem, 1.5rem + 3vw, 5rem);
     --csp-page-content-padding-block: var(--csp-space-10);
     --csp-page-header-padding-top: var(--csp-space-8);
     --csp-page-header-breadcrumb-gap: var(--csp-space-8);

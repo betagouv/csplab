@@ -100,12 +100,12 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header {
   background: var(--csp-chrome-background);
 
-  --csp-page-header-back-link-size: 0;
-  --csp-page-header-back-link-gap: 0;
+  --page-header-back-link-width: 0;
+  --page-header-back-link-gap: 0;
 
   &.csp-page-header--has-back-link {
-    --csp-page-header-back-link-size: 2rem;
-    --csp-page-header-back-link-gap: var(--csp-space-2);
+    --page-header-back-link-width: var(--csp-page-header-back-link-width);
+    --page-header-back-link-gap: var(--csp-page-header-back-link-gap);
   }
 }
 
@@ -131,10 +131,10 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 
 .csp-page-header__hgroup-wrapper {
   display: flex;
-  gap: var(--csp-page-header-back-link-gap);
+  gap: var(--page-header-back-link-gap);
 
   @include bp.from(bp.$lg) {
-    margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+    margin-left: calc(calc(var(--page-header-back-link-width) + var(--page-header-back-link-gap)) * -1);
   }
 }
 
@@ -148,7 +148,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   margin-top: var(--csp-space-1);
 
   @include bp.from(bp.$lg) {
-    width: var(--csp-page-header-back-link-size);
+    width: var(--page-header-back-link-width);
   }
 }
 

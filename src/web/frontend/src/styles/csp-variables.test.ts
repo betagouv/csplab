@@ -84,11 +84,18 @@ const ownerXxlVariables = new Set(ownerBlocks
   .flatMap(rule => topLevelBlocks(rule.body))
   .filter(block => block.prelude === '@variant xxl')
   .flatMap(block => ownDeclarations(block.body)))
-// The dark color mode and the motion media query match with the specificity of a theme selector or below it,
-// so a theme sheet imported after csp-variables.css would override them
-const ownerContextVariables = new Set(ownerBlocks
-  .filter(block => block.prelude !== ':root')
-  .flatMap(block => declaredNames(block.body)))
+// The dark color mode, the motion media query and the breakpoints of :root other than xxl match with the
+// specificity of a theme selector or below it, so a theme sheet imported after csp-variables.css would override them
+const ownerContextVariables = new Set([
+  ...ownerBlocks
+    .filter(block => block.prelude !== ':root')
+    .flatMap(block => declaredNames(block.body)),
+  ...ownerBlocks
+    .filter(block => block.prelude === ':root')
+    .flatMap(rule => topLevelBlocks(rule.body))
+    .filter(block => block.prelude !== '@variant xxl')
+    .flatMap(block => ownDeclarations(block.body)),
+])
 
 describe.each(Object.entries(UI_THEME_SHEETS))('ui theme sheet of the %s axis', (axis, sheet) => {
   const rules = topLevelBlocks(withoutComments(readFileSync(join(SRC, sheet), 'utf8')))
@@ -133,11 +140,11 @@ describe.each(Object.entries(UI_THEME_SHEETS))('ui theme sheet of the %s axis', 
     expect(missing).toEqual([])
   })
 
-  it('sets no variable that csp-variables.css sets for the dark color mode or a media query', () => {
+  it('sets no variable that csp-variables.css sets for the dark color mode, a media query or a breakpoint other than xxl', () => {
     const overriding = rules
       .flatMap(rule => declaredNames(rule.body))
       .filter(name => ownerContextVariables.has(name))
-      .map(name => `${name} in ${sheet}: ${OWNER} sets it for the dark color mode or a media query, which the theme would override`)
+      .map(name => `${name} in ${sheet}: ${OWNER} sets it for the dark color mode, a media query or a breakpoint other than xxl, which the theme would override`)
     expect(overriding).toEqual([])
   })
 })

@@ -110,8 +110,14 @@
   --csp-z-tooltip: 1150;
   --csp-z-toast: 1200;
 
-  /* Page layout */
-  --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  /* Page layout. A theme sets the fluid padding. From the lg breakpoint, the page header places its back link in the
+     padding, so the padding keeps the width of the back link, its gap and a space-3 gap at the page edge */
+  --csp-page-container-padding-inline-fluid: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  --csp-page-container-padding-inline-min: 0rem;
+  --csp-page-container-padding-inline: max(
+    var(--csp-page-container-padding-inline-fluid),
+    var(--csp-page-container-padding-inline-min)
+  );
   --csp-page-container-reading-width: 68rem;
   --csp-page-container-wide-width: 90rem;
   --csp-page-container-large-width: 110rem;
@@ -128,6 +134,8 @@
   --csp-page-header-subtitle-gap: var(--csp-space-1);
   --csp-page-header-subtitle-height: var(--csp-space-6);
   --csp-page-header-padding-bottom: var(--csp-space-5);
+  --csp-page-header-back-link-width: 2rem;
+  --csp-page-header-back-link-gap: var(--csp-space-2);
 
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
@@ -174,8 +182,14 @@
     var(--csp-region-radius) var(--csp-region-radius);
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
 
+  @variant lg {
+    --csp-page-container-padding-inline-min: calc(
+      var(--csp-page-header-back-link-width) + var(--csp-page-header-back-link-gap) + var(--csp-space-3)
+    );
+  }
+
   @variant xxl {
-    --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+    --csp-page-container-padding-inline-fluid: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-container-wide-width: 120rem;
     --csp-page-container-large-width: 140rem;
     --csp-page-content-padding-block: var(--csp-space-8);

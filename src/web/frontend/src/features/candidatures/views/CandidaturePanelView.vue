@@ -392,7 +392,7 @@ function handleUpdateOpen(open: boolean): void {
 /* unscoped: the drawer content is portaled */
 .csp-drawer.candidature-panel {
   --base-drawer-width: 100vw;
-  --csp-drawer-padding-inline: var(--csp-page-container-padding-inline);
+  --csp-drawer-padding-inline: var(--csp-page-container-padding-inline-fluid);
   --csp-tabs-content-padding-inline: var(--csp-drawer-padding-inline);
   --candidature-panel-aside-padding-start: var(--csp-space-6);
 
