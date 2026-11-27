@@ -1,0 +1,6 @@
+# Loaded over mise.toml when MISE_ENV=portless, after env.d/web: origins follow
+# the portless host names of the root mise.portless.toml.
+
+[env]
+WEB_VITE_DEV_ORIGIN = { value = "{{ exec(command='portless get vite.csplab') }}", tools = true }
+WEB_CSRF_TRUSTED_ORIGINS = { value = "{{ exec(command='portless get csplab') }}", tools = true }

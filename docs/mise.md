@@ -104,14 +104,12 @@ mise run web:test:e2e -- --headed
 raccourcis sans les imposer au repo :
 
 ```toml
-# remplacer la stack dev par la sienne (reverse-proxy, navigateur auto...)
-[tasks.dev]
-depends = ["back:portless", "front:portless"]
-
 # raccourci perso
 [tasks.mytask]
 alias = "mt"
 ```
+
+Pour servir l'ATS derrière un reverse-proxy, `docs/local_https_named_host.md` décrit le contrat et l'environnement optionnel `MISE_ENV=portless`.
 
 ## CI
 
