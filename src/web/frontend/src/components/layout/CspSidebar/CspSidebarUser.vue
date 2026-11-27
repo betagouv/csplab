@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import { logout } from '@/api/utilisateur'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarDropdown from '@/components/layout/CspSidebar/CspSidebarDropdown.vue'
@@ -12,10 +13,12 @@ interface CspSidebarUserProps {
 defineProps<CspSidebarUserProps>()
 
 const { isDark, toggle: toggleColorMode } = useColorMode()
+const descriptionId = useId()
 </script>
 
 <template>
   <CspSidebarDropdown
+    :aria-describedby="descriptionId"
     align="end"
     side="right"
     :title="name"
@@ -58,4 +61,8 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
       <CspAvatar :name="name" />
     </template>
   </CspSidebarDropdown>
+  <span
+    :id="descriptionId"
+    hidden
+  >Compte</span>
 </template>

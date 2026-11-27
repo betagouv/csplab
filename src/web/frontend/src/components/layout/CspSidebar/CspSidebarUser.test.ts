@@ -20,10 +20,10 @@ describe('cspSidebarUser', () => {
     vi.stubGlobal('localStorage', createLocalStorageMock())
   })
 
-  it('names the account button after its visible text', async () => {
+  it('names the account button after its visible text and describes it as the account', async () => {
     await renderWithApp(host(true))
 
-    expect(screen.getByRole('button', { name: 'Marie Dupont' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Marie Dupont' })).toHaveAccessibleDescription('Compte')
   })
 
   it('names the account button after the user name when the sidebar is collapsed', async () => {
