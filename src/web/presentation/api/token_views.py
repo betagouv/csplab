@@ -21,6 +21,7 @@ from infrastructure.authentication.refresh_token import (
 from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip
 from presentation.api.authentication import UnauthenticatedMixin
+from presentation.api.token_openapi import obtain_token_schema, refresh_token_schema
 
 
 class LoggedTokenObtainPairView(  # type: ignore[misc]
@@ -28,6 +29,7 @@ class LoggedTokenObtainPairView(  # type: ignore[misc]
 ):
     serializer_class = TokenObtainPairSerializer
 
+    @obtain_token_schema
     def post(self, request: Request, *args, **kwargs) -> Response:
         email = str(request.data.get("email", ""))
         ip_address = get_client_ip(request)
@@ -58,6 +60,7 @@ class TokenRefreshView(  # type: ignore[misc]
     # ensure_refresh_ip_allowed() goes through the throttled reject().
     throttles_auth_rejection = True
 
+    @refresh_token_schema
     def post(self, request: Request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         try:

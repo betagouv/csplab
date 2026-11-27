@@ -1,6 +1,3 @@
-from drf_spectacular.contrib.rest_framework_simplejwt import (
-    TokenObtainPairSerializerExtension,
-)
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as BaseTokenObtainPairSerializer,
 )
@@ -29,9 +26,3 @@ def track_refresh_token(user, refresh: str) -> None:
 
 class TokenObtainPairSerializer(BaseTokenObtainPairSerializer):
     token_class = UnstoredRefreshToken
-
-
-class UnstoredTokenObtainPairSerializerExtension(TokenObtainPairSerializerExtension):
-    target_class = (
-        "infrastructure.authentication.refresh_token.TokenObtainPairSerializer"
-    )
