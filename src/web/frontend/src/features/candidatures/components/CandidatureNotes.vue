@@ -19,7 +19,7 @@ import TagPicker from '@/features/tags/components/TagPicker.vue'
 import { useTagChanges } from '@/features/tags/composables/useTagChanges'
 import { can } from '@/utils/authorizedActions'
 import { formatDateTime } from '@/utils/date'
-import { pluralize } from '@/utils/format'
+import { formatPersonName, pluralize } from '@/utils/format'
 import { useCandidatureNotes, useCandidatureNoteTags, useDeleteCandidatureNote, useUpdateCandidatureNoteVisibilite } from '../composables/useCandidatureNotes'
 import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
@@ -191,6 +191,10 @@ function deleteActions(note: Note) {
     },
   ]
 }
+
+function author(note: Note): string {
+  return formatPersonName({ prenom: note.publie_par_prenom, nom: note.publie_par_nom })
+}
 </script>
 
 <template>
@@ -283,7 +287,7 @@ function deleteActions(note: Note) {
           >
             <template #start>
               <div class="candidature-notes__entete">
-                <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
+                <span class="candidature-notes__auteur">{{ author(note) }}</span>
                 <span
                   class="candidature-notes__separator"
                   aria-hidden="true"
@@ -321,7 +325,7 @@ function deleteActions(note: Note) {
                             icon="ri:more-fill"
                             variant="tertiary-no-outline"
                             size="sm"
-                            :aria-label="`Actions sur la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
+                            :aria-label="`Actions sur la note de ${author(note)}`"
                           />
                         </template>
                       </CspDropdownMenu>
@@ -342,7 +346,7 @@ function deleteActions(note: Note) {
               :tags="note.tags"
               :dismiss-label="canChangeNote(note) ? tag => `Retirer l'étiquette ${tag.name}` : undefined"
               class="candidature-notes__tags"
-              :aria-label="`Étiquettes de la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
+              :aria-label="`Étiquettes de la note de ${author(note)}`"
               @dismiss="tag => handleRemoveTag(note, tag.uuid)"
             />
             <CandidatureEditNoteForm
