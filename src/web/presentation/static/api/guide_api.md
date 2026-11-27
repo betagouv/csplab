@@ -768,9 +768,9 @@ documentation de chaque route donne les exemples des modes qu'elle accepte.
 | Cas | Corps renvoyé |
 |---|---|
 | Jeton JWT invalide ou expiré | `detail`, `code` (`token_not_valid`) et `messages` |
-| Jeton JWT utilisé depuis une adresse IP non autorisée | `{"detail": "Authentication failed."}` |
-| Clé d'API invalide | `{"detail": "Invalid API key."}` |
-| Clé d'API utilisée depuis une adresse IP non autorisée | `{"detail": "IP address not allowed."}` |
+| Jeton JWT utilisé depuis une adresse IP non autorisée | `{"detail": "Échec de l'authentification."}` |
+| Clé d'API invalide | `{"detail": "Clé d'API invalide."}` |
+| Clé d'API utilisée depuis une adresse IP non autorisée | `{"detail": "Adresse IP non autorisée."}` |
 | Aucune authentification, ou jeton JWT sur une route réservée à la clé d'API | `{"detail": "Informations d'authentification non fournies."}` |
 
 

@@ -1,5 +1,9 @@
 from drf_spectacular.utils import OpenApiExample
 
+from infrastructure.authentication.api_key_authentication import (
+    INVALID_API_KEY_MESSAGE,
+    IP_NOT_ALLOWED_MESSAGE,
+)
 from infrastructure.authentication.ip_restricted_jwt_authentication import (
     REJECTION_MESSAGE,
 )
@@ -32,12 +36,14 @@ JWT_IP_NOT_ALLOWED = _unauthorized(
     {"detail": REJECTION_MESSAGE},
 )
 INVALID_API_KEY = _unauthorized(
-    "Error - invalid API key", "Clé d'API invalide", {"detail": "Invalid API key."}
+    "Error - invalid API key",
+    "Clé d'API invalide",
+    {"detail": INVALID_API_KEY_MESSAGE},
 )
 API_KEY_IP_NOT_ALLOWED = _unauthorized(
     "Error - API key IP not allowed",
     "Adresse IP non autorisée (clé d'API)",
-    {"detail": "IP address not allowed."},
+    {"detail": IP_NOT_ALLOWED_MESSAGE},
 )
 JWT_ON_API_KEY_ROUTE = _unauthorized(
     "Error - JWT on API key route",

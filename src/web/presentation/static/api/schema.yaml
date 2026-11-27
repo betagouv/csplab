@@ -355,7 +355,7 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
@@ -1489,7 +1489,7 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
@@ -1587,7 +1587,7 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
@@ -1735,7 +1735,7 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
@@ -2116,11 +2116,11 @@ paths:
               examples:
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
                 Error-JWTOnAPIKeyRoute:
                   value:
@@ -2434,15 +2434,15 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
@@ -3688,15 +3688,15 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
@@ -3867,15 +3867,15 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
@@ -4082,15 +4082,15 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
@@ -4239,15 +4239,15 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
@@ -4723,7 +4723,7 @@ paths:
                   summary: Jeton JWT invalide ou expiré
                 Error-JWTIPNotAllowed:
                   value:
-                    detail: Authentication failed.
+                    detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
@@ -4844,11 +4844,11 @@ paths:
               examples:
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
                 Error-JWTOnAPIKeyRoute:
                   value:
@@ -4956,11 +4956,11 @@ paths:
               examples:
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
                 Error-JWTOnAPIKeyRoute:
                   value:
@@ -5068,11 +5068,11 @@ paths:
               examples:
                 Error-InvalidAPIKey:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
                 Error-APIKeyIPNotAllowed:
                   value:
-                    detail: IP address not allowed.
+                    detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
                 Error-JWTOnAPIKeyRoute:
                   value:

@@ -44,7 +44,7 @@ class TestApiKeyAuthenticationIpRestriction:
     def test_rejects_ip_outside_allowed_range(self, rf):
         auth = ApiKeyAuthentication()
         request = self._make_request(rf, ip="10.0.0.1")
-        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+        with pytest.raises(AuthenticationFailed, match="Adresse IP non autorisée"):
             auth.authenticate(request)
 
     @patch(
@@ -72,7 +72,7 @@ class TestApiKeyAuthenticationIpRestriction:
         request = self._make_request(
             rf, ip="10.0.0.1", forwarded_for="192.168.1.1, 10.0.0.1"
         )
-        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+        with pytest.raises(AuthenticationFailed, match="Adresse IP non autorisée"):
             auth.authenticate(request)
 
     @patch(
@@ -93,7 +93,7 @@ class TestApiKeyAuthenticationIpRestriction:
         auth = ApiKeyAuthentication()
         request = self._make_request(rf, ip="203.0.113.7")
         request.META["REMOTE_ADDR"] = "172.17.0.5"
-        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+        with pytest.raises(AuthenticationFailed, match="Adresse IP non autorisée"):
             auth.authenticate(request)
 
     @patch(
@@ -102,7 +102,7 @@ class TestApiKeyAuthenticationIpRestriction:
     def test_rejects_missing_client_ip(self, rf):
         auth = ApiKeyAuthentication()
         request = rf.get("/", HTTP_AUTHORIZATION="Api-Key test-ingestion-api-key")
-        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+        with pytest.raises(AuthenticationFailed, match="Adresse IP non autorisée"):
             auth.authenticate(request)
 
     @patch(
