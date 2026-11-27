@@ -966,11 +966,10 @@ export interface components {
          *     * `experience_insuffisante` - Expérience insuffisante
          *     * `competences_techniques_insuffisantes` - Compétences techniques insuffisantes
          *     * `niveau_qualification_insuffisant` - Niveau de qualification insuffisant
-         *     * `disponibilite` - Disponibilité
          *     * `autre` - Autre
          * @enum {string}
          */
-        MotifRefusEnum: "corps_grade_non_eligible" | "condition_mobilite_non_remplie" | "candidat_non_fonctionnaire" | "experience_insuffisante" | "competences_techniques_insuffisantes" | "niveau_qualification_insuffisant" | "disponibilite" | "autre";
+        MotifRefusEnum: "corps_grade_non_eligible" | "condition_mobilite_non_remplie" | "candidat_non_fonctionnaire" | "experience_insuffisante" | "competences_techniques_insuffisantes" | "niveau_qualification_insuffisant" | "autre";
         /**
          * @description * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
          *     * `CONTRACTUEL` - CONTRACTUEL

@@ -123,7 +123,7 @@ describe('candidaturePanelView', () => {
       candidature(() => REFUSEE),
       etapeChange(undefined, (...args) => {
         sent(...args)
-        server.use(candidature(() => ({ ...REFUSEE, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })))
+        server.use(candidature(() => ({ ...REFUSEE, motif_refus: { value: 'competences_techniques_insuffisantes', label: 'Compétences techniques insuffisantes' } })))
       }),
     )
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
@@ -132,12 +132,12 @@ describe('candidaturePanelView', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Modifier le motif de refus' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Modifier le motif de refus' }))
     await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
-    await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
+    await user.click(await screen.findByRole('option', { name: 'Compétences techniques insuffisantes' }))
     await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
 
     const motif = within(within(panel).getByRole('region', { name: 'Motif de refus' }))
-    expect(await motif.findByText('Disponibilité')).toBeInTheDocument()
-    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE], 'disponibilite'))
+    expect(await motif.findByText('Compétences techniques insuffisantes')).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE], 'competences_techniques_insuffisantes'))
   })
 
   it('names the document after the tab and the candidat', async () => {

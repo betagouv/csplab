@@ -122,7 +122,7 @@ export const RECRUTEMENT_DETAIL: RecrutementDetail = {
 
 export const MOTIFS_REFUS: MotifRefusOption[] = [
   { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
-  { value: 'disponibilite', label: 'Disponibilité' },
+  { value: 'competences_techniques_insuffisantes', label: 'Compétences techniques insuffisantes' },
   { value: 'autre', label: 'Autre' },
 ]
 

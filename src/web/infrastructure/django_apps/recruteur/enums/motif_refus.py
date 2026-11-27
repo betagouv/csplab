@@ -20,5 +20,4 @@ class MotifRefus(models.TextChoices):
         "niveau_qualification_insuffisant",
         "Niveau de qualification insuffisant",
     )
-    DISPONIBILITE = "disponibilite", "Disponibilité"
     AUTRE = "autre", "Autre"
