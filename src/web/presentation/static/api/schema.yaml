@@ -1726,8 +1726,7 @@ paths:
     post:
       operationId: token_create
       description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+        Échange l'email et le mot de passe d'un compte contre un jeton d'accès et un jeton de rafraîchissement.
 
         **Limites d'appels**
 
@@ -1787,8 +1786,7 @@ paths:
     post:
       operationId: token_refresh_create
       description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+        Échange un jeton de rafraîchissement valide contre un nouveau jeton d'accès.
 
         **Limites d'appels**
 

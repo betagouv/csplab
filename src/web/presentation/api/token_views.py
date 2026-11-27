@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
@@ -28,6 +29,12 @@ class LoggedTokenObtainPairView(  # type: ignore[misc]
 ):
     serializer_class = TokenObtainPairSerializer
 
+    @extend_schema(
+        description=(
+            "Échange l'email et le mot de passe d'un compte contre un jeton "
+            "d'accès et un jeton de rafraîchissement."
+        )
+    )
     def post(self, request: Request, *args, **kwargs) -> Response:
         email = str(request.data.get("email", ""))
         ip_address = get_client_ip(request)
@@ -58,6 +65,12 @@ class TokenRefreshView(  # type: ignore[misc]
     # ensure_refresh_ip_allowed() goes through the throttled reject().
     throttles_auth_rejection = True
 
+    @extend_schema(
+        description=(
+            "Échange un jeton de rafraîchissement valide contre un nouveau jeton "
+            "d'accès."
+        )
+    )
     def post(self, request: Request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         try:
