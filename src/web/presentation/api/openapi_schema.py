@@ -139,8 +139,6 @@ def rate_limits_markdown(view: APIView) -> str:
 
 
 class AutoSchema(SpectacularAutoSchema):
-    """Documents the rate limits and the 401 response of each public operation."""
-
     def get_operation(self, path, path_regex, path_prefix, method, registry):
         operation = super().get_operation(
             path, path_regex, path_prefix, method, registry
