@@ -24,6 +24,7 @@ import CompletionCell from './cellules/CompletionCell.vue'
 import DepublicationCell from './cellules/DepublicationCell.vue'
 import EtatPreparationCell from './cellules/EtatPreparationCell.vue'
 import IntituleCell from './cellules/IntituleCell.vue'
+import OrigineCell from './cellules/OrigineCell.vue'
 import ResponsablesCell from './cellules/ResponsablesCell.vue'
 import StatutDepuisCell from './cellules/StatutDepuisCell.vue'
 import { useNav } from './nav'
@@ -178,6 +179,9 @@ const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
   const avecCandidatures = onglet.value !== 'brouillon'
   return [
     { id: 'intitule', header: 'Offre d\'emploi', accessor: o => o.titre, cellComponent: IntituleCell },
+    // Origine : téléversée ou créée manuellement (Alice, 27/11/2026). Pas dans « En préparation » : une offre
+    // téléversée est déjà publiée.
+    ...(onglet.value !== 'brouillon' ? [{ id: 'origine', header: 'Origine', sortable: true, accessor: (o: Offre) => (o.origineContenu === 'televersement' ? 1 : 0), cellComponent: OrigineCell, width: '11.5rem' }] : []),
     // Champs obligatoires remplis, dans « En préparation » (retour PO, 26/11/2026).
     ...(onglet.value === 'brouillon' ? [{ id: 'completion', header: 'Champs obligatoires remplis', wrapHeader: true, sortable: true, accessor: (o: Offre) => champsObligatoires(o).filter(c => c.ok).length / Math.max(1, champsObligatoires(o).length), cellComponent: CompletionCell, width: '8.5rem' }] : []),
     // Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon, Prête à publier) ; rien ailleurs.
@@ -186,7 +190,7 @@ const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
     { id: 'responsable', header: 'Responsable', accessor: o => responsable(o), cellComponent: ResponsablesCell, width: '11rem' },
     { id: 'activite', header: 'Activité sur l\'offre', wrapHeader: true, sortable: true, accessor: (o: Offre) => dateActivite(o), cellComponent: ActiviteOffreCell, width: '11rem' },
     ...(avecFin ? [{ id: 'fin', header: 'Fin de publication', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat === 'publiee' || o.etat === 'retiree' ? o.dateFin : ''), cellComponent: DepublicationCell, width: '8rem' }] : []),
-    ...(avecCandidatures ? [{ id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat !== 'brouillon' ? candidatures(o).total : -1), cellComponent: CandidaturesCell, width: '6.5rem' }] : []),
+    ...(avecCandidatures ? [{ id: 'candidatures', header: 'Candidatures', wrapHeader: true, sortable: true, accessor: (o: Offre) => (o.etat === 'brouillon' ? -2 : horsAts(o) ? -1 : candidatures(o).total), cellComponent: CandidaturesCell, width: '9rem' }] : []),
     { id: 'actions', header: '', align: 'end', width: '9rem', cellComponent: ActionsOffreCell },
   ]
 })

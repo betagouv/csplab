@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { Offre } from '../store'
 import { computed } from 'vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useNav } from '../nav'
 import { candidatures } from '../recrutement'
 import { horsAts } from '../suivi'
 
-// Nombre de candidatures : lien vers le recrutement (offres en ligne seulement).
+// Candidatures (Alice, 27/11/2026) : gérées dans l'ATS (nombre, lien vers le recrutement) ou hors ATS (lien ou courriel).
 defineOptions({ inheritAttrs: false })
 const props = defineProps<{ row: Offre }>()
 const { aller } = useNav()
@@ -18,18 +19,31 @@ const hors = computed(() => horsAts(props.row))
 <template>
   <span
     v-if="hors"
-    class="vide"
-    title="Candidatures gérées hors de l'ATS"
-  >Hors ATS</span>
-  <button
-    v-else-if="n !== null"
-    type="button"
-    class="lien"
-    :aria-label="`${n} candidatures, voir le recrutement`"
-    @click="aller({ nom: 'recrutements' })"
+    class="cand"
   >
-    {{ n }}
-  </button>
+    <span class="cand__hors">
+      <CspIcon
+        name="ri:external-link-line"
+        :size="14"
+      />
+      Hors ATS
+    </span>
+    <span class="cand__sous">{{ row.modeCandidature === 'courriel' ? 'par courriel' : 'sur un autre site' }}</span>
+  </span>
+  <span
+    v-else-if="n !== null"
+    class="cand"
+  >
+    <button
+      type="button"
+      class="lien"
+      :aria-label="`${n} candidatures dans l'ATS, voir le recrutement`"
+      @click="aller({ nom: 'recrutements' })"
+    >
+      {{ n }} candidature{{ n > 1 ? 's' : '' }}
+    </button>
+    <span class="cand__sous">dans l'ATS</span>
+  </span>
   <span
     v-else
     class="vide"
@@ -37,7 +51,26 @@ const hors = computed(() => horsAts(props.row))
 </template>
 
 <style scoped lang="scss">
+.cand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cand__hors {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.cand__sous {
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
 .lien {
+  text-align: left;
   padding: 0;
   border: 0;
   background: none;

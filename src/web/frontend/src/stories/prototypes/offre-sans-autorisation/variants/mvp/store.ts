@@ -585,7 +585,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v8'
+const CLE = 'csplab-proto-offre-mvp-v9'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -801,6 +801,11 @@ function avecRecrutements(offres: Offre[]): Offre[] {
     if (o.id === 'OFF-2026-0118') {
       o.responsables = ['Camille Moreau', 'Julien Lefèvre']
     }
+  }
+  // Créée manuellement, mais « Diffuser uniquement » : candidatures gérées hors ATS (revue UI, 27/11/2026). Lien fictif.
+  const horsAts = copies.find(c => c.id === 'OFF-2026-0127')
+  if (horsAts) {
+    Object.assign(horsAts, { modeCandidature: 'externe', urlCandidature: 'https://recrutement.exemple.gouv.fr/risques-naturels', equipe: [] })
   }
   return [...offres, ...copies]
 }
