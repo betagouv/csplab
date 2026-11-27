@@ -25,7 +25,6 @@ const menuProps = computed(() => {
       <CspSidebarButton
         :title="title"
         :description="description"
-        :aria-label="title"
         v-bind="$attrs"
       >
         <template #leading>
