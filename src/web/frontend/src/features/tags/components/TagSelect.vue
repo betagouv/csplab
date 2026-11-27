@@ -37,7 +37,7 @@ const selected = computed({
     label="Étiquette"
     :options="options"
     :placeholder="unavailable ? 'Aucune étiquette disponible.' : 'Aucune étiquette'"
-    :disabled="unavailable || Boolean(error)"
+    :disabled="pending || unavailable || Boolean(error)"
     :error="Boolean(error)"
     error-message="Les étiquettes n'ont pas pu être chargées."
   />

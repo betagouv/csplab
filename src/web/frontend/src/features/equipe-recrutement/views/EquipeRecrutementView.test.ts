@@ -18,7 +18,7 @@ import {
   membreUpdateFailure,
 } from '@/test/handlers/equipe-recrutement'
 import { recrutementDetail } from '@/test/handlers/recrutements'
-import { tags, tagsFailure } from '@/test/handlers/tags'
+import { tags, tagsFailure, tagsPending } from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import EquipeRecrutementView from './EquipeRecrutementView.vue'
@@ -359,6 +359,16 @@ describe('equipeRecrutementView', () => {
     expect(await screen.findByText('Étiquette enregistrée')).toBeInTheDocument()
     expect(removed).toHaveBeenCalledOnce()
     expect(added).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_PRESELECTION.uuid)
+  })
+
+  it('keeps the tag list disabled while the tags load', async () => {
+    const user = setupUser()
+    server.use(equipe([MEMBRE_JURY]), tagsPending())
+    await renderView()
+
+    await chooseAction(user, 'Modifier l\'étiquette')
+
+    expect(await screen.findByRole('combobox', { name: /Étiquette/ })).toBeDisabled()
   })
 
   it('says when the member is added but not tagged', async () => {
