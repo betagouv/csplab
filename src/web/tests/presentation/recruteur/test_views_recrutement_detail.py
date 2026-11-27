@@ -853,6 +853,7 @@ def _change_etape(recrutement, candidature, agent):
         EtapeModel.objects.filter(recrutement=recrutement)
         .exclude(pk=candidature.etape_id)
         .exclude(categorie=CategorieEtapeRecrutement.REFUS.value)
+        .order_by("created_at")
         .first()
     )
     change_etape_candidatures(
