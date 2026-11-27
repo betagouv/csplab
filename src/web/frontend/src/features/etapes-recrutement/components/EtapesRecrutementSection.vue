@@ -70,6 +70,12 @@ const modalTitle: Record<ModalMode, string> = {
   'rename': 'Renommer l\'étape',
 }
 
+const modalConfirmLabel: Record<ModalMode, string> = {
+  'add': 'Ajouter',
+  'add-at': 'Ajouter',
+  'rename': 'Renommer',
+}
+
 const modalFailureTitle: Record<ModalMode, string> = {
   'add': 'L\'ajout de l\'étape a échoué',
   'add-at': 'L\'ajout de l\'étape a échoué',
@@ -321,7 +327,7 @@ function getMenuSections(
           @click="modalOpen = false"
         />
         <CspButton
-          :label="modalMode === 'add' ? 'Ajouter' : 'Renommer'"
+          :label="modalConfirmLabel[modalMode]"
           variant="primary"
           :disabled="!modalNom.trim() || saving"
           @click="handleModalConfirm"
