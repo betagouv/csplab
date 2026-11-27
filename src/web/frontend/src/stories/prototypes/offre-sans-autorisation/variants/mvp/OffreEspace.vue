@@ -19,7 +19,7 @@ import { useNav } from './nav'
 import NavEtapes from './NavEtapes.vue'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
-import { aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, noterModification, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
+import { aujourdhui, dateLongue, db, heure, joursRestants, le, noterModification, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
 
 // Page d'une offre, hors création (retour Alice du 25/11/2026), structurée comme un profil Malt : l'en-tête, le bloc
 // des champs qui restent à remplir, puis des onglets (revue UI, 27/11/2026) : les trois parties de la création
@@ -83,8 +83,6 @@ const onglets = computed<CspTabItem<Onglet>[]>(() => [
   { value: 'activite', label: 'Activité', icon: 'ri:history-line' },
 ])
 const groupeActif = computed(() => GROUPES.find(g => g.id === onglet.value))
-// Sites de diffusion et leur état, dans l'onglet « Diffusion » d'une offre déjà publiée.
-const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.publications[c.id]).map(c => ({ ...c, ...o.value.publications[c.id]! })))
 // Historique d'activité, le plus récent d'abord.
 const activites = computed(() => [...o.value.historique].reverse())
 
@@ -305,29 +303,6 @@ function confirmerRetrait() {
             @update:edition="(v: boolean) => (edition = v ? e.id : null)"
             @enregistre="enregistreBloc"
           />
-          <section
-            v-if="groupeActif.id === 'diffusion' && sites.length"
-            class="sites"
-          >
-            <h3 class="sites__titre">
-              Publication sur les sites
-            </h3>
-            <ul class="sites__liste">
-              <li
-                v-for="s in sites"
-                :key="s.id"
-                class="site"
-              >
-                <span class="site__nom">{{ s.nom }}</span>
-                <CspBadge
-                  :label="s.etat === 'publiee' ? 'En ligne' : 'Arrêtée'"
-                  :type="s.etat === 'publiee' ? 'success' : 'info'"
-                  size="sm"
-                />
-                <span class="site__dates">Depuis le {{ s.debut }} · jusqu'au {{ dateLongue(s.fin) }}</span>
-              </li>
-            </ul>
-          </section>
         </section>
 
         <!-- Historique d'activité : toutes les modifications de l'offre, et par qui (revue UI, 27/11/2026) -->

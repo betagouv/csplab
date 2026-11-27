@@ -262,9 +262,13 @@ multidiffusion à part, ajustements métier / famille.
 
 ## Partie 3 « Multidiffusion » (Alice, 27/11/2026)
 
-La partie 3 s'appelle « Multidiffusion » (l'onglet de la page de l'offre aussi), son étape « Sites partenaires ».
+La partie 3 s'appelle « Multidiffusion » (l'onglet de la page de l'offre aussi), son étape « Sites de diffusion ».
 « L'offre est par défaut publiée sur Choisir le Service Public. » Plus de question oui / non : on coche directement les
 sites en plus. Cartes côte à côte, toute la carte est cliquable (la case reste le contrôle clavier) ; même structure
 d'une carte à l'autre (CSS `subgrid`) : pastille et case, nom, public visé (icône), modalité (étiquette grise).
 **À remplacer** : les pastilles à initiales tiennent lieu de logos (pas de logos dans le proto) ; les modalités
 (« Publication sous 24 h », « Catégorie A uniquement »…) sont fictives.
+
+Page de l'offre, onglet « Multidiffusion » (Alice, 27/11/2026) : les mêmes cartes en lecture, avec l'état de chaque site
+(En ligne / Arrêtée et date, « Publiée à la mise en ligne de l'offre », « Non diffusée » en pointillés), et Choisir le
+Service Public en tête. L'ancien encart « Publication sur les sites » est fondu dedans. Le crayon rouvre les cartes à cocher.

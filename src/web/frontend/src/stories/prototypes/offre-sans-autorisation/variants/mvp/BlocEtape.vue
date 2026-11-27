@@ -6,6 +6,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { avancementEtape, champsObligatoires } from './aide'
 import { ETAPES_OFFRE } from './etapes'
+import FormDiffusion from './FormDiffusion.vue'
 import FormEtape from './FormEtape.vue'
 import { resume } from './resume'
 import TexteEtoile from './TexteEtoile.vue'
@@ -109,6 +110,12 @@ function enregistrer() {
       </div>
     </template>
 
+    <!-- Multidiffusion : les mêmes cartes que dans le formulaire, avec l'état de publication (Alice, 27/11/2026) -->
+    <FormDiffusion
+      v-else-if="partie === 'diffusion'"
+      :offre="offre"
+      lecture
+    />
     <dl
       v-else
       class="lecture"

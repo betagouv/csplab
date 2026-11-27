@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import type { Offre } from './store'
 import { computed } from 'vue'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { SITES_PARTENAIRES, SUPPORT_MAITRE } from './store'
+import { dateLongue, SITES_PARTENAIRES, SUPPORT_MAITRE } from './store'
 
 // Partie 3 « Multidiffusion » (Alice, 27/11/2026) : l'offre est publiée par défaut sur Choisir le Service Public ; on coche
 // directement les sites partenaires en plus, sans question oui / non. Les candidatures sont toujours gérées dans l'ATS
 // (retour PO, 27/11/2026) ; seules les offres téléversées sont gérées hors ATS : on le rappelle, en lecture seule.
-const props = defineProps<{ offre: Offre }>()
+// En lecture (page de l'offre, revue Alice du 27/11/2026) : les mêmes cartes, sans case, avec l'état de publication de chaque site.
+const props = defineProps<{ offre: Offre, lecture?: boolean }>()
 const o = computed(() => props.offre)
 const horsAts = computed(() => o.value.modeCandidature !== 'ats')
 
 function coche(id: string) {
   return o.value.canaux.includes(id)
 }
+function publication(id: string) {
+  return o.value.publications[id]
+}
 function basculer(id: string, v: boolean) {
+  if (props.lecture) {
+    return
+  }
   const autres = o.value.canaux.filter(c => c !== id && c !== SUPPORT_MAITRE.id)
   const partenaires = [...autres, ...(v ? [id] : [])]
   o.value.canaux = [SUPPORT_MAITRE.id, ...partenaires]
@@ -45,20 +53,45 @@ function initiales(nom: string) {
   </div>
 
   <div class="groupe">
-    <p class="intro">
+    <p
+      v-if="!lecture"
+      class="intro"
+    >
       L'offre est par défaut publiée sur <strong>{{ NOM_MAITRE }}</strong>. Vous pouvez aussi la diffuser sur d'autres sites.
     </p>
+    <div
+      v-else
+      class="maitre"
+    >
+      <span class="maitre__nom">{{ NOM_MAITRE }}</span>
+      <span class="maitre__note">Par défaut</span>
+      <template v-if="publication('csp')">
+        <CspBadge
+          :label="publication('csp')!.etat === 'publiee' ? 'En ligne' : 'Arrêtée'"
+          :type="publication('csp')!.etat === 'publiee' ? 'success' : 'info'"
+          size="sm"
+        />
+        <span class="maitre__note">Depuis le {{ publication('csp')!.debut }} · jusqu'au {{ dateLongue(publication('csp')!.fin) }}</span>
+      </template>
+      <span
+        v-else
+        class="maitre__note"
+      >Publiée à la mise en ligne de l'offre</span>
+    </div>
     <fieldset class="sites">
       <legend class="sites__legende">
         Sites partenaires (liste indicative)
       </legend>
       <!-- Toute la carte est cliquable ; la case reste le contrôle pour le clavier et les lecteurs d'écran. -->
-      <div class="sites__grille">
+      <div
+        class="sites__grille"
+        :class="{ 'sites__grille--lecture': lecture }"
+      >
         <div
           v-for="s in SITES_PARTENAIRES"
           :key="s.id"
           class="site"
-          :class="{ 'site--coche': coche(s.id) }"
+          :class="{ 'site--coche': coche(s.id) && !lecture, 'site--off': lecture && !coche(s.id) }"
           @click="basculer(s.id, !coche(s.id))"
         >
           <div class="site__tete">
@@ -66,7 +99,10 @@ function initiales(nom: string) {
               class="site__logo"
               aria-hidden="true"
             >{{ initiales(s.nom) }}</span>
-            <span @click.stop>
+            <span
+              v-if="!lecture"
+              @click.stop
+            >
               <CspCheckbox
                 variant="checkbox-only"
                 :model-value="coche(s.id)"
@@ -75,29 +111,41 @@ function initiales(nom: string) {
               />
             </span>
           </div>
-          <span
-            class="site__nom"
-            aria-hidden="true"
-          >{{ s.nom }}</span>
-          <span
-            class="site__public"
-            aria-hidden="true"
-          >
+          <span class="site__nom">{{ s.nom }}</span>
+          <span class="site__public">
             <CspIcon
               name="ri:group-line"
               :size="14"
             />
             {{ s.detail }}
           </span>
-          <span
-            class="site__modalite"
-            aria-hidden="true"
-          >
+          <span class="site__modalite">
             <CspIcon
               name="ri:information-line"
               :size="14"
             />
             {{ s.modalite }}
+          </span>
+          <span
+            v-if="lecture"
+            class="site__etat"
+          >
+            <template v-if="publication(s.id)">
+              <CspBadge
+                :label="publication(s.id)!.etat === 'publiee' ? 'En ligne' : 'Arrêtée'"
+                :type="publication(s.id)!.etat === 'publiee' ? 'success' : 'info'"
+                size="sm"
+              />
+              <span class="site__date">Depuis le {{ publication(s.id)!.debut }}</span>
+            </template>
+            <span
+              v-else-if="coche(s.id)"
+              class="site__date"
+            >Publiée à la mise en ligne de l'offre</span>
+            <span
+              v-else
+              class="site__date"
+            >Non diffusée</span>
           </span>
         </div>
       </div>
@@ -182,6 +230,24 @@ function initiales(nom: string) {
     background: var(--background-default-grey-hover);
   }
 
+  .sites__grille--lecture & {
+    grid-row: span 5;
+    cursor: default;
+
+    &:hover {
+      background: var(--background-default-grey);
+    }
+  }
+
+  &--off {
+    border-style: dashed;
+
+    .site__nom,
+    .site__public {
+      color: var(--text-mention-grey);
+    }
+  }
+
   &--coche {
     border-color: var(--border-active-blue-france);
     background: var(--background-alt-blue-france);
@@ -240,6 +306,34 @@ function initiales(nom: string) {
   background: var(--background-contrast-grey);
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
+}
+
+.site__etat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-top: var(--csp-space-2);
+  border-top: 1px solid var(--border-default-grey);
+}
+
+.site__date,
+.maitre__note {
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.maitre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-2) var(--csp-space-3);
+  padding: var(--csp-space-4);
+  border: 1px solid var(--border-default-grey);
+}
+
+.maitre__nom {
+  font-weight: 700;
 }
 
 .intro {

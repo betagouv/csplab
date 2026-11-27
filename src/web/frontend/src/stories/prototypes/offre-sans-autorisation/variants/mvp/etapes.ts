@@ -23,7 +23,7 @@ export const ETAPES_OFFRE: { id: PartieOffre, groupe: GroupeOffre, titre: string
   // Documents d'abord : le plus utilisé (CV, lettre de motivation) ; les questions ensuite (retour PO, 27/11/2026).
   { id: 'documents', groupe: 'candidature', titre: 'Documents', aide: 'Pièces que les candidats joignent à leur candidature.' },
   { id: 'formulaire', groupe: 'candidature', titre: 'Questions', aide: 'Questions posées au candidat au moment où il postule.' },
-  { id: 'diffusion', groupe: 'diffusion', titre: 'Sites partenaires', aide: 'Facultatif : cochez les sites où diffuser aussi l\'offre.' },
+  { id: 'diffusion', groupe: 'diffusion', titre: 'Sites de diffusion', aide: 'Facultatif : cochez les sites où diffuser aussi l\'offre.' },
 ]
 
 export function groupeDe(partie: PartieOffre) {
