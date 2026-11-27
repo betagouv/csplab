@@ -32,6 +32,9 @@ from presentation.recruteur.serializers import (
     ConversationSerializer,
     CreateConversationSerializer,
 )
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 class ConversationPagination(PageNumberLimitPagination):
@@ -109,10 +112,7 @@ class CandidatureConversationsView(NoStoreMixin, SessionApiMixin, ListAPIView):
                 RecrutementCandidatureInexistante,
             ),
         ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return candidature_inaccessible_response()
         if isinstance(exc, FichierDeposeIncomplet):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,

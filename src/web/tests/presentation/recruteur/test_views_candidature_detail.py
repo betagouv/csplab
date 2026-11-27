@@ -127,6 +127,7 @@ class TestCandidatureDetailView:
         response = authenticated_client.get(build_url(test_user))
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
 
     def test_returns_candidature_detail(self, authenticated_client, test_user):
         _, organisme, recrutement, candidature = (

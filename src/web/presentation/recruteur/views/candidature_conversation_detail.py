@@ -37,6 +37,9 @@ from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
     CreateMessageSerializer,
 )
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 @extend_schema_view(
@@ -128,10 +131,7 @@ class CandidatureConversationDetailView(NoStoreMixin, SessionApiMixin, ListAPIVi
                 ConversationInexistante,
             ),
         ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return candidature_inaccessible_response()
         if isinstance(exc, FichierDeposeIncomplet):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,

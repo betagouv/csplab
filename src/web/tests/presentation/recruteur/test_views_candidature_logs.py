@@ -35,6 +35,17 @@ class TestCandidatureLogsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_unknown_candidature_is_not_found_with_a_fixed_message(
+        self, authenticated_client
+    ):
+        organisme = OrganismeDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk, uuid4()))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
+
     def test_limit_param_caps_page_size(self, authenticated_client):
         organisme = OrganismeDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=organisme)
