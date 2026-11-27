@@ -35,7 +35,6 @@ UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION = (
     responses={
         201: UpsertTalentsoftOrganismesResponseSerializer,
         400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
 )

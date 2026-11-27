@@ -11,7 +11,7 @@ from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.django_apps.utils.ip import get_client_ip
 
-REJECTION_MESSAGE = "Authentication failed."
+REJECTION_MESSAGE = "Échec de l'authentification."
 
 
 def ensure_api_ip_allowed(

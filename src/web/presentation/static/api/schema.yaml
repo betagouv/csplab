@@ -335,6 +335,35 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          description: Authentification absente ou refusée.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
         '404':
           content:
             application/json:
@@ -1440,6 +1469,35 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          description: Authentification absente ou refusée.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
         '500':
           content:
             application/json:
@@ -1496,12 +1554,41 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '401':
+        '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/FakeTsTalentsoftOrganisme'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          description: Authentification absente ou refusée.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -1540,19 +1627,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
-          description: ''
-          headers:
-            X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
-            X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
-            X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FakeTsTalentsoftOrganisme'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1634,6 +1708,35 @@ paths:
                 items:
                   $ref: '#/components/schemas/FakeTsCodedObject'
           description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          description: Authentification absente ou refusée.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -2005,23 +2108,25 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
-                    detail: Invalid API key.
+                    detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
-                Error-JWTToken:
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
+                Erreur-JWTSurRouteCleAPI:
                   value:
                     detail: Informations d'authentification non fournies.
-                  summary: Appel avec un jeton JWT
-                  description: 'La route n''accepte que la clé d''API de CSPLab :
-                    un jeton JWT n''est pas reconnu.'
-          description: ''
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -2310,23 +2415,35 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidToken:
+                Erreur-JetonJWTInvalide:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
                     messages:
                     - token_class: AccessToken
                       token_type: access
-                      message: Token is invalid or expired
-                  summary: Token JWT invalide ou expiré
-                  description: Le token dans le header `Authorization` est invalide
-                    ou expiré.
-          description: ''
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -3552,23 +3669,35 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidToken:
+                Erreur-JetonJWTInvalide:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
                     messages:
                     - token_class: AccessToken
                       token_type: access
-                      message: Token is invalid or expired
-                  summary: Token JWT invalide ou expiré
-                  description: Le token dans le header `Authorization` est invalide
-                    ou expiré.
-          description: ''
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -3719,23 +3848,35 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOffer401Error'
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidToken:
+                Erreur-JetonJWTInvalide:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
                     messages:
                     - token_class: AccessToken
                       token_type: access
-                      message: Token is invalid or expired
-                  summary: Token JWT invalide ou expiré
-                  description: Le token dans le header `Authorization` est invalide
-                    ou expiré.
-          description: ''
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -3922,11 +4063,35 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
-          description: ''
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4055,11 +4220,35 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
-          description: ''
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-JetonJWTInvalide:
+                  value:
+                    detail: Le type de jeton fourni n'est pas valide
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4515,23 +4704,27 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                anyOf:
+                - $ref: '#/components/schemas/TokenError'
+                - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidToken:
+                Erreur-JetonJWTInvalide:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
                     messages:
                     - token_class: AccessToken
                       token_type: access
-                      message: Token is invalid or expired
-                  summary: Token JWT invalide ou expiré
-                  description: Le token dans le header `Authorization` est invalide
-                    ou expiré.
-          description: ''
+                      message: Token is invalid
+                  summary: Jeton JWT invalide ou expiré
+                Erreur-IPInterditeAvecJWT:
+                  value:
+                    detail: Échec de l'authentification.
+                  summary: Adresse IP non autorisée (jeton JWT)
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4643,11 +4836,25 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
+                $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
+                Erreur-JWTSurRouteCleAPI:
+                  value:
+                    detail: Informations d'authentification non fournies.
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4741,11 +4948,25 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
+                $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
+                Erreur-JWTSurRouteCleAPI:
+                  value:
+                    detail: Informations d'authentification non fournies.
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4839,11 +5060,25 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
+          description: Authentification absente ou refusée.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
+                $ref: '#/components/schemas/DetailError'
+              examples:
+                Erreur-CleAPIInvalide:
+                  value:
+                    detail: Clé d'API invalide.
+                  summary: Clé d'API invalide
+                Erreur-IPInterditeAvecCleAPI:
+                  value:
+                    detail: Adresse IP non autorisée.
+                  summary: Adresse IP non autorisée (clé d'API)
+                Erreur-JWTSurRouteCleAPI:
+                  value:
+                    detail: Informations d'authentification non fournies.
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4885,10 +5120,6 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
-    ArchiveOffer401Error:
-      oneOf:
-      - $ref: '#/components/schemas/TokenError'
-      - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
     ArchiveOfferForbidden:
       type: object
       properties:
@@ -4921,13 +5152,6 @@ components:
           type: string
       required:
       - statut
-    ArchiveOfferUnauthorized:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     ArchiveOfferUnavailable:
       type: object
       properties:

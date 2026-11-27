@@ -107,7 +107,7 @@ class TestRestrictedAccount:
         response = call(api_client, restricted_user, OTHER_IP)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json()["detail"] == "Authentication failed."
+        assert response.json()["detail"] == "Échec de l'authentification."
         _assert_rejection_audited(restricted_user, OTHER_IP)
 
     def test_unknown_client_ip_is_refused(self, api_client, restricted_user):

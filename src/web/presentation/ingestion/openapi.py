@@ -1,24 +1,5 @@
 from drf_spectacular.utils import OpenApiExample
 
-_EXAMPLE_INVALID_TOKEN = OpenApiExample(
-    "Error - invalid token",
-    summary="Token JWT invalide ou expiré",
-    description="Le token dans le header `Authorization` est invalide ou expiré.",
-    value={
-        "detail": "Le jeton fourni n'est pas valide.",
-        "code": "token_not_valid",
-        "messages": [
-            {
-                "token_class": "AccessToken",
-                "token_type": "access",
-                "message": "Token is invalid or expired",
-            }
-        ],
-    },
-    response_only=True,
-    status_codes=["401"],
-)
-
 _EXAMPLE_SERVER_ERROR = OpenApiExample(
     "Error - unexpected server error",
     summary="Erreur serveur inattendue",
@@ -168,23 +149,6 @@ CONCOURS_UPLOAD_EXAMPLES = [
         response_only=True,
         status_codes=["400"],
     ),
-    OpenApiExample(
-        "Error - invalid API key",
-        summary="Clé d'API invalide",
-        description="La clé d'API du header `Authorization` est inconnue.",
-        value={"detail": "Invalid API key."},
-        response_only=True,
-        status_codes=["401"],
-    ),
-    OpenApiExample(
-        "Error - JWT token",
-        summary="Appel avec un jeton JWT",
-        description="La route n'accepte que la clé d'API de CSPLab : un jeton JWT "
-        "n'est pas reconnu.",
-        value={"detail": "Informations d'authentification non fournies."},
-        response_only=True,
-        status_codes=["401"],
-    ),
     _EXAMPLE_SERVER_ERROR,
 ]
 
@@ -251,24 +215,6 @@ ARCHIVE_OFFER_EXAMPLES = [
         value={"detail": "Offre introuvable."},
         response_only=True,
         status_codes=["404"],
-    ),
-    OpenApiExample(
-        "Error - invalid token",
-        summary="Token JWT invalide ou expiré",
-        description="Le token dans le header `Authorization` est invalide ou expiré.",
-        value={
-            "detail": "Le jeton fourni n'est pas valide.",
-            "code": "token_not_valid",
-            "messages": [
-                {
-                    "token_class": "AccessToken",
-                    "token_type": "access",
-                    "message": "Token is invalid or expired",
-                }
-            ],
-        },
-        response_only=True,
-        status_codes=["401"],
     ),
 ]
 
@@ -356,7 +302,6 @@ LIST_OFFERS_EXAMPLES = [
         response_only=True,
         status_codes=["200"],
     ),
-    _EXAMPLE_INVALID_TOKEN,
     _EXAMPLE_SERVER_ERROR,
 ]
 
@@ -459,7 +404,6 @@ LIST_METIERS_EXAMPLES = [
         response_only=True,
         status_codes=["400"],
     ),
-    _EXAMPLE_INVALID_TOKEN,
     _EXAMPLE_SERVER_ERROR,
 ]
 
@@ -523,7 +467,6 @@ LIST_ORGANISMES_EXAMPLES = [
         response_only=True,
         status_codes=["400"],
     ),
-    _EXAMPLE_INVALID_TOKEN,
     _EXAMPLE_SERVER_ERROR,
 ]
 

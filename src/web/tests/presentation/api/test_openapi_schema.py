@@ -110,10 +110,60 @@ class TestRateLimitsMarkdown:
             rate_limits_markdown(View())
 
 
-def test_every_public_operation_documents_its_rate_limits():
-    schema = yaml.safe_load(
+def _public_schema():
+    return yaml.safe_load(
         Path("presentation/static/api/schema.yaml").read_text(encoding="utf-8")
     )
+
+
+_TOKEN_OR_DETAIL = {
+    "anyOf": [
+        {"$ref": "#/components/schemas/TokenError"},
+        {"$ref": "#/components/schemas/DetailError"},
+    ]
+}
+_DETAIL = {"$ref": "#/components/schemas/DetailError"}
+_JWT = ["Erreur-JetonJWTInvalide", "Erreur-IPInterditeAvecJWT"]
+_API_KEY = ["Erreur-CleAPIInvalide", "Erreur-IPInterditeAvecCleAPI"]
+
+
+@pytest.mark.parametrize(
+    "method, path, schema, examples",
+    [
+        ("get", "/api/v1/organismes", _TOKEN_OR_DETAIL, _JWT),
+        ("put", "/api/v1/organismes", _DETAIL, [*_API_KEY, "Erreur-JWTSurRouteCleAPI"]),
+        ("get", "/api/v1/offres", _TOKEN_OR_DETAIL, [*_JWT, *_API_KEY]),
+    ],
+)
+def test_401_follows_authentication_modes(method, path, schema, examples):
+    content = _public_schema()["paths"][path][method]["responses"]["401"]["content"]
+
+    assert content["application/json"]["schema"] == schema
+    assert list(content["application/json"]["examples"]) == examples
+
+
+def test_unauthenticated_operation_has_no_401():
+    assert "401" not in _public_schema()["paths"]["/api/guide.md"]["get"]["responses"]
+
+
+def test_every_authenticated_public_operation_documents_its_401():
+    undocumented = [
+        f"{method.upper()} {path}"
+        for path, operations in _public_schema()["paths"].items()
+        for method, operation in operations.items()
+        if any(operation.get("security", []))
+        and not operation["responses"]
+        .get("401", {})
+        .get("content", {})
+        .get("application/json", {})
+        .get("examples")
+    ]
+
+    assert undocumented == []
+
+
+def test_every_public_operation_documents_its_rate_limits():
+    schema = _public_schema()
 
     undocumented = [
         f"{method.upper()} {path}"

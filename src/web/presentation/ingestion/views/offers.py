@@ -1,7 +1,6 @@
 import logging
 
 from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
     inline_serializer,
@@ -35,7 +34,7 @@ from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionErro
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -77,7 +76,6 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
     responses={
         200: ListOffersResponseSerializer(many=True),
         400: GenericErrorSerializer,
-        401: TokenErrorSerializer,
         404: inline_serializer(
             name="ListOffersNotFound",
             fields={"detail": drf_serializers.CharField()},
@@ -132,7 +130,6 @@ class OffersListView(PublicApiMixin, APIView):
     tags=["offres"],
     responses={
         200: OfferDetailResponseSerializer(many=True),
-        401: TokenErrorSerializer,
         403: inline_serializer(
             name="OffersBySourceForbidden",
             fields={"detail": drf_serializers.CharField()},
@@ -199,17 +196,6 @@ class OffersBySourceView(PublicApiMixin, APIView):
                 "type": "object",
                 "additionalProperties": {"type": "array", "items": {"type": "string"}},
             },
-            401: PolymorphicProxySerializer(
-                component_name="ArchiveOffer401Error",
-                serializers=[
-                    TokenErrorSerializer,
-                    inline_serializer(
-                        name="ArchiveOfferUnauthorized",
-                        fields={"detail": drf_serializers.CharField()},
-                    ),
-                ],
-                resource_type_field_name=None,
-            ),
             403: inline_serializer(
                 name="ArchiveOfferForbidden",
                 fields={"detail": drf_serializers.CharField()},
@@ -295,7 +281,6 @@ class ArchiveOffersView(PublicApiMixin, APIView):
     responses={
         201: UpsertOffersResponseSerializer,
         400: GenericErrorSerializer,
-        401: TokenErrorSerializer,
         403: inline_serializer(
             name="UpsertOffersForbidden",
             fields={"detail": drf_serializers.CharField()},

@@ -8,6 +8,9 @@ from infrastructure.authentication.rejection import reject
 from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip, ip_in_networks
 
+INVALID_API_KEY_MESSAGE = "Clé d'API invalide."
+IP_NOT_ALLOWED_MESSAGE = "Adresse IP non autorisée."
+
 
 class IngestionApiKeyUser:
     is_authenticated = True
@@ -32,12 +35,12 @@ class ApiKeyAuthentication(BaseAuthentication):
             return None
         key = auth_header[len("Api-Key ") :]
         if key != settings.INGESTION_API_KEY:
-            raise _reject("invalid key", "Invalid API key.", request)
+            raise _reject("invalid key", INVALID_API_KEY_MESSAGE, request)
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
         if allowed_ranges and not ip_in_networks(
             get_client_ip(request), allowed_ranges
         ):
-            raise _reject("IP not allowed", "IP address not allowed.", request)
+            raise _reject("IP not allowed", IP_NOT_ALLOWED_MESSAGE, request)
         return (IngestionApiKeyUser(), None)
 
     def authenticate_header(self, request):

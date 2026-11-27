@@ -2,7 +2,9 @@ from dataclasses import dataclass
 from enum import Enum
 
 from drf_spectacular.openapi import AutoSchema as SpectacularAutoSchema
+from drf_spectacular.plumbing import build_examples_list
 from rest_framework.authentication import BaseAuthentication
+from rest_framework.serializers import Serializer
 from rest_framework.throttling import BaseThrottle, SimpleRateThrottle
 from rest_framework.views import APIView
 
@@ -19,7 +21,15 @@ from infrastructure.authentication.rate_throttle import (
     DocumentationRateThrottle,
 )
 from infrastructure.authentication.rejection import AuthRejectionRateThrottle
+from presentation.api.openapi_examples import (
+    API_KEY_IP_NOT_ALLOWED,
+    INVALID_API_KEY,
+    INVALID_JWT,
+    JWT_IP_NOT_ALLOWED,
+    JWT_ON_API_KEY_ROUTE,
+)
 from presentation.api.openapi_hooks import PUBLIC_PATH
+from presentation.api.serializers import DetailErrorSerializer, TokenErrorSerializer
 
 
 class Caller(Enum):
@@ -48,6 +58,12 @@ _THROTTLE_DOCS = [
 _AUTHENTICATION_CALLERS = {
     IpRestrictedJWTAuthentication: Caller.JWT,
     ApiKeyAuthentication: Caller.API_KEY,
+}
+
+
+_UNAUTHORIZED_EXAMPLES = {
+    Caller.JWT: [INVALID_JWT, JWT_IP_NOT_ALLOWED],
+    Caller.API_KEY: [INVALID_API_KEY, API_KEY_IP_NOT_ALLOWED],
 }
 
 _CUMULATIVE_NOTE = (
@@ -123,8 +139,6 @@ def rate_limits_markdown(view: APIView) -> str:
 
 
 class AutoSchema(SpectacularAutoSchema):
-    """Appends the rate limits of the view to each public operation."""
-
     def get_operation(self, path, path_regex, path_prefix, method, registry):
         operation = super().get_operation(
             path, path_regex, path_prefix, method, registry
@@ -135,4 +149,26 @@ class AutoSchema(SpectacularAutoSchema):
         operation["description"] = "\n\n".join(
             part for part in (description, rate_limits_markdown(self.view)) if part
         )
+        callers = _callers(self.view.get_authenticators())
+        if callers != [Caller.ANONYMOUS]:
+            responses = {**operation["responses"], "401": self._unauthorized(callers)}
+            operation["responses"] = dict(sorted(responses.items()))
         return operation
+
+    def _unauthorized(self, callers: list[Caller]) -> dict:
+        examples = [e for caller in callers for e in _UNAUTHORIZED_EXAMPLES[caller]]
+        serializers: list[type[Serializer]] = [DetailErrorSerializer]
+        if Caller.JWT in callers:
+            serializers.insert(0, TokenErrorSerializer)
+        else:
+            examples.append(JWT_ON_API_KEY_ROUTE)
+        refs = [self.resolve_serializer(s, "response").ref for s in serializers]
+        return {
+            "description": "Authentification absente ou refusée.",
+            "content": {
+                "application/json": {
+                    "schema": refs[0] if len(refs) == 1 else {"anyOf": refs},
+                    "examples": build_examples_list(examples),
+                }
+            },
+        }

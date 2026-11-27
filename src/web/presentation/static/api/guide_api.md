@@ -753,12 +753,25 @@ sont accessibles qu'avec une **clé d'API** et ne concernent pas les partenaires
 |---|---|---|
 | `200` / `201` | Succès | La demande a été traitée |
 | `400` | Erreur de la demande | Données envoyées invalides ou incomplètes |
-| `401` | Authentification | Identité non prouvée (jeton manquant/expiré) |
+| `401` | Authentification | Identité non prouvée : jeton ou clé d'API absents ou refusés (voir [ci-dessous](#le-corps-dune-reponse-401)) |
 | `403` | Autorisation | Identité prouvée, mais action non permise |
 | `404` | Introuvable | L'élément ou la page demandés n'existent pas |
 | `429` | Trop de requêtes | Nombre d'appels autorisés dépassé : attendre avant de réessayer (voir « [Limitations d'usage](#limitations-dusage-quotas) ») |
 | `500` | Erreur serveur | Problème inattendu côté CSPLab |
 | `503` | Service indisponible | Traitement momentanément impossible : réessayer plus tard |
+
+### Le corps d'une réponse `401`
+
+Le corps d'un refus d'authentification dépend du mode d'authentification utilisé. La
+documentation de chaque route donne les exemples des modes qu'elle accepte.
+
+| Cas | Corps renvoyé |
+|---|---|
+| Jeton JWT invalide ou expiré | `detail`, `code` (`token_not_valid`) et `messages` |
+| Jeton JWT utilisé depuis une adresse IP non autorisée | `{"detail": "Échec de l'authentification."}` |
+| Clé d'API invalide | `{"detail": "Clé d'API invalide."}` |
+| Clé d'API utilisée depuis une adresse IP non autorisée | `{"detail": "Adresse IP non autorisée."}` |
+| Aucune authentification, ou jeton JWT sur une route réservée à la clé d'API | `{"detail": "Informations d'authentification non fournies."}` |
 
 
 

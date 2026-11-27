@@ -12,7 +12,7 @@ from application.ingestion.services.list_metiers import list_metiers
 from config.logger_names import LoggerName
 from presentation.api.authentication import PublicApiMixin
 from presentation.api.errors import validation_message
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.openapi import (
     LIST_METIERS_DESCRIPTION,
@@ -35,7 +35,6 @@ logger = logging.getLogger(LoggerName.INGESTION.value)
     responses={
         200: ListMetiersResponseSerializer(many=True),
         400: GenericErrorSerializer,
-        401: TokenErrorSerializer,
         404: inline_serializer(
             name="ListMetiersNotFound",
             fields={"detail": drf_serializers.CharField()},

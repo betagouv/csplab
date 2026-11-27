@@ -17,7 +17,7 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import DetailErrorSerializer, GenericErrorSerializer
+from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
@@ -125,7 +125,6 @@ class ConcoursUploadView(PublicApiKeyOnlyMixin, APIView):
                 serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
-            401: DetailErrorSerializer,
             500: GenericErrorSerializer,
         },
     )

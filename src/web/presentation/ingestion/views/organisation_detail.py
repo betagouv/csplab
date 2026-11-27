@@ -12,7 +12,7 @@ from application.ingestion.services.talentsoft_organisme_detail import (
     get_talentsoft_organisme,
 )
 from presentation.api.authentication import PublicJwtOnlyMixin
-from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.serializers import FakeTsTalentsoftOrganismeSerializer
 
 
@@ -22,8 +22,10 @@ from presentation.ingestion.serializers import FakeTsTalentsoftOrganismeSerializ
     "l'`entityCode` de l'organisation.",
     tags=["fake-ts"],
     responses={
-        **generic_response_format,
         200: FakeTsTalentsoftOrganismeSerializer,
+        403: GenericErrorSerializer,
+        404: GenericErrorSerializer,
+        500: GenericErrorSerializer,
     },
 )
 class OrganisationDetailView(PublicJwtOnlyMixin, APIView):
