@@ -93,6 +93,9 @@ _ORGANISME_UUID = UUID("00000000-0000-0000-0000-000000000000")
 _BRIANCON_UUID = UUID("00000000-0000-0000-0000-000000000001")
 _CHU_UUID = UUID("00000000-0000-0000-0000-000000000002")
 
+# The ATS accessibility tests rely on the agents, roles, offers and candidats
+# of this seed, named in tests/presentation/ats/seed.py.
+
 # Organismes du seed : le second sert à éprouver la bascule d'organisme,
 # le troisième reste sans recrutement pour éprouver l'état vide.
 _ORGANISMES_SPECS = [

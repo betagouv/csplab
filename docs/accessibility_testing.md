@@ -33,7 +33,7 @@ mise run web:test:a11y -- tests/presentation/ats
 ```
 
 - The task builds the frontend, and the tests serve it through `live_server`.
-- `seeded_recruteur` loads the demo dataset and `sign_in("Marie")` opens a page signed in as that agent of the dataset (`tests/presentation/ats/conftest.py`).
+- `seeded_recruteur` loads the demo dataset and `sign_in(SUPERVISEUR)` opens a page signed in as the superviseur of the dataset (`tests/presentation/ats/seed.py`).
 - The browser asks for reduced motion, so a dialog is at full opacity when axe reads its contrast.
 - The contrast check of `assert_no_axe_violations` leaves out the labels of disabled controls, which WCAG 1.4.3 exempts.
 - When you add a page or a dialog to the ATS, add a case to `test_ats_a11y.py`.

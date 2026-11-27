@@ -3,12 +3,12 @@ from playwright.sync_api import Page
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
-from tests.presentation.ats.seed import CANDIDAT_FIRST_NAME, RECRUTEMENT
+from tests.presentation.ats.seed import CANDIDAT_FIRST_NAME, RECRUTEMENT, SUPERVISEUR
 
 
 @pytest.fixture
 def superviseur_page(sign_in) -> Page:
-    return sign_in("Marie")
+    return sign_in(SUPERVISEUR)
 
 
 @pytest.fixture
