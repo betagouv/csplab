@@ -3,7 +3,7 @@ import type { AgentOrganisme } from '../../types'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
-import { formatAgentName } from '@/features/agents/format'
+import { formatAgentLabel } from '@/features/agents/format'
 import { useAgentActions } from '../../composables/useAgentActions'
 
 defineOptions({ inheritAttrs: false })
@@ -49,7 +49,7 @@ const sections = computed(() => [
           icon="ri:more-2-fill"
           variant="tertiary-no-outline"
           size="sm"
-          :aria-label="`Actions pour ${formatAgentName(row)}`"
+          :aria-label="`Actions pour ${formatAgentLabel(row)}`"
         />
       </template>
     </CspDropdownMenu>
