@@ -1,6 +1,6 @@
 ---
 status: proposé
-date: 2026-11-25
+date: 2026-11-27
 decision-makers: Équipe
 ---
 
@@ -11,12 +11,6 @@ decision-makers: Équipe
 Dans quel fichier une personne qui arrive, ou un agent de code, cherche-t-il une règle, un mode d'emploi ou la raison d'un choix ? Le dépôt contient des décisions, des conventions, des guides et un glossaire, que les agents de code de chaque membre parcourent à chaque tâche. Quand on écrit un même contenu dans deux documents, les deux versions deviennent contradictoires.
 
 Le relevé de l'existant est dans l'[epic de la documentation](https://github.com/betagouv/csplab/issues/2529).
-
-## Options considérées
-
-1. La liste à plat de `docs/`, avec un index où on écrit la nature de chaque document : on garde tous les liens, et on ouvre l'index pour connaître la nature d'un document.
-2. Un dossier par nature. C'est l'option retenue.
-3. Une troisième série de décisions pour les choix d'outils : on reconnaît la nature d'une décision à son dossier, et l'équipe suit trois numérotations.
 
 ## Décision
 
@@ -34,6 +28,12 @@ On laisse à leur place le sous-module `docs/dat` et les exports de `docs/notebo
 - règle de produit : dans l'issue où on la tranche ;
 - décision de design (interaction, composition des composants, sens d'un élément visuel, ergonomie, choix d'un kit de design) : dans le Storybook, `src/web/frontend/src/stories/ddr/`, où les personnes du produit et du design la consultent ;
 - processus d'équipe : `CONTRIBUTING.md`, à la racine du dépôt.
+
+## Options considérées
+
+1. La liste à plat de `docs/`, avec un index où on écrit la nature de chaque document : on garde tous les liens, et on ouvre l'index pour connaître la nature d'un document.
+2. Un dossier par nature. C'est l'option retenue.
+3. Une troisième série de décisions pour les choix d'outils : on reconnaît la nature d'une décision à son dossier, et l'équipe suit trois numérotations.
 
 ## Conséquences
 
