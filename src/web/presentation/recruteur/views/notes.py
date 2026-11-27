@@ -131,7 +131,7 @@ class CandidatureNotesView(ConditionalGetMixin, NoteBaseView, ListAPIView):
             if page is None
             else with_authorized_actions(
                 page,
-                organisme_id=self.kwargs["organisme_uuid"],
+                organisme_role=queryset.organisme_role,  # type: ignore[attr-defined]
                 recrutement_id=self.kwargs["recrutement_uuid"],
                 utilisateur=self.request.user,
             )

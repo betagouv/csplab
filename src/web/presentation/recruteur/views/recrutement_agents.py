@@ -108,8 +108,7 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
             if page is None
             else with_authorized_actions(
                 page,
-                organisme_id=self.kwargs["organisme_uuid"],
-                recrutement_id=self.kwargs["recrutement_uuid"],
+                demandeur_role=queryset.demandeur_role,  # type: ignore[attr-defined]
                 utilisateur=self.request.user,
             )
         )
@@ -132,8 +131,7 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
         )
         [recrutement_agent] = with_authorized_actions(
             [recrutement_agent],
-            organisme_id=organisme_uuid,
-            recrutement_id=recrutement_uuid,
+            demandeur_role=recrutement_agent.demandeur_role,  # type: ignore[attr-defined]
             utilisateur=request.user,
         )
         return Response(

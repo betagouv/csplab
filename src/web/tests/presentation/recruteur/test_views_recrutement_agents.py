@@ -45,8 +45,23 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # matching recrutement with organisme
     + 2  # pagination : count + page
     + 1  # prefetch tags_liaisons (tag via select_related)
-    + 1  # organisme (authorized_actions)
-    + 1  # agent's role (authorized_actions)
+)
+NOMBRE_REQUETES_POST_ATTENDU = (
+    2  # authentification
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # agent's profile
+    + 1  # matching recrutement with organisme
+    + 1  # agent is not already a member
+    + 1  # savepoint : service transaction
+    + 1  # agent attached to organisme
+    + 3  # update_or_create : savepoint, lookup, savepoint
+    + 1  # insert recrutement_agent
+    + 2  # release : create, update_or_create
+    + 2  # audit log : update, insert
+    + 1  # release : service transaction
+    + 1  # serializer : agent's utilisateur
+    + 1  # serializer : tags
 )
 _ACTIONS_SUR_MEMBRE = ["update_recrutement_agent", "revoke_recrutement_agent"]
 
@@ -341,6 +356,28 @@ class TestRecrutementAgentsViewPost:
             recrutement=recrutement, agent=membre
         ).exists()
 
+    def test_does_not_replay_the_permission_checks_for_the_authorized_actions(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        with django_assert_num_queries(NOMBRE_REQUETES_POST_ATTENDU):
+            response = authenticated_client.post(
+                _url(organisme.id, recrutement.pk), payload
+            )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
     def test_staff_can_add_agent_without_organisme_role(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
         api_client.force_login(staff_user)
@@ -597,6 +634,7 @@ class TestRecrutementAgentsViewPost:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["authorized_actions"] == _ACTIONS_SUR_MEMBRE
 
 
 class TestRecrutementAgentsViewPut:

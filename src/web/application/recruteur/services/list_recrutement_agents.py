@@ -10,6 +10,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.identite.value_objects.permission_action import PermissionAction
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -19,7 +20,7 @@ from infrastructure.django_apps.users.models import UserModel
 def list_recrutement_agents(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> QuerySet[RecrutementAgentModel]:
-    PermissionService().authorize(
+    demandeur_role = PermissionService().authorize(
         action=PermissionAction.LIST_RECRUTEMENT_AGENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -31,26 +32,19 @@ def list_recrutement_agents(
     )
     contexte.check_recrutement_belongs_to_organisme()
 
-    return RecrutementAgentModel.objects.by_recrutement(recrutement_id).with_tags()
+    agents = RecrutementAgentModel.objects.by_recrutement(recrutement_id).with_tags()
+    agents.demandeur_role = demandeur_role  # type: ignore[attr-defined]
+    return agents
 
 
 def with_authorized_actions(
     members: Iterable[RecrutementAgentModel],
     *,
-    organisme_id: UUID,
-    recrutement_id: UUID,
+    demandeur_role: AgentOrganismeRole | None,
     utilisateur: UserModel,
 ) -> list[RecrutementAgentModel]:
-    page = list(members)
-    if not page:
-        return page
     permissions = PermissionService()
-    demandeur_role = permissions.authorize(
-        action=PermissionAction.LIST_RECRUTEMENT_AGENTS,
-        utilisateur=utilisateur,
-        organisme_id=organisme_id,
-        recrutement_id=recrutement_id,
-    )
+    page = list(members)
     for member in page:
         member.authorized_actions = [  # type: ignore[attr-defined]
             action.value

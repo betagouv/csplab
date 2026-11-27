@@ -71,4 +71,5 @@ def add_recrutement_agent(
             ),
         )
 
+    recrutement_agent.demandeur_role = demandeur_role  # type: ignore[attr-defined]
     return recrutement_agent
