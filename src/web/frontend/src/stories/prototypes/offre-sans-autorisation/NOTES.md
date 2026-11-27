@@ -229,7 +229,7 @@ Réponses aux questions
   Candidatures, pas de recrutement (absentes de « Mes recrutements »). Même affichage pour une offre « Diffuser uniquement ».
 - Filtre « Candidatures » : gérées dans l'ATS, gérées hors ATS, offres téléversées.
 - Question ouverte : d'où viennent les offres téléversées (import d'un fichier, flux) et qui les téléverse ?
-- Tableau (27/11/2026) : colonne « Origine » (Créée manuellement / Téléversée, avec icône) dans tous les onglets sauf
+- Tableau (27/11/2026) : colonne « Origine » (Créée manuellement / Téléversée, texte seul) dans tous les onglets sauf
   « En préparation », à la place de l'étiquette sous l'intitulé. Colonne « Candidatures » explicite : « N candidatures ·
   dans l'ATS » (lien) ou « Hors ATS · sur un autre site / par courriel ». Exemple fictif d'offre créée manuellement mais
   gérée hors ATS : OFF-2026-0127.
