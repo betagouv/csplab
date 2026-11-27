@@ -185,6 +185,9 @@ const compte = computed(() => {
   return `${n} offre${n > 1 ? 's' : ''}`
 })
 const page = ref(1)
+
+// Sous-titre sur deux lignes (Alice, 27/11/2026) : le \n est respecté par PageAts.
+const SOUS_TITRE = 'Créez et gérez vos offres d\'emploi, de leur préparation à leur publication.\nCertaines peuvent être associées à un recrutement pour traiter les candidatures.'
 </script>
 
 <template>
@@ -192,7 +195,7 @@ const page = ref(1)
     v-model:onglet="onglet"
     actif="offres"
     titre="Mes offres d'emploi"
-    :sous-titre="`Créez et gérez vos offres d'emploi, de leur préparation à leur publication.\nCertaines peuvent être associées à un recrutement pour traiter les candidatures.`"
+    :sous-titre="SOUS_TITRE"
     :fil="[{ label: 'Mes offres d\'emploi' }]"
     :onglets="onglets"
   >

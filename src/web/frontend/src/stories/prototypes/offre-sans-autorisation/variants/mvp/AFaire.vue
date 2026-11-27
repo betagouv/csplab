@@ -17,15 +17,22 @@ const props = defineProps<{ offres: Record<CarteAFaire, Offre[]> }>()
 const emit = defineEmits<{ choisir: [CarteAFaire] }>()
 const { aller } = useNav()
 
-function dans(o: Offre) {
-  const j = joursRestants(o.dateFin)
-  return j <= 0 ? 'aujourd\'hui' : j === 1 ? 'demain' : `dans ${j} jours`
+// Repère « J-4 » à côté du titre (Alice, 27/11/2026). Plusieurs offres : l'échéance la plus proche.
+function echeance(offres: Offre[]) {
+  const j = Math.max(0, Math.min(...offres.map(o => joursRestants(o.dateFin))))
+  return { court: `J-${j}`, long: j === 0 ? 'aujourd\'hui' : j === 1 ? 'demain' : `dans ${j} jours` }
 }
 const cartes = computed(() => ([
-  // Retour PO (26/11/2026) : dire clairement que l'offre sera dépubliée automatiquement, et quand.
-  { id: 'prolonger' as const, icone: 'ri:time-line', titre: (n: number, o?: Offre) => (n > 1 ? `${n} offres seront dépubliées automatiquement dans moins de 7 jours` : `Une offre sera dépubliée automatiquement ${dans(o!)}`) },
+  // Titre raccourci (Alice, 27/11/2026) : « 1 offre arrive en fin de publication » + repère J-x. Remplace « Une offre
+  // sera dépubliée automatiquement dans N jours » (retour PO du 26/11/2026, à revalider avec elle).
+  { id: 'prolonger' as const, icone: 'ri:time-line', titre: (n: number) => (n > 1 ? `${n} offres arrivent en fin de publication` : '1 offre arrive en fin de publication') },
   { id: 'publier' as const, icone: 'ri:send-plane-line', titre: (n: number) => (n > 1 ? `${n} offres prêtes à publier` : 'Une offre prête à publier') },
-]).filter(c => props.offres[c.id].length > 0).map(c => ({ ...c, n: props.offres[c.id].length, seule: props.offres[c.id].length === 1 ? props.offres[c.id][0]! : null })))
+]).filter(c => props.offres[c.id].length > 0).map(c => ({
+  ...c,
+  n: props.offres[c.id].length,
+  seule: props.offres[c.id].length === 1 ? props.offres[c.id][0]! : null,
+  echeance: c.id === 'prolonger' ? echeance(props.offres[c.id]) : null,
+})))
 </script>
 
 <template>
@@ -58,7 +65,14 @@ const cartes = computed(() => ([
                 :size="20"
                 class="carte__icone"
               />
-              {{ c.titre(c.n, c.seule ?? undefined) }}
+              {{ c.titre(c.n) }}
+              <span
+                v-if="c.echeance"
+                class="carte__jours"
+              >
+                <span aria-hidden="true">{{ c.echeance.court }}</span>
+                <span class="sr-only">, fin {{ c.n > 1 ? 'de la première ' : '' }}{{ c.echeance.long }}</span>
+              </span>
             </span>
             <span
               v-if="c.seule"
@@ -160,6 +174,26 @@ const cartes = computed(() => ([
   margin: 0;
   font-weight: 700;
   color: var(--text-title-grey);
+}
+
+.carte__jours {
+  flex-shrink: 0;
+  padding: 0 var(--csp-space-2);
+  border-radius: 0.25rem;
+  background: var(--background-contrast-warning);
+  font-size: var(--csp-font-size-xs);
+  font-weight: 700;
+  line-height: 1.5rem;
+  color: var(--text-default-warning);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .carte__offre {
