@@ -1,10 +1,8 @@
+import { formatPersonName } from '@/utils/format'
+
 interface AgentIdentite {
   prenom: string
   nom: string
-}
-
-export function formatAgentName(agent: AgentIdentite): string {
-  return `${agent.prenom} ${agent.nom}`.trim()
 }
 
 export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
@@ -12,9 +10,9 @@ export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
 }
 
 export function formatAgentLabel(agent: AgentIdentite & { email: string }): string {
-  return formatAgentName(agent) || agent.email
+  return formatPersonName(agent) || agent.email
 }
 
 export function agentSearchKeys(agent: AgentIdentite & { email: string }): string[] {
-  return [formatAgentName(agent), formatAgentNameAlphabetical(agent), agent.email]
+  return [formatPersonName(agent), formatAgentNameAlphabetical(agent), agent.email]
 }
