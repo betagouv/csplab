@@ -162,8 +162,9 @@
   /* Kanban board and columns, mirrored by the kanban skeleton */
   --csp-kanban-gap: var(--csp-space-3);
   --csp-kanban-padding-bottom: var(--csp-space-2);
-  --csp-kanban-column-width: 18.75rem;
+  --csp-kanban-column-content-width: 17.25rem;
   --csp-kanban-column-padding: var(--csp-space-3);
+  --csp-kanban-column-width: calc(var(--csp-kanban-column-content-width) + 2 * var(--csp-kanban-column-padding));
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
   --csp-kanban-column-accent-color: var(--border-default-grey);
