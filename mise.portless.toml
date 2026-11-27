@@ -2,6 +2,9 @@
 # behind the portless proxy on https://*.csplab.localhost (docs/local_https_named_host.md).
 # In a git worktree, portless prefixes every host with the branch name.
 
+[tools]
+"npm:portless" = "0.15"
+
 # a run of its own replaces the dev task of mise.toml; without it, the depends would add to its own
 [tasks.dev]
 description = "ATS dev stack behind portless: https://csplab.localhost"

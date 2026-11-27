@@ -28,7 +28,7 @@ Par défaut, l'ATS tourne sur `http://localhost:8000` et charge Vite depuis `htt
 
 ## Configuration portless
 
-[portless](https://github.com/vercel-labs/portless) donne un nom `.localhost` en HTTPS à chaque serveur de dev, sur un port choisi par lui. On l'installe une fois par machine (`npm install -g portless`, puis `portless service install`, qui demande le mot de passe de la session).
+[portless](https://github.com/vercel-labs/portless) donne un nom `.localhost` en HTTPS à chaque serveur de dev, sur un port choisi par lui. `MISE_ENV=portless mise install` l'installe avec les autres outils du dépôt. Au premier lancement d'une tâche, portless démarre son proxy, crée une autorité de certification locale et peut demander le mot de passe de la session. En option, `portless service install` démarre le proxy avec la machine ; on relance cette commande après une mise à jour de Node, car le service appelle Node par son chemin complet.
 
 L'environnement mise `portless` charge `mise.portless.toml` et `src/web/mise.portless.toml` par-dessus la configuration par défaut :
 
