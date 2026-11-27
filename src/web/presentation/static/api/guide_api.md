@@ -124,10 +124,16 @@ son rafraîchissement et chaque appel avec un jeton déjà obtenu sont alors ref
 
 ## Limitations d'usage (quotas)
 
-Pour préserver le service, le nombre d'appels est plafonné :
+Pour préserver le service, le nombre d'appels est plafonné. Chaque route de la
+[référence de l'API](/api/schema/redoc) indique ses limites, selon le mode
+d'authentification : jeton JWT, clé d'API ou sans authentification.
 
-- **120 appels par minute et par utilisateur** sur les routes de consultation et
-  d'ingestion d'offres et de métiers.
+- Chaque réponse d'une route limitée porte les en-têtes `X-RateLimit-Limit`,
+  `X-RateLimit-Remaining` et `X-RateLimit-Reset` de la limite la plus proche d'être
+  atteinte.
+- Au-delà, l'API renvoie `429 Trop de requêtes`, avec l'en-tête `Retry-After` : le
+  nombre de secondes à attendre avant de réessayer.
+- Les authentifications refusées sont aussi limitées, par adresse IP.
 - **100 offres maximum par appel** lors d'une création/modification groupée d'offres.
 
 

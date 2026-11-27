@@ -7,7 +7,14 @@ paths:
   /api/changelog.atom:
     get:
       operationId: changelog_atom
-      description: Une entrée par changement, pour être prévenu des nouveaux.
+      description: |-
+        Une entrée par changement, pour être prévenu des nouveaux.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 60 appels par minute | par adresse IP |
       summary: Changelog en flux Atom
       parameters:
       - in: query
@@ -93,8 +100,14 @@ paths:
   /api/changelog.json:
     get:
       operationId: changelog_json
-      description: Une entrée par changement, du plus récent au plus ancien, avec
-        ses routes, sa PR et ses tickets.
+      description: |-
+        Une entrée par changement, du plus récent au plus ancien, avec ses routes, sa PR et ses tickets.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 60 appels par minute | par adresse IP |
       summary: Changelog en JSON
       parameters:
       - in: query
@@ -180,8 +193,14 @@ paths:
   /api/changelog.md:
     get:
       operationId: changelog_markdown
-      description: Le changelog de l'API en Markdown, du plus récent au plus ancien,
-        avec des liens absolus. Une note rappelle les filtres actifs.
+      description: |-
+        Le changelog de l'API en Markdown, du plus récent au plus ancien, avec des liens absolus. Une note rappelle les filtres actifs.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 60 appels par minute | par adresse IP |
       summary: Changelog en Markdown
       parameters:
       - in: query
@@ -267,7 +286,15 @@ paths:
   /api/fake-ts/offers/getoffer:
     get:
       operationId: fake_ts_offers_getoffer_retrieve
-      description: Simule l'API Talentsoft `offers/getoffer`.
+      description: |-
+        Simule l'API Talentsoft `offers/getoffer`.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       summary: Détail d'une offre (format Talentsoft)
       parameters:
       - in: query
@@ -356,7 +383,15 @@ paths:
   /api/fake-ts/offersummaries:
     get:
       operationId: fake_ts_offersummaries_list
-      description: Simule l'API Talentsoft `offersummaries`.
+      description: |-
+        Simule l'API Talentsoft `offersummaries`.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       summary: Liste des offres (format Talentsoft)
       parameters:
       - in: query
@@ -1440,8 +1475,15 @@ paths:
   /api/fake-ts/organisation/{entity_code}:
     get:
       operationId: fake_ts_organisation_retrieve
-      description: Simule l'API Talentsoft `organisation/{id}`, à partir de l'`entityCode`
-        de l'organisation.
+      description: |-
+        Simule l'API Talentsoft `organisation/{id}`, à partir de l'`entityCode` de l'organisation.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       summary: Détail d'une organisation (format Talentsoft)
       parameters:
       - in: path
@@ -1541,8 +1583,15 @@ paths:
   /api/fake-ts/referentials/{referential_type}:
     get:
       operationId: fake_ts_referentials_list
-      description: Liste les valeurs possibles d'un référentiel utilisé par l'API
-        fake-ts, au format objet codé Talentsoft.
+      description: |-
+        Liste les valeurs possibles d'un référentiel utilisé par l'API fake-ts, au format objet codé Talentsoft.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       summary: Valeurs d'un référentiel (format Talentsoft)
       parameters:
       - in: query
@@ -1627,7 +1676,14 @@ paths:
   /api/guide.md:
     get:
       operationId: guide_markdown
-      description: Les règles métier de chaque route et de chaque champ.
+      description: |-
+        Les règles métier de chaque route et de chaque champ.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 60 appels par minute | par adresse IP |
       summary: Guide de l'API en Markdown
       tags:
       - documentation
@@ -1672,6 +1728,12 @@ paths:
       description: |-
         Takes a set of user credentials and returns an access and refresh JSON web
         token pair to prove the authentication of those credentials.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 5 appels par minute | par adresse IP |
       tags:
       - token
       requestBody:
@@ -1727,6 +1789,13 @@ paths:
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
         token if the refresh token is valid.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Sans authentification | 5 appels par minute | par adresse IP |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       tags:
       - token
       requestBody:
@@ -1804,6 +1873,17 @@ paths:
         - `500 Internal Server Error` — erreur inattendue côté serveur
 
         **Authentification :** Token JWT requis.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Upload et traitement d'un fichier CSV de concours GRECO
       tags:
       - concours
@@ -1992,7 +2072,7 @@ paths:
   /api/v1/metiers:
     get:
       operationId: v1_metiers_list
-      description: |2
+      description: |2-
 
         # API de consultation des métiers de la Fonction Publique
 
@@ -2015,9 +2095,16 @@ paths:
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
         utilisateur.
 
-        # Limitations
+        **Limites d'appels**
 
-        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des métiers
       parameters:
       - in: query
@@ -2303,7 +2390,7 @@ paths:
   /api/v1/offres:
     get:
       operationId: v1_offres_list
-      description: |2
+      description: |2-
 
         # API de consultation des offres d'emploi de la Fonction Publique
 
@@ -2346,9 +2433,16 @@ paths:
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
         utilisateur.
 
-        # Limitations
+        **Limites d'appels**
 
-        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des offres
       parameters:
       - in: query
@@ -3552,6 +3646,17 @@ paths:
         - `404 Not Found` — aucune offre trouvée pour cette référence
 
         **Authentification :** Token JWT ou clé d'API requis.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Archiver une offre par référence
       tags:
       - offres
@@ -3707,7 +3812,7 @@ paths:
   /api/v1/offres/creer_modifier:
     post:
       operationId: v1_offres_creer_modifier_create
-      description: |2
+      description: |2-
 
         # API d'ingestion d'offres d'emploi de la Fonction Publique
 
@@ -3742,9 +3847,18 @@ paths:
 
         # Limitations
 
-        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
-
         Le nombre d'offres transmises par appel à l'API est limité à 100.
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour une offre d'emploi
       tags:
       - offres
@@ -3870,7 +3984,7 @@ paths:
   /api/v1/offres/sources/{source_id}:
     get:
       operationId: v1_offres_sources_list
-      description: |2
+      description: |2-
 
         # API de consultation des offres d'une source
 
@@ -3888,9 +4002,16 @@ paths:
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
         utilisateur.
 
-        # Limitations
+        **Limites d'appels**
 
-        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Liste des offres d'une source
       parameters:
       - name: page
@@ -4009,7 +4130,7 @@ paths:
   /api/v1/organismes:
     get:
       operationId: v1_organismes_list
-      description: |2
+      description: |2-
 
         # API de consultation des organismes de la Fonction Publique
 
@@ -4038,9 +4159,12 @@ paths:
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
         utilisateur.
 
-        # Limitations
+        **Limites d'appels**
 
-        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
       summary: Liste des organismes
       parameters:
       - in: query
@@ -4470,8 +4594,18 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
     put:
       operationId: v1_organismes_update
-      description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
-        un payload JSON. La suppression se base sur le couple (référentiel, external_id).
+      description: |-
+        Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via un payload JSON. La suppression se base sur le couple (référentiel, external_id).
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Supprimer des organismes
       tags:
       - organismes
@@ -4558,8 +4692,18 @@ paths:
   /api/v1/organismes/creer_modifier:
     post:
       operationId: v1_organismes_creer_modifier_create
-      description: Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via
-        un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
+      description: |-
+        Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via un payload JSON. L'upsert se base sur le couple (référentiel, external_id).
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour des organismes
       tags:
       - organismes
@@ -4646,9 +4790,18 @@ paths:
   /api/v1/talentsoft_organisme/creer_modifier:
     post:
       operationId: v1_talentsoft_organisme_creer_modifier_create
-      description: Créer ou mettre à jour, entre 1 et 100 organismes Talentsoft à
-        la fois, via un payload JSON. L'upsert se base sur le code de l'entité Talentsoft
-        (`entity_code`).
+      description: |-
+        Créer ou mettre à jour, entre 1 et 100 organismes Talentsoft à la fois, via un payload JSON. L'upsert se base sur le code de l'entité Talentsoft (`entity_code`).
+
+        **Limites d'appels**
+
+        | Appel | Limite | Décompte |
+        |---|---|---|
+        | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
+        | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
+        | Authentification refusée | 10 appels par minute | par adresse IP |
+
+        Les limites d'un même mode d'authentification se cumulent : la première atteinte bloque l'appel.
       summary: Ajouter/mettre à jour des organismes Talentsoft
       tags:
       - talentsoft_organisme
@@ -7923,8 +8076,7 @@ tags:
 - name: documentation
   x-displayName: Markdown, JSON et Atom
   description: Le changelog et le guide de l'API en formats bruts, pour les outils
-    et les assistants IA. Routes publiques, sans authentification, limitées à 60 appels
-    par minute et par adresse IP.
+    et les assistants IA. Routes publiques, sans authentification.
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true

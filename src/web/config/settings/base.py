@@ -387,7 +387,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "presentation.api.openapi_schema.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
@@ -503,8 +503,7 @@ SPECTACULAR_SETTINGS = {
             "x-displayName": "Markdown, JSON et Atom",
             "description": (
                 "Le changelog et le guide de l'API en formats bruts, pour les outils "
-                "et les assistants IA. Routes publiques, sans authentification, "
-                "limitées à 60 appels par minute et par adresse IP."
+                "et les assistants IA. Routes publiques, sans authentification."
             ),
         },
         {

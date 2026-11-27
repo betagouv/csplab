@@ -216,7 +216,7 @@ description = "Regenerate the public and internal OpenAPI schemas, then the fron
 depends = ["install:py"]
 depends_post = ["//src/web/frontend:types"]
 run = [
-  "python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate",
+  "DJANGO_SETTINGS_MODULE=config.settings.base python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate",
   "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py openapi_schema --file presentation/static/api/internal-schema.yaml --validate",
 ]
 
@@ -225,7 +225,7 @@ alias = "web:lint:schema"
 description = "Check the public OpenAPI schema is up to date"
 depends = ["install:py"]
 run = [
-  "python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate --fail-on-warn",
+  "DJANGO_SETTINGS_MODULE=config.settings.base python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/schema.yaml",
 ]
 
