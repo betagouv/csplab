@@ -6,12 +6,12 @@ import EditMotifRefusDialog from './EditMotifRefusDialog.vue'
 describe('editMotifRefusDialog', () => {
   it('preselects the current motif once the motifs are loaded', async () => {
     const { rerender } = render(EditMotifRefusDialog, {
-      props: { open: true, currentMotif: 'disponibilite', motifs: [] },
+      props: { open: true, currentMotif: 'competences_techniques_insuffisantes', motifs: [] },
     })
 
     await rerender({ motifs: MOTIFS_REFUS })
     const select = await screen.findByRole('combobox', { name: /Motif de refus/ })
-    expect(select).toHaveTextContent('Disponibilité')
+    expect(select).toHaveTextContent('Compétences techniques insuffisantes')
     expect(screen.getByRole('button', { name: 'Enregistrer le motif' })).toBeDisabled()
   })
 })

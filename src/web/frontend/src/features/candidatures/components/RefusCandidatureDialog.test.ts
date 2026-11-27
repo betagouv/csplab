@@ -16,10 +16,10 @@ describe('refusCandidatureDialog', () => {
     expect(screen.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
     await user.click(screen.getByRole('combobox', { name: /Motif de refus/ }))
-    await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
+    await user.click(await screen.findByRole('option', { name: 'Compétences techniques insuffisantes' }))
     await user.click(screen.getByRole('button', { name: 'Valider le refus' }))
 
-    expect(emitted('confirm')).toEqual([['disponibilite']])
+    expect(emitted('confirm')).toEqual([['competences_techniques_insuffisantes']])
   })
 
   it('counts the candidatures of a batch refusal and cancels without choosing', async () => {
