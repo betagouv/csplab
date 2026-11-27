@@ -314,11 +314,12 @@ const MOTS_METIER: [string, string][] = [['paie', 'gest-paie'], ['recrutement', 
 /** Support maître : toute publication passe par lui (simple diffusion). */
 export const SUPPORT_MAITRE = { id: 'csp', nom: 'Choisir le Service Public', detail: 'Support de publication maître' }
 /** Sites partenaires proposés en multi-diffusion (liste indicative, simulée). */
+// Modalités fictives (démo), à remplacer par celles des vrais partenaires.
 export const SITES_PARTENAIRES = [
-  { id: 'intranet', nom: 'Intranet ministériel', detail: 'Visible des agents du ministère' },
-  { id: 'francetravail', nom: 'France Travail', detail: 'Site d\'emploi généraliste' },
-  { id: 'apec', nom: 'Apec', detail: 'Postes de cadres' },
-  { id: 'linkedin', nom: 'LinkedIn', detail: 'Réseau professionnel' },
+  { id: 'intranet', nom: 'Intranet ministériel', detail: 'Visible des agents du ministère', modalite: 'Publication immédiate' },
+  { id: 'francetravail', nom: 'France Travail', detail: 'Site d\'emploi généraliste', modalite: 'Publication sous 24 h' },
+  { id: 'apec', nom: 'Apec', detail: 'Postes de cadres', modalite: 'Catégorie A uniquement' },
+  { id: 'linkedin', nom: 'LinkedIn', detail: 'Réseau professionnel', modalite: 'Selon le contrat de l\'organisme' },
 ]
 export const CANAUX_DIFFUSION = [SUPPORT_MAITRE, ...SITES_PARTENAIRES]
 

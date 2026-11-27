@@ -13,9 +13,10 @@ const props = defineProps<{ offre: Offre }>()
 const o = computed(() => props.offre)
 const horsAts = computed(() => o.value.modeCandidature !== 'ats')
 
+// Multidiffuser : oui / non, puis les sites en cases à cocher côte à côte (Alice, 27/11/2026).
 const MULTI = [
-  { value: 'simple', label: `${SUPPORT_MAITRE.nom} uniquement` },
-  { value: 'multi', label: `${SUPPORT_MAITRE.nom} et d'autres sites (multidiffusion)` },
+  { value: 'multi', label: 'Oui' },
+  { value: 'simple', label: 'Non' },
 ]
 const multi = computed({
   get: () => o.value.diffusion ?? 'simple',
@@ -34,6 +35,10 @@ function basculer(id: string, v: boolean) {
   o.value.canaux = [SUPPORT_MAITRE.id, ...autres, ...(v ? [id] : [])]
 }
 const NOM_MAITRE = SUPPORT_MAITRE.nom
+// Pas de vrais logos dans le proto : une pastille avec les initiales du site.
+function initiales(nom: string) {
+  return nom.split(/\s+/).map(m => m[0]).join('').slice(0, 2).toUpperCase()
+}
 </script>
 
 <template>
@@ -57,7 +62,7 @@ const NOM_MAITRE = SUPPORT_MAITRE.nom
       Sites de diffusion
     </h3>
     <p class="groupe__desc">
-      L'offre est toujours publiée sur {{ NOM_MAITRE }}.
+      L'offre est par défaut publiée sur {{ NOM_MAITRE }}.
     </p>
     <ChampSimple label="Multidiffuser l'offre ?">
       <CspRadioGroup
@@ -72,19 +77,27 @@ const NOM_MAITRE = SUPPORT_MAITRE.nom
       class="sites"
     >
       <legend class="sites__legende">
-        Autres sites (liste indicative)
+        Sites partenaires (liste indicative)
       </legend>
-      <div
-        v-for="s in SITES_PARTENAIRES"
-        :key="s.id"
-        class="site"
-      >
-        <CspCheckbox
-          :model-value="coche(s.id)"
-          :label="s.nom"
-          @update:model-value="(v?: boolean) => basculer(s.id, Boolean(v))"
-        />
-        <span class="site__detail">{{ s.detail }}</span>
+      <div class="sites__grille">
+        <div
+          v-for="s in SITES_PARTENAIRES"
+          :key="s.id"
+          class="site"
+          :class="{ 'site--coche': coche(s.id) }"
+        >
+          <span
+            class="site__logo"
+            aria-hidden="true"
+          >{{ initiales(s.nom) }}</span>
+          <CspCheckbox
+            :model-value="coche(s.id)"
+            :label="s.nom"
+            @update:model-value="(v?: boolean) => basculer(s.id, Boolean(v))"
+          />
+          <span class="site__detail">{{ s.detail }}</span>
+          <span class="site__detail">{{ s.modalite }}</span>
+        </div>
       </div>
     </fieldset>
   </div>
@@ -147,10 +160,36 @@ const NOM_MAITRE = SUPPORT_MAITRE.nom
   font-weight: var(--csp-font-weight-bold);
 }
 
+.sites__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--csp-space-3);
+}
+
 .site {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--csp-space-1) var(--csp-space-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--csp-space-1);
+  padding: var(--csp-space-4);
+  border: 1px solid var(--border-default-grey);
+
+  &--coche {
+    border-color: var(--border-active-blue-france);
+    background: var(--background-alt-blue-france);
+  }
+}
+
+.site__logo {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: var(--csp-space-2);
+  border-radius: 0.25rem;
+  background: var(--background-contrast-grey);
+  font-size: var(--csp-font-size-xs);
+  font-weight: 700;
+  color: var(--text-mention-grey);
 }
 </style>

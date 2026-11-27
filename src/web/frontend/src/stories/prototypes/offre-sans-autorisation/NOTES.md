@@ -259,3 +259,10 @@ Propositions de Claude, à valider :
 
 Pas repris (choix d'Alice) : colonne « Mise en pause », partie 4 (processus et équipe), « Publier » puis écran de
 multidiffusion à part, ajustements métier / famille.
+
+## Étape « Diffusion » : multidiffusion (Alice, 27/11/2026)
+
+« L'offre est par défaut publiée sur Choisir le Service Public. » Puis « Multidiffuser l'offre ? » Oui / Non ; si oui,
+les sites partenaires côte à côte en cases à cocher : pastille, nom, public visé et modalité en gris.
+**À remplacer** : les pastilles à initiales tiennent lieu de logos (pas de logos dans le proto) ; les modalités
+(« Publication sous 24 h », « Catégorie A uniquement »…) sont fictives.
