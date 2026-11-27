@@ -192,7 +192,7 @@ const page = ref(1)
     v-model:onglet="onglet"
     actif="offres"
     titre="Mes offres d'emploi"
-    sous-titre="Retrouvez toutes vos offres d'emploi : en préparation, en ligne, en pause et archivées."
+    sous-titre="Créez et gérez vos offres d'emploi, de leur préparation à leur publication. Certaines peuvent être associées à un recrutement pour traiter les candidatures."
     :fil="[{ label: 'Mes offres d\'emploi' }]"
     :onglets="onglets"
   >
