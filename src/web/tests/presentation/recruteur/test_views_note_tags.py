@@ -64,7 +64,7 @@ class TestCandidatureNoteTagsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -79,7 +79,10 @@ class TestCandidatureNoteTagsView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
+        assert not NoteTagModel.objects.exists()
+        assert not AuditLogModel.objects.exists()
 
     def test_requires_tag_uuid(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
@@ -236,7 +239,7 @@ class TestCandidatureNoteTagDetailView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -251,7 +254,8 @@ class TestCandidatureNoteTagDetailView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert NoteTagModel.objects.filter(pk=pose.pk).exists()
 
     def test_note_of_another_author_is_not_found(self, authenticated_client, test_user):

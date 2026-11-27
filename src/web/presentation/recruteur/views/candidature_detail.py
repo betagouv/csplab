@@ -7,18 +7,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.get_candidature import get_candidature
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
-)
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.conditional_get import ConditionalGetMixin
@@ -53,18 +45,7 @@ class CandidatureDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
         return Response(CandidatureDetailSerializer(result).data)
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                AccesOrganismeRefuse,
-                OperationOrganismeRefusee,
-                AccesRecrutementRefuse,
-                AccesRecrutementInconnu,
-                OrganismeNexistePas,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-            ),
-        ):
+        if isinstance(exc, CandidatureInaccessible):
             return candidature_inaccessible_response()
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)

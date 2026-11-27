@@ -3,14 +3,8 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
-)
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
-)
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.permission_action import PermissionAction
@@ -31,20 +25,13 @@ def update_note_visibility(
     est_privee: bool,
     utilisateur: UserModel,
 ) -> NoteModel:
-    PermissionService().authorize(
-        action=PermissionAction.UPDATE_NOTE,
-        utilisateur=utilisateur,
+    candidature_service = CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
     )
-    contexte = RecrutementAgentService(
-        organisme_id=organisme_id, recrutement_id=recrutement_id
-    )
-    contexte.check_recrutement_belongs_to_organisme()
-    candidature_service = CandidatureAgentService(
-        recrutement_id=recrutement_id, candidature_id=candidature_id
-    )
-    candidature_service.check_candidature_belongs_to_recrutement()
+    candidature_service.check_accessible(PermissionAction.UPDATE_NOTE)
 
     with transaction.atomic():
         try:

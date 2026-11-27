@@ -33,11 +33,6 @@ class RecrutementEtapeInexistante(RecrutementError):
         )
 
 
-class CandidatureInexistante(RecrutementError):
-    def __init__(self, candidature_id: UUID):
-        super().__init__((f"Candidature {candidature_id} inexistante"))
-
-
 class RecrutementDocumentInexistant(RecrutementError):
     def __init__(self, document_id: UUID):
         super().__init__(

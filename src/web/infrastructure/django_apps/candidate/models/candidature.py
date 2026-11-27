@@ -66,13 +66,11 @@ class CandidatureQuerySet(TaggedQuerySet):
         return self.filter(etape_id=etape_id).order_by("created_at")
 
     def for_etape_change(
-        self, candidature_ids: Sequence[UUID]
+        self, recrutement_id: UUID, candidature_ids: Sequence[UUID]
     ) -> "CandidatureQuerySet":
-        return (
-            self.filter(id__in=candidature_ids)
-            .select_related("etape")
-            .select_for_update(of=("self",))
-        )
+        return self.filter(
+            etape__recrutement_id=recrutement_id, id__in=candidature_ids
+        ).select_for_update(of=("self",))
 
     def with_detail(self) -> "CandidatureQuerySet":
         return self.select_related(

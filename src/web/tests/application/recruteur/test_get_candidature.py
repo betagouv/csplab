@@ -1,19 +1,8 @@
 from datetime import timedelta
-from uuid import uuid4
 
-import pytest
 from django.utils import timezone
 
 from application.recruteur.services.get_candidature import get_candidature
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementRefuse,
-)
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
-)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -29,11 +18,7 @@ from infrastructure.factories.candidate.document_django_factory import (
     DocumentDjangoFactory,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
-    OrganismeDjangoFactory,
     create_organisme_with_agent,
-)
-from infrastructure.factories.identite.utilisateur_django_factory import (
-    UtilisateurDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
@@ -133,85 +118,3 @@ def test_agent_member_of_recrutement_gets_the_detail(db):
     result = _get_detail(agent, organisme, recrutement, candidature)
 
     assert result.candidature == candidature
-
-
-def _kwargs(utilisateur, organisme, recrutement, candidature):
-    return {
-        "organisme_id": organisme.id,
-        "recrutement_id": recrutement.pk,
-        "candidature_id": candidature.pk,
-        "utilisateur": utilisateur,
-    }
-
-
-def _agent_not_member_of_recrutement():
-    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
-    return _kwargs(agent.utilisateur, organisme, recrutement, candidature)
-
-
-def _user_without_organisme_role():
-    organisme = OrganismeDjangoFactory()
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
-    return _kwargs(UtilisateurDjangoFactory(), organisme, recrutement, candidature)
-
-
-def _unknown_organisme():
-    return {
-        "organisme_id": uuid4(),
-        "recrutement_id": uuid4(),
-        "candidature_id": uuid4(),
-        "utilisateur": UtilisateurDjangoFactory(),
-    }
-
-
-def _recrutement_not_under_organisme():
-    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
-    other_recrutement = RecrutementDjangoFactory(organisme=OrganismeDjangoFactory())
-    candidature = CandidatureDjangoFactory(etape__recrutement=other_recrutement)
-    return _kwargs(agent.utilisateur, organisme, other_recrutement, candidature)
-
-
-def _candidature_of_another_recrutement():
-    agent, organisme, recrutement, _ = create_recrutement_and_candidature_for_agent()
-    other_candidature = CandidatureDjangoFactory(
-        etape__recrutement=RecrutementDjangoFactory(organisme=organisme)
-    )
-    return _kwargs(agent.utilisateur, organisme, recrutement, other_candidature)
-
-
-@pytest.mark.parametrize(
-    ("build_kwargs", "expected_error"),
-    [
-        pytest.param(
-            _agent_not_member_of_recrutement,
-            AccesRecrutementRefuse,
-            id="agent_not_member_of_recrutement",
-        ),
-        pytest.param(
-            _user_without_organisme_role,
-            AccesOrganismeRefuse,
-            id="user_without_organisme_role",
-        ),
-        pytest.param(
-            _unknown_organisme,
-            OrganismeNexistePas,
-            id="unknown_organisme",
-        ),
-        pytest.param(
-            _recrutement_not_under_organisme,
-            RecrutementInexistant,
-            id="recrutement_not_under_organisme",
-        ),
-        pytest.param(
-            _candidature_of_another_recrutement,
-            RecrutementCandidatureInexistante,
-            id="candidature_of_another_recrutement",
-        ),
-    ],
-)
-def test_access_is_denied(db, build_kwargs, expected_error):
-    with pytest.raises(expected_error):
-        get_candidature(**build_kwargs())

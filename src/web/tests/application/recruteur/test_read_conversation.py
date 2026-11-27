@@ -6,21 +6,16 @@ import pytest
 from django.db import IntegrityError
 from django.utils import timezone
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.read_conversation import (
     mark_as_read,
     read_conversation,
 )
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementRefuse,
-)
 from domain.recruteur.errors.recrutement_errors import (
     ConversationInexistante,
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.messagerie.models import ConversationLectureModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
@@ -88,7 +83,7 @@ def test_denied_read_leaves_no_read_receipt(db):
     )
     conversation = ConversationDjangoFactory(candidature=candidature)
 
-    with pytest.raises(AccesOrganismeRefuse):
+    with pytest.raises(CandidatureInaccessible):
         read_conversation(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.pk,
@@ -148,77 +143,6 @@ def test_failed_read_receipt_is_logged_and_swallowed(db, caplog):
         )
 
     assert "Could not mark conversation" in caplog.text
-
-
-def test_unauthorized_agent_is_denied(db):
-    recrutement, candidature = create_recrutement_with_candidature(
-        OrganismeDjangoFactory()
-    )
-
-    with pytest.raises(AccesOrganismeRefuse):
-        read_conversation(
-            organisme_id=recrutement.organisme_id,
-            recrutement_id=recrutement.pk,
-            candidature_id=candidature.pk,
-            conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
-            utilisateur=UtilisateurDjangoFactory(),
-        )
-
-
-def test_agent_without_recrutement_role_is_denied(db):
-    agent, organisme, recrutement, candidature = (
-        create_recrutement_and_candidature_for_agent(role=AgentOrganismeRole.AGENT)
-    )
-
-    with pytest.raises(AccesRecrutementRefuse):
-        read_conversation(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            candidature_id=candidature.pk,
-            conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
-            utilisateur=agent.utilisateur,
-        )
-
-
-def test_unknown_organisme_is_denied(db):
-    with pytest.raises(OrganismeNexistePas):
-        read_conversation(
-            organisme_id=uuid4(),
-            recrutement_id=uuid4(),
-            candidature_id=uuid4(),
-            conversation_id=uuid4(),
-            utilisateur=UtilisateurDjangoFactory(),
-        )
-
-
-def test_recrutement_not_under_organisme_is_denied(db):
-    agent, organisme, _, _ = create_recrutement_and_candidature_for_agent()
-    other_recrutement, other_candidature = create_recrutement_with_candidature(
-        OrganismeDjangoFactory()
-    )
-
-    with pytest.raises(RecrutementInexistant):
-        read_conversation(
-            organisme_id=organisme.id,
-            recrutement_id=other_recrutement.pk,
-            candidature_id=other_candidature.pk,
-            conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
-            utilisateur=agent.utilisateur,
-        )
-
-
-def test_candidature_not_under_recrutement_is_denied(db):
-    agent, organisme, recrutement, _ = create_recrutement_and_candidature_for_agent()
-    _, other_candidature = create_recrutement_with_candidature(organisme)
-
-    with pytest.raises(RecrutementCandidatureInexistante):
-        read_conversation(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            candidature_id=other_candidature.pk,
-            conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
-            utilisateur=agent.utilisateur,
-        )
 
 
 def test_unknown_conversation_is_denied(db):

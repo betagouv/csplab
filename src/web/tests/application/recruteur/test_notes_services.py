@@ -13,15 +13,7 @@ from application.recruteur.services.update_note import update_note
 from application.recruteur.services.update_note_visibility import (
     update_note_visibility,
 )
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementRefuse,
-)
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
-)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -126,32 +118,6 @@ class TestListNotes:
 
         assert len(author_ids) == len(notes)
 
-    def test_denied_without_organisme_role(self, db):
-        _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-
-        with pytest.raises(AccesOrganismeRefuse):
-            list_notes(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=candidature.id,
-                utilisateur=UtilisateurDjangoFactory(),
-            )
-
-    def test_denied_when_agent_role_not_attached_to_recrutement(self, db):
-        membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-        recrutement = RecrutementDjangoFactory(organisme=organisme)
-        candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
-
-        with pytest.raises(AccesRecrutementRefuse):
-            list_notes(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=candidature.id,
-                utilisateur=membre.utilisateur,
-            )
-
     def test_allowed_for_agent_role_attached_as_contributeur(self, db):
         membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = RecrutementDjangoFactory(
@@ -170,34 +136,6 @@ class TestListNotes:
         )
 
         assert [n.pk for n in notes] == [note.pk]
-
-    def test_recrutement_not_in_organisme(self, db):
-        agent, organisme, _recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_recrutement = RecrutementDjangoFactory()
-
-        with pytest.raises(RecrutementInexistant):
-            list_notes(
-                organisme_id=organisme.id,
-                recrutement_id=other_recrutement.pk,
-                candidature_id=candidature.id,
-                utilisateur=agent.utilisateur,
-            )
-
-    def test_candidature_not_in_recrutement(self, db):
-        agent, organisme, recrutement, _candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_candidature = CandidatureDjangoFactory()
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            list_notes(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=other_candidature.id,
-                utilisateur=agent.utilisateur,
-            )
 
 
 class TestCreateNote:
@@ -239,56 +177,6 @@ class TestCreateNote:
 
         with django_assert_num_queries(0):
             assert note.tags == []
-
-    def test_denied_without_organisme_role(self, db):
-        _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-
-        with pytest.raises(AccesOrganismeRefuse):
-            create_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=candidature.id,
-                message="x",
-                utilisateur=UtilisateurDjangoFactory(),
-            )
-
-        assert not NoteModel.objects.exists()
-
-    def test_recrutement_not_in_organisme(self, db):
-        agent, organisme, _recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_recrutement = RecrutementDjangoFactory()
-
-        with pytest.raises(RecrutementInexistant):
-            create_note(
-                organisme_id=organisme.id,
-                recrutement_id=other_recrutement.pk,
-                candidature_id=candidature.id,
-                message="x",
-                utilisateur=agent.utilisateur,
-            )
-
-        assert not NoteModel.objects.exists()
-
-    def test_candidature_not_in_recrutement(self, db):
-        agent, organisme, recrutement, _candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_candidature = CandidatureDjangoFactory()
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            create_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=other_candidature.id,
-                message="x",
-                utilisateur=agent.utilisateur,
-            )
-
-        assert not NoteModel.objects.exists()
 
     @pytest.mark.xfail(
         strict=True,
@@ -429,58 +317,6 @@ class TestUpdateNote:
                 utilisateur=agent.utilisateur,
             )
 
-    def test_denied_without_organisme_role(self, db):
-        agent, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
-
-        with pytest.raises(AccesOrganismeRefuse):
-            update_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=candidature.id,
-                note_id=note.id,
-                message="x",
-                utilisateur=UtilisateurDjangoFactory(),
-            )
-
-        assert NoteModel.objects.get(pk=note.id).message == note.message
-
-    def test_recrutement_not_in_organisme(self, db):
-        agent, organisme, _recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_recrutement = RecrutementDjangoFactory()
-        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
-
-        with pytest.raises(RecrutementInexistant):
-            update_note(
-                organisme_id=organisme.id,
-                recrutement_id=other_recrutement.pk,
-                candidature_id=candidature.id,
-                note_id=note.id,
-                message="x",
-                utilisateur=agent.utilisateur,
-            )
-
-    def test_candidature_not_in_recrutement(self, db):
-        agent, organisme, recrutement, _candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_candidature = CandidatureDjangoFactory()
-        note = NoteDjangoFactory(candidature=other_candidature, publie_par=agent)
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            update_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=other_candidature.id,
-                note_id=note.id,
-                message="x",
-                utilisateur=agent.utilisateur,
-            )
-
 
 class TestUpdateNoteVisibility:
     def test_loads_the_note_tags(self, db, django_assert_num_queries):
@@ -594,55 +430,6 @@ class TestDeleteNote:
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
-                note_id=note.id,
-                utilisateur=agent.utilisateur,
-            )
-
-    def test_denied_without_organisme_role(self, db):
-        agent, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
-
-        with pytest.raises(AccesOrganismeRefuse):
-            delete_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=candidature.id,
-                note_id=note.id,
-                utilisateur=UtilisateurDjangoFactory(),
-            )
-
-        assert NoteModel.objects.get(pk=note.id).supprimee_le is None
-
-    def test_recrutement_not_in_organisme(self, db):
-        agent, organisme, _recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_recrutement = RecrutementDjangoFactory()
-        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
-
-        with pytest.raises(RecrutementInexistant):
-            delete_note(
-                organisme_id=organisme.id,
-                recrutement_id=other_recrutement.pk,
-                candidature_id=candidature.id,
-                note_id=note.id,
-                utilisateur=agent.utilisateur,
-            )
-
-    def test_candidature_not_in_recrutement(self, db):
-        agent, organisme, recrutement, _candidature = (
-            create_recrutement_and_candidature_for_agent()
-        )
-        other_candidature = CandidatureDjangoFactory()
-        note = NoteDjangoFactory(candidature=other_candidature, publie_par=agent)
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            delete_note(
-                organisme_id=organisme.id,
-                recrutement_id=recrutement.pk,
-                candidature_id=other_candidature.id,
                 note_id=note.id,
                 utilisateur=agent.utilisateur,
             )

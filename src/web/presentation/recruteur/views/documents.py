@@ -12,26 +12,23 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.list_documents import list_documents
 from application.recruteur.services.read_document import read_document
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
 from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
     RecrutementDocumentInexistant,
     RecrutementDocumentTypeNonAutorise,
-    RecrutementInexistant,
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.conditional_get import ConditionalGetMixin, NoStoreMixin
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import DocumentListeSerializer
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 @extend_schema(
@@ -71,18 +68,9 @@ class DocumentView(NoStoreMixin, SessionApiMixin, APIView):
         )
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                AccesOrganismeRefuse,
-                AccesRecrutementRefuse,
-                OperationOrganismeRefusee,
-                OrganismeNexistePas,
-                AccesRecrutementInconnu,
-                RecrutementInexistant,
-                RecrutementDocumentInexistant,
-            ),
-        ):
+        if isinstance(exc, CandidatureInaccessible):
+            return candidature_inaccessible_response()
+        if isinstance(exc, RecrutementDocumentInexistant):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,
@@ -118,26 +106,8 @@ class CandidatureDocumentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView
         )
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (AccesOrganismeRefuse, AccesRecrutementRefuse, OperationOrganismeRefusee),
-        ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if isinstance(
-            exc,
-            (
-                OrganismeNexistePas,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-            ),
-        ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        if isinstance(exc, CandidatureInaccessible):
+            return candidature_inaccessible_response()
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
         return Response(

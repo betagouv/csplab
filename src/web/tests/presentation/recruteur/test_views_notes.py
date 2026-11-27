@@ -14,13 +14,11 @@ from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.tag.models import NoteTagModel, TagCategory, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
-    CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
 )
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
-    RecrutementDjangoFactory,
 )
 from infrastructure.factories.tag.tag_django_factory import (
     NoteTagDjangoFactory,
@@ -91,47 +89,6 @@ class TestCandidatureNotesView:
         url = _notes_url(uuid4(), uuid4(), uuid4())
 
         assert api_client.get(url).status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_caller_without_organisme_role_is_forbidden(
-        self, authenticated_client, test_user
-    ):
-        _, organisme, recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=None)
-        )
-
-        response = authenticated_client.get(
-            _notes_url(organisme.id, recrutement.pk, candidature.id)
-        )
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-    def test_recrutement_not_in_organisme_is_not_found(
-        self, authenticated_client, test_user
-    ):
-        _, organisme, _recrutement, candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
-        )
-        other_recrutement = RecrutementDjangoFactory()
-
-        response = authenticated_client.get(
-            _notes_url(organisme.id, other_recrutement.pk, candidature.id)
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_candidature_not_in_recrutement_is_not_found(
-        self, authenticated_client, test_user
-    ):
-        _, organisme, recrutement, _candidature = (
-            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
-        )
-        other_candidature = CandidatureDjangoFactory()
-
-        response = authenticated_client.get(
-            _notes_url(organisme.id, recrutement.pk, other_candidature.id)
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_returns_notes_newest_first_without_deleted_ones(
         self, authenticated_client, test_user
@@ -476,7 +433,7 @@ class TestCandidatureNoteDetailView:
 
         assert api_client.delete(url).status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -490,7 +447,10 @@ class TestCandidatureNoteDetailView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
+        assert NoteModel.objects.get(pk=note.pk).message == note.message
+        assert not AuditLogModel.objects.exists()
 
     def test_patch_requires_message(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
@@ -741,7 +701,7 @@ class TestCandidatureNoteVisibiliteView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -751,11 +711,14 @@ class TestCandidatureNoteVisibiliteView:
 
         response = authenticated_client.put(
             _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
-            data={"est_privee": True},
+            data={"est_privee": not note.est_privee},
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
+        assert NoteModel.objects.get(pk=note.pk).est_privee == note.est_privee
+        assert not AuditLogModel.objects.exists()
 
     def test_requires_est_privee(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (

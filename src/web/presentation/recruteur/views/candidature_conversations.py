@@ -9,20 +9,12 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.create_conversation import create_conversation
 from application.recruteur.services.list_conversations import list_conversations
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
-)
 from infrastructure.django_apps.messagerie.models import ConversationModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
@@ -100,18 +92,7 @@ class CandidatureConversationsView(NoStoreMixin, SessionApiMixin, ListAPIView):
         )
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                AccesOrganismeRefuse,
-                AccesRecrutementRefuse,
-                OperationOrganismeRefusee,
-                OrganismeNexistePas,
-                AccesRecrutementInconnu,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-            ),
-        ):
+        if isinstance(exc, CandidatureInaccessible):
             return candidature_inaccessible_response()
         if isinstance(exc, FichierDeposeIncomplet):
             return Response(

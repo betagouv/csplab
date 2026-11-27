@@ -1,16 +1,12 @@
 from typing import NamedTuple
 from uuid import UUID
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
-)
 from application.recruteur.context_services.authorized_actions import (
     authorized_actions_of_recrutement,
 )
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
 )
-from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
@@ -42,19 +38,15 @@ def get_candidature(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> CandidatureDetail:
-    organisme_role = PermissionService().authorize(
-        action=PermissionAction.GET_CANDIDATURE,
-        utilisateur=utilisateur,
+    candidature_service = CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
     )
-    if organisme_role is None:
-        raise OperationOrganismeRefusee()
-    contexte = RecrutementAgentService(
-        organisme_id=organisme_id, recrutement_id=recrutement_id
+    organisme_role = candidature_service.check_accessible(
+        PermissionAction.GET_CANDIDATURE, check_candidature=False
     )
-    contexte.check_recrutement_belongs_to_organisme()
-
     try:
         candidature = (
             CandidatureModel.objects.by_recrutement_and_candidature(
@@ -65,7 +57,9 @@ def get_candidature(
             .get()
         )
     except CandidatureModel.DoesNotExist as error:
-        raise RecrutementCandidatureInexistante(candidature_id) from error
+        raise candidature_service.inaccessible(
+            RecrutementCandidatureInexistante(candidature_id)
+        ) from error
 
     recrutement_role = (
         RecrutementAgentModel.objects.by_recrutement_and_agent(

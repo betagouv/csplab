@@ -4,14 +4,8 @@ from ddd.entity import Entity
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
-)
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
-)
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.permission_action import PermissionAction
@@ -36,20 +30,13 @@ def reply_conversation(
     documents: list[UploadedFile],
     utilisateur: UserModel,
 ) -> MessageModel:
-    PermissionService().authorize(
-        action=PermissionAction.REPLY_CONVERSATION,
-        utilisateur=utilisateur,
+    candidature_service = CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
     )
-    contexte = RecrutementAgentService(
-        organisme_id=organisme_id, recrutement_id=recrutement_id
-    )
-    contexte.check_recrutement_belongs_to_organisme()
-    candidature_service = CandidatureAgentService(
-        recrutement_id=recrutement_id, candidature_id=candidature_id
-    )
-    candidature_service.check_candidature_belongs_to_recrutement()
+    candidature_service.check_accessible(PermissionAction.REPLY_CONVERSATION)
     candidature_service.check_conversation_belongs_to_candidature(conversation_id)
 
     auteur_id = utilisateur.username
