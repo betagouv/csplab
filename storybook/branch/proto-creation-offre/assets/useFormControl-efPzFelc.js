@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{l as t,w as n,wt as r}from"./iframe-C8rPqv1s.js";import{i,o as a}from"./useForwardExpose-Ci1NYMkY.js";function o(e){return n(()=>!r(e)||!!a(e)?.closest(`form`))}function s(){return(s=e((()=>{t(),i()})))()}export{o as n,s as t};
