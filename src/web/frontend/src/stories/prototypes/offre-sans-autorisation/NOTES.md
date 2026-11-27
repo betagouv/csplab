@@ -191,3 +191,10 @@ Réponses aux questions
   (plus de liste collée en haut qui recouvrait les champs).
 - Besoin design system : sélection multiple dans une liste (combobox + étiquettes), faite ici dans ChoixMultiple (propre au proto) ;
   champ date au format JJ-MM-AAAA (ChampDate, propre au proto).
+
+## Carte « fin de publication » raccourcie (27/11/2026)
+
+- Titre : « 1 offre arrive en fin de publication » / « N offres arrivent en fin de publication », avec un repère orange
+  « J-4 » (plusieurs offres : l'échéance la plus proche). Remplace « … sera dépubliée automatiquement dans N jours ».
+- À valider avec la PO : son retour 1 demandait de dire clairement que la dépublication est automatique.
+- Lecteur d'écran : « J-4 » est lu « fin dans 4 jours ».
