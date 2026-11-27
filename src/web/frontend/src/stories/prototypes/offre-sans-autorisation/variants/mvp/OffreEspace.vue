@@ -77,6 +77,7 @@ function choisirEtape(partie: PartieOffre) {
 // --- Onglets (revue UI équipe, 27/11/2026) : les trois parties de la création, puis l'activité. Remplacent « Accéder à ». ---
 type Onglet = GroupeOffre | 'activite'
 const onglet = ref<Onglet>('annonce')
+const avecEtapes = computed(() => o.value.etat === 'brouillon' && onglet.value === 'annonce')
 const LIBELLES_ONGLET: Record<GroupeOffre, string> = { annonce: 'Annonce', candidature: 'Formulaire de candidature', diffusion: 'Multidiffusion' }
 const onglets = computed<CspTabItem<Onglet>[]>(() => [
   ...GROUPES.map(g => ({ value: g.id, label: LIBELLES_ONGLET[g.id], icon: g.icone })),
@@ -266,12 +267,14 @@ function confirmerRetrait() {
     </template>
 
     <!-- Offre en préparation : l'avancement par étape à gauche, comme dans le formulaire (retour PO, 27/11/2026) -->
-    <div :class="{ preparation: o.etat === 'brouillon' }">
+    <!-- Seulement dans « Annonce » : les autres parties sont facultatives (Alice, 27/11/2026) -->
+    <div :class="{ preparation: avecEtapes }">
       <NavEtapes
-        v-if="o.etat === 'brouillon'"
+        v-if="avecEtapes"
         :offre="o"
         :active="edition ?? undefined"
-        :groupe="groupeActif?.id"
+        groupe="annonce"
+        seule="annonce"
         @choisir="choisirEtape"
       />
       <div class="fond">

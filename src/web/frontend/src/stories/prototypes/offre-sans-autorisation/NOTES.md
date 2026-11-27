@@ -272,3 +272,6 @@ d'une carte à l'autre (CSS `subgrid`) : pastille et case, nom, public visé (ic
 Page de l'offre, onglet « Multidiffusion » (Alice, 27/11/2026) : les mêmes cartes en lecture, avec l'état de chaque site
 (En ligne / Arrêtée et date, « Publiée à la mise en ligne de l'offre », « Non diffusée » en pointillés), et Choisir le
 Service Public en tête. L'ancien encart « Publication sur les sites » est fondu dedans. Le crayon rouvre les cartes à cocher.
+
+Offre en préparation (Alice, 27/11/2026) : les étapes à gauche seulement dans l'onglet « Annonce », sans « Partie 1 »
+(propre au formulaire) ; pas dans les autres onglets, dont les étapes sont facultatives.

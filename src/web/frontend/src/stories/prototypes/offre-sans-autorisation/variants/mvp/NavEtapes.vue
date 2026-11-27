@@ -9,7 +9,8 @@ import TexteEtoile from './TexteEtoile.vue'
 
 // Les étapes de l'offre, regroupées par partie, avec ce qui reste à remplir dans chacune. Sert au formulaire de création
 // et à la page d'une offre en préparation (retour PO, 27/11/2026 : le même avancement que dans le formulaire).
-const props = defineProps<{ offre: Offre, active?: PartieOffre, groupe?: GroupeOffre }>()
+// `seule` : n'afficher qu'une partie, sans « Partie N » (page de l'offre, Alice, 27/11/2026).
+const props = defineProps<{ offre: Offre, active?: PartieOffre, groupe?: GroupeOffre, seule?: GroupeOffre }>()
 const emit = defineEmits<{ choisir: [id: PartieOffre, n: number] }>()
 
 const champs = computed(() => champsObligatoires(props.offre))
@@ -21,7 +22,7 @@ const groupes = computed(() => GROUPES.map((g, gi) => ({
   ...g,
   n: gi + 1,
   etapes: ETAPES_OFFRE.map((e, i) => ({ ...e, n: i + 1, ...etat(e.id) })).filter(e => e.groupe === g.id),
-})))
+})).filter(g => !props.seule || g.id === props.seule))
 </script>
 
 <template>
@@ -36,7 +37,10 @@ const groupes = computed(() => GROUPES.map((g, gi) => ({
       :class="{ 'partie--active': g.id === groupe }"
     >
       <p class="partie__titre">
-        <span class="partie__num">Partie {{ g.n }}</span>
+        <span
+          v-if="!seule"
+          class="partie__num"
+        >Partie {{ g.n }}</span>
         {{ g.titre }}
       </p>
       <ol>
