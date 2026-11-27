@@ -203,7 +203,7 @@ const model = defineModel<T>()
   height: 1.125em;
   color: var(--text-mention-grey);
 
-  [data-state='open'] & {
+  .csp-select[data-state='open'] & {
     transform: rotate(180deg);
   }
 }

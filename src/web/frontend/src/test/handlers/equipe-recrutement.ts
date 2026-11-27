@@ -42,8 +42,32 @@ export function membreUpdateFailure(status: number) {
   return http.put(EQUIPE_PATH, ({ response }) => response.untyped(failure(status)))
 }
 
+const MEMBRE_TAGS_PATH = '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/agents/{agent_uuid}/tags'
+const MEMBRE_TAG_PATH = '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/agents/{agent_uuid}/tags/{tag_uuid}'
+
+export function membreTagAddition(onRequest?: (agentUuid: string, tagUuid: string) => void) {
+  return http.post(MEMBRE_TAGS_PATH, async ({ params, request, response }) => {
+    const { tag_uuid } = await request.json()
+    onRequest?.(params.agent_uuid, tag_uuid)
+    return response(201).empty()
+  })
+}
+
+export function membreTagAdditionFailure(status: number) {
+  return http.post(MEMBRE_TAGS_PATH, ({ response }) => response.untyped(failure(status)))
+}
+
+export function membreTagRemoval(onRequest?: (agentUuid: string, tagUuid: string) => void) {
+  return http.delete(MEMBRE_TAG_PATH, ({ params, response }) => {
+    onRequest?.(params.agent_uuid, params.tag_uuid)
+    return response(204).empty()
+  })
+}
+
 export const equipeRecrutementHandlers = [
   equipe(),
   membreAddition(),
   membreUpdate(),
+  membreTagAddition(),
+  membreTagRemoval(),
 ]

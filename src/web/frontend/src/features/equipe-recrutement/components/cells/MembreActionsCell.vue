@@ -12,35 +12,35 @@ const props = defineProps<{
   row: MembreEquipe
 }>()
 
-const { revocation, roleChange, canRevoke, canChangeRole } = useMembreEquipeActions()
+const { revocation, roleChange, tagChange, canRevoke, canChangeRole, canChangeTag } = useMembreEquipeActions()
 
 const membreLabel = computed(() => formatAgentLabel(props.row))
 
-const sections = computed(() => [
-  ...(canChangeRole.value
+const sections = computed(() => {
+  const editItems = [
+    {
+      allowed: canChangeRole.value,
+      label: 'Modifier les droits d\'accès',
+      icon: 'ri:shield-user-line',
+      onSelect: () => roleChange.request(props.row),
+    },
+    {
+      allowed: canChangeTag.value,
+      label: 'Modifier l\'étiquette',
+      icon: 'ri:price-tag-3-line',
+      onSelect: () => tagChange.request(props.row),
+    },
+  ].filter(({ allowed }) => allowed).map(({ allowed: _allowed, ...item }) => item)
+  const revokeItems = canRevoke.value
     ? [{
-        items: [
-          {
-            label: 'Modifier les droits d\'accès',
-            icon: 'ri:shield-user-line',
-            onSelect: () => roleChange.request(props.row),
-          },
-        ],
+        label: 'Retirer de l\'équipe',
+        icon: 'ri:user-unfollow-line',
+        destructive: true,
+        onSelect: () => revocation.request(props.row),
       }]
-    : []),
-  ...(canRevoke.value
-    ? [{
-        items: [
-          {
-            label: 'Retirer de l\'équipe',
-            icon: 'ri:user-unfollow-line',
-            destructive: true,
-            onSelect: () => revocation.request(props.row),
-          },
-        ],
-      }]
-    : []),
-])
+    : []
+  return [editItems, revokeItems].filter(items => items.length > 0).map(items => ({ items }))
+})
 </script>
 
 <template>

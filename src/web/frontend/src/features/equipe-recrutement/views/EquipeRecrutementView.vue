@@ -22,8 +22,9 @@ import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import AddTeamMemberForm from '../components/AddTeamMemberForm.vue'
+import MembreTagForm from '../components/MembreTagForm.vue'
 import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
-import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
+import { TagNotReplacedError, useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS, RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 
@@ -32,7 +33,7 @@ const props = defineProps<{
   recrutementUuid: string
 }>()
 
-const { membres, pending, error, revoke, revoking, changeRole, changingRole } = useEquipeRecrutement(
+const { membres, pending, error, revoke, revoking, changeRole, changingRole, changeTag, changingTag } = useEquipeRecrutement(
   props.organismeUuid,
   props.recrutementUuid,
 )
@@ -56,7 +57,8 @@ const roleOptions = computed(() =>
     ? RECRUTEMENT_ROLE_OPTIONS
     : RECRUTEMENT_ROLE_OPTIONS.filter(option => option.value !== 'responsable'),
 )
-const { revocation, roleChange } = provideMembreEquipeActions({ canRevoke, canChangeRole })
+const canChangeTag = computed(() => can(actions.value, 'manage_tag_on_member'))
+const { revocation, roleChange, tagChange } = provideMembreEquipeActions({ canRevoke, canChangeRole, canChangeTag })
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
@@ -66,9 +68,14 @@ const addMemberDrawerOpen = ref(false)
 const addMemberEmailError = ref('')
 const revocationDialogOpen = useRequestOpen(revocation)
 const roleDrawerOpen = useRequestOpen(roleChange)
+const tagDrawerOpen = useRequestOpen(tagChange)
+const tagChangeMembre = computed(() => {
+  const requested = tagChange.requested
+  return requested && (membres.value.find(membre => membre.uuid === requested.uuid) ?? requested)
+})
 
 const columns = computed(() =>
-  canChangeRole.value || canRevoke.value
+  canChangeRole.value || canChangeTag.value || canRevoke.value
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
@@ -83,7 +90,7 @@ function openAddMemberDrawer(): void {
   addMemberDrawerOpen.value = true
 }
 
-async function handleAdd(role: RecrutementRole) {
+async function handleAdd(role: RecrutementRole, tagUuid: string | null) {
   try {
     const membre = await add(role)
     addToast({
@@ -92,6 +99,11 @@ async function handleAdd(role: RecrutementRole) {
       description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
     addMemberDrawerOpen.value = false
+    if (tagUuid) {
+      await changeTag({ membre, tagUuid }).catch(() => {
+        addToast({ variant: 'error', title: 'L\'étiquette du membre n\'a pas pu être enregistrée' })
+      })
+    }
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
@@ -118,6 +130,31 @@ async function handleRoleChange(role: RecrutementRole): Promise<void> {
   }
   catch {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
+  }
+}
+
+function tagChangeErrorTitle(tagError: unknown): string {
+  if (tagError instanceof TagNotReplacedError) {
+    return 'L\'ancienne étiquette a été retirée, mais la nouvelle n\'a pas pu être posée'
+  }
+  if (isHttpStatus(tagError, 404)) {
+    return 'Ce membre ou cette étiquette n\'existe plus'
+  }
+  return 'La modification de l\'étiquette a échoué'
+}
+
+async function handleTagChange(tagUuid: string | null): Promise<void> {
+  const membre = tagChangeMembre.value
+  if (!membre) {
+    return
+  }
+  try {
+    await changeTag({ membre, tagUuid })
+    addToast({ variant: 'success', title: tagUuid ? 'Étiquette enregistrée' : 'Étiquette retirée' })
+    tagDrawerOpen.value = false
+  }
+  catch (tagError) {
+    addToast({ variant: 'error', title: tagChangeErrorTitle(tagError) })
   }
 }
 
@@ -226,6 +263,8 @@ const countLabel = computed(() => {
         :searching="searching"
         :submitting="submitting"
         :email-error="addMemberEmailError"
+        :organisme-uuid="organismeUuid"
+        :tags-editable="canChangeTag"
         @search="searchAgent"
         @add="handleAdd"
         @reset="resetAgentSearch"
@@ -248,6 +287,23 @@ const countLabel = computed(() => {
         :submitting="changingRole"
         @submit="handleRoleChange"
         @cancel="roleDrawerOpen = false"
+      />
+    </CspDrawer>
+
+    <CspDrawer
+      v-model:open="tagDrawerOpen"
+      title="Modifier l'étiquette"
+      size="md"
+    >
+      <MembreTagForm
+        v-if="tagChange.requested"
+        :key="tagChange.requested.uuid"
+        :organisme-uuid="organismeUuid"
+        :email="tagChange.requested.email"
+        :tag-uuid="tagChangeMembre?.tags[0]?.uuid ?? null"
+        :submitting="changingTag"
+        @submit="handleTagChange"
+        @cancel="tagDrawerOpen = false"
       />
     </CspDrawer>
 

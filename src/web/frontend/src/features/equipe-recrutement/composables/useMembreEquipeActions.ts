@@ -7,18 +7,21 @@ import { createRequest } from '@/composables/ui/useRequest'
 export interface MembreEquipeActions {
   revocation: Request<MembreEquipe>
   roleChange: Request<MembreEquipe>
+  tagChange: Request<MembreEquipe>
   canRevoke: Readonly<Ref<boolean>>
   canChangeRole: Readonly<Ref<boolean>>
+  canChangeTag: Readonly<Ref<boolean>>
 }
 
 const KEY: InjectionKey<MembreEquipeActions> = Symbol('membre-equipe-actions')
 
 export function provideMembreEquipeActions(
-  permissions: Pick<MembreEquipeActions, 'canRevoke' | 'canChangeRole'>,
+  permissions: Pick<MembreEquipeActions, 'canRevoke' | 'canChangeRole' | 'canChangeTag'>,
 ): MembreEquipeActions {
   const actions: MembreEquipeActions = {
     revocation: createRequest(),
     roleChange: createRequest(),
+    tagChange: createRequest(),
     ...permissions,
   }
   provide(KEY, actions)

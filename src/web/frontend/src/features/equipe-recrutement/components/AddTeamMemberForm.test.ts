@@ -7,7 +7,7 @@ import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 function renderForm(props: Record<string, unknown> = {}) {
   return render(AddTeamMemberForm, {
-    props: { options: RECRUTEMENT_ROLE_OPTIONS, status: 'idle', ...props },
+    props: { options: RECRUTEMENT_ROLE_OPTIONS, status: 'idle', organismeUuid: '00000000-0000-0000-0000-000000000000', tagsEditable: false, ...props },
   })
 }
 
@@ -26,7 +26,7 @@ describe('addTeamMemberForm', () => {
     expect(await screen.findByText('Jeanne Dupont')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
-    expect(emitted('add')).toEqual([['contributeur']])
+    expect(emitted('add')).toEqual([['contributeur', null]])
   })
 
   it('adds the found agent with the chosen role', async () => {
@@ -36,7 +36,7 @@ describe('addTeamMemberForm', () => {
     await user.click(await screen.findByRole('radio', { name: /^Responsable/ }))
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
-    expect(emitted('add')).toEqual([['responsable']])
+    expect(emitted('add')).toEqual([['responsable', null]])
   })
 
   it('announces the account creation when no agent matches the email', async () => {

@@ -1,4 +1,5 @@
 import type { CreateTagPayload, Tag, UpdateTagPayload } from '@/features/tags/types'
+import { delay } from 'msw'
 import { TAG_SYNTHESIS, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
 import { failure, http } from './http'
 
@@ -7,6 +8,14 @@ const TAG_PATH = '/recruteur/organismes/{organisme_uuid}/parametres/tags/{tag_uu
 
 export function tags(results: Tag[] = TAGS) {
   return http.get(TAGS_PATH, ({ response }) => response(200).json({ count: results.length, results }))
+}
+
+export function tagsPending() {
+  return http.get(TAGS_PATH, () => delay('infinite'))
+}
+
+export function tagsFailure(status: number) {
+  return http.get(TAGS_PATH, ({ response }) => response.untyped(failure(status)))
 }
 
 export function tagCreation(
