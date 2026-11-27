@@ -2,7 +2,7 @@
 import type { ConversationRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -10,16 +10,15 @@ import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
 import { countValidAttachments, hasInvalidAttachment } from '../attachments'
+import MessageAttachments from '../components/MessageAttachments.vue'
 import { useCreateConversation } from '../composables/useConversations'
 import { CONVERSATION_OBJET_MAX_LENGTH, MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
-import MessageAttachments from './MessageAttachments.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
   routes: ConversationRouteNames
 }>()
 
-const route = useRoute()
 const router = useRouter()
 const { create, creating } = useCreateConversation(() => props.candidature)
 const { addToast } = useToast()
@@ -68,7 +67,7 @@ const canSend = computed(() =>
 const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !creating.value)
 
 function backToConversations(): void {
-  void router.push({ name: props.routes.conversations, params: route.params })
+  void router.push({ name: props.routes.conversations, params: { ...props.candidature } })
 }
 
 async function send(): Promise<void> {
@@ -81,7 +80,7 @@ async function send(): Promise<void> {
     addToast({ variant: 'success', title: 'Conversation créée' })
     void router.push({
       name: props.routes.conversation,
-      params: { ...route.params, conversationUuid: conversation.uuid },
+      params: { ...props.candidature, conversationUuid: conversation.uuid },
     })
   }
   catch (sendError) {

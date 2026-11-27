@@ -10,8 +10,8 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useOpenDocument } from '@/composables/ui/useOpenDocument'
 import { formatDateTime } from '@/utils/date'
 import { formatFileSize } from '@/utils/format'
+import MessageComposer from '../components/MessageComposer.vue'
 import { useConversationMessages } from '../composables/useConversationMessages'
-import MessageComposer from './MessageComposer.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams

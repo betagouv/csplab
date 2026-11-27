@@ -4,8 +4,8 @@ import { PiniaColada } from '@pinia/colada'
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { render } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { createApp, defineComponent, h } from 'vue'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createApp, defineComponent, h, provide } from 'vue'
+import { createMemoryHistory, createRouter, useRoute, viewDepthKey } from 'vue-router'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { routes } from '@/router/routes'
 
@@ -16,6 +16,15 @@ export function setupUser(options: Parameters<typeof userEvent.setup>[0] = {}) {
 export function withToaster(component: Component, props: Record<string, unknown> = {}) {
   return defineComponent({
     setup: () => () => h(CspToaster, null, () => h(component, props)),
+  })
+}
+
+export function inRouterViewOf(component: Component, routeName: string) {
+  return defineComponent({
+    setup() {
+      provide(viewDepthKey, useRoute().matched.findIndex(({ name }) => name === routeName) + 1)
+      return () => h(component)
+    },
   })
 }
 

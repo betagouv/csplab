@@ -6,14 +6,14 @@ import { CONVERSATION_UUID } from '@/test/fixtures/messages'
 import { conversationCreation, conversationCreationFailure } from '@/test/handlers/messages'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import NewConversationForm from './NewConversationForm.vue'
+import NewConversationView from './NewConversationView.vue'
 
 const NEW_CONVERSATION_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages/nouveau`
 
 async function writeConversation() {
   const user = setupUser()
   const { router } = await renderWithApp(
-    withToaster(NewConversationForm, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
+    withToaster(NewConversationView, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
     { route: NEW_CONVERSATION_PATH },
   )
 
@@ -23,7 +23,7 @@ async function writeConversation() {
   return { router }
 }
 
-describe('newConversationForm', () => {
+describe('newConversationView', () => {
   it('sends the subject and the message, then opens the created conversation and confirms it', async () => {
     const sent = vi.fn()
     server.use(conversationCreation(undefined, (candidatureUuid, payload) =>

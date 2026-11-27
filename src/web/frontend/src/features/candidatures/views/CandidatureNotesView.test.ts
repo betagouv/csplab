@@ -15,9 +15,9 @@ import {
   noteVisibiliteUpdate,
 } from '@/test/handlers/candidatures'
 import { tags } from '@/test/handlers/tags'
-import { renderWithApp, setupUser, withToaster } from '@/test/render'
+import { inRouterViewOf, renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import CandidatureNotes from './CandidatureNotes.vue'
+import CandidatureNotesView from './CandidatureNotesView.vue'
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
@@ -32,7 +32,7 @@ async function openTagPicker() {
   return { user, picker }
 }
 
-const Host = withToaster(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })
+const Host = inRouterViewOf(withToaster(CandidatureNotesView, { candidature: CANDIDATURE_PARAMS }), CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes.notes)
 
 function renderNotes(route = NOTES_PATH) {
   return renderWithApp(Host, { route })
@@ -43,7 +43,7 @@ async function chooseNoteAction(user: ReturnType<typeof setupUser>, action: stri
   await user.click(await screen.findByRole('menuitem', { name: action }))
 }
 
-describe('candidatureNotes', () => {
+describe('candidatureNotesView', () => {
   it('lists the notes with their author and publication date', async () => {
     server.use(candidatureNotes([NOTE, SECONDE_NOTE]))
     await renderNotes()

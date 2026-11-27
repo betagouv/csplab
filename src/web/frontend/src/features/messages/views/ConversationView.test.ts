@@ -6,18 +6,18 @@ import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
 import { CONVERSATION_UUID, MESSAGE } from '@/test/fixtures/messages'
 import { conversationMessages, conversationMessagesFailure } from '@/test/handlers/messages'
 import { server } from '@/test/server'
-import ConversationThread from './ConversationThread.vue'
+import ConversationView from './ConversationView.vue'
 
 const DOCUMENT_UUID = 'eeeeeeee-0001-0001-0001-000000000001'
 
 function renderThread() {
-  return render(ConversationThread, {
+  return render(ConversationView, {
     global: { plugins: [createPinia(), PiniaColada] },
     props: { candidature: CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_UUID },
   })
 }
 
-describe('conversationThread', () => {
+describe('conversationView', () => {
   it('reports a failed load instead of an empty thread', async () => {
     server.use(conversationMessagesFailure(500))
 

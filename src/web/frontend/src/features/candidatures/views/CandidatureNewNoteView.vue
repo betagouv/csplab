@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
+import CandidatureNoteEditor from '../components/CandidatureNoteEditor.vue'
+import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useSubmitNewNote } from '../composables/useSubmitNewNote'
-import CandidatureNoteEditor from './CandidatureNoteEditor.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
-  routes: NoteRouteNames
 }>()
 
 const TITLE = 'Nouvelle note'
 
 const { submit, creating } = useSubmitNewNote(() => props.candidature)
 
-const route = useRoute()
+const { names } = useCandidaturePanelRoutes()
 const router = useRouter()
 
 function backToNotes(): void {
-  void router.push({ name: props.routes.notes, params: route.params })
+  void router.push({ name: names.value.notes.notes, params: { ...props.candidature } })
 }
 </script>
 
