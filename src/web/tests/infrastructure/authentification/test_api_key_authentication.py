@@ -2,6 +2,7 @@ import logging
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.test import RequestFactory, override_settings
 from rest_framework.exceptions import AuthenticationFailed, Throttled
@@ -267,6 +268,31 @@ class TestNonApiKeyUserRateThrottle:
         for _ in range(2):
             assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is True
         assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is False
+
+    @patch.object(NonApiKeyUserRateThrottle, "THROTTLE_RATES", {"user": "2/minute"})
+    def test_anonymous_counter_ignores_x_forwarded_for(self, rf):
+        cache.clear()
+
+        def request(forwarded_for):
+            anonymous = rf.get(
+                "/",
+                HTTP_X_REAL_IP="203.0.113.7",
+                HTTP_X_FORWARDED_FOR=forwarded_for,
+            )
+            anonymous.user = AnonymousUser()
+            return anonymous
+
+        for forwarded_for in ("1.1.1.1", "2.2.2.2"):
+            assert (
+                NonApiKeyUserRateThrottle().allow_request(
+                    request(forwarded_for), view=None
+                )
+                is True
+            )
+        assert (
+            NonApiKeyUserRateThrottle().allow_request(request("3.3.3.3"), view=None)
+            is False
+        )
 
 
 @pytest.fixture(name="logs")
