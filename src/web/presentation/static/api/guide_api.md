@@ -54,7 +54,7 @@
 Une API est une « porte d'entrée » automatisée qui permet à deux logiciels de
 s'échanger des informations sans intervention humaine. Ici, l'API CSPLab permet à des
 partenaires autorisés (par exemple des plateformes d'emploi public) de **transmettre
-des offres d'emploi et des concours**, et de **consulter les offres, les métiers et les organismes**
+des offres d'emploi**, et de **consulter les offres, les métiers et les organismes**
 de la Fonction Publique.
 
 
@@ -75,7 +75,7 @@ Avant d'utiliser l'API, l'appelant doit prouver son identité. Deux moyens exist
 | Moyen | Description | Où est-il utilisé ? |
 |---|---|---|
 | **Jeton JWT** (`jwtAuth`) | Un jeton temporaire obtenu en échange d'un email et d'un mot de passe, envoyé sous la forme `Bearer <jeton>`. Il expire au bout d'un certain temps et doit être renouvelé. | Toutes les routes, sauf les [routes réservées à CSPLab](#10-routes-reservees-a-csplab) |
-| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, envoyée sous la forme `Api-Key <clé>`. | Offres (consultation, création/modification, archivage), métiers, import de concours, et [routes réservées à CSPLab](#10-routes-reservees-a-csplab) |
+| **Clé d'API** (`ApiKeyAuth`) | Une clé permanente fournie au partenaire, envoyée sous la forme `Api-Key <clé>`. | Offres (consultation, création/modification, archivage), métiers, et [routes réservées à CSPLab](#10-routes-reservees-a-csplab), dont l'import de concours |
 
 Les routes de [documentation](#9-lire-la-documentation-de-lapi) et l'obtention d'un
 jeton ne demandent aucune authentification.
@@ -149,7 +149,7 @@ L'API est organisée en grands domaines, repris dans la
 | **Offres** (`offres`) | Consulter, créer/modifier et archiver des offres d'emploi |
 | **Métiers** (`metiers`) | Consulter le référentiel des métiers de la Fonction Publique |
 | **Organismes** (`organismes`) | Consulter le référentiel des organismes de la Fonction Publique |
-| **Concours** (`concours`) | Importer des données de concours via un fichier CSV |
+| **Concours** (`concours`) | Réservé à CSPLab : importer des données de concours via un fichier CSV |
 | **Simulation Talentsoft** (`fake-ts`) | Lire les offres de CSPLab au format de l'API Talentsoft |
 | **Documentation** (`documentation`) | Lire ce guide et le changelog de l'API en formats bruts |
 | **Organismes Talentsoft** (`talentsoft_organisme`) | Réservé à CSPLab : synchroniser les organismes Talentsoft |
@@ -644,6 +644,9 @@ Un filtre invalide (par exemple un versant inconnu) renvoie une erreur `400`.
 Permet d'importer en masse des données de concours **GRECO** via un fichier CSV,
 envoyé dans le champ `file` d'un formulaire `multipart/form-data`.
 
+> **Route réservée à CSPLab :** elle n'est accessible qu'avec une **clé d'API**. Un
+> jeton JWT est refusé (`401 Non autorisé`).
+
 ### Format du fichier attendu
 - **Encodage :** UTF-8
 - **Séparateur :** point-virgule (`;`)
@@ -672,7 +675,7 @@ envoyé dans le champ `file` d'un formulaire `multipart/form-data`.
 |---|---|
 | `201` | Au moins une ligne valide a été traitée (voir le détail créées / mises à jour / erreurs) |
 | `400` | Fichier absent, mauvais format, ou aucune ligne valide |
-| `401` | Authentification absente ou invalide |
+| `401` | Clé d'API absente ou invalide, ou appel avec un jeton JWT |
 | `500` | Erreur inattendue du serveur |
 
 La réponse de succès détaille :
@@ -740,6 +743,7 @@ sont accessibles qu'avec une **clé d'API** et ne concernent pas les partenaires
 | `POST /api/v1/organismes/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes, identifiés par le couple `referentiel` + `external_id` |
 | `PUT /api/v1/organismes` | Supprimer de 1 à 100 organismes, identifiés de la même façon. Un organisme supprimé n'est plus renvoyé par `GET /api/v1/organismes` |
 | `POST /api/v1/talentsoft_organisme/creer_modifier` | Créer ou mettre à jour de 1 à 100 organismes Talentsoft, identifiés par leur `entity_code` |
+| `POST /api/v1/concours/upload` | Importer des concours GRECO depuis un fichier CSV (voir [section 7](#7-importer-des-concours-fichier-csv-post-apiv1concoursupload)) |
 
 
 

@@ -55,9 +55,9 @@ CONCOURS_UPLOAD_DESCRIPTION = (
     "**Codes de retour :**\n"
     "- `201 Created` — au moins une ligne valide a été traitée avec succès\n"
     "- `400 Bad Request` — fichier absent, format invalide, ou aucune ligne valide\n"
-    "- `401 Unauthorized` — token JWT manquant ou invalide\n"
+    "- `401 Unauthorized` — clé d'API manquante ou invalide, ou jeton JWT\n"
     "- `500 Internal Server Error` — erreur inattendue côté serveur\n\n"
-    "**Authentification :** Token JWT requis."
+    "**Authentification :** clé d'API uniquement, route réservée à CSPLab."
 )
 
 CONCOURS_UPLOAD_EXAMPLES = [
@@ -168,7 +168,23 @@ CONCOURS_UPLOAD_EXAMPLES = [
         response_only=True,
         status_codes=["400"],
     ),
-    _EXAMPLE_INVALID_TOKEN,
+    OpenApiExample(
+        "Error - invalid API key",
+        summary="Clé d'API invalide",
+        description="La clé d'API du header `Authorization` est inconnue.",
+        value={"detail": "Invalid API key."},
+        response_only=True,
+        status_codes=["401"],
+    ),
+    OpenApiExample(
+        "Error - JWT token",
+        summary="Appel avec un jeton JWT",
+        description="La route n'accepte que la clé d'API de CSPLab : un jeton JWT "
+        "n'est pas reconnu.",
+        value={"detail": "Informations d'authentification non fournies."},
+        response_only=True,
+        status_codes=["401"],
+    ),
     _EXAMPLE_SERVER_ERROR,
 ]
 

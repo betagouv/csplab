@@ -1869,16 +1869,15 @@ paths:
         **Codes de retour :**
         - `201 Created` — au moins une ligne valide a été traitée avec succès
         - `400 Bad Request` — fichier absent, format invalide, ou aucune ligne valide
-        - `401 Unauthorized` — token JWT manquant ou invalide
+        - `401 Unauthorized` — clé d'API manquante ou invalide, ou jeton JWT
         - `500 Internal Server Error` — erreur inattendue côté serveur
 
-        **Authentification :** Token JWT requis.
+        **Authentification :** clé d'API uniquement, route réservée à CSPLab.
 
         **Limites d'appels**
 
         | Appel | Limite | Décompte |
         |---|---|---|
-        | Avec un jeton JWT | 120 appels par minute | par utilisateur |
         | Avec une clé d'API | 70 000 appels par heure | par clé d'API |
         | Avec une clé d'API | 100 000 appels par jour | par clé d'API |
         | Authentification refusée | 10 appels par minute | par adresse IP |
@@ -1900,7 +1899,6 @@ paths:
               required:
               - file
       security:
-      - jwtAuth: []
       - ApiKeyAuth: []
       responses:
         '201':
@@ -2010,19 +2008,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidToken:
+                Error-InvalidAPIKey:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
-                    code: token_not_valid
-                    messages:
-                    - token_class: AccessToken
-                      token_type: access
-                      message: Token is invalid or expired
-                  summary: Token JWT invalide ou expiré
-                  description: Le token dans le header `Authorization` est invalide
-                    ou expiré.
+                    detail: Invalid API key.
+                  summary: Clé d'API invalide
+                  description: La clé d'API du header `Authorization` est inconnue.
+                Error-JWTToken:
+                  value:
+                    detail: Informations d'authentification non fournies.
+                  summary: Appel avec un jeton JWT
+                  description: 'La route n''accepte que la clé d''API de CSPLab :
+                    un jeton JWT n''est pas reconnu.'
           description: ''
           headers:
             X-RateLimit-Limit:

@@ -16,8 +16,8 @@ from application.ingestion.interfaces.load_documents_input import LoadDocumentsI
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
-from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.authentication import PublicApiKeyOnlyMixin
+from presentation.api.serializers import DetailErrorSerializer, GenericErrorSerializer
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
@@ -97,7 +97,7 @@ def format_validation_error(error: ValidationError) -> str:
     return " | ".join(errors)
 
 
-class ConcoursUploadView(PublicApiMixin, APIView):
+class ConcoursUploadView(PublicApiKeyOnlyMixin, APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     @extend_schema(
@@ -125,7 +125,7 @@ class ConcoursUploadView(PublicApiMixin, APIView):
                 serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
-            401: TokenErrorSerializer,
+            401: DetailErrorSerializer,
             500: GenericErrorSerializer,
         },
     )
