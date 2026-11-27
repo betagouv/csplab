@@ -1726,13 +1726,14 @@ paths:
     post:
       operationId: token_create
       description: |-
-        Échange l'email et le mot de passe d'un compte contre un jeton d'accès et un jeton de rafraîchissement.
+        Échange l'email et le mot de passe d'un compte contre un jeton d'accès, valable 15 minutes, et un jeton de rafraîchissement, valable 1 jour.
 
         **Limites d'appels**
 
         | Appel | Limite | Décompte |
         |---|---|---|
         | Sans authentification | 5 appels par minute | par adresse IP |
+      summary: Obtenir un jeton
       tags:
       - token
       requestBody:
@@ -1755,7 +1756,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenObtainPair'
-          description: ''
+          description: Jetons obtenus.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                Error-MissingField:
+                  value:
+                    email:
+                    - Ce champ est obligatoire.
+                    password:
+                    - Ce champ est obligatoire.
+                  summary: Champ obligatoire manquant
+          description: Champ obligatoire manquant.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                Error-InvalidCredentials:
+                  value:
+                    detail: Aucun compte actif n'a été trouvé avec les identifiants
+                      fournis
+                  summary: Identifiants invalides
+          description: Email ou mot de passe incorrect, compte désactivé, ou adresse
+            IP non autorisée pour ce compte. Le message est le même dans tous les
+            cas.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -1786,7 +1831,7 @@ paths:
     post:
       operationId: token_refresh_create
       description: |-
-        Échange un jeton de rafraîchissement valide contre un nouveau jeton d'accès.
+        Échange un jeton de rafraîchissement valide contre un nouveau jeton d'accès, valable 15 minutes. Le jeton de rafraîchissement reste le même : obtenez-en un nouveau avec `POST /api/token` quand il expire.
 
         **Limites d'appels**
 
@@ -1794,6 +1839,7 @@ paths:
         |---|---|---|
         | Sans authentification | 5 appels par minute | par adresse IP |
         | Authentification refusée | 10 appels par minute | par adresse IP |
+      summary: Rafraîchir un jeton
       tags:
       - token
       requestBody:
@@ -1816,7 +1862,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
-          description: ''
+          description: Jeton d'accès obtenu.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                Error-MissingField:
+                  value:
+                    refresh:
+                    - Ce champ est obligatoire.
+                  summary: Champ obligatoire manquant
+          description: Champ obligatoire manquant.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Token is invalid
+                    code: token_not_valid
+                  summary: Jeton invalide ou expiré
+          description: Jeton de rafraîchissement invalide, expiré ou révoqué, compte
+            désactivé, ou adresse IP non autorisée pour ce compte.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -7749,15 +7836,21 @@ components:
         email:
           type: string
           writeOnly: true
+          description: Email du compte.
         password:
           type: string
           writeOnly: true
+          description: Mot de passe du compte.
         access:
           type: string
           readOnly: true
+          description: 'Jeton d''accès, valable 15 minutes. À envoyer dans l''en-tête
+            `Authorization: Bearer <jeton>` des autres routes.'
         refresh:
           type: string
           readOnly: true
+          description: Jeton de rafraîchissement, valable 1 jour. À envoyer à `POST
+            /api/token/refresh` pour obtenir un nouveau jeton d'accès.
       required:
       - access
       - email
@@ -7766,12 +7859,15 @@ components:
     TokenRefresh:
       type: object
       properties:
-        access:
-          type: string
-          readOnly: true
         refresh:
           type: string
           writeOnly: true
+          description: Jeton de rafraîchissement obtenu avec `POST /api/token`.
+        access:
+          type: string
+          readOnly: true
+          description: 'Jeton d''accès, valable 15 minutes. À envoyer dans l''en-tête
+            `Authorization: Bearer <jeton>` des autres routes.'
       required:
       - access
       - refresh
