@@ -4,8 +4,8 @@ import { computed } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
+import CandidatureActivitesList from '../components/CandidatureActivitesList.vue'
 import { useCandidatureActivites } from '../composables/useCandidatureActivites'
-import CandidatureActivitesList from './CandidatureActivitesList.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams

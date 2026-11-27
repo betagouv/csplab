@@ -11,21 +11,21 @@ import {
   candidatureDocumentsFailure,
 } from '@/test/handlers/candidatures'
 import { server } from '@/test/server'
-import CandidatureCv from './CandidatureCv.vue'
+import CandidatureCvView from './CandidatureCvView.vue'
 
 const CV_URL = `/recruteur/organismes/${CANDIDATURE_PARAMS.organismeUuid}/recrutements/${CANDIDATURE_PARAMS.recrutementUuid}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/documents/${CV_DOCUMENT.uuid}`
 
 function renderCv(...handlers: RequestHandler[]) {
   const checked = vi.fn()
   server.use(...handlers, candidatureDocumentFile(checked))
-  render(CandidatureCv, {
-    props: { candidature: CANDIDATURE_PARAMS, candidatNom: 'Alice Dupont' },
+  render(CandidatureCvView, {
+    props: { candidature: CANDIDATURE_PARAMS },
     global: { plugins: [createPinia(), PiniaColada] },
   })
   return { checked }
 }
 
-describe('candidatureCv', () => {
+describe('candidatureCvView', () => {
   it('displays a PDF CV in a frame, with a full page link', async () => {
     renderCv(candidatureDocuments([LETTRE_DOCUMENT, CV_DOCUMENT]))
 

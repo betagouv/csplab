@@ -5,11 +5,11 @@ import { describe, expect, it } from 'vitest'
 import { CANDIDATURE_PARAMS, CV_DOCUMENT, LETTRE_DOCUMENT } from '@/test/fixtures/candidatures'
 import { candidatureDocuments } from '@/test/handlers/candidatures'
 import { server } from '@/test/server'
-import CandidatureDocuments from './CandidatureDocuments.vue'
+import CandidatureDocumentsView from './CandidatureDocumentsView.vue'
 
 async function renderDocuments() {
   server.use(candidatureDocuments([CV_DOCUMENT, LETTRE_DOCUMENT]))
-  render(CandidatureDocuments, {
+  render(CandidatureDocumentsView, {
     props: { candidature: CANDIDATURE_PARAMS },
     global: { plugins: [createPinia(), PiniaColada] },
   })
@@ -18,7 +18,7 @@ async function renderDocuments() {
   return { cv, lettre }
 }
 
-describe('candidatureDocuments', () => {
+describe('candidatureDocumentsView', () => {
   it('lists the documents with their type and size', async () => {
     const { cv, lettre } = await renderDocuments()
 

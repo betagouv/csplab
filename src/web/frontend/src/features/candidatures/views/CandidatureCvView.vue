@@ -7,13 +7,15 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useCandidatureDetail } from '../composables/useCandidatureDetail'
 import { useCandidatureDocumentCheck, useCandidatureDocuments } from '../composables/useCandidatureDocuments'
+import { formatCandidatName } from '../format'
 
 const props = defineProps<{
   candidature: CandidatureParams
-  candidatNom: string
 }>()
 
+const { candidature: detail } = useCandidatureDetail(() => props.candidature)
 const { documents, pending, error, pdfUrl } = useCandidatureDocuments(() => props.candidature)
 
 const cv = computed<DocumentListe | null>(() => documents.value.find(document => document.type === 'cv') ?? null)
@@ -23,7 +25,7 @@ const cvCheck = useCandidatureDocumentCheck(() => props.candidature, () => cv.va
 
 const showSkeleton = useMinimumPending(computed(() => pending.value || cvCheck.pending.value))
 const loadError = computed(() => error.value ?? cvCheck.error.value)
-const title = computed(() => `CV de ${props.candidatNom}`)
+const title = computed(() => detail.value ? `CV de ${formatCandidatName(detail.value.candidat)}` : 'CV')
 const titleId = useId()
 </script>
 
