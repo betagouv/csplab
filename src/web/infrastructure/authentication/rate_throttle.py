@@ -8,9 +8,9 @@ from infrastructure.django_apps.utils.ip import get_client_ip
 UNKNOWN_CLIENT_IDENT = "unknown"
 
 
-class ClientIpAnonRateThrottle(AnonRateThrottle):
+class ClientIpIdentMixin:
     """
-    AnonRateThrottle keyed on get_client_ip(). DRF's default get_ident() uses
+    Keys anonymous requests on get_client_ip(). DRF's default get_ident() uses
     the whole X-Forwarded-For header when NUM_PROXIES is unset: the router
     appends to it but keeps client-sent values, so changing it on every
     request would get a fresh counter each time.
@@ -18,6 +18,10 @@ class ClientIpAnonRateThrottle(AnonRateThrottle):
 
     def get_ident(self, request):
         return get_client_ip(request) or UNKNOWN_CLIENT_IDENT
+
+
+class ClientIpAnonRateThrottle(ClientIpIdentMixin, AnonRateThrottle):
+    pass
 
 
 class DocumentationRateThrottle(ClientIpAnonRateThrottle):

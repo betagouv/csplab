@@ -4,6 +4,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed, Throttled
 from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
+from infrastructure.authentication.rate_throttle import ClientIpIdentMixin
 from infrastructure.authentication.rejection import reject
 from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip, ip_in_networks
@@ -74,7 +75,7 @@ class ApiKeyRateThrottleDaily(ApiKeyRateThrottle):
     scope = "api_key_daily"
 
 
-class NonApiKeyUserRateThrottle(UserRateThrottle):
+class NonApiKeyUserRateThrottle(ClientIpIdentMixin, UserRateThrottle):
     """
     UserRateThrottle that skips ingestion API key requests, which are rate-limited
     by ApiKeyRateThrottle / ApiKeyRateThrottleDaily instead.
