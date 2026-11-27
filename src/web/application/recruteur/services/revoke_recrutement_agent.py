@@ -28,7 +28,8 @@ def revoke_recrutement_agent(
     agent_id: UUID,
     utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    PermissionService().authorize(
+    permissions = PermissionService()
+    demandeur_role = permissions.authorize(
         action=PermissionAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -44,6 +45,11 @@ def revoke_recrutement_agent(
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)
+    permissions.check_member_manageable(
+        demandeur_role=demandeur_role,
+        demandeur_id=utilisateur.username,
+        member=recrutement_agent,
+    )
 
     with transaction.atomic():
         recrutement_agent.date_revocation = timezone.now()

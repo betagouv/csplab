@@ -47,6 +47,11 @@ def update_recrutement_agent(
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)
+    permissions.check_member_manageable(
+        demandeur_role=demandeur_role,
+        demandeur_id=utilisateur.username,
+        member=recrutement_agent,
+    )
 
     with transaction.atomic():
         recrutement_agent.role = role
