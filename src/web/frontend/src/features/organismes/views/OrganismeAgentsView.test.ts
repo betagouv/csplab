@@ -257,6 +257,20 @@ describe('organismeAgentsView', () => {
     await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
   })
 
+  it('names a pending account by its email in its actions, the revocation dialog and the toast', async () => {
+    const user = setupUser()
+    const pending: AgentOrganisme = { ...AGENT_ORGANISME, prenom: '', nom: '' }
+    server.use(organismeAgents([pending]), organismeAgentUpdate(pending))
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: `Actions pour ${pending.email}` }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Révoquer' }))
+    expect(await screen.findByText(`${pending.email} sera retiré de cet organisme`, { exact: false })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Révoquer les accès' }))
+
+    expect(await screen.findByText(`${pending.email} n'a plus accès à l'organisme.`)).toBeInTheDocument()
+  })
+
   it('changes the role from the access rights drawer, then shows the new role among the accounts', async () => {
     const user = setupUser()
     const sent = updateSpy()

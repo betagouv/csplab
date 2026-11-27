@@ -16,7 +16,7 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
-import { agentSearchKeys, formatAgentLabel, formatAgentName } from '@/features/agents/format'
+import { agentSearchKeys, formatAgentLabel } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import AttachAgentForm from '../components/AttachAgentForm.vue'
@@ -90,7 +90,7 @@ async function handleRoleChange(role: Role): Promise<void> {
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
-      description: `${formatAgentName(agent)} est maintenant ${ROLE_LABELS[role].toLowerCase()}.`,
+      description: `${formatAgentLabel(agent)} est maintenant ${ROLE_LABELS[role].toLowerCase()}.`,
     })
     roleDrawerOpen.value = false
   }
@@ -109,7 +109,7 @@ async function handleRevocation(): Promise<void> {
     addToast({
       variant: 'success',
       title: 'Utilisateur révoqué',
-      description: `${formatAgentName(agent)} n'a plus accès à l'organisme.`,
+      description: `${formatAgentLabel(agent)} n'a plus accès à l'organisme.`,
     })
     revocationDialogOpen.value = false
   }
@@ -225,7 +225,7 @@ async function handleRevocation(): Promise<void> {
       size="sm"
     >
       <template v-if="revocation.requested">
-        {{ formatAgentName(revocation.requested) }} sera retiré de cet organisme et perdra
+        {{ formatAgentLabel(revocation.requested) }} sera retiré de cet organisme et perdra
         immédiatement l'accès à ses recrutements. Son compte restera actif et pourra
         être rattaché à nouveau ultérieurement.
       </template>
