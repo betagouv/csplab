@@ -6987,7 +6987,6 @@ components:
       - experience_insuffisante
       - competences_techniques_insuffisantes
       - niveau_qualification_insuffisant
-      - disponibilite
       - autre
       type: string
       description: |-
@@ -6997,7 +6996,6 @@ components:
         * `experience_insuffisante` - Expérience insuffisante
         * `competences_techniques_insuffisantes` - Compétences techniques insuffisantes
         * `niveau_qualification_insuffisant` - Niveau de qualification insuffisant
-        * `disponibilite` - Disponibilité
         * `autre` - Autre
     NatureOffreEnum:
       enum:
