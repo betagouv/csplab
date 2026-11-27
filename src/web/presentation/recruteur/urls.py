@@ -10,6 +10,9 @@ from presentation.recruteur.views.candidature_conversations import (
 )
 from presentation.recruteur.views.candidature_detail import CandidatureDetailView
 from presentation.recruteur.views.candidature_logs import CandidatureLogsView
+from presentation.recruteur.views.candidature_motif_refus import (
+    CandidatureMotifRefusView,
+)
 from presentation.recruteur.views.candidature_tags import (
     CandidatureTagDetailView,
     CandidatureTagsView,
@@ -160,6 +163,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>",
         CandidatureDetailView.as_view(),
         name="organisme_recrutement_candidature_detail",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/motif-refus",
+        CandidatureMotifRefusView.as_view(),
+        name="organisme_recrutement_candidature_motif_refus",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes",
