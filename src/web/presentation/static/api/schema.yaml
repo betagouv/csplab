@@ -353,15 +353,10 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -1492,15 +1487,10 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -1595,15 +1585,10 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -1748,15 +1733,10 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -2138,19 +2118,15 @@ paths:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
                 Error-JWTOnAPIKeyRoute:
                   value:
                     detail: Informations d'authentification non fournies.
-                  summary: Appel avec un jeton JWT
-                  description: 'La route n''accepte que la clé d''API de CSPLab :
-                    un jeton JWT n''est pas reconnu.'
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -2456,26 +2432,18 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
                 Error-InvalidAPIKey:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -3718,26 +3686,18 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
                 Error-InvalidAPIKey:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -3905,26 +3865,18 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
                 Error-InvalidAPIKey:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4128,26 +4080,18 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
                 Error-InvalidAPIKey:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4293,26 +4237,18 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
                 Error-InvalidAPIKey:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4785,15 +4721,10 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                  description: Le jeton JWT du header `Authorization` est invalide
-                    ou expiré. Un jeton expiré renvoie le même corps, avec le message
-                    `Token is expired`.
                 Error-JWTIPNotAllowed:
                   value:
                     detail: Authentication failed.
                   summary: Adresse IP non autorisée (jeton JWT)
-                  description: Le compte n'accepte que certaines adresses IP, et l'appel
-                    vient d'une autre adresse.
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -4915,19 +4846,15 @@ paths:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
                 Error-JWTOnAPIKeyRoute:
                   value:
                     detail: Informations d'authentification non fournies.
-                  summary: Appel avec un jeton JWT
-                  description: 'La route n''accepte que la clé d''API de CSPLab :
-                    un jeton JWT n''est pas reconnu.'
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -5031,19 +4958,15 @@ paths:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
                 Error-JWTOnAPIKeyRoute:
                   value:
                     detail: Informations d'authentification non fournies.
-                  summary: Appel avec un jeton JWT
-                  description: 'La route n''accepte que la clé d''API de CSPLab :
-                    un jeton JWT n''est pas reconnu.'
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
@@ -5147,19 +5070,15 @@ paths:
                   value:
                     detail: Invalid API key.
                   summary: Clé d'API invalide
-                  description: La clé d'API du header `Authorization` est inconnue.
                 Error-APIKeyIPNotAllowed:
                   value:
                     detail: IP address not allowed.
                   summary: Adresse IP non autorisée (clé d'API)
-                  description: La clé d'API est utilisée depuis une adresse IP non
-                    autorisée.
                 Error-JWTOnAPIKeyRoute:
                   value:
                     detail: Informations d'authentification non fournies.
-                  summary: Appel avec un jeton JWT
-                  description: 'La route n''accepte que la clé d''API de CSPLab :
-                    un jeton JWT n''est pas reconnu.'
+                  summary: Appel avec un jeton JWT sur une route réservée à la clé
+                    d'API
           headers:
             X-RateLimit-Limit:
               $ref: '#/components/headers/X-RateLimit-Limit'
