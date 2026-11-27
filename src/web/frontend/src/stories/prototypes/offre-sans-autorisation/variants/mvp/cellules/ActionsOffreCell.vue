@@ -7,7 +7,7 @@ import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.v
 import { dupliquer } from '../dupliquer'
 import { useNav } from '../nav'
 import { db, retirer, sauvegarder, UTILISATEUR } from '../store'
-import { actionOffre } from '../suivi'
+import { actionOffre, horsAts } from '../suivi'
 
 // Menu « … » d'une offre. Une seule action pour arrêter la diffusion (retour PO, point 6), appelée « Mettre en pause »
 // comme le statut ; une offre en pause se remet en ligne, sans forcément la prolonger (Alice, 25/11/2026).
@@ -17,7 +17,11 @@ const { aller, notifier } = useNav()
 
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 // Action à faire sur la ligne (Continuer, Publier, Prolonger), avant le menu (Alice, 25/11/2026).
-const action = computed(() => actionOffre(props.row, Boolean(peutPublier.value)))
+// En pause : « Remettre en ligne » visible dans la ligne, plus seulement dans le menu (retour PO, 27/11/2026).
+const hors = computed(() => horsAts(props.row))
+const action = computed(() => props.row.etat === 'retiree' && peutPublier.value && !hors.value
+  ? { type: 'remettre', label: 'Remettre en ligne', ecran: { nom: 'offre' as const, id: props.row.id, section: 'remettre' } }
+  : actionOffre(props.row, Boolean(peutPublier.value)))
 const retrait = ref(false)
 function confirmerRetrait() {
   retirer(props.row, 'pause')
@@ -26,19 +30,22 @@ function confirmerRetrait() {
   notifier('Offre mise en pause : elle n\'est plus visible des candidats. Les candidatures reçues restent à traiter.')
 }
 
+// Offre gérée hors ATS (téléversée) : seulement la voir (en lecture seule) et la multidiffuser (retour PO, 27/11/2026).
 const sections = computed(() => [{
-  items: [
-    { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
-    { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(props.row, { aller, notifier }) },
-    ...(props.row.etat === 'publiee' && peutPublier.value
-      ? [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => {
-          retrait.value = true
-        } }]
-      : []),
-    ...(props.row.etat === 'retiree' && peutPublier.value
-      ? [{ label: 'Remettre en ligne', icon: 'ri:play-circle-line', onSelect: () => aller({ nom: 'offre', id: props.row.id, section: 'remettre' }) }]
-      : []),
-  ],
+  items: hors.value
+    ? [
+        { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
+        { label: 'Multidiffuser', icon: 'ri:megaphone-line', onSelect: () => aller({ nom: 'offre', id: props.row.id, section: 'diffusion' }) },
+      ]
+    : [
+        { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
+        { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(props.row, { aller, notifier }) },
+        ...(props.row.etat === 'publiee' && peutPublier.value
+          ? [{ label: 'Mettre en pause', icon: 'ri:stop-circle-line', onSelect: () => {
+              retrait.value = true
+            } }]
+          : []),
+      ],
 }])
 </script>
 

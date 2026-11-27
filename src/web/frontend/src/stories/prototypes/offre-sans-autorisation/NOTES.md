@@ -233,3 +233,29 @@ Réponses aux questions
   « En préparation », à la place de l'étiquette sous l'intitulé. Colonne « Candidatures » explicite : « N candidatures ·
   dans l'ATS » (lien) ou « Hors ATS · sur un autre site / par courriel ». Exemple fictif d'offre créée manuellement mais
   gérée hors ATS : OFF-2026-0127.
+
+## Retours de Marion (PO) du 27/11/2026, arbitrés par Alice
+
+Repris :
+- **En ligne** : colonne « Origine » retirée. Candidatures : « 35 candidatures » (lien vers le recrutement), sans « dans
+  l'ATS » ; « Hors ATS » sans lien pour une offre téléversée. Une offre hors ATS n'a que « Voir l'offre » et
+  « Multidiffuser » dans son menu ; sa page est en lecture seule, sauf « Diffusion ».
+- **En pause** : bouton « Remettre en ligne » dans la ligne (retiré du menu « … »).
+- **Filtres** selon l'onglet : partout Date de publication, Fin de publication, Responsable, Lieu ; Statut dans « En
+  préparation » et « Toutes » (là où la colonne existe). Retirés : Candidatures, Service, Catégorie.
+- **Offre en préparation** : bloc « À compléter avant de publier » retiré ; à gauche, l'avancement par étape du
+  formulaire (composant `NavEtapes`, partagé avec le formulaire de création) ; les onglets remontent.
+- **Partie 2** renommée « Formulaire de candidature » (comme l'onglet) ; Documents en premier, questions ensuite.
+- **Diffusion** : plus de choix « dans l'ATS / ailleurs » à la création, les candidatures sont toujours gérées dans
+  l'ATS (une offre dupliquée aussi). Seules les offres téléversées sont hors ATS (OFF-2026-0127 devient téléversée).
+- Lieu : « Lieu d'exercice des fonctions ».
+
+Propositions de Claude, à valider :
+- Étape 7 renommée « Questions » (« Formulaire » dans la partie « Formulaire de candidature » faisait doublon).
+- Offre hors ATS : pas de « Prolonger » ni « Mettre en pause » (publication gérée ailleurs), ni dans « À faire ».
+- Filtres de dates absents de « En préparation » : rien n'y est encore publié.
+- Options des filtres de dates : « Depuis moins de 7 / 30 jours », « Depuis plus de 30 jours » ; « Dans moins de
+  7 / 30 jours », « Date passée ».
+
+Pas repris (choix d'Alice) : colonne « Mise en pause », partie 4 (processus et équipe), « Publier » puis écran de
+multidiffusion à part, ajustements métier / famille.

@@ -19,7 +19,6 @@ defineProps<{ offre: Offre, partie: PartieOffre, verrouilleCandidature?: boolean
   <FormDiffusion
     v-else-if="partie === 'diffusion'"
     :offre="offre"
-    :verrouille="verrouilleCandidature"
   />
   <FormAnnonce
     v-else

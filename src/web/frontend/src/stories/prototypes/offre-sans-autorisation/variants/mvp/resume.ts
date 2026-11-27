@@ -90,7 +90,8 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
     case 'diffusion': {
       const partenaires = SITES_PARTENAIRES.filter(c => o.canaux.includes(c.id)).map(c => c.nom)
       return [
-        l('Gestion des candidatures', o.modeCandidature === 'ats' ? 'Diffuser l\'offre et gérer les candidatures dans l\'ATS' : 'Diffuser l\'offre uniquement'),
+        // Seules les offres téléversées sont gérées hors ATS (retour PO, 27/11/2026).
+        ...(o.modeCandidature === 'ats' ? [] : [l('Candidatures', 'Gérées hors de l\'ATS')]),
         ...(o.modeCandidature === 'externe' ? [l('Lien pour postuler', o.urlCandidature)] : []),
         ...(o.modeCandidature === 'courriel' ? [l('Adresse électronique pour postuler', o.courrielCandidature)] : []),
         l('Multidiffusion', o.diffusion === 'multi' ? 'Oui' : 'Non'),

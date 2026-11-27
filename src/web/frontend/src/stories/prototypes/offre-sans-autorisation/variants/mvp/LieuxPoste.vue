@@ -72,7 +72,7 @@ const sansLieuFixe = computed({
       >
         <div class="lieu__tete">
           <h4 class="lieu__titre">
-            {{ lieux.length > 1 ? `Lieu ${i + 1}` : 'Lieu' }}
+            {{ lieux.length > 1 ? `Lieu d'exercice des fonctions ${i + 1}` : 'Lieu d\'exercice des fonctions' }}
           </h4>
           <CspButton
             v-if="lieux.length > 1"

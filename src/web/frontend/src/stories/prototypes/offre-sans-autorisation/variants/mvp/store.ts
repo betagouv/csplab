@@ -585,7 +585,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v9'
+const CLE = 'csplab-proto-offre-mvp-v10'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -802,10 +802,11 @@ function avecRecrutements(offres: Offre[]): Offre[] {
       o.responsables = ['Camille Moreau', 'Julien Lefèvre']
     }
   }
-  // Créée manuellement, mais « Diffuser uniquement » : candidatures gérées hors ATS (revue UI, 27/11/2026). Lien fictif.
+  // Offre téléversée, candidatures gérées hors ATS (revue UI, 27/11/2026). Lien fictif. Une offre créée dans l'ATS
+  // y gère toujours ses candidatures (retour PO, 27/11/2026).
   const horsAts = copies.find(c => c.id === 'OFF-2026-0127')
   if (horsAts) {
-    Object.assign(horsAts, { modeCandidature: 'externe', urlCandidature: 'https://recrutement.exemple.gouv.fr/risques-naturels', equipe: [] })
+    Object.assign(horsAts, { origineContenu: 'televersement', modeCandidature: 'externe', urlCandidature: 'https://recrutement.exemple.gouv.fr/risques-naturels', equipe: [] })
   }
   return [...offres, ...copies]
 }
@@ -970,9 +971,8 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
         corps: depuis.corps,
         grade: depuis.grade,
         infosComplementaires: depuis.infosComplementaires,
-        modeCandidature: depuis.modeCandidature,
-        courrielCandidature: depuis.courrielCandidature,
-        urlCandidature: depuis.urlCandidature,
+        // Une offre créée dans l'ATS y gère toujours ses candidatures (retour PO, 27/11/2026), même copiée d'une offre téléversée.
+        modeCandidature: 'ats' as const,
         pieces: { ...depuis.pieces },
         questions: [...depuis.questions],
       }

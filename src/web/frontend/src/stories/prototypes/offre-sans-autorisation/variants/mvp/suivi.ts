@@ -215,7 +215,8 @@ export function actionOffre(o: Offre, peutPublier = true): { type: TypeAction, l
     }
     return peutPublier ? { type: 'publier', label: 'Publier', ecran: { nom: 'publier', id: o.id } } : null
   }
-  if (termineBientot(o) && peutPublier) {
+  // Offre gérée hors ATS (téléversée) : sa publication se gère ailleurs, pas d'action ici (retour PO, 27/11/2026).
+  if (termineBientot(o) && peutPublier && !horsAts(o)) {
     return { type: 'prolonger', label: 'Prolonger', ecran: { nom: 'offre', id: o.id, section: 'prolonger' } }
   }
   return null

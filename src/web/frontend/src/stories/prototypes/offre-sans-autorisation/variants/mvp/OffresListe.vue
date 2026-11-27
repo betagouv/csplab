@@ -24,13 +24,12 @@ import CompletionCell from './cellules/CompletionCell.vue'
 import DepublicationCell from './cellules/DepublicationCell.vue'
 import EtatPreparationCell from './cellules/EtatPreparationCell.vue'
 import IntituleCell from './cellules/IntituleCell.vue'
-import OrigineCell from './cellules/OrigineCell.vue'
 import ResponsablesCell from './cellules/ResponsablesCell.vue'
 import StatutDepuisCell from './cellules/StatutDepuisCell.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
-import { dateTri, db, fiche, joursRestants, UTILISATEUR } from './store'
+import { aujourdhui, dateTri, db, fiche, joursRestants, plusJours, UTILISATEUR } from './store'
 import { actionOffre, categorieOffre, CATEGORIES_OFFRE, etatPreparation, horsAts, PHASES, responsable, responsables } from './suivi'
 
 // « Mes offres d'emploi » (sans autorisation) : onglets par statut, recherche, filtres, colonnes selon l'onglet (Alice, 25/11/2026).
@@ -42,9 +41,18 @@ const { search, filtered: trouvees } = useTextSearch(offres, o => [o.titre, o.id
 
 const ORDRE = CATEGORIES_OFFRE.map(c => c.id)
 
+// Onglets par statut (voir plus bas).
+type Onglet = CategorieOffre | 'toutes'
+// Accès direct depuis le tableau de bord. À l'ouverture, on arrive sur les offres en ligne (retour Alice).
+const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'en_pause', en_pause: 'en_pause', archivee: 'archivee' }
+const onglet = ref<Onglet>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
+
 // --- Filtres (retour PO, L3), dans un tiroir et appliqués au clic, comme sur les autres listes ---
+// Adaptés aux colonnes de chaque onglet (retour PO, 27/11/2026) : partout Date de publication, Fin de publication,
+// Responsable et Lieu ; Statut là où la colonne existe. Pas de dates dans « En préparation » : rien n'est encore publié.
 const TOUS = 'tous'
-const filtres = useDraft(() => ({ statut: TOUS as string, fin: TOUS as string, gestion: TOUS as string, responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
+type CleFiltre = 'statut' | 'publication' | 'fin' | 'responsable' | 'lieu'
+const filtres = useDraft<Record<CleFiltre, string>>(() => ({ statut: TOUS, publication: TOUS, fin: TOUS, responsable: TOUS, lieu: TOUS }))
 const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
 const tiroir = useDisclosure()
 function ouvrirFiltres() {
@@ -55,16 +63,13 @@ function appliquer() {
   filtres.apply()
   tiroir.close()
 }
-const nbFiltres = computed(() => Object.values(filtres.applied).filter(v => v !== TOUS).length)
-const service = (o: Offre) => o.service ?? fiche(o.ficheId)?.service.split(' — ').at(-1) ?? ''
 function options(tous: string, valeurs: string[]) {
   return [{ value: TOUS, label: tous }, ...[...new Set(valeurs.filter(Boolean))].sort().map(v => ({ value: v, label: v }))]
 }
 const OPTIONS_RESPONSABLE = computed(() => options('Tous les responsables', offres.value.flatMap(responsables)))
-const OPTIONS_SERVICE = computed(() => options('Tous les services', offres.value.map(service)))
 const OPTIONS_LIEU = computed(() => options('Tous les lieux', offres.value.flatMap(o => o.lieu.split(',').map(l => l.trim()))))
 // Filtre « Statut » : les statuts, avec les deux sous-statuts d'une offre en préparation.
-const OPTIONS_STATUT = [
+const OPTIONS_STATUT_TOUS = [
   { value: TOUS, label: 'Tous les statuts' },
   { value: 'brouillon', label: 'En préparation · Brouillon' },
   { value: 'prete', label: 'En préparation · Prête à publier' },
@@ -72,54 +77,78 @@ const OPTIONS_STATUT = [
   { value: 'en_pause', label: 'En pause' },
   { value: 'archivee', label: 'Archivée' },
 ]
+const OPTIONS_STATUT = computed(() => onglet.value === 'brouillon'
+  ? [{ value: TOUS, label: 'Tous les statuts' }, { value: 'brouillon', label: 'Brouillon' }, { value: 'prete', label: 'Prête à publier' }]
+  : OPTIONS_STATUT_TOUS)
 function statutFiltre(o: Offre): string {
   const c = categorieOffre(o)
   return c === 'brouillon' ? (etatPreparation(o) === 'Brouillon' ? 'brouillon' : 'prete') : c
 }
-// Filtre « Fin de publication » : offres en ligne dont la fin approche.
+// Filtre « Date de publication » : publiée depuis moins de 7 ou 30 jours, ou depuis plus longtemps.
+const OPTIONS_PUBLICATION = [
+  { value: TOUS, label: 'Toutes les dates' },
+  { value: '7', label: 'Depuis moins de 7 jours' },
+  { value: '30', label: 'Depuis moins de 30 jours' },
+  { value: 'plus', label: 'Depuis plus de 30 jours' },
+]
+function publicationFiltre(o: Offre, v: string): boolean {
+  if (o.etat === 'brouillon' || !o.dateDebut) {
+    return false
+  }
+  return v === 'plus' ? o.dateDebut < plusJours(aujourdhui(), -30) : o.dateDebut >= plusJours(aujourdhui(), -Number(v))
+}
+// Filtre « Fin de publication » : fin dans moins de 7 ou 30 jours, ou déjà passée.
 const OPTIONS_FIN = [
   { value: TOUS, label: 'Toutes les dates' },
   { value: '7', label: 'Dans moins de 7 jours' },
   { value: '30', label: 'Dans moins de 30 jours' },
+  { value: 'passee', label: 'Date passée' },
 ]
-function finDans(o: Offre, jours: number): boolean {
-  return o.etat === 'publiee' && Boolean(o.dateFin) && joursRestants(o.dateFin) <= jours
+function finFiltre(o: Offre, v: string): boolean {
+  if (o.etat === 'brouillon' || !o.dateFin) {
+    return false
+  }
+  return v === 'passee' ? o.dateFin < aujourdhui() : o.dateFin >= aujourdhui() && joursRestants(o.dateFin) <= Number(v)
 }
-// Filtre « Candidatures » (revue UI, 27/11/2026) : gérées dans l'ATS, hors ATS, ou offres téléversées.
-const OPTIONS_GESTION = [
-  { value: TOUS, label: 'Toutes les offres' },
-  { value: 'ats', label: 'Gérées dans l\'ATS' },
-  { value: 'hors', label: 'Gérées hors ATS' },
-  { value: 'televersee', label: 'Offres téléversées' },
-]
-function gestionFiltre(o: Offre, v: string): boolean {
-  return v === 'ats' ? !horsAts(o) : v === 'hors' ? horsAts(o) : o.origineContenu === 'televersement'
-}
+// Filtres proposés dans l'onglet affiché ; ceux d'un autre onglet ne s'appliquent pas.
+const FILTRES_ONGLET = computed<CleFiltre[]>(() => [
+  ...(['brouillon', 'toutes'].includes(onglet.value) ? ['statut' as const] : []),
+  ...(onglet.value !== 'brouillon' ? ['publication' as const, 'fin' as const] : []),
+  'responsable',
+  'lieu',
+])
+const actif = (cle: CleFiltre) => FILTRES_ONGLET.value.includes(cle) && filtres.applied[cle] !== TOUS
+const nbFiltres = computed(() => FILTRES_ONGLET.value.filter(actif).length)
 // Filtres appliqués, annoncés au-dessus du tableau (« Vue filtrée »), chacun supprimable.
-const LIBELLES_FILTRES: Record<string, string> = { statut: 'Statut', fin: 'Fin de publication', gestion: 'Candidatures', responsable: 'Responsable', service: 'Service', lieu: 'Lieu', categorie: 'Catégorie' }
-const filtresActifs = computed(() => Object.entries(filtres.applied)
-  .filter(([, v]) => v !== TOUS)
-  .map(([cle, v]) => ({ cle, label: `${LIBELLES_FILTRES[cle]} : ${cle === 'statut' ? OPTIONS_STATUT.find(x => x.value === v)?.label : cle === 'fin' ? OPTIONS_FIN.find(x => x.value === v)?.label : cle === 'gestion' ? OPTIONS_GESTION.find(x => x.value === v)?.label : v}` })))
-function retirerFiltre(cle: string) {
+const LIBELLES_FILTRES: Record<CleFiltre, string> = { statut: 'Statut', publication: 'Date de publication', fin: 'Fin de publication', responsable: 'Responsable', lieu: 'Lieu' }
+const OPTIONS_PAR_CLE: Partial<Record<CleFiltre, { value: string, label: string }[]>> = { statut: OPTIONS_STATUT_TOUS, publication: OPTIONS_PUBLICATION, fin: OPTIONS_FIN }
+const filtresActifs = computed(() => FILTRES_ONGLET.value.filter(actif).map((cle) => {
+  const v = filtres.applied[cle]
+  return { cle, label: `${LIBELLES_FILTRES[cle]} : ${OPTIONS_PAR_CLE[cle]?.find(x => x.value === v)?.label ?? v}` }
+}))
+function retirerFiltre(cle: CleFiltre) {
   filtres.syncDraft()
-  ;(filtres.draft as Record<string, string>)[cle] = TOUS
+  filtres.draft[cle] = TOUS
   filtres.apply()
 }
-const OPTIONS_CATEGORIE = computed(() => options('Toutes les catégories', offres.value.map(o => o.categorie ? `Catégorie ${o.categorie}` : '')))
+function reinitialiser() {
+  filtres.syncDraft()
+  for (const cle of FILTRES_ONGLET.value) {
+    filtres.draft[cle] = TOUS
+  }
+  filtres.apply()
+}
 const filtrees = computed(() => trouvees.value.filter((o) => {
   const f = filtres.applied
-  return (f.responsable === TOUS || responsables(o).includes(f.responsable))
-    && (f.service === TOUS || service(o) === f.service)
-    && (f.lieu === TOUS || o.lieu.split(',').map(l => l.trim()).includes(f.lieu))
-    && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
-    && (f.statut === TOUS || statutFiltre(o) === f.statut)
-    && (f.fin === TOUS || finDans(o, Number(f.fin)))
-    && (f.gestion === TOUS || gestionFiltre(o, f.gestion))
+  return (!actif('responsable') || responsables(o).includes(f.responsable))
+    && (!actif('lieu') || o.lieu.split(',').map(l => l.trim()).includes(f.lieu))
+    && (!actif('statut') || statutFiltre(o) === f.statut)
+    && (!actif('publication') || publicationFiltre(o, f.publication))
+    && (!actif('fin') || finFiltre(o, f.fin))
 }))
 
 // --- Onglets par statut : En préparation, En ligne, En pause, Archivée, puis Toutes ---
 // Les compteurs des onglets restent les totaux, même quand la vue est filtrée (Alice).
-type Onglet = CategorieOffre | 'toutes'
 const parPhase = computed(() => {
   const m = new Map<CategorieOffre, number>()
   for (const o of offres.value) {
@@ -131,9 +160,6 @@ const onglets = computed<CspTabItem<Onglet>[]>(() => [
   ...PHASES.map(p => ({ value: p.id, label: `${p.label} (${parPhase.value.get(p.id) ?? 0})` })),
   { value: 'toutes', label: `Toutes (${offres.value.length})` },
 ])
-// Accès direct depuis le tableau de bord. À l'ouverture, on arrive sur les offres en ligne (retour Alice).
-const DEPUIS_ACCUEIL: Record<string, CategorieOffre> = { brouillon: 'brouillon', en_ligne: 'en_ligne', depubliee: 'en_pause', en_pause: 'en_pause', archivee: 'archivee' }
-const onglet = ref<Onglet>((props.filtre && DEPUIS_ACCUEIL[props.filtre]) || 'en_ligne')
 
 // Tri par défaut : en ligne, les fins les plus proches d'abord (L4) ; ailleurs, l'activité la plus récente d'abord.
 function dateActivite(o: Offre) {
@@ -157,6 +183,7 @@ function choisirAction(t: CarteAFaire) {
   filtres.syncDraft()
   filtres.draft.statut = t === 'publier' ? 'prete' : TOUS
   filtres.draft.fin = t === 'prolonger' ? '7' : TOUS
+  filtres.draft.publication = TOUS
   filtres.apply()
   onglet.value = ONGLET_ACTION[t]
 }
@@ -179,9 +206,6 @@ const COLONNES = computed<CspColumnDef<Offre>[]>(() => {
   const avecCandidatures = onglet.value !== 'brouillon'
   return [
     { id: 'intitule', header: 'Offre d\'emploi', accessor: o => o.titre, cellComponent: IntituleCell },
-    // Origine : téléversée ou créée manuellement (Alice, 27/11/2026). Pas dans « En préparation » : une offre
-    // téléversée est déjà publiée.
-    ...(onglet.value !== 'brouillon' ? [{ id: 'origine', header: 'Origine', sortable: true, accessor: (o: Offre) => (o.origineContenu === 'televersement' ? 1 : 0), cellComponent: OrigineCell, width: '11.5rem' }] : []),
     // Champs obligatoires remplis, dans « En préparation » (retour PO, 26/11/2026).
     ...(onglet.value === 'brouillon' ? [{ id: 'completion', header: 'Champs obligatoires remplis', wrapHeader: true, sortable: true, accessor: (o: Offre) => champsObligatoires(o).filter(c => c.ok).length / Math.max(1, champsObligatoires(o).length), cellComponent: CompletionCell, width: '8.5rem' }] : []),
     // Statut : badge dans « Toutes » ; texte simple dans « En préparation » (Brouillon, Prête à publier) ; rien ailleurs.
@@ -273,7 +297,7 @@ const SOUS_TITRE = 'Créez et gérez vos offres d\'emploi, de leur préparation 
           size="sm"
           icon="ri:close-circle-line"
           is-icon-left
-          @click="filtres.reset()"
+          @click="reinitialiser"
         />
       </div>
       <CspDataTable
@@ -297,39 +321,32 @@ const SOUS_TITRE = 'Créez et gérez vos offres d\'emploi, de leur préparation 
       @reset="filtres.reset()"
     >
       <CspSelect
+        v-if="FILTRES_ONGLET.includes('statut')"
         v-model="filtres.draft.statut"
         label="Statut"
         :options="OPTIONS_STATUT"
       />
-      <CspSelect
-        v-model="filtres.draft.fin"
-        label="Fin de publication"
-        :options="OPTIONS_FIN"
-      />
-      <CspSelect
-        v-model="filtres.draft.gestion"
-        label="Candidatures"
-        :options="OPTIONS_GESTION"
-      />
+      <template v-if="FILTRES_ONGLET.includes('publication')">
+        <CspSelect
+          v-model="filtres.draft.publication"
+          label="Date de publication"
+          :options="OPTIONS_PUBLICATION"
+        />
+        <CspSelect
+          v-model="filtres.draft.fin"
+          label="Fin de publication"
+          :options="OPTIONS_FIN"
+        />
+      </template>
       <CspSelect
         v-model="filtres.draft.responsable"
         label="Responsable"
         :options="OPTIONS_RESPONSABLE"
       />
       <CspSelect
-        v-model="filtres.draft.service"
-        label="Service"
-        :options="OPTIONS_SERVICE"
-      />
-      <CspSelect
         v-model="filtres.draft.lieu"
         label="Lieu"
         :options="OPTIONS_LIEU"
-      />
-      <CspSelect
-        v-model="filtres.draft.categorie"
-        label="Catégorie"
-        :options="OPTIONS_CATEGORIE"
       />
     </CspFiltersDrawer>
   </PageAts>
