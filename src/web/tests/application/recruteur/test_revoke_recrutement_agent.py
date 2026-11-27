@@ -1,6 +1,8 @@
 from uuid import uuid4
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from application.recruteur.services.revoke_recrutement_agent import (
@@ -299,3 +301,33 @@ def test_rolls_back_revocation_when_audit_log_write_fails(db, monkeypatch):
         ).date_revocation
         is None
     )
+
+
+def test_locks_the_member_before_checking_it(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+    )
+
+    with CaptureQueriesContext(connection) as requetes:
+        revoke_recrutement_agent(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            agent_id=membre.utilisateur_id,
+            utilisateur=responsable.utilisateur,
+        )
+
+    verrous = [
+        requete["sql"][requete["sql"].index(" FOR ") :]
+        for requete in requetes.captured_queries
+        if " FOR " in requete["sql"]
+    ]
+    assert verrous == [" FOR UPDATE"]

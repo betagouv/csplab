@@ -11,6 +11,7 @@ export const MEMBRE_EQUIPE: MembreEquipe = {
   email: 'jeanne.dupont@example.gouv.fr',
   recrutement_role: 'recruteur',
   tags: [],
+  authorized_actions: ['update_recrutement_agent', 'revoke_recrutement_agent'],
 }
 
 export const SECOND_MEMBRE_EQUIPE: MembreEquipe = {
@@ -21,6 +22,7 @@ export const SECOND_MEMBRE_EQUIPE: MembreEquipe = {
   email: NOUVEL_AGENT.email,
   recrutement_role: 'recruteur',
   tags: [],
+  authorized_actions: ['update_recrutement_agent', 'revoke_recrutement_agent'],
 }
 
 export const EQUIPE: MembreEquipe[] = [MEMBRE_EQUIPE]

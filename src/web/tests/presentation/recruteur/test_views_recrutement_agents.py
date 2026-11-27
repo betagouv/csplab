@@ -2,6 +2,8 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,6 +11,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -42,7 +45,10 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # matching recrutement with organisme
     + 2  # pagination : count + page
     + 1  # prefetch tags_liaisons (tag via select_related)
+    + 1  # organisme (authorized_actions)
+    + 1  # agent's role (authorized_actions)
 )
+_ACTIONS_SUR_MEMBRE = ["update_recrutement_agent", "revoke_recrutement_agent"]
 
 
 def _url(organisme_uuid, recrutement_uuid):
@@ -76,7 +82,33 @@ def _responsable_non_superviseur(test_user):
         agent=agent,
         role=AgentRecrutementRole.RESPONSABLE.value,
     )
-    return organisme, recrutement
+    return organisme, recrutement, agent
+
+
+def _membre(organisme, recrutement, role):
+    agent = _agent_a_ajouter(organisme, deja_rattache=True)
+    RecrutementAgentDjangoFactory(recrutement=recrutement, agent=agent, role=role.value)
+    return agent
+
+
+def _evenements_audit(agent):
+    return list(
+        AuditLogModel.objects.filter(
+            ressource_kind="RecrutementAgent", ressource_id=agent.utilisateur_id
+        ).values_list("event_name", flat=True)
+    )
+
+
+def _revocation(agent, role):
+    return {
+        **_payload(agent, role),
+        "date_revocation_recrutement": datetime.now(UTC),
+    }
+
+
+def _role_et_revocation(recrutement, agent):
+    membre = RecrutementAgentModel.objects.get(recrutement=recrutement, agent=agent)
+    return membre.role, membre.date_revocation
 
 
 def _agent_a_ajouter(organisme, *, deja_rattache):
@@ -177,6 +209,7 @@ class TestRecrutementAgentsViewDbVerified:
                 "email": membre.utilisateur.email,
                 "recrutement_role": AgentRecrutementRole.RESPONSABLE.value,
                 "tags": [],
+                "authorized_actions": _ACTIONS_SUR_MEMBRE,
             }
         ]
 
@@ -302,6 +335,7 @@ class TestRecrutementAgentsViewPost:
             "email": membre.utilisateur.email,
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
             "tags": [],
+            "authorized_actions": _ACTIONS_SUR_MEMBRE,
         }
         assert RecrutementAgentModel.objects.filter(
             recrutement=recrutement, agent=membre
@@ -454,7 +488,7 @@ class TestRecrutementAgentsViewPost:
     def test_responsable_adds_agent_with_allowed_role(
         self, authenticated_client, test_user, role, deja_rattache
     ):
-        organisme, recrutement = _responsable_non_superviseur(test_user)
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
         agent = _agent_a_ajouter(organisme, deja_rattache=deja_rattache)
 
         response = authenticated_client.post(
@@ -475,7 +509,7 @@ class TestRecrutementAgentsViewPost:
     def test_responsable_cannot_grant_responsable_role(
         self, authenticated_client, test_user, deja_rattache
     ):
-        organisme, recrutement = _responsable_non_superviseur(test_user)
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
         agent = _agent_a_ajouter(organisme, deja_rattache=deja_rattache)
 
         response = authenticated_client.post(
@@ -497,7 +531,7 @@ class TestRecrutementAgentsViewPost:
     def test_responsable_cannot_reattach_revoked_organisme_agent(
         self, authenticated_client, test_user
     ):
-        organisme, recrutement = _responsable_non_superviseur(test_user)
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
         revoque = OrganismeAgentDjangoFactory(
             organisme=organisme,
             role=AgentOrganismeRole.AGENT.value,
@@ -843,7 +877,7 @@ class TestRecrutementAgentsViewPut:
     def test_responsable_updates_agent_to_allowed_role(
         self, authenticated_client, test_user, role
     ):
-        organisme, recrutement = _responsable_non_superviseur(test_user)
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
         membre = OrganismeAgentDjangoFactory(
             organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
@@ -868,7 +902,7 @@ class TestRecrutementAgentsViewPut:
     def test_responsable_cannot_update_agent_to_responsable(
         self, authenticated_client, test_user
     ):
-        organisme, recrutement = _responsable_non_superviseur(test_user)
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
         membre = OrganismeAgentDjangoFactory(
             organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
@@ -1036,3 +1070,196 @@ class TestRecrutementAgentsViewPut:
         response = authenticated_client.put(_url(organisme.id, recrutement.pk), payload)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestResponsableOnAnotherResponsable:
+    def test_cannot_demote_another_responsable(self, authenticated_client, test_user):
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
+        autre = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(autre, AgentRecrutementRole.RECRUTEUR),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert _role_et_revocation(recrutement, autre) == (
+            AgentRecrutementRole.RESPONSABLE.value,
+            None,
+        )
+        assert _evenements_audit(autre) == []
+
+    def test_cannot_revoke_another_responsable(self, authenticated_client, test_user):
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
+        autre = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _revocation(autre, AgentRecrutementRole.RESPONSABLE),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert _role_et_revocation(recrutement, autre) == (
+            AgentRecrutementRole.RESPONSABLE.value,
+            None,
+        )
+        assert _evenements_audit(autre) == []
+
+    @pytest.mark.parametrize(
+        "role", [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR]
+    )
+    def test_can_revoke_non_responsable(self, authenticated_client, test_user, role):
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
+        membre = _membre(organisme, recrutement, role)
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _revocation(membre, role),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert _role_et_revocation(recrutement, membre)[1] is not None
+
+    def test_can_demote_itself(self, authenticated_client, test_user):
+        organisme, recrutement, demandeur = _responsable_non_superviseur(test_user)
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(demandeur, AgentRecrutementRole.RECRUTEUR),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            _role_et_revocation(recrutement, demandeur)[0]
+            == AgentRecrutementRole.RECRUTEUR.value
+        )
+
+    def test_can_revoke_itself(self, authenticated_client, test_user):
+        organisme, recrutement, demandeur = _responsable_non_superviseur(test_user)
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _revocation(demandeur, AgentRecrutementRole.RESPONSABLE),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert _role_et_revocation(recrutement, demandeur)[1] is not None
+
+
+class TestSuperviseurAndStaffOnResponsable:
+    def test_superviseur_can_demote_and_revoke_responsable(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        demote = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+        retire = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        demote_response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(demote, AgentRecrutementRole.RECRUTEUR),
+        )
+        retire_response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk),
+            _revocation(retire, AgentRecrutementRole.RESPONSABLE),
+            format="json",
+        )
+
+        assert demote_response.status_code == status.HTTP_200_OK
+        assert retire_response.status_code == status.HTTP_200_OK
+        assert (
+            _role_et_revocation(recrutement, demote)[0]
+            == AgentRecrutementRole.RECRUTEUR.value
+        )
+        assert _role_et_revocation(recrutement, retire)[1] is not None
+
+    def test_staff_can_demote_and_revoke_responsable(self, api_client):
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        organisme = OrganismeDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        demote = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+        retire = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        demote_response = api_client.put(
+            _url(organisme.id, recrutement.pk),
+            _payload(demote, AgentRecrutementRole.RECRUTEUR),
+        )
+        retire_response = api_client.put(
+            _url(organisme.id, recrutement.pk),
+            _revocation(retire, AgentRecrutementRole.RESPONSABLE),
+            format="json",
+        )
+
+        assert demote_response.status_code == status.HTTP_200_OK
+        assert retire_response.status_code == status.HTTP_200_OK
+
+
+class TestAuthorizedActionsOnMembers:
+    def test_responsable_gets_actions_except_on_another_responsable(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, demandeur = _responsable_non_superviseur(test_user)
+        autre = _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+        recruteur = _membre(organisme, recrutement, AgentRecrutementRole.RECRUTEUR)
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = {
+            r["uuid"]: r["authorized_actions"] for r in response.json()["results"]
+        }
+        attendu = {
+            str(demandeur.utilisateur_id): _ACTIONS_SUR_MEMBRE,
+            str(autre.utilisateur_id): [],
+            str(recruteur.utilisateur_id): _ACTIONS_SUR_MEMBRE,
+        }
+        assert {uuid: actions[uuid] for uuid in attendu} == attendu
+
+    def test_superviseur_gets_actions_on_every_member(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+        _membre(organisme, recrutement, AgentRecrutementRole.CONTRIBUTEUR)
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert [r["authorized_actions"] for r in response.json()["results"]] == [
+            _ACTIONS_SUR_MEMBRE
+        ] * 3
+
+    def test_staff_gets_actions_on_every_member(self, api_client):
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        organisme = OrganismeDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        response = api_client.get(_url(organisme.id, recrutement.pk))
+
+        assert [r["authorized_actions"] for r in response.json()["results"]] == [
+            _ACTIONS_SUR_MEMBRE
+        ] * 2
+
+    def test_query_count_does_not_grow_with_members_for_a_responsable(
+        self, authenticated_client, test_user
+    ):
+        organisme, recrutement, _ = _responsable_non_superviseur(test_user)
+        url = _url(organisme.id, recrutement.pk)
+        with CaptureQueriesContext(connection) as avec_un_membre:
+            authenticated_client.get(url)
+        for _ in range(5):
+            _membre(organisme, recrutement, AgentRecrutementRole.RESPONSABLE)
+
+        with CaptureQueriesContext(connection) as avec_six_membres:
+            response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(avec_six_membres) == len(avec_un_membre)

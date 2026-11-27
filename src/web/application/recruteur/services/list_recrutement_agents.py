@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from uuid import UUID
 
 from django.db.models import QuerySet
@@ -31,3 +32,32 @@ def list_recrutement_agents(
     contexte.check_recrutement_belongs_to_organisme()
 
     return RecrutementAgentModel.objects.by_recrutement(recrutement_id).with_tags()
+
+
+def with_authorized_actions(
+    members: Iterable[RecrutementAgentModel],
+    *,
+    organisme_id: UUID,
+    recrutement_id: UUID,
+    utilisateur: UserModel,
+) -> list[RecrutementAgentModel]:
+    page = list(members)
+    if not page:
+        return page
+    permissions = PermissionService()
+    demandeur_role = permissions.authorize(
+        action=PermissionAction.LIST_RECRUTEMENT_AGENTS,
+        utilisateur=utilisateur,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+    )
+    for member in page:
+        member.authorized_actions = [  # type: ignore[attr-defined]
+            action.value
+            for action in permissions.authorized_actions_member(
+                demandeur_role=demandeur_role,
+                demandeur_id=utilisateur.username,
+                member=member,
+            )
+        ]
+    return page

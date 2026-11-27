@@ -12,6 +12,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_agent_errors import (
+    MembreRecrutementNonModifiable,
     RoleRecrutementNonAutorise,
 )
 from domain.recruteur.value_objects.roles import (
@@ -294,6 +295,12 @@ _ROLES_RECRUTEMENT_REQUIS: dict[PermissionAction, frozenset[AgentRecrutementRole
     ),
 }
 
+_ACTIONS_SUR_MEMBRE_RECRUTEMENT: frozenset[PermissionAction] = frozenset(
+    {
+        PermissionAction.UPDATE_RECRUTEMENT_AGENT,
+        PermissionAction.REVOKE_RECRUTEMENT_AGENT,
+    }
+)
 
 # Actions ciblant un recrutement précis : hors périmètre des actions exposées au
 # niveau de l'utilisateur et de l'organisme
@@ -313,6 +320,32 @@ def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
 
 
 class PermissionService:
+    def _can_manage_member(
+        self,
+        *,
+        demandeur_role: AgentOrganismeRole | None,
+        demandeur_id: UUID,
+        member: RecrutementAgentModel,
+    ) -> bool:
+        return (
+            demandeur_role
+            in _ROLES_REQUIS[PermissionAction.GRANT_RECRUTEMENT_RESPONSABLE]
+            or member.role != AgentRecrutementRole.RESPONSABLE.value
+            or member.agent_id == demandeur_id
+        )
+
+    def check_member_manageable(
+        self,
+        *,
+        demandeur_role: AgentOrganismeRole | None,
+        demandeur_id: UUID,
+        member: RecrutementAgentModel,
+    ) -> None:
+        if not self._can_manage_member(
+            demandeur_role=demandeur_role, demandeur_id=demandeur_id, member=member
+        ):
+            raise MembreRecrutementNonModifiable(member.role)
+
     def check_role_grantable(
         self, *, demandeur_role: AgentOrganismeRole | None, role: str
     ) -> None:
@@ -456,3 +489,16 @@ class PermissionService:
                 )
             )
         )
+
+    def authorized_actions_member(
+        self,
+        *,
+        demandeur_role: AgentOrganismeRole | None,
+        demandeur_id: UUID,
+        member: RecrutementAgentModel,
+    ) -> list[PermissionAction]:
+        if not self._can_manage_member(
+            demandeur_role=demandeur_role, demandeur_id=demandeur_id, member=member
+        ):
+            return []
+        return _ordonnees(_ACTIONS_SUR_MEMBRE_RECRUTEMENT)

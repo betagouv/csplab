@@ -614,10 +614,20 @@ class RecrutementAgentSerializer(serializers.ModelSerializer):
         source="role", choices=[(r.value, r.value) for r in AgentRecrutementRole]
     )
     tags = TagSerializer(many=True, read_only=True)
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = RecrutementAgentModel
-        fields = ["uuid", "nom", "prenom", "poste", "email", "recrutement_role", "tags"]
+        fields = [
+            "uuid",
+            "nom",
+            "prenom",
+            "poste",
+            "email",
+            "recrutement_role",
+            "tags",
+            "authorized_actions",
+        ]
 
 
 class RecrutementAgentRoleSerializer(serializers.Serializer):

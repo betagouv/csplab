@@ -1243,6 +1243,7 @@ export interface components {
             email: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
             readonly tags: components["schemas"]["Tag"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         RecrutementAgentRole: {
             /** Format: uuid */
