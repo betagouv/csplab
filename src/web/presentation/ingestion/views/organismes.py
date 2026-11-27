@@ -36,7 +36,6 @@ from presentation.api.errors import validation_message
 from presentation.api.serializers import (
     DetailErrorSerializer,
     GenericErrorSerializer,
-    TokenErrorSerializer,
 )
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.mappers import OrganismeInputMapper
@@ -94,7 +93,6 @@ UPSERT_ORGANISMES_DESCRIPTION = (
             },
         ),
         400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
 )
@@ -184,7 +182,6 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
         responses={
             200: OrganismePublicSerializer(many=True),
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
             404: DetailErrorSerializer,
             500: GenericErrorSerializer,
         },
@@ -197,7 +194,6 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
         responses={
             200: SupprimerOrganismesResponseSerializer,
             400: GenericErrorSerializer,
-            401: GenericErrorSerializer,
             500: GenericErrorSerializer,
         },
     ),
