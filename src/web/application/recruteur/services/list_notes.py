@@ -17,6 +17,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.permission_action import PermissionAction
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -35,7 +36,7 @@ def list_notes(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[NoteModel]:
-    PermissionService().authorize(
+    organisme_role = PermissionService().authorize(
         action=PermissionAction.LIST_NOTES,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
@@ -50,17 +51,19 @@ def list_notes(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    return (
+    notes = (
         NoteModel.objects.by_candidature(candidature_id)
         .visibles_par(utilisateur.username)
         .with_tags()
     )
+    notes.organisme_role = organisme_role  # type: ignore[attr-defined]
+    return notes
 
 
 def with_authorized_actions(
     notes: Iterable[NoteModel],
     *,
-    organisme_id: UUID,
+    organisme_role: AgentOrganismeRole | None,
     recrutement_id: UUID,
     utilisateur: UserModel,
 ) -> list[NoteModel]:
@@ -68,7 +71,7 @@ def with_authorized_actions(
     if not page:
         return page
     actions_sur_sa_note = _actions_on_own_note(
-        organisme_id=organisme_id,
+        organisme_role=organisme_role,
         recrutement_id=recrutement_id,
         utilisateur=utilisateur,
     )
@@ -80,14 +83,13 @@ def with_authorized_actions(
 
 
 def _actions_on_own_note(
-    *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
+    *,
+    organisme_role: AgentOrganismeRole | None,
+    recrutement_id: UUID,
+    utilisateur: UserModel,
 ) -> list[str]:
-    organisme_role = PermissionService().authorize(
-        action=PermissionAction.LIST_NOTES,
-        utilisateur=utilisateur,
-        organisme_id=organisme_id,
-        recrutement_id=recrutement_id,
-    )
+    # TODO : unreachable, authorize() never returns None for LIST_NOTES; kept
+    # only to narrow the type for authorized_actions_of_recrutement
     if organisme_role is None:
         raise OperationOrganismeRefusee()
     recrutement_role = (

@@ -37,9 +37,7 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     + 1  # candidature belongs to recrutement
     + 2  # pagination: count + page (author via select_related)
     + 1  # prefetch tags_liaisons (tag via select_related)
-    + 1  # organisme exists, for the authorized actions
-    + 1  # agent's organisme role, for the authorized actions
-    + 1  # agent's recrutement role
+    + 1  # agent's recrutement role, for the authorized actions
 )
 
 
