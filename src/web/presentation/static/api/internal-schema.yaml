@@ -6578,6 +6578,13 @@ components:
       - a_traiter
       - en_cours
       - total
+    CandidaturesTotal:
+      type: object
+      properties:
+        total:
+          type: integer
+      required:
+      - total
     CategorieEnum:
       enum:
       - ENTREE
@@ -7761,8 +7768,11 @@ components:
         recrute:
           type: string
           nullable: true
+        candidatures:
+          $ref: '#/components/schemas/CandidaturesTotal'
       required:
       - authorized_actions
+      - candidatures
       - date_archivage
       - finalise
       - intitule

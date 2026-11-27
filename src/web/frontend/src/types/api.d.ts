@@ -795,6 +795,9 @@ export interface components {
             a_traiter: number | null;
             en_cours: number | null;
         };
+        CandidaturesTotal: {
+            total: number;
+        };
         /**
          * @description * `ENTREE` - entree
          *     * `EN_COURS` - en_cours
@@ -1321,6 +1324,7 @@ export interface components {
             date_archivage: string;
             finalise: boolean;
             recrute: string | null;
+            candidatures: components["schemas"]["CandidaturesTotal"];
         };
         Responsable: {
             nom: string;
