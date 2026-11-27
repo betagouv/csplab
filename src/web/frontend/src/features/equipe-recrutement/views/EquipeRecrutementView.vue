@@ -69,6 +69,10 @@ const addMemberEmailError = ref('')
 const revocationDialogOpen = useRequestOpen(revocation)
 const roleDrawerOpen = useRequestOpen(roleChange)
 const tagDrawerOpen = useRequestOpen(tagChange)
+const tagChangeMembre = computed(() => {
+  const requested = tagChange.requested
+  return requested && (membres.value.find(membre => membre.uuid === requested.uuid) ?? requested)
+})
 
 const columns = computed(() =>
   canChangeRole.value || canChangeTag.value || canRevoke.value
@@ -140,7 +144,7 @@ function tagChangeErrorTitle(tagError: unknown): string {
 }
 
 async function handleTagChange(tagUuid: string | null): Promise<void> {
-  const membre = tagChange.requested
+  const membre = tagChangeMembre.value
   if (!membre) {
     return
   }
@@ -296,7 +300,7 @@ const countLabel = computed(() => {
         :key="tagChange.requested.uuid"
         :organisme-uuid="organismeUuid"
         :email="tagChange.requested.email"
-        :tag-uuid="tagChange.requested.tags[0]?.uuid ?? null"
+        :tag-uuid="tagChangeMembre?.tags[0]?.uuid ?? null"
         :submitting="changingTag"
         @submit="handleTagChange"
         @cancel="tagDrawerOpen = false"

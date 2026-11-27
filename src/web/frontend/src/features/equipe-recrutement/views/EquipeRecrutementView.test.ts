@@ -335,6 +335,32 @@ describe('equipeRecrutementView', () => {
     expect(removed).toHaveBeenCalledOnce()
   })
 
+  it('only adds the new tag when saving again after a failed replacement', async () => {
+    const user = setupUser()
+    const removed = vi.fn()
+    const reloads = vi.fn()
+    server.use(
+      equipe([MEMBRE_JURY]),
+      membreTagRemoval((agentUuid, tagUuid) => {
+        removed(agentUuid, tagUuid)
+        server.use(equipe([MEMBRE_EQUIPE], reloads))
+      }),
+      membreTagAdditionFailure(500),
+    )
+    await renderView()
+    await chooseTag(user, 'Présélection')
+    await screen.findByText('L\'ancienne étiquette a été retirée, mais la nouvelle n\'a pas pu être posée')
+    await vi.waitFor(() => expect(reloads).toHaveBeenCalled())
+
+    const added = vi.fn()
+    server.use(membreTagAddition(added))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
+
+    expect(await screen.findByText('Étiquette enregistrée')).toBeInTheDocument()
+    expect(removed).toHaveBeenCalledOnce()
+    expect(added).toHaveBeenCalledWith(MEMBRE_EQUIPE.uuid, TAG_PRESELECTION.uuid)
+  })
+
   it('says when the member is added but not tagged', async () => {
     const user = setupUser()
     server.use(membreAddition(SECOND_MEMBRE_EQUIPE), membreTagAdditionFailure(500))
