@@ -260,9 +260,11 @@ Propositions de Claude, à valider :
 Pas repris (choix d'Alice) : colonne « Mise en pause », partie 4 (processus et équipe), « Publier » puis écran de
 multidiffusion à part, ajustements métier / famille.
 
-## Étape « Diffusion » : multidiffusion (Alice, 27/11/2026)
+## Partie 3 « Multidiffusion » (Alice, 27/11/2026)
 
-« L'offre est par défaut publiée sur Choisir le Service Public. » Puis « Multidiffuser l'offre ? » Oui / Non ; si oui,
-les sites partenaires côte à côte en cases à cocher : pastille, nom, public visé et modalité en gris.
+La partie 3 s'appelle « Multidiffusion » (l'onglet de la page de l'offre aussi), son étape « Sites partenaires ».
+« L'offre est par défaut publiée sur Choisir le Service Public. » Plus de question oui / non : on coche directement les
+sites en plus. Cartes côte à côte, toute la carte est cliquable (la case reste le contrôle clavier) ; même structure
+d'une carte à l'autre (CSS `subgrid`) : pastille et case, nom, public visé (icône), modalité (étiquette grise).
 **À remplacer** : les pastilles à initiales tiennent lieu de logos (pas de logos dans le proto) ; les modalités
 (« Publication sous 24 h », « Catégorie A uniquement »…) sont fictives.

@@ -94,7 +94,6 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
         ...(o.modeCandidature === 'ats' ? [] : [l('Candidatures', 'Gérées hors de l\'ATS')]),
         ...(o.modeCandidature === 'externe' ? [l('Lien pour postuler', o.urlCandidature)] : []),
         ...(o.modeCandidature === 'courriel' ? [l('Adresse électronique pour postuler', o.courrielCandidature)] : []),
-        l('Multidiffusion', o.diffusion === 'multi' ? 'Oui' : 'Non'),
         { label: 'Sites de diffusion', liste: [SUPPORT_MAITRE.nom, ...(o.diffusion === 'multi' ? partenaires : [])] },
       ]
     }

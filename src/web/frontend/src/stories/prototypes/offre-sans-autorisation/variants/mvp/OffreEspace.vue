@@ -77,7 +77,7 @@ function choisirEtape(partie: PartieOffre) {
 // --- Onglets (revue UI équipe, 27/11/2026) : les trois parties de la création, puis l'activité. Remplacent « Accéder à ». ---
 type Onglet = GroupeOffre | 'activite'
 const onglet = ref<Onglet>('annonce')
-const LIBELLES_ONGLET: Record<GroupeOffre, string> = { annonce: 'Annonce', candidature: 'Formulaire de candidature', diffusion: 'Diffusion' }
+const LIBELLES_ONGLET: Record<GroupeOffre, string> = { annonce: 'Annonce', candidature: 'Formulaire de candidature', diffusion: 'Multidiffusion' }
 const onglets = computed<CspTabItem<Onglet>[]>(() => [
   ...GROUPES.map(g => ({ value: g.id, label: LIBELLES_ONGLET[g.id], icon: g.icone })),
   { value: 'activite', label: 'Activité', icon: 'ri:history-line' },
