@@ -15,6 +15,7 @@ import CspSkeletonSortableList from '@/components/base/CspSkeleton/CspSkeletonSo
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
+import { can } from '@/utils/authorizedActions'
 import { quote } from '@/utils/format'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_CONFIG } from '../constants/etape-recrutement'
@@ -29,7 +30,8 @@ const {
   loading,
   saving,
   error,
-  isEtapeLocked,
+  canAddEtape,
+  canEditEtapes,
   reorderEtapes,
   addEtape,
   addEtapeAt,
@@ -159,6 +161,10 @@ async function handleModalConfirm() {
   }
 }
 
+function isEtapeMovable(etape: EtapeRecrutement): boolean {
+  return can(etape.etape_actions, 'move_etape')
+}
+
 function getMenuSections(
   item: EtapeRecrutement,
   index: number,
@@ -167,51 +173,37 @@ function getMenuSections(
   moveUp: () => void,
   moveDown: () => void,
 ) {
-  const isLocked = isEtapeLocked(item)
+  const actions = item.etape_actions
   return [
     {
-      items: [
-        {
-          label: 'Renommer',
-          icon: 'ri:edit-line',
-          onSelect: () => openRenameModal(item),
-        },
-      ],
+      items: can(actions, 'rename_etape')
+        ? [{ label: 'Renommer', icon: 'ri:edit-line', onSelect: () => openRenameModal(item) }]
+        : [],
     },
     {
       items: [
-        {
-          label: 'Ajouter une étape au-dessus',
-          icon: 'ri:add-line',
-          disabled: isLocked,
-          onSelect: () => openAddAtModal(index),
-        },
-        {
-          label: 'Ajouter une étape en dessous',
-          icon: 'ri:add-line',
-          disabled: isLocked,
-          onSelect: () => openAddAtModal(index + 1),
-        },
+        ...(can(actions, 'insert_etape_before')
+          ? [{ label: 'Ajouter une étape au-dessus', icon: 'ri:add-line', onSelect: () => openAddAtModal(index) }]
+          : []),
+        ...(can(actions, 'insert_etape_after')
+          ? [{ label: 'Ajouter une étape en dessous', icon: 'ri:add-line', onSelect: () => openAddAtModal(index + 1) }]
+          : []),
       ],
     },
     {
-      items: [
-        { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp || isLocked, onSelect: moveUp },
-        { label: 'Descendre', icon: 'ri:arrow-down-s-line', disabled: !canMoveDown || isLocked, onSelect: moveDown },
-      ],
+      items: isEtapeMovable(item)
+        ? [
+            { label: 'Monter', icon: 'ri:arrow-up-s-line', disabled: !canMoveUp, onSelect: moveUp },
+            { label: 'Descendre', icon: 'ri:arrow-down-s-line', disabled: !canMoveDown, onSelect: moveDown },
+          ]
+        : [],
     },
     {
-      items: [
-        {
-          label: 'Supprimer',
-          icon: 'ri:delete-bin-line',
-          destructive: true,
-          disabled: isLocked,
-          onSelect: () => openDeleteModal(item),
-        },
-      ],
+      items: can(actions, 'delete_etape')
+        ? [{ label: 'Supprimer', icon: 'ri:delete-bin-line', destructive: true, onSelect: () => openDeleteModal(item) }]
+        : [],
     },
-  ]
+  ].filter(section => section.items.length > 0)
 }
 </script>
 
@@ -224,14 +216,16 @@ function getMenuSections(
         </h2>
         <div class="etapes-list__actions">
           <CspButton
+            v-if="canEditEtapes"
             label="Réinitialiser"
             icon="ri:restart-line"
             variant="tertiary"
             is-icon-left
-            :disabled="saving || loading"
+            :disabled="saving"
             @click="resetModalOpen = true"
           />
           <CspButton
+            v-if="canAddEtape"
             label="Ajouter une étape"
             icon="ri:add-line"
             variant="secondary"
@@ -255,8 +249,8 @@ function getMenuSections(
           :items="[...etapes]"
           :get-item-key="(etape) => etape.uuid"
           :get-item-label="(etape) => etape.nom"
-          :is-item-draggable="(etape) => !isEtapeLocked(etape)"
-          :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
+          :is-item-draggable="isEtapeMovable"
+          :get-item-variant="(etape) => isEtapeMovable(etape) ? 'default' : 'alt'"
           show-position
           handle-placement="gutter"
           @reorder="handleReorder"
@@ -277,6 +271,7 @@ function getMenuSections(
               :label="CATEGORIE_CONFIG[item.categorie].label"
             />
             <CspDropdownMenu
+              v-if="item.etape_actions.length > 0"
               :sections="getMenuSections(item, index, canMoveUp, canMoveDown, moveUp, moveDown)"
               side="bottom"
               align="end"
@@ -408,6 +403,7 @@ function getMenuSections(
   align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-3);
+  min-height: 2.5rem;
   margin-bottom: var(--csp-space-6);
 }
 

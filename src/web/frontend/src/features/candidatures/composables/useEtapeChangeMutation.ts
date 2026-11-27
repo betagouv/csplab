@@ -96,6 +96,7 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         return
       }
       void queryCache.invalidateQueries({ key: recrutementKeys.liste(params) })
+      void queryCache.invalidateQueries({ key: recrutementKeys.etapes(params) })
       for (const candidatureUuid of candidatureUuids) {
         void queryCache.invalidateQueries({ key: candidatureKeys.root({ ...params, candidatureUuid }) })
       }

@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
+import { etapesOffreQuery } from '@/features/etapes-recrutement/queries'
 import {
   CANDIDAT_ALICE,
   CANDIDAT_BRUNO,
@@ -17,6 +18,7 @@ import {
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { candidatureListe, etapeChangeFailure } from '@/test/handlers/candidatures'
+import { etapesOffre } from '@/test/handlers/etapes-recrutement'
 import { server } from '@/test/server'
 import { candidatureListeQuery } from '../queries'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
@@ -66,5 +68,25 @@ describe('useEtapeChangeMutation', () => {
     reload()
     await second
     await vi.waitFor(() => expect(liste.asyncStatus.value).toBe('idle'))
+  })
+
+  it('reloads the étapes of the recrutement once a candidature is moved', async () => {
+    const loads = vi.fn()
+    server.use(etapesOffre(undefined, loads))
+    let context!: ReturnType<typeof useEtapeChangeMutation>
+    render(defineComponent({
+      setup() {
+        useQuery(etapesOffreQuery(RECRUTEMENT))
+        context = useEtapeChangeMutation(RECRUTEMENT)
+        return () => h(CspToaster)
+      },
+    }), {
+      global: { plugins: [createPinia(), PiniaColada] },
+    })
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledOnce())
+
+    await context.changeEtape({ etapeCibleUuid: ETAPE_ENTRETIEN, candidatureUuids: [CANDIDATURE_ALICE] }, [CANDIDAT_ALICE])
+
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
   })
 })
