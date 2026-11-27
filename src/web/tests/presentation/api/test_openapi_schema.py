@@ -123,15 +123,15 @@ _TOKEN_OR_DETAIL = {
     ]
 }
 _DETAIL = {"$ref": "#/components/schemas/DetailError"}
-_JWT = ["Error-InvalidJWT", "Error-JWTIPNotAllowed"]
-_API_KEY = ["Error-InvalidAPIKey", "Error-APIKeyIPNotAllowed"]
+_JWT = ["Erreur-JetonJWTInvalide", "Erreur-IPInterditeAvecJWT"]
+_API_KEY = ["Erreur-CleAPIInvalide", "Erreur-IPInterditeAvecCleAPI"]
 
 
 @pytest.mark.parametrize(
     "method, path, schema, examples",
     [
         ("get", "/api/v1/organismes", _TOKEN_OR_DETAIL, _JWT),
-        ("put", "/api/v1/organismes", _DETAIL, [*_API_KEY, "Error-JWTOnAPIKeyRoute"]),
+        ("put", "/api/v1/organismes", _DETAIL, [*_API_KEY, "Erreur-JWTSurRouteCleAPI"]),
         ("get", "/api/v1/offres", _TOKEN_OR_DETAIL, [*_JWT, *_API_KEY]),
     ],
 )

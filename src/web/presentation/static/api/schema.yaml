@@ -344,7 +344,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -353,7 +353,7 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
@@ -1478,7 +1478,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -1487,7 +1487,7 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
@@ -1576,7 +1576,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -1585,7 +1585,7 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
@@ -1724,7 +1724,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -1733,7 +1733,7 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
@@ -2114,15 +2114,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
-                Error-JWTOnAPIKeyRoute:
+                Erreur-JWTSurRouteCleAPI:
                   value:
                     detail: Informations d'authentification non fournies.
                   summary: Appel avec un jeton JWT sur une route réservée à la clé
@@ -2423,7 +2423,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -2432,15 +2432,15 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
@@ -3677,7 +3677,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -3686,15 +3686,15 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
@@ -3856,7 +3856,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -3865,15 +3865,15 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
@@ -4071,7 +4071,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -4080,15 +4080,15 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
@@ -4228,7 +4228,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -4237,15 +4237,15 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
@@ -4712,7 +4712,7 @@ paths:
                 - $ref: '#/components/schemas/TokenError'
                 - $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidJWT:
+                Erreur-JetonJWTInvalide:
                   value:
                     detail: Le type de jeton fourni n'est pas valide
                     code: token_not_valid
@@ -4721,7 +4721,7 @@ paths:
                       token_type: access
                       message: Token is invalid
                   summary: Jeton JWT invalide ou expiré
-                Error-JWTIPNotAllowed:
+                Erreur-IPInterditeAvecJWT:
                   value:
                     detail: Échec de l'authentification.
                   summary: Adresse IP non autorisée (jeton JWT)
@@ -4842,15 +4842,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
-                Error-JWTOnAPIKeyRoute:
+                Erreur-JWTSurRouteCleAPI:
                   value:
                     detail: Informations d'authentification non fournies.
                   summary: Appel avec un jeton JWT sur une route réservée à la clé
@@ -4954,15 +4954,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
-                Error-JWTOnAPIKeyRoute:
+                Erreur-JWTSurRouteCleAPI:
                   value:
                     detail: Informations d'authentification non fournies.
                   summary: Appel avec un jeton JWT sur une route réservée à la clé
@@ -5066,15 +5066,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/DetailError'
               examples:
-                Error-InvalidAPIKey:
+                Erreur-CleAPIInvalide:
                   value:
                     detail: Clé d'API invalide.
                   summary: Clé d'API invalide
-                Error-APIKeyIPNotAllowed:
+                Erreur-IPInterditeAvecCleAPI:
                   value:
                     detail: Adresse IP non autorisée.
                   summary: Adresse IP non autorisée (clé d'API)
-                Error-JWTOnAPIKeyRoute:
+                Erreur-JWTSurRouteCleAPI:
                   value:
                     detail: Informations d'authentification non fournies.
                   summary: Appel avec un jeton JWT sur une route réservée à la clé
