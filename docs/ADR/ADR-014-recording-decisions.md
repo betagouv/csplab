@@ -19,7 +19,7 @@ On écrit les ADR et les décisions de design avec le même en-tête, les mêmes
 
 ### En-tête
 
-L'en-tête est un bloc YAML en tête du fichier. Ses clés sont celles de MADR, en anglais comme les identifiants du dépôt ([ADR-011](ADR-011-identifier-language.md)).
+L'en-tête est un bloc YAML en tête du fichier. Ses clés `status`, `date`, `decision-makers`, `consulted` et `informed` sont celles de MADR, en anglais comme les identifiants du dépôt ([ADR-011](ADR-011-identifier-language.md)), et on y ajoute les clés des liens entre décisions.
 
 - `status` : proposé, accepté, rejeté, déprécié ou remplacé ;
 - `date` : date de la dernière modification de la décision, au format AAAA-MM-JJ ;
