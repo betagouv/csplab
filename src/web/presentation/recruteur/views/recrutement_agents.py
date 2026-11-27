@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
@@ -11,6 +12,7 @@ from rest_framework.views import APIView
 from application.recruteur.services.add_recrutement_agent import add_recrutement_agent
 from application.recruteur.services.list_recrutement_agents import (
     list_recrutement_agents,
+    with_authorized_actions,
 )
 from application.recruteur.services.revoke_recrutement_agent import (
     revoke_recrutement_agent,
@@ -36,9 +38,13 @@ from domain.recruteur.errors.organisme_agent_errors import (
 from domain.recruteur.errors.recrutement_agent_errors import (
     AgentDejaMembreRecrutement,
     AgentNonMembreRecrutement,
+    MembreRecrutementNonModifiable,
     RoleRecrutementNonAutorise,
 )
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+)
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.conditional_get import ConditionalGetMixin
@@ -93,6 +99,21 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
             utilisateur=self.request.user,
         )
 
+    def paginate_queryset(
+        self, queryset: QuerySet[RecrutementAgentModel]
+    ) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return (
+            None
+            if page is None
+            else with_authorized_actions(
+                page,
+                organisme_id=self.kwargs["organisme_uuid"],
+                recrutement_id=self.kwargs["recrutement_uuid"],
+                utilisateur=self.request.user,
+            )
+        )
+
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
@@ -107,6 +128,12 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
             recrutement_id=recrutement_uuid,
             agent_id=serializer.validated_data["agent_id"],
             role=serializer.validated_data["recrutement_role"],
+            utilisateur=request.user,
+        )
+        [recrutement_agent] = with_authorized_actions(
+            [recrutement_agent],
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
             utilisateur=request.user,
         )
         return Response(
@@ -155,6 +182,7 @@ class RecrutementAgentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
                 OperationOrganismeRefusee,
                 AccesRecrutementRefuse,
                 AccesRecrutementInconnu,
+                MembreRecrutementNonModifiable,
                 RoleRecrutementNonAutorise,
                 AgentOrganismeRevoque,
             ),
