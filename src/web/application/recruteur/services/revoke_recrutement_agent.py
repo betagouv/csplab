@@ -44,14 +44,14 @@ def revoke_recrutement_agent(
     # PermissionService.authorize() above (for the acting utilisateur rather
     # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
-    recrutement_agent = contexte.get_active_member(agent_id)
-    permissions.check_member_manageable(
-        demandeur_role=demandeur_role,
-        demandeur_id=utilisateur.username,
-        member=recrutement_agent,
-    )
 
     with transaction.atomic():
+        recrutement_agent = contexte.get_active_member(agent_id, for_update=True)
+        permissions.check_member_manageable(
+            demandeur_role=demandeur_role,
+            demandeur_id=utilisateur.username,
+            member=recrutement_agent,
+        )
         recrutement_agent.date_revocation = timezone.now()
         recrutement_agent.save(update_fields=["date_revocation", "updated_at"])
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
