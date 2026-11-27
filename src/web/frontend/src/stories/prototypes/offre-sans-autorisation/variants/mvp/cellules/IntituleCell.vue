@@ -21,7 +21,13 @@ const sous = computed(() => [service.value, props.row.lieu, props.row.id].filter
     >
       {{ row.titre || 'Sans titre' }}
     </button>
-    <span class="intitule__sous">{{ sous }}</span>
+    <span class="intitule__sous">
+      <span
+        v-if="row.origineContenu === 'televersement'"
+        class="intitule__origine"
+      >Téléversée</span>
+      {{ sous }}
+    </span>
   </div>
 </template>
 
@@ -50,6 +56,15 @@ const sous = computed(() => [service.value, props.row.lieu, props.row.id].filter
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
+}
+
+.intitule__origine {
+  margin-right: var(--csp-space-1);
+  padding: 0 var(--csp-space-1);
+  border-radius: 0.25rem;
+  background: var(--background-contrast-grey);
+  font-weight: 700;
+  color: var(--text-default-grey);
 }
 
 .intitule__sous {

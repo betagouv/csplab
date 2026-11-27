@@ -25,6 +25,10 @@ const ADRESSES: Required<Omit<LieuPoste, 'affectation'>>[] = [
 ]
 
 const lieux = computed(() => o.value.lieux ?? [])
+// Un premier lieu est affiché d'emblée (revue UI, 27/11/2026) : « Ajouter un autre lieu » sert à en mettre plusieurs.
+if (!lieux.value.length) {
+  o.value.lieux = [{ adresse: '', ville: '' }]
+}
 function synchro() {
   o.value.lieu = o.value.sansLieuFixe ? 'Pas de lieu fixe' : lieux.value.map(l => l.ville).filter(Boolean).join(', ')
   o.value.adresse = lieux.value[0]?.adresse ?? ''
@@ -68,9 +72,10 @@ const sansLieuFixe = computed({
       >
         <div class="lieu__tete">
           <h4 class="lieu__titre">
-            Lieu {{ i + 1 }}
+            {{ lieux.length > 1 ? `Lieu ${i + 1}` : 'Lieu' }}
           </h4>
           <CspButton
+            v-if="lieux.length > 1"
             label="Retirer"
             variant="tertiary-no-outline"
             size="sm"
@@ -113,7 +118,7 @@ const sansLieuFixe = computed({
       </div>
       <div>
         <CspButton
-          label="Ajouter un lieu"
+          label="Ajouter un autre lieu"
           variant="secondary"
           size="sm"
           icon="ri:add-line"

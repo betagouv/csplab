@@ -2,7 +2,6 @@
 import type { Offre } from './store'
 import { computed } from 'vue'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
-import CspSwitch from '@/components/base/CspSwitch/CspSwitch.vue'
 import ListEditor from '../../shared/ListEditor.vue'
 import { PIECES } from './store'
 
@@ -13,7 +12,7 @@ const props = defineProps<{ offre: Offre, partie: 'formulaire' | 'documents', ve
 const o = computed(() => props.offre)
 
 // Posées au candidat au moment où il postule : pas de profil candidat à remplir (retour PO, 26/11/2026).
-// Affichées par défaut ; le recruteur peut masquer chacune.
+// Posées par défaut. Le switch n'était pas compris (revue UI, 27/11/2026) : deux choix, présentés comme les documents.
 const QUESTIONS_FIXES = [
   { id: 'rqth' as const, question: 'Êtes-vous bénéficiaire d\'une RQTH ?', reponses: 'Oui / Non' },
   { id: 'fonctionnaire' as const, question: 'Êtes-vous fonctionnaire ?', reponses: 'Oui / Non' },
@@ -21,9 +20,15 @@ const QUESTIONS_FIXES = [
 function affichee(id: 'rqth' | 'fonctionnaire') {
   return o.value.questionsFixes?.[id] !== false
 }
-function basculer(id: 'rqth' | 'fonctionnaire', v: boolean) {
-  o.value.questionsFixes = { ...o.value.questionsFixes, [id]: v }
+function choisir(id: 'rqth' | 'fonctionnaire', v: string) {
+  o.value.questionsFixes = { ...o.value.questionsFixes, [id]: v === 'posee' }
 }
+const AFFICHAGES = [
+  { value: 'non', label: 'Non posée' },
+  { value: 'posee', label: 'Posée' },
+]
+// Partie 3 « Diffusion » : si les candidatures sont gérées hors de l'ATS, il n'y a rien à paramétrer ici.
+const horsAts = computed(() => o.value.modeCandidature !== 'ats')
 
 const EXIGENCES = [
   { value: 'non', label: 'Non demandé' },
@@ -39,17 +44,12 @@ const EXIGENCES = [
   >
     Offre publiée : ce qui est demandé aux candidats ne peut plus changer, des candidats ont déjà postulé.
   </p>
-  <div
-    v-if="partie === 'formulaire'"
-    class="groupe"
+  <p
+    v-if="horsAts"
+    class="verrou"
   >
-    <h3 class="groupe__titre">
-      Mode de candidature
-    </h3>
-    <p class="groupe__desc">
-      Les candidats postulent dans l'ATS : les candidatures arrivent directement dans le suivi du recrutement.
-    </p>
-  </div>
+    Candidatures gérées hors de l'ATS (choix fait dans la partie « Diffusion ») : ces paramètres ne s'appliquent pas.
+  </p>
 
   <div
     v-if="partie === 'documents'"
@@ -92,28 +92,30 @@ const EXIGENCES = [
       Questions oui / non
     </h3>
     <p class="groupe__desc">
-      Affichées par défaut. Désactivez une question pour ne pas la poser aux candidats.
+      Posées par défaut. Pour chaque question : non posée ou posée. Le candidat répond par oui ou par non.
     </p>
-    <ul class="fixes">
-      <li
+    <div class="pieces">
+      <div
         v-for="q in QUESTIONS_FIXES"
         :key="q.question"
-        class="fixe"
+        class="piece"
       >
+        <span class="piece__nom">{{ q.question }}</span>
         <span
           v-if="verrouille"
-          :class="{ fixe__masquee: !affichee(q.id) }"
-        >{{ q.question }}{{ affichee(q.id) ? '' : ' (non posée)' }}</span>
-        <CspSwitch
+          class="piece__valeur"
+        >{{ affichee(q.id) ? 'Posée' : 'Non posée' }}</span>
+        <CspSegmentedControl
           v-else
-          :model-value="affichee(q.id)"
-          :label="q.question"
+          :model-value="affichee(q.id) ? 'posee' : 'non'"
+          :legend="q.question"
+          hide-legend
           size="sm"
-          @update:model-value="(v: boolean) => basculer(q.id, v)"
+          :options="AFFICHAGES"
+          @update:model-value="(v: string) => choisir(q.id, v)"
         />
-        <span class="fixe__reponses">{{ q.reponses }}</span>
-      </li>
-    </ul>
+      </div>
+    </div>
   </div>
 
   <div
@@ -176,37 +178,6 @@ const EXIGENCES = [
   border-left: 3px solid var(--border-plain-grey);
   background: var(--background-alt-grey);
   font-size: var(--csp-font-size-sm);
-}
-
-.fixes {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.fixe {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--csp-space-4);
-  padding: var(--csp-space-3) 0;
-  border-bottom: 1px solid var(--border-default-grey);
-  font-size: var(--csp-font-size-sm);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-}
-
-.fixe__masquee {
-  color: var(--text-mention-grey);
-}
-
-.fixe__reponses {
-  color: var(--text-mention-grey);
-  white-space: nowrap;
 }
 
 .pieces {

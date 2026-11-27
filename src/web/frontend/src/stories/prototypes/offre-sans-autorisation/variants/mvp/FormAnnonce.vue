@@ -3,7 +3,7 @@ import type { PartieOffre } from './etapes'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
+import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
@@ -17,7 +17,7 @@ import ChampSimple from './ChampSimple.vue'
 import ChoixMultiple from './ChoixMultiple.vue'
 import LieuxPoste from './LieuxPoste.vue'
 import { useNav } from './nav'
-import { CATEGORIES, COMPETENCES_RMFP, contenuDepuisFiche, CORPS, FAMILLES, LANGUES, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import { CATEGORIES, COMPETENCES_RMFP, contenuDepuisFiche, CORPS, FAMILLES, LANGUES, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL, typeCompetence } from './store'
 
 // Champs de l'annonce (ce que lit le candidat sur Choisir le Service Public, D311-8), découpés en étapes (retour PO, F1) :
 // `partie` choisit l'étape affichée. Les champs obligatoires portent un astérisque (F5) et ne sont contrôlés qu'au moment
@@ -113,7 +113,10 @@ const optionsCompetences = computed(() => [...new Set([...(metier(o.value.metier
 const rechercheCompetence = ref('')
 const competencesProposees = computed(() => COMPETENCES_RMFP
   .filter(c => !o.value.competences.includes(c) && c.toLowerCase().includes(rechercheCompetence.value.trim().toLowerCase()))
-  .map(c => ({ value: c, label: c })))
+  .map(c => ({ value: c, label: `${c} (${typeCompetence(c).toLowerCase()})` })))
+function cocherCompetence(c: string, v: boolean) {
+  o.value.competences = v ? [...o.value.competences, c] : o.value.competences.filter(x => x !== c)
+}
 function ajouterCompetence(c: string | null) {
   if (c && !o.value.competences.includes(c)) {
     o.value.competences = [...o.value.competences, c]
@@ -290,13 +293,27 @@ function formater() {
           label="Compétences"
           hint="Pré-remplies avec les compétences du métier, modifiables"
         >
-          <CspCheckboxGroup
+          <!-- Savoir-faire ou connaissance, en texte secondaire à côté de chaque compétence (revue UI, 27/11/2026) -->
+          <fieldset
             v-if="optionsCompetences.length"
-            v-model="o.competences"
-            label="Compétences"
-            class="sans-label"
-            :options="optionsCompetences"
-          />
+            class="competences"
+          >
+            <legend class="sr-only">
+              Compétences
+            </legend>
+            <div
+              v-for="c in optionsCompetences"
+              :key="c.value"
+              class="competence"
+            >
+              <CspCheckbox
+                :model-value="o.competences.includes(c.value)"
+                :label="c.label"
+                @update:model-value="(v?: boolean) => cocherCompetence(c.value, Boolean(v))"
+              />
+              <span class="competence__type">{{ typeCompetence(c.value) }}</span>
+            </div>
+          </fieldset>
           <p
             v-else
             class="metier__vide"
@@ -433,7 +450,7 @@ function formater() {
       />
     </div>
 
-    <!-- Étape « Le profil recherché » (profil et conditions de travail) -->
+    <!-- Étape « Le profil recherché » (les conditions de travail sont passées à l'étape 5, revue UI du 27/11/2026) -->
     <template v-else-if="partie === 'profil'">
       <div class="groupe">
         <h3 class="groupe__titre">
@@ -523,7 +540,46 @@ function formater() {
           />
         </ChampSimple>
       </div>
+    </template>
 
+    <!-- Étape 5 « L'environnement de travail » : employeur, lieux, conditions de travail -->
+    <template v-else-if="partie === 'lieu'">
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Employeur
+        </h3>
+        <ChampSimple
+          label="Descriptif de l'employeur"
+          obligatoire
+        >
+          <CspTextarea
+            v-model="o.descriptifEmployeur"
+            label="Descriptif de l'employeur"
+            :rows="2"
+          />
+        </ChampSimple>
+        <ChampOffre
+          :offre="o"
+          champ="presentation"
+          label="Descriptif du service"
+          for-id="a-presentation"
+          :repris="repris('presentation')"
+          :modifie="modifie('presentation')"
+          @restaurer="restaurer('presentation')"
+        >
+          <CspTextarea
+            id="a-presentation"
+            v-model="o.presentation"
+            :rows="3"
+          />
+        </ChampOffre>
+      </div>
+      <div class="groupe">
+        <h3 class="groupe__titre">
+          Lieux
+        </h3>
+        <LieuxPoste :offre="o" />
+      </div>
       <div class="groupe">
         <h3 class="groupe__titre">
           Conditions de travail
@@ -585,50 +641,40 @@ function formater() {
         />
       </div>
     </template>
-
-    <!-- Étape « Employeur et lieux » -->
-    <template v-else-if="partie === 'lieu'">
-      <div class="groupe">
-        <h3 class="groupe__titre">
-          Employeur
-        </h3>
-        <ChampSimple
-          label="Descriptif de l'employeur"
-          obligatoire
-        >
-          <CspTextarea
-            v-model="o.descriptifEmployeur"
-            label="Descriptif de l'employeur"
-            :rows="2"
-          />
-        </ChampSimple>
-        <ChampOffre
-          :offre="o"
-          champ="presentation"
-          label="Descriptif du service"
-          for-id="a-presentation"
-          :repris="repris('presentation')"
-          :modifie="modifie('presentation')"
-          @restaurer="restaurer('presentation')"
-        >
-          <CspTextarea
-            id="a-presentation"
-            v-model="o.presentation"
-            :rows="3"
-          />
-        </ChampOffre>
-      </div>
-      <div class="groupe">
-        <h3 class="groupe__titre">
-          Lieux
-        </h3>
-        <LieuxPoste :offre="o" />
-      </div>
-    </template>
   </div>
 </template>
 
 <style scoped lang="scss">
+.competences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.competence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-1) var(--csp-space-3);
+}
+
+.competence__type {
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .annonce {
   display: flex;
   flex-direction: column;

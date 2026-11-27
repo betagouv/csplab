@@ -134,11 +134,13 @@ export function champsObligatoires(o: Offre): { etape: EtapeFormulaire, partie: 
     ['cadre', true, Boolean(o.categorie), 'Catégorie'],
     ['cadre', o.ouvertA.includes('contractuel'), Boolean(o.fondementJuridique), 'Fondement juridique'],
     ['profil', Boolean(o.languesListe?.some(l => l.langue.trim())), !o.languesListe?.some(l => l.langue.trim() && !l.niveau), 'Niveau de langue'],
-    ['profil', true, Boolean(o.tempsTravail), 'Temps de travail'],
+    ['lieu', true, Boolean(o.tempsTravail), 'Temps de travail'],
     ['lieu', true, Boolean(o.descriptifEmployeur.trim()), 'Descriptif de l\'employeur'],
     ['lieu', !o.sansLieuFixe, lieux.length > 0 && lieux.every(l => l.geo), 'Lieu (adresse géolocalisée)'],
+    ['diffusion', o.modeCandidature === 'externe', Boolean(o.urlCandidature?.trim()), 'Lien pour postuler'],
+    ['diffusion', o.modeCandidature === 'courriel', Boolean(o.courrielCandidature?.trim()), 'Adresse électronique pour postuler'],
   ]
-  return liste.filter(([, a]) => a).map(([partie, , ok, label]) => ({ etape: partie === 'formulaire' || partie === 'documents' ? 'candidature' as const : 'annonce' as const, partie, label, ok }))
+  return liste.filter(([, a]) => a).map(([partie, , ok, label]) => ({ etape: partie === 'formulaire' || partie === 'documents' || partie === 'diffusion' ? 'candidature' as const : 'annonce' as const, partie, label, ok }))
 }
 
 /**

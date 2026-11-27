@@ -30,7 +30,7 @@ import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
 import { dateTri, db, fiche, joursRestants, UTILISATEUR } from './store'
-import { actionOffre, categorieOffre, CATEGORIES_OFFRE, etatPreparation, PHASES, responsable, responsables } from './suivi'
+import { actionOffre, categorieOffre, CATEGORIES_OFFRE, etatPreparation, horsAts, PHASES, responsable, responsables } from './suivi'
 
 // « Mes offres d'emploi » (sans autorisation) : onglets par statut, recherche, filtres, colonnes selon l'onglet (Alice, 25/11/2026).
 const props = defineProps<{ filtre?: string }>()
@@ -43,7 +43,7 @@ const ORDRE = CATEGORIES_OFFRE.map(c => c.id)
 
 // --- Filtres (retour PO, L3), dans un tiroir et appliqués au clic, comme sur les autres listes ---
 const TOUS = 'tous'
-const filtres = useDraft(() => ({ statut: TOUS as string, fin: TOUS as string, responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
+const filtres = useDraft(() => ({ statut: TOUS as string, fin: TOUS as string, gestion: TOUS as string, responsable: TOUS, service: TOUS, lieu: TOUS, categorie: TOUS }))
 const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier))
 const tiroir = useDisclosure()
 function ouvrirFiltres() {
@@ -84,11 +84,21 @@ const OPTIONS_FIN = [
 function finDans(o: Offre, jours: number): boolean {
   return o.etat === 'publiee' && Boolean(o.dateFin) && joursRestants(o.dateFin) <= jours
 }
+// Filtre « Candidatures » (revue UI, 27/11/2026) : gérées dans l'ATS, hors ATS, ou offres téléversées.
+const OPTIONS_GESTION = [
+  { value: TOUS, label: 'Toutes les offres' },
+  { value: 'ats', label: 'Gérées dans l\'ATS' },
+  { value: 'hors', label: 'Gérées hors ATS' },
+  { value: 'televersee', label: 'Offres téléversées' },
+]
+function gestionFiltre(o: Offre, v: string): boolean {
+  return v === 'ats' ? !horsAts(o) : v === 'hors' ? horsAts(o) : o.origineContenu === 'televersement'
+}
 // Filtres appliqués, annoncés au-dessus du tableau (« Vue filtrée »), chacun supprimable.
-const LIBELLES_FILTRES: Record<string, string> = { statut: 'Statut', fin: 'Fin de publication', responsable: 'Responsable', service: 'Service', lieu: 'Lieu', categorie: 'Catégorie' }
+const LIBELLES_FILTRES: Record<string, string> = { statut: 'Statut', fin: 'Fin de publication', gestion: 'Candidatures', responsable: 'Responsable', service: 'Service', lieu: 'Lieu', categorie: 'Catégorie' }
 const filtresActifs = computed(() => Object.entries(filtres.applied)
   .filter(([, v]) => v !== TOUS)
-  .map(([cle, v]) => ({ cle, label: `${LIBELLES_FILTRES[cle]} : ${cle === 'statut' ? OPTIONS_STATUT.find(x => x.value === v)?.label : cle === 'fin' ? OPTIONS_FIN.find(x => x.value === v)?.label : v}` })))
+  .map(([cle, v]) => ({ cle, label: `${LIBELLES_FILTRES[cle]} : ${cle === 'statut' ? OPTIONS_STATUT.find(x => x.value === v)?.label : cle === 'fin' ? OPTIONS_FIN.find(x => x.value === v)?.label : cle === 'gestion' ? OPTIONS_GESTION.find(x => x.value === v)?.label : v}` })))
 function retirerFiltre(cle: string) {
   filtres.syncDraft()
   ;(filtres.draft as Record<string, string>)[cle] = TOUS
@@ -103,6 +113,7 @@ const filtrees = computed(() => trouvees.value.filter((o) => {
     && (f.categorie === TOUS || `Catégorie ${o.categorie}` === f.categorie)
     && (f.statut === TOUS || statutFiltre(o) === f.statut)
     && (f.fin === TOUS || finDans(o, Number(f.fin)))
+    && (f.gestion === TOUS || gestionFiltre(o, f.gestion))
 }))
 
 // --- Onglets par statut : En préparation, En ligne, En pause, Archivée, puis Toutes ---
@@ -290,6 +301,11 @@ const SOUS_TITRE = 'Créez et gérez vos offres d\'emploi, de leur préparation 
         v-model="filtres.draft.fin"
         label="Fin de publication"
         :options="OPTIONS_FIN"
+      />
+      <CspSelect
+        v-model="filtres.draft.gestion"
+        label="Candidatures"
+        :options="OPTIONS_GESTION"
       />
       <CspSelect
         v-model="filtres.draft.responsable"

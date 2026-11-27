@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import { manquesDates } from './aide'
 import ChampDate from './ChampDate.vue'
-import { aujourdhui, dateLongue, plusUnMois, SUPPORT_MAITRE } from './store'
+import { aujourdhui, CANAUX_DIFFUSION, dateLongue, plusUnMois } from './store'
 
 // Publication (doc PO) : l'offre est mise en ligne le jour où on publie (pas de programmation). Date de fin de
 // publication, qui vaut date limite de candidature (au moins un mois, sauf urgence). Saisies au moment de
@@ -14,13 +14,15 @@ const o = computed(() => props.offre)
 if (!o.value.dateFin) {
   o.value.dateFin = plusUnMois(aujourdhui())
 }
+// Sites choisis dans la partie 3 « Diffusion » (revue UI équipe, 27/11/2026).
+const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.includes(c.id)).map(c => c.nom).join(', '))
 const erreur = computed(() => (props.tentative ? manquesDates(o.value)[0] : undefined))
 </script>
 
 <template>
   <div class="champs">
     <p class="mention mention--haut">
-      Publication sur {{ SUPPORT_MAITRE.nom }}. L'offre est mise en ligne dès que vous publiez.
+      Publication sur {{ sites }}. L'offre est mise en ligne dès que vous publiez.
     </p>
     <ChampDate
       v-model="o.dateFin"

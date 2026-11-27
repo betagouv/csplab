@@ -48,7 +48,7 @@ const COLONNES: CspColumnDef<Offre>[] = [
 ]
 
 // En cours : offre en ligne, ou retirée mais candidatures encore à traiter. Clos : archivé.
-const deLOnglet = computed(() => db.offres.filter(o => onglet.value === 'clos' ? o.etat === 'archivee' : (o.etat === 'publiee' || o.etat === 'retiree')))
+const deLOnglet = computed(() => db.offres.filter(o => o.modeCandidature === 'ats').filter(o => onglet.value === 'clos' ? o.etat === 'archivee' : (o.etat === 'publiee' || o.etat === 'retiree')))
 const { search, filtered: lignes } = useTextSearch(deLOnglet, o => [o.titre, o.id, referenceCsp(o)])
 const compte = computed(() => {
   const n = lignes.value.length

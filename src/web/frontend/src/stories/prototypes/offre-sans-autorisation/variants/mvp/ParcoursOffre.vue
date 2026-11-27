@@ -110,7 +110,7 @@ defineExpose({ aller })
           name="ri:information-line"
           :size="16"
         />
-        L'annonce est terminée. Partie suivante : {{ GROUPES.find(g => g.id === suivante!.groupe)!.titre.toLowerCase() }}.
+        Partie {{ GROUPES.findIndex(g => g.id === courante.groupe) + 1 }} terminée. Partie suivante : {{ GROUPES.find(g => g.id === suivante!.groupe)!.titre.toLowerCase() }}.
       </p>
 
       <div class="nav">
@@ -162,11 +162,11 @@ defineExpose({ aller })
   flex-direction: column;
   gap: var(--csp-space-5);
 
-  // Écran étroit (retour Alice) : les deux parties côte à côte, au-dessus du formulaire, sans rester collées en haut.
+  // Écran étroit (retour Alice) : les parties côte à côte, au-dessus du formulaire, sans rester collées en haut.
   @media (width <= 64rem) {
     position: static;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--csp-space-6);
   }
 }

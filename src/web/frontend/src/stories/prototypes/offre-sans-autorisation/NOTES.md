@@ -198,3 +198,34 @@ Réponses aux questions
   « J-4 » (plusieurs offres : l'échéance la plus proche). Remplace « … sera dépubliée automatiquement dans N jours ».
 - À valider avec la PO : son retour 1 demandait de dire clairement que la dépublication est automatique.
 - Lecteur d'écran : « J-4 » est lu « fin dans 4 jours ».
+
+## Revue UI avec l'équipe (27/11/2026)
+
+**Page de l'offre**
+- Onglets à la place de « Accéder à » : Annonce, Paramètres du recrutement, Diffusion, Activité. Les trois premiers
+  reprennent les parties de la création. Le bloc « À compléter » et l'alerte de fin restent au-dessus des onglets.
+- Onglet Activité : historique de toutes les modifications, avec la date et la personne (« Automatique » pour le
+  retrait à la date de fin). Enregistrer un bloc ajoute une ligne avec les champs changés (ex. « « Le poste » modifié :
+  Intitulé de l'offre »). Remplace le tiroir « Journal d'activité ». Modifications passées : fictives.
+- Onglet Diffusion d'une offre en ligne : état de la publication sur chaque site. Un site ajouté après la publication
+  est publié tout de suite (proposition).
+- À trancher : l'onglet s'appelle « Paramètres du recrutement », la partie 2 de la création « Paramétrage des candidatures ».
+
+**Création**
+- Partie 3 « Diffusion » (étape 8) : d'abord « Diffuser et gérer les candidatures dans l'ATS » ou « Diffuser
+  uniquement », puis multidiffusion ou non, avec les sites à cocher (liste indicative, fictive).
+  Propositions : « Diffuser uniquement » demande un lien ou une adresse électronique pour postuler (obligatoire),
+  et la partie 2 affiche qu'elle ne s'applique pas. La gestion des candidatures ne change plus après publication ;
+  les sites, si. Pas de recrutement créé pour une offre gérée hors ATS.
+- Retiré de la liste des sites : « Place de l'emploi public » (ancien nom de Choisir le Service Public).
+- Compétences RMFP+ : « Savoir-faire » ou « Connaissance » en texte secondaire à côté de chaque compétence, et dans la
+  recherche. Classement fictif. Le RMFP+ compte environ 2 000 savoir-faire et plus de 1 000 connaissances (chiffres de l'équipe).
+- Questions oui / non (RQTH, fonctionnaire) : « Non posée / Posée », présenté comme les documents, à la place du switch.
+- Conditions de travail déplacées dans l'étape 5 « L'environnement de travail » (avec le temps de travail obligatoire).
+- Lieux : un premier lieu est affiché d'emblée ; « Ajouter un autre lieu » sert à en mettre plusieurs.
+
+**Liste des offres : offres téléversées (proposition à discuter)**
+- Deux offres téléversées fictives, en ligne : étiquette « Téléversée » sous l'intitulé, « Hors ATS » dans la colonne
+  Candidatures, pas de recrutement (absentes de « Mes recrutements »). Même affichage pour une offre « Diffuser uniquement ».
+- Filtre « Candidatures » : gérées dans l'ATS, gérées hors ATS, offres téléversées.
+- Question ouverte : d'où viennent les offres téléversées (import d'un fichier, flux) et qui les téléverse ?

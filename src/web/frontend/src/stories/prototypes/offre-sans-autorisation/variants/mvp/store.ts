@@ -17,13 +17,15 @@ export interface LieuPoste {
 /** Statut de l'offre. La validation n'est pas un statut : elle se suit à part (voir EtatValidation). */
 export type EtatOffre = 'brouillon' | 'publiee' | 'retiree' | 'archivee'
 export type EtatValidation = 'non_demandee' | 'en_attente' | 'validee' | 'refusee'
-export type OrigineContenu = 'fiche' | 'fichier' | 'manuel' | 'duplication'
+export type OrigineContenu = 'fiche' | 'fichier' | 'manuel' | 'duplication' | 'televersement'
 export type Piece = 'cv' | 'lm' | 'portfolio' | 'demo'
 export type Exigence = 'non' | 'facultatif' | 'obligatoire'
 
 export interface Evenement {
   date: string
   texte: string
+  /** Qui a fait l'action (historique d'activité, revue UI du 27/11/2026). Vide : action automatique. */
+  par?: string
 }
 
 export interface Fiche {
@@ -239,6 +241,7 @@ export const LIBELLES_CONTENU: Record<OrigineContenu, string> = {
   fichier: 'Depuis un fichier',
   manuel: 'Formulaire vide',
   duplication: 'Duplication d\'une offre',
+  televersement: 'Offre téléversée',
 }
 
 export const PIECES: { id: Piece, label: string }[] = [
@@ -284,6 +287,15 @@ export const COMPETENCES_RMFP = [...new Set([
 ])].sort((a, b) => a.localeCompare(b, 'fr'))
 
 /**
+ * Deux niveaux de compétences dans le RMFP+ (revue UI, 27/11/2026) : savoir-faire et connaissances.
+ * Classement fictif pour la démo, à remplacer par celui du référentiel.
+ */
+const CONNAISSANCES = new Set(['Réglementation statutaire et indemnitaire', 'Statut de la fonction publique', 'Architecture des SI', 'Sécurité des SI', 'Droit administratif', 'Gestion budgétaire'])
+export function typeCompetence(c: string): 'Savoir-faire' | 'Connaissance' {
+  return CONNAISSANCES.has(c) ? 'Connaissance' : 'Savoir-faire'
+}
+
+/**
  * Corps et grades (liste fixe, retour PO). Extrait illustratif, à remplacer par le référentiel officiel :
  * plusieurs corps et plusieurs grades peuvent être choisis, les grades proposés dépendent des corps choisis.
  */
@@ -304,7 +316,6 @@ export const SUPPORT_MAITRE = { id: 'csp', nom: 'Choisir le Service Public', det
 /** Sites partenaires proposés en multi-diffusion (liste indicative, simulée). */
 export const SITES_PARTENAIRES = [
   { id: 'intranet', nom: 'Intranet ministériel', detail: 'Visible des agents du ministère' },
-  { id: 'pep', nom: 'Place de l\'emploi public', detail: 'Emploi public, tous versants' },
   { id: 'francetravail', nom: 'France Travail', detail: 'Site d\'emploi généraliste' },
   { id: 'apec', nom: 'Apec', detail: 'Postes de cadres' },
   { id: 'linkedin', nom: 'LinkedIn', detail: 'Réseau professionnel' },
@@ -574,7 +585,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-offre-mvp-v7'
+const CLE = 'csplab-proto-offre-mvp-v8'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -608,7 +619,7 @@ function offresMvp(fiches: Fiche[]): Offre[] {
     remuneration: 'Selon expérience, grille indiciaire',
     creeLe: '2 novembre 2026',
     modifieLe: 'Hier',
-    historique: [{ date: '2 novembre 2026', texte: 'Offre créée (formulaire vide)' }],
+    historique: [{ date: '2 novembre 2026', texte: 'Offre créée (formulaire vide)', par: UTILISATEUR }],
   } as Offre)
   const enLigne = (o: Offre, debut: number, fin: number): Offre => ({
     ...o,
@@ -618,21 +629,32 @@ function offresMvp(fiches: Fiche[]): Offre[] {
     publieeLe: dateLongue(J(debut)),
     modifieLe: dateLongue(J(debut)),
     publications: { csp: { etat: 'publiee', debut: dateLongue(J(debut)), fin: J(fin) } },
-    historique: [...o.historique, { date: dateLongue(J(debut)), texte: 'Offre publiée sur Choisir le Service Public' }],
+    historique: [...o.historique, { date: dateLongue(J(debut)), texte: 'Offre publiée sur Choisir le Service Public', par: UTILISATEUR }],
+  })
+  // Modifications fictives après publication, pour l'historique d'activité (revue UI, 27/11/2026).
+  const avecModifs = (o: Offre, modifs: [number, string, string][]): Offre => ({
+    ...o,
+    historique: [...o.historique, ...modifs.map(([j, texte, par]) => ({ date: dateLongue(J(j)), texte, par }))],
   })
   return [
     // Brouillon à compléter (créé hier)
-    { ...base('OFF-2026-0151', 'FP-SG-2026-007'), statutPoste: '', dateVacance: '', missions: '', creeLe: 'Hier', historique: [{ date: 'Hier', texte: 'Offre créée (formulaire vide)' }] },
+    { ...base('OFF-2026-0151', 'FP-SG-2026-007'), statutPoste: '', dateVacance: '', missions: '', creeLe: 'Hier', historique: [{ date: 'Hier', texte: 'Offre créée (formulaire vide)', par: UTILISATEUR }] },
     // Brouillon complet : il ne reste qu'à publier
     { ...base('OFF-2026-0145', 'FP-DOC-2026-002', 'Chef·fe de projet numérique — démarches en ligne'), nbPostes: '1' },
     // Deuxième brouillon complet : la carte « À faire » verte montre le cas « 2 offres prêtes à publier »
     { ...base('OFF-2026-0148', 'FP-SG-2026-007', 'Gestionnaire paie et carrière'), nbPostes: '1', modifieLe: 'Aujourd\'hui, 08:40' },
     // Brouillon issu d'une duplication (nombre de postes, dates et champs d'autorisation remis à zéro)
-    { ...base('OFF-2026-0156', 'FP-SG-2023-010', 'Chargé·e d\'accueil — site de Nîmes'), origineContenu: 'duplication', sourceOffreId: 'OFF-2026-0122', lieu: 'Nîmes (30)', dateVacance: '', creeLe: 'Aujourd\'hui, 09:12', modifieLe: 'Aujourd\'hui, 09:12', historique: [{ date: 'Aujourd\'hui, 09:12', texte: 'Offre créée par duplication de OFF-2026-0122' }] },
+    { ...base('OFF-2026-0156', 'FP-SG-2023-010', 'Chargé·e d\'accueil — site de Nîmes'), origineContenu: 'duplication', sourceOffreId: 'OFF-2026-0122', lieu: 'Nîmes (30)', dateVacance: '', creeLe: 'Aujourd\'hui, 09:12', modifieLe: 'Aujourd\'hui, 09:12', historique: [{ date: 'Aujourd\'hui, 09:12', texte: 'Offre créée par duplication de OFF-2026-0122', par: UTILISATEUR }] },
     // En ligne, se termine dans 4 jours
-    enLigne({ ...base('OFF-2026-0118', 'FP-SG-2025-031', 'Assistant·e administratif·ve au service Aménagement'), service: 'Service Aménagement', responsables: ['Camille Moreau', 'Julien Lefèvre'] }, -26, 4),
+    avecModifs(enLigne({ ...base('OFF-2026-0118', 'FP-SG-2025-031', 'Assistant·e administratif·ve au service Aménagement'), service: 'Service Aménagement', responsables: ['Camille Moreau', 'Julien Lefèvre'] }, -26, 4), [
+      [-20, '« Le poste » modifié : Descriptif du poste', 'Julien Lefèvre'],
+      [-9, '« L\'environnement de travail » modifié : Télétravail, Rémunération des fonctionnaires', 'Camille Moreau'],
+    ]),
     // En ligne, publication en cours
-    enLigne({ ...base('OFF-2026-0131', 'FP-SG-2026-007', 'Gestionnaire de paie — renfort contractuels'), responsables: ['Camille Moreau'] }, -6, 24),
+    avecModifs(enLigne({ ...base('OFF-2026-0131', 'FP-SG-2026-007', 'Gestionnaire de paie — renfort contractuels'), responsables: ['Camille Moreau'] }, -6, 24), [
+      [-4, '« Le profil recherché » modifié : Niveau d\'expérience', 'Julien Lefèvre'],
+      [-1, '« Le métier » modifié : Compétences', 'Camille Moreau'],
+    ]),
     // Dépubliée automatiquement à la date de fin, prolongeable
     {
       ...base('OFF-2026-0122', 'FP-SG-2023-010', 'Chargé·e d\'accueil — site de Montpellier'),
@@ -646,8 +668,8 @@ function offresMvp(fiches: Fiche[]): Offre[] {
       modifieLe: dateLongue(J(-3)),
       publications: { csp: { etat: 'arretee', debut: dateLongue(J(-34)), fin: J(-3) } },
       historique: [
-        { date: dateLongue(J(-36)), texte: 'Offre créée (formulaire vide)' },
-        { date: dateLongue(J(-34)), texte: 'Offre publiée sur Choisir le Service Public' },
+        { date: dateLongue(J(-36)), texte: 'Offre créée (formulaire vide)', par: 'Camille Moreau' },
+        { date: dateLongue(J(-34)), texte: 'Offre publiée sur Choisir le Service Public', par: 'Camille Moreau' },
         { date: dateLongue(J(-3)), texte: 'Retrait automatique à la date limite' },
       ],
     },
@@ -664,9 +686,35 @@ function offresMvp(fiches: Fiche[]): Offre[] {
       modifieLe: dateLongue(J(-5)),
       publications: { csp: { etat: 'arretee', debut: dateLongue(J(-15)), fin: J(12) } },
       historique: [
-        { date: dateLongue(J(-16)), texte: 'Offre créée (formulaire vide)' },
-        { date: dateLongue(J(-15)), texte: 'Offre publiée sur Choisir le Service Public' },
-        { date: dateLongue(J(-5)), texte: 'Offre mise en pause' },
+        { date: dateLongue(J(-16)), texte: 'Offre créée (formulaire vide)', par: 'Camille Moreau' },
+        { date: dateLongue(J(-15)), texte: 'Offre publiée sur Choisir le Service Public', par: 'Camille Moreau' },
+        { date: dateLongue(J(-5)), texte: 'Offre mise en pause', par: 'Nadia Benali' },
+      ],
+    },
+    // Offres téléversées (revue UI, 27/11/2026) : publiées, mais candidatures gérées hors de l'ATS et sans recrutement.
+    // Contenu et liens fictifs.
+    {
+      ...enLigne({ ...base('OFF-2026-0112', 'FP-DOC-2026-002', 'Juriste en droit de l\'environnement'), lieu: 'Montpellier (34)', service: 'Service Juridique', creePar: 'Nadia Benali', nbPostes: '1' }, -10, 20),
+      origineContenu: 'televersement',
+      modeCandidature: 'externe',
+      urlCandidature: 'https://recrutement.exemple.gouv.fr/juriste-environnement',
+      responsables: [],
+      equipe: [],
+      historique: [
+        { date: dateLongue(J(-10)), texte: 'Offre téléversée (juriste-environnement.pdf)', par: 'Nadia Benali' },
+        { date: dateLongue(J(-10)), texte: 'Offre publiée sur Choisir le Service Public', par: 'Nadia Benali' },
+      ],
+    },
+    {
+      ...enLigne({ ...base('OFF-2026-0107', 'FP-SG-2025-031', 'Chargé·e de mission eau et milieux aquatiques'), lieu: 'Toulouse (31)', service: 'Service Eau et biodiversité', creePar: 'Julien Lefèvre', nbPostes: '1' }, -3, 27),
+      origineContenu: 'televersement',
+      modeCandidature: 'courriel',
+      courrielCandidature: 'recrutement.eau@exemple.gouv.fr',
+      responsables: [],
+      equipe: [],
+      historique: [
+        { date: dateLongue(J(-3)), texte: 'Offre téléversée (mission-eau.docx)', par: 'Julien Lefèvre' },
+        { date: dateLongue(J(-3)), texte: 'Offre publiée sur Choisir le Service Public', par: 'Julien Lefèvre' },
       ],
     },
     // Archivée : recrutement terminé
@@ -683,10 +731,10 @@ function offresMvp(fiches: Fiche[]): Offre[] {
       modifieLe: dateLongue(J(-10)),
       publications: { csp: { etat: 'arretee', debut: dateLongue(J(-75)), fin: J(-45) } },
       historique: [
-        { date: dateLongue(J(-77)), texte: 'Offre créée (formulaire vide)' },
-        { date: dateLongue(J(-75)), texte: 'Offre publiée sur Choisir le Service Public' },
+        { date: dateLongue(J(-77)), texte: 'Offre créée (formulaire vide)', par: 'Camille Moreau' },
+        { date: dateLongue(J(-75)), texte: 'Offre publiée sur Choisir le Service Public', par: 'Camille Moreau' },
         { date: dateLongue(J(-45)), texte: 'Retrait automatique à la date limite' },
-        { date: dateLongue(J(-10)), texte: 'Offre archivée' },
+        { date: dateLongue(J(-10)), texte: 'Offre archivée', par: 'Julien Lefèvre' },
       ],
     },
   ]
@@ -826,10 +874,15 @@ export const fiche = (id: string) => db.fiches.find(f => f.id === id)
 export const offre = (id: string) => db.offres.find(o => o.id === id)
 export const offresDe = (ficheId: string) => db.offres.filter(o => o.ficheId === ficheId)
 
-function journal(o: Offre, texte: string) {
+function journal(o: Offre, texte: string, par: string | undefined = UTILISATEUR) {
   o.modifieLe = maintenant()
-  o.historique.push({ date: maintenant(), texte })
+  o.historique.push({ date: maintenant(), texte, par })
   sauvegarder()
+}
+
+/** Modification d'un bloc de la page de l'offre, avec les champs changés (historique d'activité). */
+export function noterModification(o: Offre, bloc: string, champs: string[]) {
+  journal(o, `« ${bloc} » modifié${champs.length ? ` : ${champs.join(', ')}` : ''}`)
 }
 
 function prochainNumero(prefixe: string, liste: { id: string }[], min = 150) {
@@ -923,6 +976,7 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
     fiche: `Offre créée depuis la fiche ${f?.id}`,
     fichier: `Offre créée depuis un fichier (fiche ${f?.id})`,
     manuel: 'Offre créée depuis un formulaire vide, sans fiche de poste',
+    televersement: 'Offre téléversée',
     duplication: `Offre créée par duplication de ${depuis?.id} — données de contexte non reprises`,
   }[origineContenu]
   const o = {
@@ -1131,7 +1185,7 @@ export function retirer(o: Offre, mode: 'automatique' | 'manuel' | 'urgence' | '
   }
   o.etat = 'retiree'
   o.retireeLe = maintenant()
-  journal(o, { automatique: 'Retrait automatique à la date limite', manuel: 'Offre retirée', urgence: 'Offre retirée en urgence (avant un mois)', pause: 'Offre mise en pause' }[mode])
+  journal(o, { automatique: 'Retrait automatique à la date limite', manuel: 'Offre retirée', urgence: 'Offre retirée en urgence (avant un mois)', pause: 'Offre mise en pause' }[mode], mode === 'automatique' ? undefined : UTILISATEUR)
 }
 
 export function arreterSupport(o: Offre, id: string) {

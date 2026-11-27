@@ -44,3 +44,4 @@ export const Duplication: Story = { name: '8. Offre en préparation issue d\'une
 export const SansDroitPublier: Story = { name: '9. Agent sans le droit « Publier »', render: story({ nom: 'offre', id: 'OFF-2026-0145' }, false) }
 export const Recrutements: Story = { name: '10. Mes recrutements', render: story({ nom: 'recrutements' }) }
 export const Parametres: Story = { name: '11. Paramètres — droits Créer et Publier', render: story({ nom: 'parametres' }) }
+export const Televersee: Story = { name: '12. Offre téléversée — candidatures gérées hors ATS', render: story({ nom: 'offre', id: 'OFF-2026-0112' }) }

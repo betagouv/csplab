@@ -4,7 +4,7 @@
 import type { PartieOffre } from './etapes'
 import type { Offre } from './store'
 import { champsObligatoires } from './aide'
-import { metier, PIECES, TEMPS_TRAVAIL } from './store'
+import { metier, PIECES, SITES_PARTENAIRES, SUPPORT_MAITRE, TEMPS_TRAVAIL, typeCompetence } from './store'
 
 export interface LigneResume {
   label: string
@@ -40,7 +40,7 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
       const m = metier(o.metier)
       return [
         l('Métier', m ? `${m.libelle} — ${m.domaine}` : ''),
-        { label: 'Compétences', liste: o.competences },
+        { label: 'Compétences', liste: o.competences.map(c => `${c} · ${typeCompetence(c).toLowerCase()}`) },
       ]
     }
     case 'cadre':
@@ -62,12 +62,6 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
         l('Diplôme d\'État requis', o.diplomeEtat),
         l('Spécialisation', o.specialisation),
         l('Langues', o.langues, {}, 'Niveau de langue'),
-        l('Temps de travail', TEMPS_TRAVAIL.find(t => t.value === o.tempsTravail)?.label),
-        l('Télétravail', o.teletravail),
-        l('Conditions particulières', o.conditions, { long: true }),
-        l('Rémunération des fonctionnaires', o.remuneration),
-        ...(contractuels ? [l('Rémunération des contractuels', o.remunerationContractuels)] : []),
-        l('Informations complémentaires', o.infosComplementaires, { long: true }),
       ]
     case 'lieu':
       return [
@@ -76,15 +70,32 @@ export function resume(o: Offre, partie: PartieOffre): LigneResume[] {
         o.sansLieuFixe
           ? l('Lieux', 'Pas de lieu fixe')
           : { label: 'Lieux', liste: (o.lieux ?? []).map(x => [x.adresse, x.affectation].filter(Boolean).join(' · ')), manque: manquants.has('Lieu (adresse géolocalisée)') },
+        // Conditions de travail : à l'étape 5 depuis la revue UI du 27/11/2026.
+        l('Temps de travail', TEMPS_TRAVAIL.find(t => t.value === o.tempsTravail)?.label),
+        l('Télétravail', o.teletravail),
+        l('Conditions particulières', o.conditions, { long: true }),
+        l('Rémunération des fonctionnaires', o.remuneration),
+        ...(contractuels ? [l('Rémunération des contractuels', o.remunerationContractuels)] : []),
+        l('Informations complémentaires', o.infosComplementaires, { long: true }),
       ]
     case 'formulaire':
       return [
-        l('Mode de candidature', 'Dans l\'ATS'),
+        ...(o.modeCandidature === 'ats' ? [] : [l('Candidatures', 'Gérées hors de l\'ATS (voir « Diffusion »)')]),
         l('Question RQTH (oui / non)', o.questionsFixes?.rqth === false ? 'Non posée' : 'Posée'),
         l('Question fonctionnaire (oui / non)', o.questionsFixes?.fonctionnaire === false ? 'Non posée' : 'Posée'),
         { label: 'Questions aux candidats', liste: o.questions.filter(q => q.trim()) },
       ]
     case 'documents':
       return PIECES.map(p => l(p.label, EXIGENCES[o.pieces[p.id]]))
+    case 'diffusion': {
+      const partenaires = SITES_PARTENAIRES.filter(c => o.canaux.includes(c.id)).map(c => c.nom)
+      return [
+        l('Gestion des candidatures', o.modeCandidature === 'ats' ? 'Diffuser l\'offre et gérer les candidatures dans l\'ATS' : 'Diffuser l\'offre uniquement'),
+        ...(o.modeCandidature === 'externe' ? [l('Lien pour postuler', o.urlCandidature)] : []),
+        ...(o.modeCandidature === 'courriel' ? [l('Adresse électronique pour postuler', o.courrielCandidature)] : []),
+        l('Multidiffusion', o.diffusion === 'multi' ? 'Oui' : 'Non'),
+        { label: 'Sites de diffusion', liste: [SUPPORT_MAITRE.nom, ...(o.diffusion === 'multi' ? partenaires : [])] },
+      ]
+    }
   }
 }

@@ -13,7 +13,7 @@ import TexteEtoile from './TexteEtoile.vue'
 // Un bloc de la page de l'offre (façon Malt, retour Alice du 25/11/2026) : l'étape en lecture, et un crayon pour
 // la modifier sur place. On modifie une copie : « Annuler » ne change rien, « Enregistrer » applique.
 const props = defineProps<{ offre: Offre, partie: PartieOffre, modifiable: boolean, verrouille?: string }>()
-const emit = defineEmits<{ enregistre: [titre: string] }>()
+const emit = defineEmits<{ enregistre: [titre: string, champs: string[]] }>()
 const edition = defineModel<boolean>('edition', { default: false })
 const etape = computed(() => ETAPES_OFFRE.find(e => e.id === props.partie)!)
 const lignes = computed(() => resume(props.offre, props.partie))
@@ -26,11 +26,15 @@ watch(edition, (v) => {
   copie.value = v ? JSON.parse(JSON.stringify(props.offre)) as Offre : null
 }, { immediate: true })
 
+// Les champs changés sont notés dans l'historique d'activité (revue UI, 27/11/2026).
 function enregistrer() {
   const cible = props.offre
+  const avant = resume(cible, props.partie)
   Object.assign(cible, JSON.parse(JSON.stringify(copie.value)))
+  const apres = resume(cible, props.partie)
+  const changes = apres.filter(l => JSON.stringify(l) !== JSON.stringify(avant.find(a => a.label === l.label))).map(l => l.label)
   edition.value = false
-  emit('enregistre', etape.value.titre)
+  emit('enregistre', etape.value.titre, changes)
 }
 </script>
 

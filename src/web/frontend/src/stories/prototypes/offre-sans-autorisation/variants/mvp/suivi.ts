@@ -103,6 +103,11 @@ export const CATEGORIES_OFFRE: { id: CategorieOffre, label: string, badge: 'info
 /** Onglets de la liste : un par statut, puis « Toutes ». Pas de « À valider » : organisme sans autorisation. */
 export const PHASES: { id: CategorieOffre, label: string }[] = CATEGORIES_OFFRE.map(c => ({ id: c.id, label: c.label }))
 
+/** Candidatures gérées hors de l'ATS : offre téléversée ou « Diffuser uniquement » (revue UI, 27/11/2026). */
+export function horsAts(o: Offre): boolean {
+  return o.modeCandidature !== 'ats'
+}
+
 export function categorieOffre(o: Offre): CategorieOffre {
   return o.etat === 'publiee' ? 'en_ligne' : o.etat === 'retiree' ? 'en_pause' : o.etat === 'archivee' ? 'archivee' : 'brouillon'
 }

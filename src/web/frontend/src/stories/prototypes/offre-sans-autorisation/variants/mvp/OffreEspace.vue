@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { PartieOffre } from './etapes'
+import type { GroupeOffre, PartieOffre } from './etapes'
+import type { CspTabItem } from '@/components/base/CspTabs/CspTabs.vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -13,15 +14,15 @@ import ApercuCandidat from './ApercuCandidat.vue'
 import BlocEtape from './BlocEtape.vue'
 import ChampDate from './ChampDate.vue'
 import { dupliquer } from './dupliquer'
-import { ETAPES_OFFRE, GROUPES } from './etapes'
+import { ETAPES_OFFRE, groupeDe, GROUPES } from './etapes'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { candidatures } from './recrutement'
-import { aujourdhui, dateLongue, db, heure, joursRestants, le, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
+import { aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, noterModification, plusJours, prolonger, retirer, sauvegarder, UTILISATEUR } from './store'
 
-// Page d'une offre, hors création (retour Alice du 25/11/2026), structurée comme un profil Malt : l'en-tête,
-// « Accéder à », le bloc des champs qui restent à remplir, puis un bloc par étape, regroupés dans les deux parties
-// (annonce visible du candidat, paramétrage des candidatures). Chaque bloc se modifie à part, avec le crayon.
+// Page d'une offre, hors création (retour Alice du 25/11/2026), structurée comme un profil Malt : l'en-tête, le bloc
+// des champs qui restent à remplir, puis des onglets (revue UI, 27/11/2026) : les trois parties de la création
+// (Annonce, Paramètres du recrutement, Diffusion) et l'Activité. Un bloc par étape. Chaque bloc se modifie à part, avec le crayon.
 // En préparation → En ligne → En pause (date de fin ou mise en pause) → En ligne (remise en ligne). Publier, prolonger et mettre en pause
 // demandent le droit « Publier ».
 const props = defineProps<{ id: string, section?: string }>()
@@ -39,6 +40,8 @@ const peutPublier = computed(() => Boolean(db.organisme.agents.find(a => a.nom =
 const modifiable = computed(() => o.value.etat !== 'archivee')
 const restants = computed(() => (o.value.dateFin ? joursRestants(o.value.dateFin) : 0))
 const enLigne = computed(() => o.value.etat === 'publiee' || o.value.etat === 'retiree')
+// Offre téléversée ou « Diffuser uniquement » : pas de recrutement dans l'ATS (revue UI, 27/11/2026).
+const avecRecrutement = computed(() => enLigne.value && o.value.modeCandidature === 'ats')
 
 const enregistre = ref(heure())
 watch(() => JSON.stringify(o.value), () => {
@@ -66,33 +69,56 @@ const aCompleter = computed(() => ETAPES_OFFRE
   .map(e => ({ ...e, manquants: champs.value.filter(c => c.partie === e.id && !c.ok).map(c => c.label) }))
   .filter(e => e.manquants.length))
 
+// --- Onglets (revue UI équipe, 27/11/2026) : les trois parties de la création, puis l'activité. Remplacent « Accéder à ». ---
+type Onglet = GroupeOffre | 'activite'
+const onglet = ref<Onglet>('annonce')
+const LIBELLES_ONGLET: Record<GroupeOffre, string> = { annonce: 'Annonce', candidature: 'Paramètres du recrutement', diffusion: 'Diffusion' }
+const onglets = computed<CspTabItem<Onglet>[]>(() => [
+  ...GROUPES.map(g => ({ value: g.id, label: LIBELLES_ONGLET[g.id], icon: g.icone })),
+  { value: 'activite', label: 'Activité', icon: 'ri:history-line' },
+])
+const groupeActif = computed(() => GROUPES.find(g => g.id === onglet.value))
+// Sites de diffusion et leur état, dans l'onglet « Diffusion » d'une offre déjà publiée.
+const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.publications[c.id]).map(c => ({ ...c, ...o.value.publications[c.id]! })))
+// Historique d'activité, le plus récent d'abord.
+const activites = computed(() => [...o.value.historique].reverse())
+
 // --- Blocs : un seul en modification à la fois ---
 const edition = ref<PartieOffre | null>(null)
 const verrouCandidature = computed(() => (o.value.etat === 'brouillon' ? undefined : 'Verrouillé : des candidats ont déjà postulé'))
-async function allerBloc(partie: PartieOffre | string, modifier = false) {
+async function allerBloc(partie: PartieOffre, modifier = false) {
+  onglet.value = groupeDe(partie).id
   if (modifier) {
-    edition.value = partie as PartieOffre
+    edition.value = partie
   }
   await nextTick()
-  document.getElementById(partie.startsWith('partie-') ? partie : `bloc-${partie}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById(`bloc-${partie}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
-function enregistreBloc(titre: string) {
+function enregistreBloc(titre: string, champsModifies: string[]) {
+  if (champsModifies.length) {
+    noterModification(o.value, titre, champsModifies)
+  }
+  // Offre en ligne : un site ajouté dans « Diffusion » est publié tout de suite.
+  if (o.value.etat === 'publiee') {
+    for (const id of o.value.canaux.filter(c => !o.value.publications[c])) {
+      o.value.publications[id] = { etat: 'publiee', debut: dateLongue(aujourdhui()), fin: o.value.dateFin }
+    }
+  }
   notifier(o.value.etat === 'publiee' ? `« ${titre} » enregistré : la modification est en ligne.` : `« ${titre} » enregistré.`)
 }
 // Depuis la liste, « Compléter » peut viser une étape.
 if (props.section && ETAPES_OFFRE.some(e => e.id === props.section)) {
-  void allerBloc(props.section, true)
+  void allerBloc(props.section as PartieOffre, true)
 }
 
 const apercu = ref(false)
-const journal = ref(false)
 const retrait = ref(false)
 const menu = computed(() => [
   {
     items: [
-      ...(enLigne.value ? [{ label: 'Voir le recrutement', icon: 'ri:team-line', onSelect: () => aller({ nom: 'recrutement', id: o.value.id }) }] : []),
+      ...(avecRecrutement.value ? [{ label: 'Voir le recrutement', icon: 'ri:team-line', onSelect: () => aller({ nom: 'recrutement', id: o.value.id }) }] : []),
       { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => dupliquer(o.value, { aller, notifier }) },
-      { label: 'Journal d’activité', icon: 'ri:history-line', onSelect: () => (journal.value = true) },
+      { label: 'Activité', icon: 'ri:history-line', onSelect: () => (onglet.value = 'activite') },
     ],
   },
   ...(o.value.etat === 'publiee' && peutPublier.value
@@ -141,12 +167,14 @@ function confirmerRetrait() {
 
 <template>
   <PageAts
+    v-model:onglet="onglet"
     actif="offres"
     largeur="full"
     :titre="o.titre || 'Offre sans titre'"
     :fil="[{ label: 'Mes offres d\'emploi', to: '/offres' }, { label: o.titre || o.id }]"
     :retour="{ to: '/offres', label: 'Retour à mes offres d\'emploi' }"
     :bandeaux="bandeaux"
+    :onglets="onglets"
   >
     <template #meta>
       <div class="meta">
@@ -157,8 +185,12 @@ function confirmerRetrait() {
         />
         <span class="meta__ref">{{ o.id }}</span>
         <CspMetaList :items="meta" />
+        <span
+          v-if="o.origineContenu === 'televersement' || (enLigne && !avecRecrutement)"
+          class="meta__ref"
+        >{{ o.origineContenu === 'televersement' ? 'Offre téléversée · ' : '' }}Candidatures gérées hors ATS</span>
         <button
-          v-if="enLigne"
+          v-if="avecRecrutement"
           type="button"
           class="lien"
           @click="aller({ nom: 'recrutement', id: o.id })"
@@ -214,132 +246,185 @@ function confirmerRetrait() {
       </template>
     </template>
 
-    <div class="fond">
-      <nav
-        class="acces"
-        aria-label="Accéder à une partie de l'offre"
+    <template #avant-onglets>
+      <div
+        v-if="(o.etat === 'publiee' && restants <= 7) || reste || o.etat === 'brouillon'"
+        class="fond fond--haut"
       >
-        <span class="acces__label">Accéder à :</span>
-        <button
-          v-for="e in ETAPES_OFFRE"
-          :key="e.id"
-          type="button"
-          class="acces__chip"
-          @click="allerBloc(e.id)"
+        <p
+          v-if="o.etat === 'publiee' && restants <= 7"
+          class="alerte"
         >
-          {{ e.titre }}
-        </button>
-      </nav>
+          <CspIcon
+            name="ri:time-line"
+            :size="16"
+          />
+          L'offre se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
+          Prolongez-la pour continuer à recevoir des candidatures.
+        </p>
 
-      <p
-        v-if="o.etat === 'publiee' && restants <= 7"
-        class="alerte"
-      >
-        <CspIcon
-          name="ri:time-line"
-          :size="16"
-        />
-        L'offre se termine {{ restants <= 0 ? 'aujourd\'hui' : `dans ${restants} jour${restants > 1 ? 's' : ''}` }}.
-        Prolongez-la pour continuer à recevoir des candidatures.
-      </p>
-
-      <!-- Champs qui restent à remplir, étape par étape -->
-      <section
-        v-if="reste || o.etat === 'brouillon'"
-        class="completion"
-        :class="{ 'completion--ok': !reste }"
-      >
-        <header class="completion__tete">
-          <h2 class="completion__titre">
-            {{ reste ? 'À compléter avant de publier' : 'Tout est prêt' }}
-          </h2>
-          <span class="completion__compte">{{ champs.length - reste }} / {{ champs.length }} champs obligatoires remplis</span>
-        </header>
-        <div
-          class="jauge"
-          role="progressbar"
-          :aria-valuenow="champs.length - reste"
-          :aria-valuemax="champs.length"
-          aria-label="Champs obligatoires remplis"
+        <!-- Champs qui restent à remplir, étape par étape -->
+        <section
+          v-if="reste || o.etat === 'brouillon'"
+          class="completion"
+          :class="{ 'completion--ok': !reste }"
         >
-          <span :style="{ width: `${((champs.length - reste) / champs.length) * 100}%` }" />
-        </div>
-        <div
-          v-if="reste"
-          class="cartes"
-        >
-          <article
-            v-for="e in aCompleter"
-            :key="e.id"
-            class="carte"
+          <header class="completion__tete">
+            <h2 class="completion__titre">
+              {{ reste ? 'À compléter avant de publier' : 'Tout est prêt' }}
+            </h2>
+            <span class="completion__compte">{{ champs.length - reste }} / {{ champs.length }} champs obligatoires remplis</span>
+          </header>
+          <div
+            class="jauge"
+            role="progressbar"
+            :aria-valuenow="champs.length - reste"
+            :aria-valuemax="champs.length"
+            aria-label="Champs obligatoires remplis"
           >
-            <h3 class="carte__titre">
-              {{ e.titre }}
-            </h3>
-            <p class="carte__texte">
-              {{ e.manquants.join(', ') }}
+            <span :style="{ width: `${((champs.length - reste) / champs.length) * 100}%` }" />
+          </div>
+          <div
+            v-if="reste"
+            class="cartes"
+          >
+            <article
+              v-for="e in aCompleter"
+              :key="e.id"
+              class="carte"
+            >
+              <h3 class="carte__titre">
+                {{ e.titre }}
+              </h3>
+              <p class="carte__texte">
+                {{ e.manquants.join(', ') }}
+              </p>
+              <CspButton
+                v-if="modifiable"
+                label="Compléter"
+                size="sm"
+                variant="secondary"
+                @click="allerBloc(e.id, true)"
+              />
+            </article>
+          </div>
+          <div
+            v-else
+            class="completion__fin"
+          >
+            <p>
+              <CspIcon
+                name="ri:checkbox-circle-fill"
+                :size="18"
+                class="ok"
+              />
+              Tous les champs obligatoires sont remplis.
+              {{ peutPublier ? 'Vous pouvez publier l\'offre.' : 'Un agent qui a le droit « Publier » la mettra en ligne.' }}
             </p>
             <CspButton
-              v-if="modifiable"
-              label="Compléter"
-              size="sm"
-              variant="secondary"
-              @click="allerBloc(e.id, true)"
+              v-if="peutPublier"
+              label="Publier"
+              icon="ri:send-plane-line"
+              is-icon-left
+              @click="aller({ nom: 'publier', id: o.id })"
             />
-          </article>
-        </div>
-        <div
-          v-else
-          class="completion__fin"
-        >
-          <p>
-            <CspIcon
-              name="ri:checkbox-circle-fill"
-              :size="18"
-              class="ok"
-            />
-            Tous les champs obligatoires sont remplis.
-            {{ peutPublier ? 'Vous pouvez publier l\'offre.' : 'Un agent qui a le droit « Publier » la mettra en ligne.' }}
-          </p>
-          <CspButton
-            v-if="peutPublier"
-            label="Publier"
-            icon="ri:send-plane-line"
-            is-icon-left
-            @click="aller({ nom: 'publier', id: o.id })"
-          />
-        </div>
-      </section>
+          </div>
+        </section>
+      </div>
+    </template>
 
+    <div class="fond">
       <section
-        v-for="g in GROUPES"
-        :id="`partie-${g.id}`"
-        :key="g.id"
+        v-if="groupeActif"
+        :key="groupeActif.id"
         class="partie"
       >
         <header class="partie__tete">
           <h2 class="partie__titre">
             <CspIcon
-              :name="g.icone"
+              :name="groupeActif.icone"
               :size="20"
             />
-            {{ g.titre }}
+            {{ groupeActif.titre }}
           </h2>
           <p class="partie__aide">
-            {{ g.aide }}
+            {{ groupeActif.aide }}
           </p>
         </header>
         <BlocEtape
-          v-for="e in ETAPES_OFFRE.filter(x => x.groupe === g.id)"
+          v-for="e in ETAPES_OFFRE.filter(x => x.groupe === groupeActif!.id)"
           :key="e.id"
           :offre="o"
           :partie="e.id"
           :modifiable="modifiable"
-          :verrouille="g.id === 'candidature' ? verrouCandidature : undefined"
+          :verrouille="groupeActif.id === 'candidature' ? verrouCandidature : undefined"
           :edition="edition === e.id"
           @update:edition="(v: boolean) => (edition = v ? e.id : null)"
           @enregistre="enregistreBloc"
         />
+        <section
+          v-if="groupeActif.id === 'diffusion' && sites.length"
+          class="sites"
+        >
+          <h3 class="sites__titre">
+            Publication sur les sites
+          </h3>
+          <ul class="sites__liste">
+            <li
+              v-for="s in sites"
+              :key="s.id"
+              class="site"
+            >
+              <span class="site__nom">{{ s.nom }}</span>
+              <CspBadge
+                :label="s.etat === 'publiee' ? 'En ligne' : 'Arrêtée'"
+                :type="s.etat === 'publiee' ? 'success' : 'info'"
+                size="sm"
+              />
+              <span class="site__dates">Depuis le {{ s.debut }} · jusqu'au {{ dateLongue(s.fin) }}</span>
+            </li>
+          </ul>
+        </section>
+      </section>
+
+      <!-- Historique d'activité : toutes les modifications de l'offre, et par qui (revue UI, 27/11/2026) -->
+      <section
+        v-else
+        class="activite"
+        aria-labelledby="activite-titre"
+      >
+        <header class="partie__tete">
+          <h2
+            id="activite-titre"
+            class="partie__titre"
+          >
+            <CspIcon
+              name="ri:history-line"
+              :size="20"
+            />
+            Historique d'activité
+          </h2>
+          <p class="partie__aide">
+            Toutes les modifications de l'offre, et qui les a faites. Le plus récent en premier.
+          </p>
+        </header>
+        <ol class="fil">
+          <li
+            v-for="(h, i) in activites"
+            :key="i"
+            class="fil__item"
+          >
+            <span class="fil__date">{{ h.date }}</span>
+            <span class="fil__texte">{{ h.texte }}</span>
+            <span class="fil__par">
+              <CspIcon
+                :name="h.par ? 'ri:user-line' : 'ri:time-line'"
+                :size="14"
+              />
+              {{ h.par ?? 'Automatique' }}
+            </span>
+          </li>
+        </ol>
       </section>
     </div>
 
@@ -411,24 +496,6 @@ function confirmerRetrait() {
         :organisme="db.organisme.nom"
       />
     </CspDrawer>
-
-    <CspDrawer
-      v-model:open="journal"
-      title="Journal d'activité"
-      size="md"
-    >
-      <p class="journal__titre">
-        {{ o.historique.length }} activité{{ o.historique.length > 1 ? 's' : '' }} récente{{ o.historique.length > 1 ? 's' : '' }}
-      </p>
-      <ol class="histo">
-        <li
-          v-for="(h, i) in [...o.historique].reverse()"
-          :key="i"
-        >
-          <small>{{ h.date }}</small>{{ h.texte }}
-        </li>
-      </ol>
-    </CspDrawer>
   </PageAts>
 </template>
 
@@ -471,44 +538,6 @@ function confirmerRetrait() {
   max-width: 64rem;
   margin: 0 auto;
   width: 100%;
-}
-
-.acces {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--csp-space-2);
-  padding: var(--csp-space-3) 0;
-  background: var(--background-default-grey);
-}
-
-.acces__label {
-  margin-right: var(--csp-space-1);
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
-
-.acces__chip {
-  padding: var(--csp-space-1) var(--csp-space-3);
-  border: 0;
-  border-radius: 999px;
-  background: var(--background-action-high-blue-france);
-  font: inherit;
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-inverted-blue-france);
-  cursor: pointer;
-
-  &:hover {
-    background: var(--background-action-high-blue-france-hover);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
 }
 
 .alerte {
@@ -659,25 +688,88 @@ function confirmerRetrait() {
   font-size: var(--csp-font-size-sm);
 }
 
-.journal__titre {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-mention-grey);
+.fond--haut {
+  gap: var(--csp-space-4);
 }
 
-.histo {
+.sites {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-2);
+  gap: var(--csp-space-3);
+  padding: var(--csp-space-5) var(--csp-space-6);
+  border: 1px solid var(--border-default-grey);
+}
+
+.sites__titre {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sites__liste,
+.fil {
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.site {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-2) var(--csp-space-3);
+  padding: var(--csp-space-3) 0;
+  border-bottom: 1px solid var(--border-default-grey);
   font-size: var(--csp-font-size-sm);
 
-  small {
-    display: block;
-    color: var(--text-mention-grey);
+  &:last-child {
+    border-bottom: 0;
   }
+}
+
+.site__nom {
+  font-weight: 700;
+}
+
+.site__dates,
+.fil__date {
+  color: var(--text-mention-grey);
+}
+
+.activite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-4);
+}
+
+.fil {
+  border: 1px solid var(--border-default-grey);
+}
+
+.fil__item {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) auto;
+  gap: var(--csp-space-1) var(--csp-space-4);
+  align-items: baseline;
+  padding: var(--csp-space-3) var(--csp-space-5);
+  border-bottom: 1px solid var(--border-default-grey);
+  font-size: var(--csp-font-size-sm);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @media (width <= 48rem) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fil__par {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-mention-grey);
+  white-space: nowrap;
 }
 </style>

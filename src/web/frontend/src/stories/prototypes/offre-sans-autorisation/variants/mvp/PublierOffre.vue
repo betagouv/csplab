@@ -9,7 +9,7 @@ import ApercuCandidat from './ApercuCandidat.vue'
 import ChampsPublication from './ChampsPublication.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { dateLongue, db, publier, sauvegarder, UTILISATEUR } from './store'
+import { CANAUX_DIFFUSION, dateLongue, db, publier, sauvegarder, SUPPORT_MAITRE, UTILISATEUR } from './store'
 
 // Parcours de publication (retour Alice du 25/11/2026) : l'annonce telle que la verra le candidat, puis
 // « Valider la publication ». Une fenêtre annonce le succès et propose d'afficher le recrutement créé par la
@@ -22,6 +22,8 @@ const manques = computed(() => manquesAnnonce(o.value))
 const tentative = ref(false)
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 const succes = ref(false)
+const horsAts = computed(() => o.value.modeCandidature !== 'ats')
+const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.includes(c.id)).map(c => c.nom).join(', '))
 // Retour au formulaire : la page de création pour un brouillon, la page de l'offre sinon.
 const retour = computed(() => (o.value.etat === 'brouillon' && o.value.historique.length < 2
   ? { nom: 'rediger' as const, id: o.value.id }
@@ -32,7 +34,9 @@ function valider() {
   if (manques.value.length || manquesDates(o.value).length || !peutPublier.value) {
     return
   }
-  publier(o.value, 'simple', [])
+  // Sites choisis dans la partie 3 « Diffusion » (revue UI équipe, 27/11/2026).
+  const partenaires = o.value.canaux.filter(c => c !== SUPPORT_MAITRE.id)
+  publier(o.value, o.value.diffusion === 'multi' && partenaires.length ? 'multi' : 'simple', partenaires)
   sauvegarder()
   succes.value = true
 }
@@ -120,9 +124,12 @@ function fermer(v: boolean) {
           class="succes__icone"
         />
         <p>
-          « {{ o.titre }} » est en ligne sur Choisir le Service Public jusqu'au {{ dateLongue(o.dateFin) }}.
+          « {{ o.titre }} » est en ligne sur {{ sites }} jusqu'au {{ dateLongue(o.dateFin) }}.
         </p>
-        <p>
+        <p v-if="horsAts">
+          Les candidatures sont gérées hors de l'ATS : les candidats postulent {{ o.modeCandidature === 'courriel' ? `par courriel (${o.courrielCandidature})` : 'sur le lien indiqué' }}.
+        </p>
+        <p v-else>
           Un recrutement a été créé : les candidatures y arriveront.
         </p>
       </div>
@@ -133,6 +140,7 @@ function fermer(v: boolean) {
           @click="aller({ nom: 'offres' })"
         />
         <CspButton
+          v-if="!horsAts"
           label="Afficher le recrutement"
           icon="ri:arrow-right-line"
           @click="aller({ nom: 'recrutement', id: o.id })"
