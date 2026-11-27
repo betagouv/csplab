@@ -7555,7 +7555,13 @@ components:
           items:
             $ref: '#/components/schemas/Tag'
           readOnly: true
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
+      - authorized_actions
       - email
       - nom
       - poste
