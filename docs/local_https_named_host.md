@@ -1,9 +1,6 @@
 # Servir l'ATS sur un hôte HTTPS local nommé
 
-Par défaut, l'ATS tourne sur `http://localhost:8000` et charge Vite depuis
-`http://localhost:5173`. On peut aussi le servir derrière un nom stable en HTTPS
-(ex. `https://csplab.localhost`, sans port). Le dépôt ne code aucun hôte en dur ;
-le reverse-proxy (Caddy, Traefik, valet + portless…) reste propre à chaque machine.
+Par défaut, l'ATS tourne sur `http://localhost:8000` et charge Vite depuis `http://localhost:5173`. On peut aussi le servir derrière un nom stable en HTTPS (ex. `https://csplab.localhost`, sans port). Le dépôt ne code aucun hôte en dur dans sa configuration par défaut ; chacun choisit son reverse-proxy (Caddy, Traefik, valet, portless…). Pour portless, le dépôt fournit une configuration optionnelle, décrite plus bas.
 
 ## Contrat pour servir l'ATS sur un hôte HTTPS local nommé, quel que soit le reverse-proxy
 
@@ -29,16 +26,16 @@ le reverse-proxy (Caddy, Traefik, valet + portless…) reste propre à chaque ma
    WEB_CSRF_TRUSTED_ORIGINS=https://csplab.localhost
    ```
 
-## Exemple : portless
+## Configuration portless
 
-En utilisant [portless](https://www.npmjs.com/package/portless), on peut :
+[portless](https://github.com/vercel-labs/portless) donne un nom `.localhost` en HTTPS à chaque serveur de dev, sur un port choisi par lui. On l'installe une fois par machine (`npm install -g portless`, puis `portless service install`, qui demande le mot de passe de la session).
 
-1. Configurer un alias via `portless alias csplab 8000`
+L'environnement mise `portless` charge `mise.portless.toml` et `src/web/mise.portless.toml` par-dessus la configuration par défaut :
 
-2. Référencer des tâches dans un fichier `mise.local.toml` (gitignoré) qui surchargeront le `mise.local` versionné :
-- `front:portless` : Vite via portless, `WEB_VITE_DEV_ORIGIN` sur l'hôte nommé ;
-- `back:portless` : `//src/web:dev` avec la même origine ;
-- `open:portless` : attend le back puis ouvre `https://csplab.localhost` ;
-- `dev` : override du `dev` versionné vers les trois ci-dessus.
+- `mise run dev` sert Django sur `https://csplab.localhost` et Vite sur `https://vite.csplab.localhost` ;
+- `mise run sb` sert Storybook sur `https://storybook.csplab.localhost` ;
+- `WEB_VITE_DEV_ORIGIN` et `WEB_CSRF_TRUSTED_ORIGINS` suivent ces noms, par-dessus `env.d/web`.
 
-Résultat : `mise dev` prépare, sert et ouvre l'ATS sur `https://csplab.localhost`.
+Dans un worktree git, portless préfixe chaque nom par le dernier segment de la branche (`https://<branche>.csplab.localhost`), ce qui permet de servir plusieurs branches en même temps. Un worktree sans branche garde les noms du clone principal.
+
+On active l'environnement par commande (`MISE_ENV=portless mise run dev`) ou pour toutes ses commandes, en exportant `MISE_ENV=portless` dans son shell. Un `mise.local.toml` qui définit des tâches de même nom (`dev`, `sb`…) se mêle à celles de `mise.portless.toml` : on les retire de son `mise.local.toml`.
