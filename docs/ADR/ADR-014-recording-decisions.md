@@ -41,7 +41,7 @@ L'en-tête est un bloc YAML en tête du fichier. Ses clés sont celles de MADR, 
 - On propose une décision dans une PR, seule ou avec le code qui l'applique.
 - Tant qu'une question reste ouverte, on laisse la décision au statut « proposé », y compris après la fusion.
 - Quand l'application demande plusieurs PR, on écrit le plan de migration dans des issues, et la décision les cite.
-- On garde le fichier et le numéro d'une décision remplacée. Quand la décision qui la remplace est acceptée, on réduit le fichier à son en-tête et à une phrase qui renvoie à cette décision, et on retrouve son texte dans l'historique git.
+- On garde le fichier et le numéro d'une décision remplacée. Quand la décision qui la remplace est acceptée, on passe son statut à « remplacé » et on réduit le fichier à son en-tête et à une phrase qui renvoie à cette décision, et on retrouve son texte dans l'historique git.
 
 ## Options considérées
 
