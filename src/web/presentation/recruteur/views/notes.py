@@ -9,6 +9,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.create_note import create_note
 from application.recruteur.services.delete_note import delete_note
 from application.recruteur.services.list_notes import (
@@ -19,18 +22,7 @@ from application.recruteur.services.update_note import update_note
 from application.recruteur.services.update_note_visibility import (
     update_note_visibility,
 )
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
-)
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
@@ -47,32 +39,16 @@ from presentation.recruteur.serializers import (
     NoteVisibiliteSerializer,
     UpdateNoteSerializer,
 )
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 class NoteBaseView(SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                AccesOrganismeRefuse,
-                OperationOrganismeRefusee,
-                AccesRecrutementRefuse,
-                AccesRecrutementInconnu,
-            ),
-        ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if isinstance(
-            exc,
-            (
-                OrganismeNexistePas,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-                NoteIntrouvable,
-            ),
-        ):
+        if isinstance(exc, CandidatureInaccessible):
+            return candidature_inaccessible_response()
+        if isinstance(exc, NoteIntrouvable):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,

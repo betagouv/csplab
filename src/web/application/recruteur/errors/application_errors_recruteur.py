@@ -8,3 +8,10 @@ class RecrutementEtapeIncoherents(ApplicationError):
         super().__init__(
             f"L'étape {etape_id} ne correspond pas au recrutement {recrutement_id}"
         )
+
+
+class CandidatureInaccessible(ApplicationError):
+    MESSAGE = "Cette candidature n'est pas accessible."
+
+    def __init__(self) -> None:
+        super().__init__(self.MESSAGE)

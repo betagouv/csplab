@@ -16,9 +16,7 @@ from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.errors.recrutement_errors import (
-    CandidatureInexistante,
     MotifRefusRequis,
-    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -1119,7 +1117,6 @@ class TestRecrutementCandidaturesEtapeView:
         [
             pytest.param("organisme", OrganismeNexistePas, id="organisme"),
             pytest.param("recrutement", RecrutementInexistant, id="recrutement"),
-            pytest.param("candidature", CandidatureInexistante, id="candidature"),
         ],
     )
     def test_returns_404_for_unknown(
@@ -1131,13 +1128,10 @@ class TestRecrutementCandidaturesEtapeView:
         entity_id = uuid4()
         organisme_id = entity_id if inconnu == "organisme" else organisme.id
         recrutement_id = entity_id if inconnu == "recrutement" else recrutement.pk
-        candidature_ids = [c.id for c in candidatures]
-        if inconnu == "candidature":
-            candidature_ids.append(entity_id)
 
         response = authenticated_client.patch(
             _etape_url(organisme_id, recrutement_id),
-            data=_corps(cible.id, candidature_ids),
+            data=_corps(cible.id, [c.id for c in candidatures]),
             format="json",
         )
 
@@ -1311,7 +1305,7 @@ class TestRecrutementCandidaturesEtapeView:
             (refus.id, "autre")
         }
 
-    def test_reports_candidature_of_another_recrutement_as_echec(
+    def test_reports_absent_and_foreign_candidatures_as_identical_echecs(
         self, authenticated_client, test_user
     ):
         organisme, recrutement, _, cible, (candidature,) = _recrutement_et_candidatures(
@@ -1323,25 +1317,26 @@ class TestRecrutementCandidaturesEtapeView:
             categorie=CategorieEtapeRecrutement.ENTREE.value,
         )
         etrangere = CandidatureDjangoFactory(etape=autre_origine)
+        absente = uuid4()
 
         response = authenticated_client.patch(
             _etape_url(organisme.id, recrutement.pk),
-            data=_corps(cible.id, [candidature.id, etrangere.id]),
+            data=_corps(cible.id, [candidature.id, etrangere.id, absente]),
             format="json",
         )
 
+        raison = "Cette candidature n'est pas accessible."
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
             "reussites": [str(candidature.id)],
             "echecs": [
-                {
-                    "candidature_uuid": str(etrangere.id),
-                    "raison": RecrutementCandidatureInexistante(etrangere.id).message,
-                }
+                {"candidature_uuid": str(etrangere.id), "raison": raison},
+                {"candidature_uuid": str(absente), "raison": raison},
             ],
         }
         etrangere.refresh_from_db()
         assert etrangere.etape_id == autre_origine.id
+        assert etrangere.updated_by_recruteur is None
         assert [kind for kind, *_ in _audit()] == [
             "CandidatureRecruteur",
             "Recrutement",

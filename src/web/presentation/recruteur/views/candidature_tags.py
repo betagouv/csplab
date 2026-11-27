@@ -7,20 +7,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.add_candidature_tag import add_candidature_tag
 from application.recruteur.services.remove_candidature_tag import (
     remove_candidature_tag,
-)
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
 )
 from domain.recruteur.errors.tag_errors import (
     TagAlreadyOnCandidature,
@@ -32,33 +24,18 @@ from domain.recruteur.errors.tag_errors import (
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import AddTagSerializer
+from presentation.recruteur.views.candidature_inaccessible import (
+    candidature_inaccessible_response,
+)
 
 
 class CandidatureTagBaseView(SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, CandidatureInaccessible):
+            return candidature_inaccessible_response()
         if isinstance(
             exc,
-            (
-                AccesOrganismeRefuse,
-                OperationOrganismeRefusee,
-                AccesRecrutementRefuse,
-                AccesRecrutementInconnu,
-            ),
-        ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if isinstance(
-            exc,
-            (
-                OrganismeNexistePas,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-                TagNotFound,
-                TagNotOnCandidature,
-                TagOrganismeMismatch,
-            ),
+            (TagNotFound, TagNotOnCandidature, TagOrganismeMismatch),
         ):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,

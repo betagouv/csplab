@@ -6,15 +6,13 @@ from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
 )
-from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
-from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.factories.commons.audit_log_django_factory import (
     AuditLogDjangoFactory,
 )
@@ -90,29 +88,17 @@ class CandidatureLogsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
         recrutement_uuid = self.kwargs["recrutement_uuid"]
         candidature_uuid = self.kwargs["candidature_uuid"]
 
-        # TODO: guards to move in upcoming service
-        if not OrganismeModel.objects.filter(id=organisme_uuid).exists():
-            raise OrganismeNexistePas(str(organisme_uuid))
-        if not RecrutementModel.objects.by_organisme_and_recrutement(
-            organisme_uuid, recrutement_uuid
-        ).exists():
-            raise RecrutementInexistant(recrutement_uuid)
-        if not CandidatureModel.objects.filter(
-            id=candidature_uuid, etape__recrutement_id=recrutement_uuid
-        ).exists():
-            raise RecrutementCandidatureInexistante(candidature_uuid)
+        CandidatureAgentService(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            candidature_id=candidature_uuid,
+            utilisateur=self.request.user,
+        ).check_exists()
 
         return _build_seed_logs()
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                OrganismeNexistePas,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
-            ),
-        ):
+        if isinstance(exc, CandidatureInaccessible):
             return candidature_inaccessible_response()
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)

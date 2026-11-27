@@ -4,8 +4,8 @@ from uuid import UUID
 import filetype
 from django.conf import settings
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
 )
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
@@ -31,17 +31,15 @@ def read_document(
     document_id: UUID,
     utilisateur: UserModel,
 ) -> DocumentDownload:
-    PermissionService().authorize(
-        action=PermissionAction.READ_DOCUMENT,
-        utilisateur=utilisateur,
+    CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
-    )
-    service = RecrutementAgentService(
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
+    ).check_accessible(PermissionAction.READ_DOCUMENT)
+    RecrutementAgentService(
         organisme_id=organisme_id, recrutement_id=recrutement_id
-    )
-    service.check_recrutement_belongs_to_organisme()
-    service.check_document_belongs_to_recrutement(candidature_id, document_id)
+    ).check_document_belongs_to_recrutement(candidature_id, document_id)
 
     document = DocumentModel.objects.get(id=document_id)
     with document.fichier.open("rb") as fichier:

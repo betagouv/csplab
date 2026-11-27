@@ -314,7 +314,7 @@ class TestCandidatureDocumentsView:
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
     )
-    def test_is_forbidden_for(self, authenticated_client, test_user, role):
+    def test_is_not_found_for(self, authenticated_client, test_user, role):
         if role is None:
             organisme = OrganismeDjangoFactory()
         else:
@@ -328,7 +328,8 @@ class TestCandidatureDocumentsView:
             _liste_url(organisme.id, recrutement.pk, candidature.pk)
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
 
     @pytest.mark.parametrize(
         "build_ids",

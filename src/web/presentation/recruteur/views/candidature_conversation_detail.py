@@ -10,23 +10,17 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from application.recruteur.services.read_conversation import (
     mark_as_read,
     read_conversation,
 )
 from application.recruteur.services.reply_conversation import reply_conversation
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
-)
 from domain.recruteur.errors.recrutement_errors import (
     ConversationInexistante,
-    RecrutementCandidatureInexistante,
-    RecrutementInexistant,
 )
 from infrastructure.django_apps.messagerie.models import MessageModel
 from presentation.api.authentication import SessionApiMixin
@@ -121,13 +115,7 @@ class CandidatureConversationDetailView(NoStoreMixin, SessionApiMixin, ListAPIVi
         if isinstance(
             exc,
             (
-                AccesOrganismeRefuse,
-                AccesRecrutementRefuse,
-                OperationOrganismeRefusee,
-                OrganismeNexistePas,
-                AccesRecrutementInconnu,
-                RecrutementInexistant,
-                RecrutementCandidatureInexistante,
+                CandidatureInaccessible,
                 ConversationInexistante,
             ),
         ):

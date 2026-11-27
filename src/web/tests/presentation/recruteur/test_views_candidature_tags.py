@@ -68,7 +68,7 @@ class TestCandidatureTagsView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -82,10 +82,11 @@ class TestCandidatureTagsView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert not CandidatureTagModel.objects.exists()
 
-    def test_contributeur_is_forbidden(self, authenticated_client, test_user):
+    def test_contributeur_is_not_found(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent(
                 role=AgentOrganismeRole.AGENT, utilisateur=test_user
@@ -104,7 +105,8 @@ class TestCandidatureTagsView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert not CandidatureTagModel.objects.exists()
 
     def test_requires_tag_uuid(self, authenticated_client, test_user):
@@ -261,7 +263,7 @@ class TestCandidatureTagDetailView:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_caller_without_organisme_role_is_forbidden(
+    def test_caller_without_organisme_role_is_not_found(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -276,10 +278,11 @@ class TestCandidatureTagDetailView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
 
-    def test_contributeur_is_forbidden(self, authenticated_client, test_user):
+    def test_contributeur_is_not_found(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent(
                 role=AgentOrganismeRole.AGENT, utilisateur=test_user
@@ -299,7 +302,8 @@ class TestCandidatureTagDetailView:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Cette candidature n'est pas accessible."}
         assert CandidatureTagModel.objects.filter(pk=pose.pk).exists()
 
     def test_candidature_of_another_recrutement_is_not_found(

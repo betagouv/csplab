@@ -8,12 +8,13 @@ from django.db import transaction
 from application.identite.context_services.permission_service import (
     PermissionService,
 )
+from application.recruteur.errors.application_errors_recruteur import (
+    CandidatureInaccessible,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.permission_action import PermissionAction
 from domain.recruteur.errors.recrutement_errors import (
-    CandidatureInexistante,
     MotifRefusRequis,
-    RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -34,7 +35,7 @@ def change_etape_candidatures(
     etape_cible_id: UUID,
     candidature_ids: Sequence[UUID],
     motif_refus: str | None = None,
-) -> tuple[list[UUID], list[tuple[UUID, RecrutementCandidatureInexistante]]]:
+) -> tuple[list[UUID], list[tuple[UUID, CandidatureInaccessible]]]:
     PermissionService().authorize(
         action=PermissionAction.CHANGE_ETAPE_CANDIDATURES,
         utilisateur=utilisateur,
@@ -52,11 +53,17 @@ def change_etape_candidatures(
         except RecrutementModel.DoesNotExist as error:
             raise RecrutementInexistant(recrutement_id) from error
 
-        candidatures = list(CandidatureModel.objects.for_etape_change(candidature_ids))
-        trouvees = {candidature.id for candidature in candidatures}
-        manquantes = [id_ for id_ in candidature_ids if id_ not in trouvees]
-        if manquantes:
-            raise CandidatureInexistante(manquantes[0])
+        reussites = list(
+            CandidatureModel.objects.for_etape_change(
+                recrutement.pk, candidature_ids
+            ).values_list("id", flat=True)
+        )
+        trouvees = set(reussites)
+        echecs = [
+            (candidature_id, CandidatureInaccessible())
+            for candidature_id in dict.fromkeys(candidature_ids)
+            if candidature_id not in trouvees
+        ]
 
         etape_cible = next(
             (
@@ -73,16 +80,6 @@ def change_etape_candidatures(
         if etape_cible.motif_refus_required and not motif_refus:
             raise MotifRefusRequis(etape_id=etape_cible_id)
 
-        reussites = [
-            candidature.id
-            for candidature in candidatures
-            if candidature.etape.recrutement_id == recrutement.pk
-        ]
-        echecs = [
-            (candidature.id, RecrutementCandidatureInexistante(candidature.id))
-            for candidature in candidatures
-            if candidature.etape.recrutement_id != recrutement.pk
-        ]
         CandidatureModel.objects.filter(pk__in=reussites).update(
             etape_id=etape_cible_id,
             motif_refus=motif_refus,

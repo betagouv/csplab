@@ -2,14 +2,8 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
-)
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
-)
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
 )
 from domain.identite.value_objects.permission_action import PermissionAction
 from infrastructure.django_apps.candidate.models.document import DocumentModel
@@ -23,20 +17,13 @@ def list_documents(
     candidature_id: UUID,
     utilisateur: UserModel,
 ) -> QuerySet[DocumentModel]:
-    PermissionService().authorize(
-        action=PermissionAction.LIST_DOCUMENTS,
-        utilisateur=utilisateur,
+    candidature_service = CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
     )
-    service = RecrutementAgentService(
-        organisme_id=organisme_id, recrutement_id=recrutement_id
-    )
-    service.check_recrutement_belongs_to_organisme()
-    candidature_service = CandidatureAgentService(
-        recrutement_id=recrutement_id, candidature_id=candidature_id
-    )
-    candidature_service.check_candidature_belongs_to_recrutement()
+    candidature_service.check_accessible(PermissionAction.LIST_DOCUMENTS)
 
     return DocumentModel.objects.by_recrutement_and_candidature(
         recrutement_id, candidature_id

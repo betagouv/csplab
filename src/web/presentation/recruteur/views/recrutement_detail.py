@@ -25,7 +25,6 @@ from domain.identite.errors.organisme_permission_errors import (
     OrganismePermissionError,
 )
 from domain.recruteur.errors.recrutement_errors import (
-    CandidatureInexistante,
     MotifRefusRequis,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
@@ -196,11 +195,7 @@ class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
                 GenericErrorSerializer({"error": "Forbidden."}).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
-        except (
-            OrganismeNexistePas,
-            RecrutementInexistant,
-            CandidatureInexistante,
-        ) as e:
+        except (OrganismeNexistePas, RecrutementInexistant) as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
         except (RecrutementEtapeInexistante, MotifRefusRequis) as e:

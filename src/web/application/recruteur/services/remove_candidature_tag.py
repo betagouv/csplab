@@ -3,19 +3,12 @@ from uuid import UUID
 from ddd.entity import Entity
 from django.db import transaction
 
-from application.identite.context_services.permission_service import (
-    PermissionService,
-)
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.permission_action import PermissionAction
-from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
-)
 from domain.recruteur.errors.tag_errors import TagNotOnCandidature
-from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.tag.models import CandidatureTagModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -31,28 +24,18 @@ def remove_candidature_tag(
     tag_id: UUID,
     utilisateur: UserModel,
 ) -> None:
-    PermissionService().authorize(
-        action=PermissionAction.MANAGE_TAG_ON_APPLICATION,
-        utilisateur=utilisateur,
+    candidature_service = CandidatureAgentService(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
+        candidature_id=candidature_id,
+        utilisateur=utilisateur,
     )
-    contexte = RecrutementAgentService(
-        organisme_id=organisme_id, recrutement_id=recrutement_id
+    candidature_service.check_accessible(
+        PermissionAction.MANAGE_TAG_ON_APPLICATION, check_candidature=False
     )
-    contexte.check_recrutement_belongs_to_organisme()
 
     with transaction.atomic():
-        if (
-            CandidatureModel.objects.by_recrutement_and_candidature(
-                recrutement_id, candidature_id
-            )
-            .select_for_update(of=("self",))
-            .values_list("pk", flat=True)
-            .first()
-            is None
-        ):
-            raise RecrutementCandidatureInexistante(candidature_id)
+        candidature_service.lock_candidature()
 
         deleted, _ = CandidatureTagModel.objects.by_candidature_and_tag(
             candidature_id, tag_id
