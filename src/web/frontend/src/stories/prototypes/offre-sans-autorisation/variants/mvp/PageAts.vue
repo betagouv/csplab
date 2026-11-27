@@ -133,6 +133,11 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 }
 
 // Avec un encart sous l'en-tête, pas de filet entre les deux (demande d'Alice).
+// Un retour à la ligne (\n) dans le sous-titre est respecté.
+.ats :deep(.csp-page-header__subtitle-text) {
+  white-space: pre-line;
+}
+
 .ats--avec-encart :deep(.csp-page-header__main-row) {
   border-bottom: 0;
 }
