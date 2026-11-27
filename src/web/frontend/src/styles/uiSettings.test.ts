@@ -76,6 +76,15 @@ describe('initUiSettings', () => {
     expect(sessionStorage.getItem('csp_ui_settings')).toBeNull()
   })
 
+  it('applies the density of the url next to the shape kept for the tab', () => {
+    sessionStorage.setItem('csp_ui_settings', JSON.stringify({ shape: 'rounded' }))
+    openPage({ url: '/ats/?density=compact' })
+    initUiSettings()
+    expect(root.getAttribute('data-csp-shape')).toBe('rounded')
+    expect(root.getAttribute('data-csp-density')).toBe('compact')
+    expect(JSON.parse(sessionStorage.getItem('csp_ui_settings')!)).toEqual({ shape: 'rounded', density: 'compact' })
+  })
+
   it('ignores an unknown value of the url and of the tab', () => {
     sessionStorage.setItem('csp_ui_settings', JSON.stringify({ density: 'dense' }))
     openPage({ url: '/ats/?shape=square&density=dense', shape: 'rounded' })

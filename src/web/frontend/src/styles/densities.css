@@ -1,0 +1,49 @@
+:root[data-csp-density='compact'] {
+  --csp-page-container-padding-inline: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --csp-page-content-padding-block: var(--csp-space-4);
+  --csp-page-header-padding-top: var(--csp-space-2);
+  --csp-page-header-breadcrumb-gap: var(--csp-space-3);
+  --csp-page-header-padding-bottom: var(--csp-space-3);
+  --csp-menu-item-padding: var(--csp-space-1) var(--csp-space-3);
+  --csp-field-label-gap: var(--csp-space-1);
+  --csp-field-legend-gap: var(--csp-space-3);
+  --csp-field-messages-gap: var(--csp-space-3);
+  --csp-kanban-gap: var(--csp-space-2);
+  --csp-kanban-column-padding: var(--csp-space-2);
+  --csp-kanban-column-gap: var(--csp-space-2);
+
+  @variant xxl {
+    --csp-page-container-padding-inline: clamp(1rem, 0.5rem + 2vw, 3rem);
+    --csp-page-content-padding-block: var(--csp-space-6);
+    --csp-page-header-padding-top: var(--csp-space-4);
+    --csp-page-header-breadcrumb-gap: var(--csp-space-4);
+    --csp-page-header-padding-bottom: var(--csp-space-4);
+    --csp-sidebar-padding: var(--csp-space-1);
+  }
+}
+
+:root[data-csp-density='comfortable'] {
+  --csp-page-container-padding-inline: clamp(2rem, 1.5rem + 3vw, 4rem);
+  --csp-page-content-padding-block: var(--csp-space-8);
+  --csp-page-header-padding-top: var(--csp-space-4);
+  --csp-page-header-breadcrumb-gap: var(--csp-space-6);
+  --csp-page-header-padding-bottom: var(--csp-space-6);
+  --csp-sidebar-padding: var(--csp-space-2);
+  --csp-menu-padding: var(--csp-space-2);
+  --csp-menu-item-padding: var(--csp-space-3) var(--csp-space-4);
+  --csp-field-label-gap: var(--csp-space-3);
+  --csp-field-legend-gap: var(--csp-space-5);
+  --csp-field-messages-gap: var(--csp-space-5);
+  --csp-kanban-gap: var(--csp-space-4);
+  --csp-kanban-column-padding: var(--csp-space-4);
+  --csp-kanban-column-gap: var(--csp-space-4);
+
+  @variant xxl {
+    --csp-page-container-padding-inline: clamp(2rem, 1.5rem + 3vw, 5rem);
+    --csp-page-content-padding-block: var(--csp-space-10);
+    --csp-page-header-padding-top: var(--csp-space-8);
+    --csp-page-header-breadcrumb-gap: var(--csp-space-8);
+    --csp-page-header-padding-bottom: var(--csp-space-8);
+    --csp-sidebar-padding: var(--csp-space-3);
+  }
+}

@@ -1,5 +1,5 @@
 export const UI_SHAPES = ['dsfr', 'rounded'] as const
-export const UI_DENSITIES = ['standard'] as const
+export const UI_DENSITIES = ['standard', 'compact', 'comfortable'] as const
 
 export interface UiSettings {
   shape: typeof UI_SHAPES[number]
