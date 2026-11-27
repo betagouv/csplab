@@ -99,7 +99,7 @@ describe('etapesRecrutementSection', () => {
     const user = await openSection()
 
     await chooseAction(user, PRESELECTION, action)
-    await submitName(user, 'Test technique', 'Renommer')
+    await submitName(user, 'Test technique', 'Ajouter')
 
     await vi.waitFor(() => expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, expected))
   })
