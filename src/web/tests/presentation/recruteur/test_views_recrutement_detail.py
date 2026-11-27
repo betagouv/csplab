@@ -12,6 +12,9 @@ from rest_framework import serializers, status
 from application.identite.context_services.permission_service import (
     PermissionService,
 )
+from application.recruteur.services.change_etape_candidatures import (
+    change_etape_candidatures,
+)
 from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -846,8 +849,20 @@ def _modify_candidature(recrutement, candidature, agent):
 
 
 def _change_etape(recrutement, candidature, agent):
-    candidature.etape = EtapeModel.objects.filter(recrutement=recrutement).last()
-    candidature.save()
+    target = (
+        EtapeModel.objects.filter(recrutement=recrutement)
+        .exclude(pk=candidature.etape_id)
+        .exclude(categorie=CategorieEtapeRecrutement.REFUS.value)
+        .order_by("created_at")
+        .first()
+    )
+    change_etape_candidatures(
+        organisme_id=recrutement.organisme_id,
+        recrutement_id=recrutement.pk,
+        utilisateur=agent,
+        etape_cible_id=target.pk,
+        candidature_ids=[candidature.pk],
+    )
 
 
 def _add_candidature(recrutement, candidature, agent):

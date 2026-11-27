@@ -83,10 +83,12 @@ def change_etape_candidatures(
             for candidature in candidatures
             if candidature.etape.recrutement_id != recrutement.pk
         ]
+        now = datetime.now(tz=timezone.utc)
         CandidatureModel.objects.filter(pk__in=reussites).update(
             etape_id=etape_cible_id,
             motif_refus=motif_refus,
-            updated_by_recruteur=datetime.now(tz=timezone.utc),
+            updated_at=now,
+            updated_by_recruteur=now,
         )
 
         audit_log_writer = AuditLogWriter(repository=PostgresAuditLogRepository())
