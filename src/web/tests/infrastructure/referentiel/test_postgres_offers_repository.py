@@ -10,9 +10,6 @@ from referentiel.exceptions.offer_errors import (
 )
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.factories.ingestion.source_django_factory import (
-    SourceDjangoFactory,
-)
 from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
     TalentsoftOrganismeDjangoFactory,
 )
@@ -448,23 +445,6 @@ class TestGetByReference:
 
         with pytest.raises(MultipleOffersFoundForReference):
             repository.get_by_reference("REF-1")
-
-
-class TestGetBySourceId:
-    def test_returns_only_non_archived_offers_for_source(self, db, repository):
-        source = SourceDjangoFactory()
-        active_offer = OfferDjangoFactory(source=source)
-        OfferDjangoFactory(source=source, archived_at=NOW)
-        OfferDjangoFactory()  # other source
-
-        page = repository.get_by_source_id(source.source_id)
-
-        assert [offer.id for offer in page.slice(0, 10)] == [active_offer.id]
-
-    def test_unknown_source_id_returns_empty_page(self, db, repository):
-        page = repository.get_by_source_id(fake.uuid4())
-
-        assert page.count() == 0
 
 
 class TestGetPendingProcessing:

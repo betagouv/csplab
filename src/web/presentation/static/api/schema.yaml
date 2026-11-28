@@ -6900,6 +6900,7 @@ components:
         type_contrat:
           type: string
           nullable: true
+          readOnly: true
         vacance_poste:
           type: string
           nullable: true
@@ -6943,7 +6944,6 @@ components:
           type: string
           format: date-time
           nullable: true
-          readOnly: true
         fin_candidature:
           type: string
           format: date-time

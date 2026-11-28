@@ -1,34 +1,25 @@
 from datetime import UTC, datetime
-from unittest.mock import MagicMock
+from unittest.mock import patch
 from uuid import UUID
 
 import pytest
 from django.urls import reverse
 from pydantic import HttpUrl
 from referentiel.value_objects.contract_kind import ContractKind
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from application.ingestion.interfaces.get_offers_by_source_input import (
-    GetOffersBySourceInput,
-)
-from domain.ingestion.exceptions.source_authorization_error import (
-    SourceAuthorizationError,
-)
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 SOURCE_ID = UUID("12345678-1234-4234-b234-123456789abc")
 
@@ -37,23 +28,12 @@ URL = reverse("ingestion:offers_by_source", kwargs={"source_id": SOURCE_ID})
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
     + 1  # JWT account's allowed networks
-    + 1  # usecase: utilisateur_repository.get_by_username
-    + 2  # usecase: get_allowed_source_ids (get user + filter sources M2M)
+    + 1  # service: the user's access to the source
     + 2  # pagination: count + page
     + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
-
-
-@pytest.fixture
-def use_case():
-    return MagicMock()
-
-
-@pytest.fixture(autouse=True)
-def mock_container(mock_offers_container, use_case):
-    mock_offers_container.get_offers_by_source_usecase.return_value = use_case
 
 
 @pytest.fixture
@@ -69,9 +49,8 @@ def authenticated_client_with_source(api_client, test_user, source):
     return api_client
 
 
-def _make_paginated_mock(use_case, offers):
-    use_case.execute.return_value = offers
-    return use_case
+def _localisation(department: str) -> dict:
+    return {"area": "EU", "country": "FRA", "region": "28", "department": department}
 
 
 class TestOffersBySourceView:
@@ -84,26 +63,25 @@ class TestOffersBySourceView:
         response = api_client.get(URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_api_key_authentication_returns_offers(self, api_key_client, use_case):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, offers=[offer])
+    def test_api_key_authentication_returns_offers(self, api_key_client, source):
+        offer = OfferDjangoFactory(source=source)
 
         response = api_key_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
-        use_case.execute.assert_called_once_with(
-            GetOffersBySourceInput(source_id=SOURCE_ID, utilisateur_username=None)
-        )
+        assert [result["reference"] for result in response.json()["results"]] == [
+            offer.reference
+        ]
 
     def test_post_not_allowed(self, jwt_client):
         response = jwt_client.post(URL)
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_jwt_authentication_returns_offers(
-        self, authenticated_client_with_source, test_user, use_case
+        self, authenticated_client_with_source, source
     ):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, offers=[offer])
+        offer = OfferDjangoFactory(source=source)
+        OfferDjangoFactory()
 
         response = authenticated_client_with_source.get(URL)
 
@@ -113,18 +91,10 @@ class TestOffersBySourceView:
         assert data["results"][0]["reference"] == offer.reference
         assert data["results"][0]["source_id"] == str(SOURCE_ID)
 
-        use_case.execute.assert_called_once_with(
-            GetOffersBySourceInput(
-                source_id=SOURCE_ID,
-                utilisateur_username=test_user.username,
-            )
-        )
-
     def test_jwt_authentication_returns_offer_without_localisation(
-        self, authenticated_client_with_source, use_case
+        self, authenticated_client_with_source, source
     ):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID, localisations=[])
-        _make_paginated_mock(use_case, offers=[offer])
+        OfferDjangoFactory(source=source, localisations=[])
 
         response = authenticated_client_with_source.get(URL)
 
@@ -132,16 +102,11 @@ class TestOffersBySourceView:
         assert response.json()["results"][0]["localisation"] == []
 
     def test_returns_every_localisation_in_order(
-        self, authenticated_client_with_source, use_case
+        self, authenticated_client_with_source, source
     ):
-        offer = OfferFactory.create_entity(
-            source_id=SOURCE_ID,
-            localisations=[
-                Localisation.from_department(Department(code="14")),
-                Localisation.from_department(Department(code="50")),
-            ],
+        OfferDjangoFactory(
+            source=source, localisations=[_localisation("14"), _localisation("50")]
         )
-        _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
@@ -150,36 +115,30 @@ class TestOffersBySourceView:
             for localisation in response.json()["results"][0]["localisation"]
         ] == ["14", "50"]
 
-    def test_jwt_authentication_forbidden_source_returns_403(
-        self, jwt_client, use_case
-    ):
-        use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
+    def test_jwt_authentication_forbidden_source_returns_403(self, jwt_client, source):
         response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_pagination_out_of_bounds_returns_404(
-        self, authenticated_client_with_source, use_case
+        self, authenticated_client_with_source, source
     ):
-        offers = [OfferFactory.create_entity(source_id=SOURCE_ID) for _ in range(3)]
-        _make_paginated_mock(use_case, offers=offers)
+        OfferDjangoFactory.create_batch(3, source=source)
 
         response = authenticated_client_with_source.get(URL, {"page": 3, "taille": 2})
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "detail" in response.json()
 
-    def test_returns_error_500(self, jwt_client, use_case):
-        use_case.execute.side_effect = Exception("db error")
-
-        response = jwt_client.get(URL)
+    def test_returns_error_500(self, jwt_client):
+        with patch(
+            "presentation.ingestion.views.offers.list_source_offers",
+            side_effect=Exception("db error"),
+        ):
+            response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 class TestOffersBySourceViewDbVerified:
-    @pytest.fixture(autouse=True)
-    def mock_container(self):
-        return None
-
     def test_response_matches_db_record_field_by_field(
         self, authenticated_client_with_source, source
     ):

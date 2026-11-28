@@ -19,14 +19,12 @@ from application.ingestion.context_services.offer_organismes import OfferOrganis
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
-from application.ingestion.interfaces.get_offers_by_source_input import (
-    GetOffersBySourceInput,
-)
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.services.liste_offres import list_offers
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
+from application.ingestion.services.offres_par_source import list_source_offers
 from application.ingestion.services.upsert_offers import upsert_offers
 from config.logger_names import LoggerName
 from domain.ingestion.exceptions.source_authorization_error import (
@@ -139,23 +137,10 @@ class OffersBySourceView(PublicApiMixin, APIView):
     serializer_class = OfferDetailResponseSerializer
     pagination_class = TaillePageNumberPagination
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_ingestion_container()
-        self.logger = self.container.logger_service()
-
     def get(self, request, source_id):
-        utilisateur_username = (
-            request.user.username if isinstance(request.user, UserModel) else None
-        )
+        user = request.user if isinstance(request.user, UserModel) else None
         try:
-            usecase = self.container.get_offers_by_source_usecase()
-            result = usecase.execute(
-                GetOffersBySourceInput(
-                    source_id=source_id,
-                    utilisateur_username=utilisateur_username,
-                )
-            )
+            result = list_source_offers(source_id, user)
             paginator = TaillePageNumberPagination()
             items = paginator.paginate_queryset(result, request, view=self)
             return paginator.get_paginated_response(
@@ -170,7 +155,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
         except NotFound:
             raise
         except Exception as e:
-            self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
+            logger.error("Unexpected error in OffersBySourceView: %s", str(e))
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

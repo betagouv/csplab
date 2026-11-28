@@ -797,7 +797,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     versant = serializers.CharField(source="verse", allow_null=True)
     categories = serializers.ListField(child=serializers.CharField())
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
-    type_contrat = serializers.CharField(source="contract_kind", allow_null=True)
+    type_contrat = serializers.SerializerMethodField()
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     url_candidature = serializers.CharField(source="application_url", allow_null=True)
@@ -812,7 +812,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     fin_publication = serializers.DateTimeField(
         source="end_publication_date", allow_null=True
     )
-    debut_contrat = serializers.SerializerMethodField()
+    debut_contrat = serializers.DateTimeField(source="beginning_date", allow_null=True)
     fin_candidature = serializers.DateTimeField(
         source="application_deadline", allow_null=True
     )
@@ -825,24 +825,25 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     def get_localisation(self, obj):
         return [
             {
-                "zone_geographique": str(loc.area),
-                "pays": str(loc.country),
-                "region": loc.region.code if loc.region else None,
-                "departement": loc.department.code if loc.department else None,
-                "localisation_label": loc.label,
+                "zone_geographique": loc.area,
+                "pays": loc.country,
+                "region": loc.region,
+                "departement": loc.department,
+                "localisation_label": loc.label or None,
                 "latitude": loc.latitude,
                 "longitude": loc.longitude,
             }
-            for loc in obj.localisations
+            for loc in obj.localisations.all()
         ]
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_type_contrat(self, obj):
+        return ContractKind[obj.contract_kind].value if obj.contract_kind else None
 
     @extend_schema_field(serializers.DictField(allow_null=True))
     def get_criteres(self, obj):
-        return obj.criteria.to_dict() if obj.criteria else None
-
-    @extend_schema_field(serializers.DateTimeField(allow_null=True))
-    def get_debut_contrat(self, obj):
-        return obj.beginning_date.value if obj.beginning_date else None
+        criteria = OfferCriteria.from_dict(obj.criteria)
+        return criteria.to_dict() if criteria else None
 
 
 class ListOffersErrorSerializer(serializers.Serializer):
