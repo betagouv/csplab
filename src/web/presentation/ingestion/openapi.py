@@ -307,15 +307,30 @@ critères suivants :
 Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
-Les textes longs (`titre_long`, `mission`, `profil`, `employeur`,
+L'en-tête `X-Fields` choisit les champs renvoyés pour chaque offre. Sans
+`X-Fields`, les textes longs (`titre_long`, `mission`, `profil`, `employeur`,
 `complements`, `conditions_exercice`, `descriptif_service`), `url_candidature`,
 `criteres`, `date_creation` et `date_mise_a_jour` ne sont pas renvoyés, et
-`conditions` ne contient que les salaires : consultez-les avec
-`GET /api/v1/offres/sources/{source_id}`. `contacts` et `email_candidature` ne
+`conditions` ne contient que les salaires. `contacts` et `email_candidature` ne
 sont jamais renvoyés par cette route.
 
 """
     + _API_COMMON_FOOTER
+)
+
+LIST_OFFERS_X_FIELDS_DESCRIPTION = (
+    "Champs à renvoyer pour chaque offre, séparés par une virgule. Les accolades "
+    "choisissent les sous-champs de `localisation`, `profession`, `criteres` et "
+    "`conditions`, et `*` renvoie tous les champs. Exemple : "
+    "`reference,titre,localisation{departement,pays},criteres{experience}`. "
+    "Sans cet en-tête : `reference`, `source_id`, `titre`, `organisation`, "
+    "`organisation_siret`, `versant`, `categories`, `nature_offre`, "
+    "`type_contrat`, `vacance_poste`, `profession`, `url_offre`, `localisation`, "
+    "`debut_publication`, `fin_publication`, `debut_contrat`, `fin_candidature`, "
+    "`debut_vacance_poste`, `date_archivage` et "
+    "`conditions{salaire_titulaire,salaire_contractuel}`. "
+    "Un champ inconnu ou non exposé "
+    "renvoie une erreur `400`."
 )
 
 _LIST_OFFERS_EXAMPLE_OFFER = {
@@ -378,6 +393,22 @@ LIST_OFFERS_EXAMPLES = [
         ),
         value=_LIST_OFFERS_EXAMPLE_OFFER
         | {"date_archivage": "2026-05-17T12:42:42.873000+00:00"},
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Success - X-Fields",
+        summary="Champs choisis avec X-Fields",
+        description=(
+            "Réponse à `X-Fields: reference,titre,localisation{departement},"
+            "criteres{experience}`"
+        ),
+        value={
+            "reference": "2026-999999",
+            "titre": "Responsable de la Division des Affaires Financières H/F",
+            "localisation": [{"departement": "91"}],
+            "criteres": {"experience": "CONFIRME"},
+        },
         response_only=True,
         status_codes=["200"],
     ),
