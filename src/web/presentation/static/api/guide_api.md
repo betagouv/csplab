@@ -197,7 +197,11 @@ réponse jusqu'à ce qu'il vaille `null`.
 > Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 > virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
-Chaque offre renvoyée contient notamment :
+### Champs renvoyés
+
+Les champs reprennent ceux de la section 2 (offres d'une source), qui portent les
+noms de `POST /api/v1/offres/creer_modifier`. Chaque offre contient les champs
+suivants :
 
 | Information | Signification | Peut être vide ? |
 |---|---|---|
@@ -205,11 +209,29 @@ Chaque offre renvoyée contient notamment :
 | `source_id` | Identifiant de la source ayant transmis l'offre | Non |
 | `titre` | Intitulé du poste | Non |
 | `organisation` | Organisme employeur | Non |
-| `nature_offre` | Nature de l'offre | Oui |
+| `organisation_siret` | SIRET de l'organisme (voir section 2) | Oui |
+| `versant` | Versant de la fonction publique | Oui |
 | `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Non |
-| `debut_publication` | Date de début de publication | Non |
+| `nature_offre` | Nature de l'offre | Oui |
+| `type_contrat` | Type de contrat | Oui |
+| `vacance_poste` | Vacance du poste | Oui |
+| `profession` | Métier de l'offre (voir section 2) | Non |
 | `url_offre` | Lien vers l'annonce | Oui |
+| `localisation` | Lieux de l'offre, le premier étant le lieu principal (voir section 2) | Oui |
+| `debut_publication` | Date de début de publication | Non |
+| `fin_publication` | Date de fin de publication | Oui |
+| `debut_contrat` | Date de début du contrat | Oui |
+| `fin_candidature` | Date limite de candidature | Oui |
+| `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
 | `date_archivage` | Date d'archivage de l'offre | Oui |
+| `conditions` | Réduit aux salaires : `salaire_titulaire` et `salaire_contractuel` (voir le bloc « Conditions » de la section 4) | Oui |
+
+Les autres champs de la section 2 ne sont renvoyés que par
+`GET /api/v1/offres/sources/{source_id}` : `titre_long`, `url_candidature`, les textes longs en Markdown
+(`mission`, `profil`, `employeur`, `complements`, `conditions_exercice`,
+`descriptif_service`), `criteres`, les autres champs de `conditions`,
+`date_creation` et `date_mise_a_jour`. `contacts` et `email_candidature`, qui contiennent souvent les
+coordonnées d'agents, ne sont jamais renvoyés par cette route.
 
 > **Règle métier clé :** une offre dont `date_archivage` est **vide** est **active** ;
 > une offre dont `date_archivage` est **renseigné** est **archivée**.

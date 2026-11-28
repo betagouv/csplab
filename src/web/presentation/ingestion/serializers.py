@@ -50,6 +50,7 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from presentation.api.fields_mask import apply_fields_mask
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.countries import COUNTRY_NAMES
 from presentation.commons.markdown import forbidden_markdown
@@ -170,18 +171,6 @@ class ConcoursUploadResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     validation_errors = ValidationErrorSerializer(many=True, allow_null=True)
-
-
-class ListOffersResponseSerializer(serializers.Serializer):
-    reference = serializers.CharField()
-    source_id = serializers.UUIDField()
-    titre = serializers.CharField(source="title")
-    organisation = serializers.CharField(source="organization")
-    nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
-    categories = serializers.ListField(child=serializers.CharField())
-    debut_publication = serializers.DateTimeField(source="publication_date")
-    url_offre = serializers.CharField(source="offer_url", allow_null=True)
-    date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
 
 
 class ListOffersFiltersSerializer(serializers.Serializer):
@@ -857,6 +846,27 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     def get_criteres(self, obj):
         criteria = OfferCriteria.from_dict(obj.criteria)
         return criteria.to_dict() if criteria else None
+
+
+class ListOffersResponseSerializer(OfferDetailResponseSerializer):
+    contacts = None  # type: ignore[assignment]
+    email_candidature = None
+
+    def get_fields(self):
+        mask = self.context.get("fields_mask")
+        fields = {
+            name: field
+            for name, field in super().get_fields().items()
+            if mask is None or name in mask
+        }
+        for field in fields.values():
+            field.required = False
+        return fields
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        mask = self.context.get("fields_mask")
+        return data if mask is None else apply_fields_mask(data, mask)
 
 
 class ListOffersErrorSerializer(serializers.Serializer):

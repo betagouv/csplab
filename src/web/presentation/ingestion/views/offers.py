@@ -32,8 +32,10 @@ from domain.ingestion.exceptions.source_authorization_error import (
 )
 from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionError
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from infrastructure.django_apps.referentiel.models.offer import OfferQuerySet
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
+from presentation.api.fields_mask import FieldsMask, parse_fields_mask
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.openapi import (
@@ -66,6 +68,40 @@ UNKNOWN_GENERATED_REFERENCE = (
 
 STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
 
+LIST_OFFERS_DEFAULT_FIELDS = (
+    "reference,source_id,titre,organisation,organisation_siret,versant,categories,"
+    "nature_offre,type_contrat,vacance_poste,profession,url_offre,localisation,"
+    "debut_publication,fin_publication,debut_contrat,fin_candidature,"
+    "debut_vacance_poste,date_archivage,"
+    "conditions{salaire_titulaire,salaire_contractuel}"
+)
+LIST_OFFERS_FIELDS_MASK = parse_fields_mask(LIST_OFFERS_DEFAULT_FIELDS)
+LONG_FIELD_SOURCES = {
+    "titre_long": "long_title",
+    "employeur": "employer",
+    "profil": "profile",
+    "mission": "mission",
+    "complements": "complements",
+    "conditions_exercice": "exercise_conditions",
+    "descriptif_service": "service_description",
+    "criteres": "criteria",
+    "conditions": "conditions",
+}
+
+
+def _offers_for_fields(offers: OfferQuerySet, mask: FieldsMask) -> OfferQuerySet:
+    if "localisation" in mask:
+        offers = offers.with_localisations()
+    if "profession" in mask:
+        offers = offers.with_metier_libelle()
+    if "organisation_siret" in mask:
+        offers = offers.with_organisation_siret()
+    return offers.defer(
+        "contacts",
+        "application_email",
+        *(source for name, source in LONG_FIELD_SOURCES.items() if name not in mask),
+    )
+
 
 @extend_schema(
     summary="Liste des offres",
@@ -92,12 +128,17 @@ class OffersListView(PublicApiMixin, APIView):
         try:
             filters = ListOffersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            result = list_offers(GetFilteredOffersInput(**filters.validated_data))
+            mask = LIST_OFFERS_FIELDS_MASK
+            result = _offers_for_fields(
+                list_offers(GetFilteredOffersInput(**filters.validated_data)), mask
+            )
 
             paginator = TaillePageNumberPagination()
             items = paginator.paginate_queryset(result, request, view=self)
             return paginator.get_paginated_response(
-                ListOffersResponseSerializer(items, many=True).data
+                ListOffersResponseSerializer(
+                    items, many=True, context={"fields_mask": mask}
+                ).data
             )
         except DRFValidationError as e:
             serializer = GenericErrorSerializer({"error": str(e)})

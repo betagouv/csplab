@@ -2423,6 +2423,13 @@ paths:
         Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
         virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
+        Les textes longs (`titre_long`, `mission`, `profil`, `employeur`,
+        `complements`, `conditions_exercice`, `descriptif_service`), `url_candidature`,
+        `criteres`, `date_creation` et `date_mise_a_jour` ne sont pas renvoyés, et
+        `conditions` ne contient que les salaires : consultez-les avec
+        `GET /api/v1/offres/sources/{source_id}`. `contacts` et `email_candidature` ne
+        sont jamais renvoyés par cette route.
+
 
         Cette API est à l'usage exclusif des personnes autorisées.
 
@@ -3501,12 +3508,36 @@ paths:
                       titre: Responsable de la Division des Affaires Financières H/F
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
-                      nature_offre: TITULAIRE_CONTRACTUEL
+                      organisation_siret: '13001911300011'
+                      versant: FPE
                       categories:
                       - A
-                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      nature_offre: TITULAIRE_CONTRACTUEL
+                      type_contrat: CDD ou CDI
+                      vacance_poste: '1'
+                      profession:
+                        referentiel: RMFPv2
+                        domaine: FIN
+                        metier: FIN001
+                        metier_libelle: Responsable budgétaire
                       url_offre: https://test.com/offre-emploi/2026-999999/
+                      localisation:
+                      - zone_geographique: EU
+                        pays: FRA
+                        region: '11'
+                        departement: '91'
+                        localisation_label: Palaiseau
+                        latitude: 48.7144
+                        longitude: 2.2463
+                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      fin_publication: '2026-06-17T00:00:00+00:00'
+                      debut_contrat: '2026-09-01T00:00:00+00:00'
+                      fin_candidature: '2026-06-01T00:00:00+00:00'
+                      debut_vacance_poste: '2026-09-01T00:00:00+00:00'
                       date_archivage: null
+                      conditions:
+                        salaire_titulaire: Selon grille indiciaire
+                        salaire_contractuel: Entre 3 000 et 3 500 € bruts mensuels
                   summary: Liste des offres d'emploi actives
                   description: Les offres d'emploi sans date d'archivage sont retournées
                     paginées
@@ -3521,12 +3552,36 @@ paths:
                       titre: Responsable de la Division des Affaires Financières H/F
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
-                      nature_offre: TITULAIRE_CONTRACTUEL
+                      organisation_siret: '13001911300011'
+                      versant: FPE
                       categories:
                       - A
-                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      nature_offre: TITULAIRE_CONTRACTUEL
+                      type_contrat: CDD ou CDI
+                      vacance_poste: '1'
+                      profession:
+                        referentiel: RMFPv2
+                        domaine: FIN
+                        metier: FIN001
+                        metier_libelle: Responsable budgétaire
                       url_offre: https://test.com/offre-emploi/2026-999999/
+                      localisation:
+                      - zone_geographique: EU
+                        pays: FRA
+                        region: '11'
+                        departement: '91'
+                        localisation_label: Palaiseau
+                        latitude: 48.7144
+                        longitude: 2.2463
+                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      fin_publication: '2026-06-17T00:00:00+00:00'
+                      debut_contrat: '2026-09-01T00:00:00+00:00'
+                      fin_candidature: '2026-06-01T00:00:00+00:00'
+                      debut_vacance_poste: '2026-09-01T00:00:00+00:00'
                       date_archivage: '2026-05-17T12:42:42.873000+00:00'
+                      conditions:
+                        salaire_titulaire: Selon grille indiciaire
+                        salaire_contractuel: Entre 3 000 et 3 500 € bruts mensuels
                   summary: Liste des offres d'emploi archivées
                   description: Les offres d'emploi avec une date d'archivage sont
                     retournées paginées
@@ -6538,35 +6593,102 @@ components:
           format: uuid
         titre:
           type: string
+        titre_long:
+          type: string
+          nullable: true
         organisation:
           type: string
-        nature_offre:
+        organisation_siret:
+          type: string
+          nullable: true
+        employeur:
+          type: string
+          nullable: true
+        profil:
+          type: string
+        mission:
+          type: string
+        complements:
+          type: string
+          nullable: true
+        conditions_exercice:
+          type: string
+          nullable: true
+        descriptif_service:
+          type: string
+          nullable: true
+        versant:
           type: string
           nullable: true
         categories:
           type: array
           items:
             type: string
+        nature_offre:
+          type: string
+          nullable: true
+        type_contrat:
+          type: string
+          nullable: true
+          readOnly: true
+        vacance_poste:
+          type: string
+          nullable: true
+        profession:
+          $ref: '#/components/schemas/ProfessionResponse'
+        url_offre:
+          type: string
+          nullable: true
+        url_candidature:
+          type: string
+          nullable: true
+        localisation:
+          type: array
+          items:
+            $ref: '#/components/schemas/Localisation'
+          readOnly: true
+        criteres:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        conditions:
+          type: object
+          additionalProperties: {}
+          nullable: true
         debut_publication:
           type: string
           format: date-time
-        url_offre:
+        fin_publication:
           type: string
+          format: date-time
+          nullable: true
+        debut_contrat:
+          type: string
+          format: date-time
+          nullable: true
+        fin_candidature:
+          type: string
+          format: date-time
+          nullable: true
+        debut_vacance_poste:
+          type: string
+          format: date-time
           nullable: true
         date_archivage:
           type: string
           format: date-time
           nullable: true
+        date_creation:
+          type: string
+          format: date-time
+        date_mise_a_jour:
+          type: string
+          format: date-time
       required:
-      - categories
-      - date_archivage
-      - debut_publication
-      - nature_offre
-      - organisation
-      - reference
-      - source_id
-      - titre
-      - url_offre
+      - criteres
+      - localisation
+      - type_contrat
     Localisation:
       type: object
       properties:
