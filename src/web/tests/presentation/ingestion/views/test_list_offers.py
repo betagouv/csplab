@@ -615,6 +615,82 @@ class TestOffersListViewDbVerified:
         assert response.status_code == status.HTTP_200_OK
 
 
+class TestOffersListViewFieldsMask:
+    def test_returns_the_requested_fields(self, jwt_client):
+        offer = OfferDjangoFactory(
+            criteria={"experience": "CONFIRME", "diplome": "Master"}
+        )
+
+        response = jwt_client.get(
+            URL,
+            headers={
+                "X-Fields": "reference, localisation{departement}, criteres{experience}"
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["results"] == [
+            {
+                "reference": offer.reference,
+                "localisation": [{"departement": "75"}],
+                "criteres": {"experience": "CONFIRME"},
+            }
+        ]
+
+    def test_star_returns_every_exposed_field(self, jwt_client):
+        OfferDjangoFactory(contacts=[{"role": "principal", "texte": "", "emails": []}])
+
+        response = jwt_client.get(URL, headers={"X-Fields": "*"})
+
+        assert response.status_code == status.HTTP_200_OK
+        (result,) = response.json()["results"]
+        assert {"mission", "criteres", "date_creation", "date_mise_a_jour"} <= set(
+            result
+        )
+        assert "contacts" not in result
+        assert "email_candidature" not in result
+
+    @pytest.mark.parametrize(
+        ("fields", "refused"),
+        [
+            ("reference,inconnu", "inconnu"),
+            ("contacts", "contacts"),
+            ("email_candidature", "email_candidature"),
+            ("localisation{ville}", "localisation.ville"),
+            ("titre{x}", "titre.x"),
+        ],
+    )
+    def test_refuses_an_unknown_or_excluded_field(self, jwt_client, fields, refused):
+        response = jwt_client.get(URL, headers={"X-Fields": fields})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert refused in response.json()["error"]
+
+    @pytest.mark.parametrize("fields", ["", "reference,", "localisation{pays", "a}b"])
+    def test_refuses_an_invalid_syntax(self, jwt_client, fields):
+        response = jwt_client.get(URL, headers={"X-Fields": fields})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_does_not_load_the_fields_left_out(
+        self, jwt_client, django_assert_num_queries
+    ):
+        OfferDjangoFactory.create_batch(3)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU - 1) as queries:
+            response = jwt_client.get(URL, headers={"X-Fields": "reference,titre"})
+
+        assert response.status_code == status.HTTP_200_OK
+        page_query = next(
+            query["sql"]
+            for query in queries.captured_queries
+            if 'FROM "offers"' in query["sql"] and "LIMIT" in query["sql"]
+        )
+        assert '"offers"."title"' in page_query
+        assert '"offers"."mission"' not in page_query
+        assert '"offers"."contacts"' not in page_query
+
+
 def test_returns_the_salaries_by_default(jwt_client):
     OfferDjangoFactory(
         conditions={"salaire_titulaire": "Grille", "temps_travail": "TEMPS_PLEIN"}

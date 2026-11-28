@@ -200,8 +200,8 @@ réponse jusqu'à ce qu'il vaille `null`.
 ### Champs renvoyés
 
 Les champs reprennent ceux de la section 2 (offres d'une source), qui portent les
-noms de `POST /api/v1/offres/creer_modifier`. Chaque offre contient les champs
-suivants :
+noms de `POST /api/v1/offres/creer_modifier`. Sans en-tête `X-Fields`, chaque offre
+contient les champs suivants :
 
 | Information | Signification | Peut être vide ? |
 |---|---|---|
@@ -226,12 +226,27 @@ suivants :
 | `date_archivage` | Date d'archivage de l'offre | Oui |
 | `conditions` | Réduit aux salaires : `salaire_titulaire` et `salaire_contractuel` (voir le bloc « Conditions » de la section 4) | Oui |
 
-Les autres champs de la section 2 ne sont renvoyés que par
-`GET /api/v1/offres/sources/{source_id}` : `titre_long`, `url_candidature`, les textes longs en Markdown
+Les autres champs de la section 2 ne sont renvoyés que sur demande, avec
+`X-Fields` : `titre_long`, `url_candidature`, les textes longs en Markdown
 (`mission`, `profil`, `employeur`, `complements`, `conditions_exercice`,
 `descriptif_service`), `criteres`, les autres champs de `conditions`,
 `date_creation` et `date_mise_a_jour`. `contacts` et `email_candidature`, qui contiennent souvent les
 coordonnées d'agents, ne sont jamais renvoyés par cette route.
+
+### Choisir les champs renvoyés
+
+L'en-tête `X-Fields` liste les champs à renvoyer, séparés par une virgule. Les
+accolades choisissent les sous-champs de `localisation`, `profession`, `criteres` et
+`conditions`, et `*` renvoie tous les champs disponibles :
+
+```
+X-Fields: reference,titre,localisation{departement,pays},criteres{experience}
+```
+
+Un champ inconnu ou non disponible (`contacts`, `email_candidature`) renvoie une
+erreur `400` qui liste les champs refusés. Demander moins de champs allège les
+réponses, en particulier sur des pages de 1 000 offres. L'en-tête n'apparaît pas
+dans les liens `next` et `previous` : renvoyez-le à chaque appel.
 
 > **Règle métier clé :** une offre dont `date_archivage` est **vide** est **active** ;
 > une offre dont `date_archivage` est **renseigné** est **archivée**.
@@ -241,7 +256,7 @@ coordonnées d'agents, ne sont jamais renvoyés par cette route.
 | Code | Signification |
 |---|---|
 | `200 OK` | La page d'offres est renvoyée |
-| `400` | Filtre invalide |
+| `400` | Filtre ou `X-Fields` invalide |
 | `401` | Authentification absente ou invalide |
 | `404` | Page inexistante |
 | `500` | Erreur inattendue du serveur |

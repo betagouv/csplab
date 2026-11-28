@@ -1,4 +1,5 @@
 import re
+from collections.abc import Mapping
 
 FieldsMask = dict[str, "FieldsMask | None"]
 
@@ -31,6 +32,33 @@ def _parse(text: str) -> tuple[FieldsMask, str]:
             break
         text = text[1:]
     return mask, text
+
+
+def resolve_fields_mask(
+    mask: FieldsMask, allowed: Mapping[str, frozenset[str] | None]
+) -> FieldsMask:
+    if "*" in mask:
+        mask = dict.fromkeys(allowed) | mask
+        del mask["*"]
+    refused = []
+    for name, submask in mask.items():
+        if name not in allowed:
+            refused.append(name)
+        elif submask is not None:
+            subfields = allowed[name] or frozenset()
+            refused += [
+                f"{name}.{subname}"
+                for subname, subsubmask in submask.items()
+                if subname not in subfields | {"*"} or subsubmask is not None
+            ]
+    if refused:
+        raise InvalidFieldsMask(
+            "Champs inconnus ou non exposés dans X-Fields : " + ", ".join(refused) + "."
+        )
+    return {
+        name: None if submask is None or "*" in submask else submask
+        for name, submask in mask.items()
+    }
 
 
 def apply_fields_mask(data: dict, mask: FieldsMask) -> dict:

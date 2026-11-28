@@ -1,12 +1,14 @@
 import logging
 
 from drf_spectacular.utils import (
+    OpenApiParameter,
     PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
     inline_serializer,
 )
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
+from referentiel.value_objects.offer_criteria import OfferCriteria
 from rest_framework import serializers, status
 from rest_framework import serializers as drf_serializers
 from rest_framework.exceptions import NotFound
@@ -35,14 +37,21 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from infrastructure.django_apps.referentiel.models.offer import OfferQuerySet
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.fields_mask import FieldsMask, parse_fields_mask
+from presentation.api.fields_mask import (
+    FieldsMask,
+    InvalidFieldsMask,
+    parse_fields_mask,
+    resolve_fields_mask,
+)
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
+from presentation.commons.serializers import LocalisationSerializer
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
     ARCHIVE_OFFER_EXAMPLES,
     LIST_OFFERS_DESCRIPTION,
     LIST_OFFERS_EXAMPLES,
+    LIST_OFFERS_X_FIELDS_DESCRIPTION,
     OFFERS_BY_SOURCE_DESCRIPTION,
     UPSERT_OFFERS_DESCRIPTION,
     UPSERT_OFFERS_EXAMPLES,
@@ -50,10 +59,12 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
+    ConditionsInputSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     OfferDetailResponseSerializer,
     OffersInputSerializer,
+    ProfessionResponseSerializer,
     UpsertOffersRequestSerializer,
     UpsertOffersResponseSerializer,
 )
@@ -75,7 +86,16 @@ LIST_OFFERS_DEFAULT_FIELDS = (
     "debut_vacance_poste,date_archivage,"
     "conditions{salaire_titulaire,salaire_contractuel}"
 )
-LIST_OFFERS_FIELDS_MASK = parse_fields_mask(LIST_OFFERS_DEFAULT_FIELDS)
+LIST_OFFERS_SUBFIELDS = {
+    "localisation": frozenset(LocalisationSerializer().fields),
+    "profession": frozenset(ProfessionResponseSerializer().fields),
+    "criteres": frozenset(OfferCriteria().to_dict()),
+    "conditions": frozenset(ConditionsInputSerializer().fields),
+}
+LIST_OFFERS_ALLOWED_FIELDS = {
+    name: LIST_OFFERS_SUBFIELDS.get(name)
+    for name in ListOffersResponseSerializer().fields
+}
 LONG_FIELD_SOURCES = {
     "titre_long": "long_title",
     "employeur": "employer",
@@ -108,7 +128,15 @@ def _offers_for_fields(offers: OfferQuerySet, mask: FieldsMask) -> OfferQuerySet
     description=LIST_OFFERS_DESCRIPTION,
     examples=LIST_OFFERS_EXAMPLES,
     tags=["offres"],
-    parameters=[ListOffersFiltersSerializer],
+    parameters=[
+        ListOffersFiltersSerializer,
+        OpenApiParameter(
+            "X-Fields",
+            str,
+            OpenApiParameter.HEADER,
+            description=LIST_OFFERS_X_FIELDS_DESCRIPTION,
+        ),
+    ],
     responses={
         200: ListOffersResponseSerializer(many=True),
         400: GenericErrorSerializer,
@@ -128,7 +156,12 @@ class OffersListView(PublicApiMixin, APIView):
         try:
             filters = ListOffersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            mask = LIST_OFFERS_FIELDS_MASK
+            mask = resolve_fields_mask(
+                parse_fields_mask(
+                    request.headers.get("X-Fields", LIST_OFFERS_DEFAULT_FIELDS)
+                ),
+                LIST_OFFERS_ALLOWED_FIELDS,
+            )
             result = _offers_for_fields(
                 list_offers(GetFilteredOffersInput(**filters.validated_data)), mask
             )
@@ -140,6 +173,9 @@ class OffersListView(PublicApiMixin, APIView):
                     items, many=True, context={"fields_mask": mask}
                 ).data
             )
+        except InvalidFieldsMask as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except DRFValidationError as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(
