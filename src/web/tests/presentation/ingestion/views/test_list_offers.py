@@ -34,6 +34,7 @@ NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
     + 1  # JWT account's allowed networks
     + 2  # pagination: count + page
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
@@ -551,13 +552,37 @@ class TestOffersListViewDbVerified:
                 "source_id": str(offer.source_id),
                 "titre": offer.title,
                 "organisation": offer.organization,
-                "nature_offre": offer.offer_nature,
+                "organisation_siret": None,
+                "versant": offer.verse,
                 "categories": offer.categories,
-                "debut_publication": offer.publication_date.isoformat().replace(
-                    "+00:00", "Z"
-                ),
+                "nature_offre": offer.offer_nature,
+                "type_contrat": None,
+                "vacance_poste": None,
+                "profession": {
+                    "referentiel": None,
+                    "domaine": None,
+                    "metier": None,
+                    "metier_libelle": None,
+                },
                 "url_offre": offer.offer_url,
+                "localisation": [
+                    {
+                        "zone_geographique": "EU",
+                        "pays": "FRA",
+                        "region": "11",
+                        "departement": "75",
+                        "localisation_label": None,
+                        "latitude": None,
+                        "longitude": None,
+                    }
+                ],
+                "debut_publication": "2024-01-15T00:00:00Z",
+                "fin_publication": "2025-01-15T00:00:00Z",
+                "debut_contrat": "2024-12-31T00:00:00Z",
+                "fin_candidature": None,
+                "debut_vacance_poste": None,
                 "date_archivage": None,
+                "conditions": None,
             }
         ]
 
@@ -588,3 +613,15 @@ class TestOffersListViewDbVerified:
             response = jwt_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+def test_returns_the_salaries_by_default(jwt_client):
+    OfferDjangoFactory(
+        conditions={"salaire_titulaire": "Grille", "temps_travail": "TEMPS_PLEIN"}
+    )
+
+    response = jwt_client.get(URL)
+
+    assert response.json()["results"][0]["conditions"] == {
+        "salaire_titulaire": "Grille"
+    }

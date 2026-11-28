@@ -307,9 +307,57 @@ critères suivants :
 Les filtres à valeurs multiples acceptent une liste de valeurs séparées par une
 virgule. Une valeur invalide pour l'un de ces filtres renvoie une erreur `400`.
 
+Les textes longs (`titre_long`, `mission`, `profil`, `employeur`,
+`complements`, `conditions_exercice`, `descriptif_service`), `url_candidature`,
+`criteres`, `date_creation` et `date_mise_a_jour` ne sont pas renvoyés, et
+`conditions` ne contient que les salaires : consultez-les avec
+`GET /api/v1/offres/sources/{source_id}`. `contacts` et `email_candidature` ne
+sont jamais renvoyés par cette route.
+
 """
     + _API_COMMON_FOOTER
 )
+
+_LIST_OFFERS_EXAMPLE_OFFER = {
+    "reference": "2026-999999",
+    "source_id": "12345678-1234-4234-b234-123456789abc",
+    "titre": "Responsable de la Division des Affaires Financières H/F",
+    "organisation": "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)",
+    "organisation_siret": "13001911300011",
+    "versant": "FPE",
+    "categories": ["A"],
+    "nature_offre": "TITULAIRE_CONTRACTUEL",
+    "type_contrat": "CDD ou CDI",
+    "vacance_poste": "1",
+    "profession": {
+        "referentiel": "RMFPv2",
+        "domaine": "FIN",
+        "metier": "FIN001",
+        "metier_libelle": "Responsable budgétaire",
+    },
+    "url_offre": "https://test.com/offre-emploi/2026-999999/",
+    "localisation": [
+        {
+            "zone_geographique": "EU",
+            "pays": "FRA",
+            "region": "11",
+            "departement": "91",
+            "localisation_label": "Palaiseau",
+            "latitude": 48.7144,
+            "longitude": 2.2463,
+        }
+    ],
+    "debut_publication": "2026-04-17T14:44:49.873000+00:00",
+    "fin_publication": "2026-06-17T00:00:00+00:00",
+    "debut_contrat": "2026-09-01T00:00:00+00:00",
+    "fin_candidature": "2026-06-01T00:00:00+00:00",
+    "debut_vacance_poste": "2026-09-01T00:00:00+00:00",
+    "date_archivage": None,
+    "conditions": {
+        "salaire_titulaire": "Selon grille indiciaire",
+        "salaire_contractuel": "Entre 3 000 et 3 500 € bruts mensuels",
+    },
+}
 
 LIST_OFFERS_EXAMPLES = [
     OpenApiExample(
@@ -318,19 +366,7 @@ LIST_OFFERS_EXAMPLES = [
         description=(
             "Les offres d'emploi sans date d'archivage sont retournées paginées"
         ),
-        value={
-            "reference": "2026-999999",
-            "source_id": "12345678-1234-4234-b234-123456789abc",
-            "titre": "Responsable de la Division des Affaires Financières H/F",
-            "organisation": (
-                "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
-            ),
-            "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categories": ["A"],
-            "debut_publication": "2026-04-17T14:44:49.873000+00:00",
-            "url_offre": "https://test.com/offre-emploi/2026-999999/",
-            "date_archivage": None,
-        },
+        value=_LIST_OFFERS_EXAMPLE_OFFER,
         response_only=True,
         status_codes=["200"],
     ),
@@ -340,19 +376,8 @@ LIST_OFFERS_EXAMPLES = [
         description=(
             "Les offres d'emploi avec une date d'archivage sont retournées paginées"
         ),
-        value={
-            "reference": "2026-999999",
-            "source_id": "12345678-1234-4234-b234-123456789abc",
-            "titre": "Responsable de la Division des Affaires Financières H/F",
-            "organisation": (
-                "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
-            ),
-            "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categories": ["A"],
-            "debut_publication": "2026-04-17T14:44:49.873000+00:00",
-            "url_offre": "https://test.com/offre-emploi/2026-999999/",
-            "date_archivage": "2026-05-17T12:42:42.873000+00:00",
-        },
+        value=_LIST_OFFERS_EXAMPLE_OFFER
+        | {"date_archivage": "2026-05-17T12:42:42.873000+00:00"},
         response_only=True,
         status_codes=["200"],
     ),
