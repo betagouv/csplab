@@ -18,6 +18,8 @@ liens:
   l'organisme est rejeté dans `errors`, avec un `entity_id` à `null`. Un organisme ne
   peut pas être son propre parent, et les enfants d'un parent rejeté dans le même lot
   sont rejetés aussi.
+- un même couple (`referentiel`, `external_id`) envoyé plusieurs fois dans un lot
+  n'est enregistré qu'une fois : les entrées suivantes sont rejetées dans `errors`.
 
 ### Compatibilité
 

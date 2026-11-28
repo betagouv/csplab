@@ -30,31 +30,59 @@ class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
             pairs
         )
         batch_ids = {pair: existing_ids.get(pair) or uuid4() for pair in pairs}
-        parent_ids = {
-            **{
-                pair: entity_id
-                for pair, entity_id in batch_ids.items()
-                if pair not in existing_ids
-            },
-            **OrganismeModel.objects.not_supprimes().ids_by_referentiel_and_external_id(
+        new_pairs = set(pairs) - existing_ids.keys()
+        existing_parent_ids = (
+            OrganismeModel.objects.not_supprimes().ids_by_referentiel_and_external_id(
                 [
                     (data.referentiel, data.parent_external_id)
                     for data in input_data.organismes
                     if data.parent_external_id
                 ]
-            ),
-        }
+            )
+        )
+
+        errors: list[IUpsertError] = []
+        accepted: list[OrganismeUpsertData] = []
+        seen: set[tuple[str, str]] = set()
+        for data in input_data.organismes:
+            pair = (data.referentiel, data.external_id)
+            if pair in seen:
+                errors.append(
+                    self._error(
+                        f"{data.referentiel} {data.external_id} en double dans le lot"
+                    )
+                )
+                continue
+            seen.add(pair)
+            accepted.append(data)
+
+        rejected: set[tuple[str, str]] = set()
+        while rejected_now := {
+            (data.referentiel, data.external_id): message
+            for data in accepted
+            if (
+                message := self._parent_error(
+                    data, new_pairs, rejected, existing_parent_ids
+                )
+            )
+        }:
+            errors.extend(self._error(message) for message in rejected_now.values())
+            rejected |= rejected_now.keys()
+            accepted = [
+                data
+                for data in accepted
+                if (data.referentiel, data.external_id) not in rejected_now
+            ]
 
         organismes: list[Organisme] = []
-        errors: list[IUpsertError] = []
-        for data in input_data.organismes:
+        for data in accepted:
             pair = (data.referentiel, data.external_id)
             parent_id = None
             if data.parent_external_id:
-                parent_id = parent_ids.get((data.referentiel, data.parent_external_id))
-                if parent_id is None or data.parent_external_id == data.external_id:
-                    errors.append(self._unknown_parent_error(data))
-                    continue
+                parent_pair = (data.referentiel, data.parent_external_id)
+                parent_id = (
+                    existing_parent_ids.get(parent_pair) or batch_ids[parent_pair]
+                )
             organismes.append(
                 self._build_organisme(
                     data, batch_ids[pair], pair in existing_ids, parent_id
@@ -72,11 +100,31 @@ class UpsertOrganismesUsecase(IUsecase[UpsertOrganismesInput, IUpsertResult]):
         return result
 
     @staticmethod
-    def _unknown_parent_error(data: OrganismeUpsertData) -> IUpsertError:
-        message = (
-            f"parent_external_id {data.parent_external_id} inconnu "
-            f"dans le référentiel {data.referentiel}"
-        )
+    def _parent_error(
+        data: OrganismeUpsertData,
+        new_pairs: set[tuple[str, str]],
+        rejected: set[tuple[str, str]],
+        existing_parent_ids: dict[tuple[str, str], UUID],
+    ) -> str | None:
+        if not data.parent_external_id:
+            return None
+        parent_pair = (data.referentiel, data.parent_external_id)
+        if parent_pair in rejected and parent_pair not in existing_parent_ids:
+            return (
+                f"parent de {data.referentiel} {data.external_id} "
+                "rejeté dans le même lot"
+            )
+        if data.parent_external_id == data.external_id or (
+            parent_pair not in new_pairs and parent_pair not in existing_parent_ids
+        ):
+            return (
+                f"parent_external_id {data.parent_external_id} inconnu "
+                f"dans le référentiel {data.referentiel}"
+            )
+        return None
+
+    @staticmethod
+    def _error(message: str) -> IUpsertError:
         return {"entity_id": None, "error": message, "exception": ValueError(message)}
 
     def _build_organisme(

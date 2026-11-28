@@ -159,3 +159,46 @@ def test_children_of_a_parent_rejected_for_a_siret_conflict_are_rejected():
         "parent de FINESS grandchild rejeté dans le même lot",
     ]
     assert not OrganismeModel.objects.filter(referentiel="FINESS").exists()
+
+
+def test_children_of_a_parent_with_an_unknown_parent_are_rejected():
+    result = _upsert(
+        _data("grandchild", "13002526500013", parent_external_id="child"),
+        _data("child", "11000007200014", parent_external_id="parent"),
+        _data("parent", "11000101300017", parent_external_id="ghost"),
+    )
+
+    assert result["created"] == 0
+    assert [error["error"] for error in result["errors"]] == [
+        "parent_external_id ghost inconnu dans le référentiel DILA",
+        "parent de DILA child rejeté dans le même lot",
+        "parent de DILA grandchild rejeté dans le même lot",
+    ]
+    assert not OrganismeModel.objects.filter(referentiel="DILA").exists()
+
+
+def test_children_of_a_rejected_existing_parent_keep_it_as_parent():
+    parent = OrganismeDjangoFactory(referentiel="DILA", external_id="parent")
+
+    result = _upsert(
+        _data("parent", "11000101300017", parent_external_id="ghost"),
+        _data("child", "11000007200014", parent_external_id="parent"),
+    )
+
+    assert [error["error"] for error in result["errors"]] == [
+        "parent_external_id ghost inconnu dans le référentiel DILA"
+    ]
+    assert _get("child").parent_id == parent.id
+
+
+def test_duplicate_organismes_in_a_batch_are_rejected_after_the_first():
+    result = _upsert(
+        _data("dup", "11000101300017"),
+        _data("dup", "11000007200014"),
+    )
+
+    assert result["created"] == 1
+    assert [error["error"] for error in result["errors"]] == [
+        "DILA dup en double dans le lot"
+    ]
+    assert _get("dup").siret == "11000101300017"
