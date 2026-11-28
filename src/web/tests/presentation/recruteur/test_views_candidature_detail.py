@@ -1,13 +1,16 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
 from application.identite.context_services.permission_service import (
     PermissionService,
 )
+from config.logger_names import LoggerName
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -50,6 +53,30 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # latest CV
     + 1  # navigation within the etape
 )
+CANDIDAT_TELEPHONE = "+33 6 98 76 54 32"
+CANDIDAT_VILLE = "Saint-Pierre-des-Corps"
+
+
+def _set_contact(candidature) -> None:
+    candidat = candidature.candidat
+    candidat.telephone = CANDIDAT_TELEPHONE
+    candidat.ville = CANDIDAT_VILLE
+    candidat.save(update_fields=["telephone", "ville"])
+
+
+@pytest.fixture
+def emitted_log_records(monkeypatch, caplog):
+    for logger_name in (None, *settings.LOGGING["loggers"]):
+        caplog.set_level(logging.DEBUG, logger=logger_name)
+    records = []
+    handle = logging.Logger.handle
+
+    def record_then_handle(logger, record):
+        records.append(record)
+        handle(logger, record)
+
+    monkeypatch.setattr(logging.Logger, "handle", record_then_handle)
+    return records
 
 
 def _detail_url(organisme_id, recrutement_id, candidature_id) -> str:
@@ -135,6 +162,7 @@ class TestCandidatureDetailView:
         )
         cv = DocumentDjangoFactory(candidature=candidature)
         utilisateur = candidature.candidat.utilisateur
+        _set_contact(candidature)
 
         response = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk, candidature.id)
@@ -148,6 +176,8 @@ class TestCandidatureDetailView:
             "prenom": utilisateur.first_name,
             "nom": utilisateur.last_name,
             "email": utilisateur.email,
+            "telephone": CANDIDAT_TELEPHONE,
+            "ville": CANDIDAT_VILLE,
         }
         assert data["recrutement_intitule"] == recrutement.offre.title
         assert data["etape_actuelle"] == {
@@ -158,6 +188,45 @@ class TestCandidatureDetailView:
         assert data["date_derniere_maj_candidat"] is None
         assert data["document_uuid"] == str(cv.id)
         assert data["navigation_candidature_uuids"] == [str(candidature.id)]
+
+    def test_returns_null_contact_when_profil_has_none(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        candidat = response.json()["candidat"]
+        assert candidat["telephone"] is None
+        assert candidat["ville"] is None
+
+    def test_does_not_log_candidat_contact(
+        self, authenticated_client, test_user, emitted_log_records
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        _set_contact(candidature)
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+        logging.getLogger(LoggerName.RECRUTEUR.value).debug("témoin")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["candidat"]["telephone"] == CANDIDAT_TELEPHONE
+        logged = [logging.Formatter().format(record) for record in emitted_log_records]
+        assert "témoin" in logged
+        assert [
+            line
+            for line in logged
+            if CANDIDAT_TELEPHONE in line or CANDIDAT_VILLE in line
+        ] == []
 
     def test_superviseur_gets_authorized_actions_of_the_recrutement(
         self, authenticated_client, test_user

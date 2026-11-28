@@ -157,6 +157,8 @@ class ProfilCandidatModel(models.Model):
         to_field="username",
     )
     resume = models.TextField()
+    telephone = models.CharField("Téléphone", max_length=30, null=True, blank=True)
+    ville = models.CharField("Ville", max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

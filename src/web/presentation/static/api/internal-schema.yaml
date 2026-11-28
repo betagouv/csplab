@@ -6442,6 +6442,12 @@ components:
         email:
           type: string
           format: email
+        telephone:
+          type: string
+          nullable: true
+        ville:
+          type: string
+          nullable: true
       required:
       - email
       - nom

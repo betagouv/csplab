@@ -748,6 +748,8 @@ export interface components {
             nom: string;
             /** Format: email */
             email: string;
+            telephone?: string | null;
+            ville?: string | null;
         };
         CandidatureAChanger: {
             /** Format: uuid */
