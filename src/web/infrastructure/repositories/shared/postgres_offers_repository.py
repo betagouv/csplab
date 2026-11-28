@@ -1,12 +1,8 @@
-import operator
-from datetime import timedelta
-from functools import reduce
 from typing import List
 from uuid import UUID
 
 from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q, prefetch_related_objects
 from django.utils import timezone
@@ -28,19 +24,9 @@ from referentiel.value_objects.verse import Verse
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
 )
-from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
-    TalentsoftOrganismeModel,
-)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
-
-SEARCH_CONFIG = "french"
-KEYWORDS_SEARCH_WEIGHTS = {
-    "A": ("title",),
-    "B": ("long_title",),
-    "C": ("mission", "profile", "organization", "employer", "complements"),
-}
 
 
 class PostgresOffersRepository(IIngestionOffersRepository):
@@ -109,72 +95,28 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         qs = (
             OfferModel.objects.select_related("talentsoft_organisme_entity_code")
             .with_localisations()
-            .filter(archived_at__isnull=active)
-        )
-
-        qs = self._apply_field_filters(
-            qs,
-            [
-                ("categories__overlap", category, lambda c: c.value),
-                ("verse__in", verse, lambda v: v.value),
-                ("offer_nature__in", offer_nature, lambda c: c.value),
-                ("criteria__experience__in", experience_level, lambda e: e.name),
-                ("conditions__management__in", management, lambda m: m.name),
-                (
-                    "conditions__lieu_de_travail__in",
-                    working_place,
-                    lambda w: w.name,
-                ),
-                ("functional_area_code__in", domain, str),
-            ],
-        )
-        qs = qs.with_localisation_in(
-            regions=[r.code for r in region or []],
-            departments=[d.code for d in department or []],
-            countries=[str(c) for c in country or []],
-            areas=[a.value for a in area or []],
-        )
-
-        if organization:
-            qs = qs.filter(
-                talentsoft_organisme_entity_code__in=TalentsoftOrganismeModel.objects.with_descendants_of(
-                    organization
-                ).values("entity_code")
+            .filtered(
+                active=active,
+                category=category,
+                verse=verse,
+                offer_nature=offer_nature,
+                experience_level=experience_level,
+                management=management,
+                working_place=working_place,
+                region=region,
+                department=department,
+                country=country,
+                area=area,
+                domain=domain,
+                organization=organization,
+                published_within_days=published_within_days,
+                latitude=latitude,
+                longitude=longitude,
+                radius_km=radius_km,
+                keywords=keywords,
             )
-
-        if published_within_days is not None:
-            since = timezone.now() - timedelta(days=abs(published_within_days))
-            qs = qs.filter(publication_date__gte=since)
-
-        if latitude is not None and longitude is not None and radius_km is not None:
-            qs = qs.with_localisation_within(latitude, longitude, radius_km)
-
-        if keywords:
-            qs = self._filter_by_keywords(qs, keywords)
-            qs = qs.order_by("-rank", "-updated_at")
-        else:
-            qs = qs.order_by("-updated_at")
-
+        )
         return QuerySetPage(qs, self.mapper.to_domain)
-
-    @staticmethod
-    def _apply_field_filters(qs, filters):
-        for lookup, values, transform in filters:
-            if values:
-                qs = qs.filter(**{lookup: [transform(v) for v in values]})
-        return qs
-
-    @staticmethod
-    def _filter_by_keywords(qs, keywords: str):
-        vectors = [
-            SearchVector(*fields, weight=weight, config=SEARCH_CONFIG)
-            for weight, fields in KEYWORDS_SEARCH_WEIGHTS.items()
-        ]
-        search_vector = reduce(operator.add, vectors)
-        search_query = SearchQuery(keywords, config=SEARCH_CONFIG)
-        return qs.annotate(
-            search=search_vector, rank=SearchRank(search_vector, search_query)
-        ).filter(search=search_query)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
         qs = OfferModel.objects.with_localisations().filter(

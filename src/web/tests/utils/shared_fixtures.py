@@ -32,7 +32,6 @@ from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
 )
-from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
@@ -360,19 +359,6 @@ def vectorize_documents_usecase():
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
-    )
-
-
-@pytest.fixture
-def list_offers_usecase():
-    logger = MagicMock()
-    offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
-    )
-
-    return ListOffersUsecase(
-        offers_repository=offers_repo,
-        logger=logger,
     )
 
 

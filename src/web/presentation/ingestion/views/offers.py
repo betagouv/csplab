@@ -23,6 +23,7 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
     GetOffersBySourceInput,
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
+from application.ingestion.services.liste_offres import list_offers
 from application.ingestion.services.offer_references import (
     unknown_generated_references,
 )
@@ -88,22 +89,12 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
 class OffersListView(PublicApiMixin, APIView):
     serializer_class = ListOffersResponseSerializer
     pagination_class = TaillePageNumberPagination
-    usecase = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_ingestion_container()
-        self.logger = self.container.logger_service()
-        if self.usecase is None:
-            self.usecase = self.container.list_offers_usecase()
 
     def get(self, request):
         try:
             filters = ListOffersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            input_data = GetFilteredOffersInput(**filters.validated_data)
-
-            result = self.usecase.execute(input_data)
+            result = list_offers(GetFilteredOffersInput(**filters.validated_data))
 
             paginator = TaillePageNumberPagination()
             items = paginator.paginate_queryset(result, request, view=self)
@@ -119,7 +110,7 @@ class OffersListView(PublicApiMixin, APIView):
         except NotFound:
             raise
         except Exception as e:
-            self.logger.error("Unexpected error in OffersListView: %s", str(e))
+            logger.error("Unexpected error in OffersListView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR

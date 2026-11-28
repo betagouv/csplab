@@ -1,12 +1,23 @@
+import operator
 from collections.abc import Iterable
+from datetime import timedelta
+from functools import reduce
 from uuid import UUID
 
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Exists, F, OuterRef, Q
+from django.utils import timezone
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
+from referentiel.value_objects.country import Country
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
@@ -15,6 +26,13 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
+
+SEARCH_CONFIG = "french"
+KEYWORDS_SEARCH_WEIGHTS = {
+    "A": ("title",),
+    "B": ("long_title",),
+    "C": ("mission", "profile", "organization", "employer", "complements"),
+}
 
 
 class OfferQuerySet(models.QuerySet):
@@ -63,6 +81,75 @@ class OfferQuerySet(models.QuerySet):
         if not term:
             return self
         return self.filter(Q(reference__icontains=term) | Q(title__icontains=term))
+
+    def matching_keywords(self, keywords: str) -> "OfferQuerySet":
+        vectors = [
+            SearchVector(*fields, weight=weight, config=SEARCH_CONFIG)
+            for weight, fields in KEYWORDS_SEARCH_WEIGHTS.items()
+        ]
+        search_vector = reduce(operator.add, vectors)
+        search_query = SearchQuery(keywords, config=SEARCH_CONFIG)
+        return self.annotate(
+            search=search_vector, rank=SearchRank(search_vector, search_query)
+        ).filter(search=search_query)
+
+    def filtered(
+        self,
+        active: bool,
+        category: list[Category] | None = None,
+        verse: list[Verse] | None = None,
+        offer_nature: list[OfferNature] | None = None,
+        experience_level: list[ExperienceLevel] | None = None,
+        management: list[Management] | None = None,
+        working_place: list[WorkingPlace] | None = None,
+        region: list[Region] | None = None,
+        department: list[Department] | None = None,
+        country: list[Country] | None = None,
+        area: list[GeographicalArea] | None = None,
+        domain: list[str] | None = None,
+        organization: list[str] | None = None,
+        published_within_days: int | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        radius_km: int | None = None,
+        keywords: str | None = None,
+    ) -> "OfferQuerySet":
+        qs = self.filter(archived_at__isnull=active)
+        for lookup, values in (
+            ("categories__overlap", [c.value for c in category or []]),
+            ("verse__in", [v.value for v in verse or []]),
+            ("offer_nature__in", [n.value for n in offer_nature or []]),
+            ("criteria__experience__in", [e.name for e in experience_level or []]),
+            ("conditions__management__in", [m.name for m in management or []]),
+            ("conditions__lieu_de_travail__in", [w.name for w in working_place or []]),
+            ("functional_area_code__in", [str(d) for d in domain or []]),
+        ):
+            if values:
+                qs = qs.filter(**{lookup: values})
+        qs = qs.with_localisation_in(
+            regions=[r.code for r in region or []],
+            departments=[d.code for d in department or []],
+            countries=[str(c) for c in country or []],
+            areas=[a.value for a in area or []],
+        )
+
+        if organization:
+            qs = qs.filter(
+                talentsoft_organisme_entity_code__in=TalentsoftOrganismeModel.objects.with_descendants_of(
+                    organization
+                ).values("entity_code")
+            )
+
+        if published_within_days is not None:
+            since = timezone.now() - timedelta(days=abs(published_within_days))
+            qs = qs.filter(publication_date__gte=since)
+
+        if latitude is not None and longitude is not None and radius_km is not None:
+            qs = qs.with_localisation_within(latitude, longitude, radius_km)
+
+        if keywords:
+            return qs.matching_keywords(keywords).order_by("-rank", "-updated_at")
+        return qs.order_by("-updated_at")
 
 
 class OfferModel(BaseDatedModel):
