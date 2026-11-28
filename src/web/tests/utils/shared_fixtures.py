@@ -29,18 +29,12 @@ from application.candidate.usecases.match_cv_to_opportunities import (
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
-from application.ingestion.usecases.get_offers_by_source import (
-    GetOffersBySourceUsecase,
-)
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
 from config.app_config import AppConfig
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
-)
-from domain.identite.repositories.utilisateur_repository_interface import (
-    IUtilisateurRepository,
 )
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
@@ -51,9 +45,6 @@ from domain.ingestion.repositories.ingestion_offers_repository_interface import 
     IIngestionOffersRepository,
 )
 from domain.ingestion.repositories.source_repository_interface import ISourceRepository
-from domain.ingestion.repositories.user_source_repository_interface import (
-    IUserSourceRepository,
-)
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -359,25 +350,6 @@ def vectorize_documents_usecase():
         embedding_generator=embedding_generator,
         logger=logger_service,
         repository_factory=repository_factory,
-    )
-
-
-@pytest.fixture
-def get_offers_by_source_usecase():
-    offers_repo = cast(
-        IOffersRepository, create_interface_aware_mock(IOffersRepository)
-    )
-    user_source_repo = cast(
-        IUserSourceRepository, create_interface_aware_mock(IUserSourceRepository)
-    )
-    utilisateur_repo = cast(
-        IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
-    )
-
-    return GetOffersBySourceUsecase(
-        offers_repository=offers_repo,
-        user_source_repository=user_source_repo,
-        utilisateur_repository=utilisateur_repo,
     )
 
 
