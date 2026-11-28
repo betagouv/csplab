@@ -245,6 +245,7 @@ le bloc « Description » de la section 4).
 | Champ | Signification | Peut être vide ? |
 |---|---|---|
 | `titre_long` | Intitulé long du poste | Oui |
+| `organisation_siret` | SIRET de l'organisme de l'offre, rattaché par `organisation.siret` ou par l'organisme Talentsoft. Vide pour une offre Talentsoft dont l'organisme n'est pas encore relié au référentiel | Oui |
 | `employeur` | Présentation de l'employeur | Oui |
 | `profil` | Profil recherché | Non |
 | `mission` | Missions du poste | Non |
@@ -254,6 +255,7 @@ le bloc « Description » de la section 4).
 | `versant` | Versant de la fonction publique | Oui |
 | `type_contrat` | Type de contrat | Oui |
 | `vacance_poste` | Vacance du poste | Oui |
+| `profession` | Métier de l'offre : `referentiel`, `domaine`, `metier` (mêmes valeurs que le bloc « Profession » de la section 4) et `metier_libelle`, libellé du métier dans `GET /api/v1/metiers`. `code_emploi_local` n'est pas renvoyé | Non |
 | `url_candidature` | Lien pour candidater. Vide si `email_candidature` est renseigné. | Oui |
 | `email_candidature` | Adresse email pour candidater. Vide si `url_candidature` est renseigné. | Oui |
 | `localisation` | Liste des lieux de l'offre, dans l'ordre d'envoi, le premier étant le lieu principal (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`). Liste vide si l'offre n'est pas localisée | Oui |
@@ -264,6 +266,8 @@ le bloc « Description » de la section 4).
 | `debut_contrat` | Date de début du contrat | Oui |
 | `fin_candidature` | Date limite de candidature | Oui |
 | `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
+| `date_creation` | Date de création de l'offre dans CSPLab | Non |
+| `date_mise_a_jour` | Date de la dernière modification de l'offre dans CSPLab, pour ne relire que les offres modifiées depuis votre dernier appel | Non |
 
 **Réponses possibles :**
 

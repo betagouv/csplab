@@ -6871,6 +6871,9 @@ components:
           nullable: true
         organisation:
           type: string
+        organisation_siret:
+          type: string
+          nullable: true
         employeur:
           type: string
           nullable: true
@@ -6904,6 +6907,8 @@ components:
         vacance_poste:
           type: string
           nullable: true
+        profession:
+          $ref: '#/components/schemas/ProfessionResponse'
         url_offre:
           type: string
           nullable: true
@@ -6956,6 +6961,12 @@ components:
           type: string
           format: date-time
           nullable: true
+        date_creation:
+          type: string
+          format: date-time
+        date_mise_a_jour:
+          type: string
+          format: date-time
       required:
       - categories
       - complements
@@ -6964,6 +6975,8 @@ components:
       - contacts
       - criteres
       - date_archivage
+      - date_creation
+      - date_mise_a_jour
       - debut_contrat
       - debut_publication
       - debut_vacance_poste
@@ -6976,6 +6989,8 @@ components:
       - mission
       - nature_offre
       - organisation
+      - organisation_siret
+      - profession
       - profil
       - reference
       - source_id
@@ -7514,6 +7529,26 @@ components:
       - RMFPv2
       type: string
       description: '* `RMFPv2` - RMFPv2'
+    ProfessionResponse:
+      type: object
+      properties:
+        referentiel:
+          type: string
+          nullable: true
+        domaine:
+          type: string
+          nullable: true
+        metier:
+          type: string
+          nullable: true
+        metier_libelle:
+          type: string
+          nullable: true
+      required:
+      - domaine
+      - metier
+      - metier_libelle
+      - referentiel
     PublicationInput:
       type: object
       properties:

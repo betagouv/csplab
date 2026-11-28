@@ -14,8 +14,14 @@ from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
+)
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
@@ -47,6 +53,10 @@ def authenticated_client_with_source(api_client, test_user, source):
     refresh = RefreshToken.for_user(test_user)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
     return api_client
+
+
+def _iso(value: datetime) -> str:
+    return value.isoformat().replace("+00:00", "Z")
 
 
 def _localisation(department: str) -> dict:
@@ -165,6 +175,7 @@ class TestOffersBySourceViewDbVerified:
                 "titre": offer.title,
                 "titre_long": None,
                 "organisation": offer.organization,
+                "organisation_siret": None,
                 "employeur": None,
                 "profil": offer.profile,
                 "mission": offer.mission,
@@ -176,6 +187,12 @@ class TestOffersBySourceViewDbVerified:
                 "nature_offre": None,
                 "type_contrat": None,
                 "vacance_poste": None,
+                "profession": {
+                    "referentiel": None,
+                    "domaine": None,
+                    "metier": None,
+                    "metier_libelle": None,
+                },
                 "url_offre": None,
                 "url_candidature": None,
                 "email_candidature": None,
@@ -189,6 +206,8 @@ class TestOffersBySourceViewDbVerified:
                 "fin_candidature": None,
                 "debut_vacance_poste": None,
                 "date_archivage": None,
+                "date_creation": _iso(offer.created_at),
+                "date_mise_a_jour": _iso(offer.updated_at),
             }
         ]
 
@@ -202,8 +221,14 @@ class TestOffersBySourceViewDbVerified:
             specialisations=["informatique"],
             languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
         )
+        organisme = OrganismeDjangoFactory()
+        metier = MetierDjangoFactory()
         offer = OfferDjangoFactory(
             source=source,
+            organisme=organisme,
+            code_emploi_csp=metier.offer_family_code,
+            job_family_referential=metier.job_family_referential,
+            functional_area_code=metier.domaine_fonctionnel_code,
             long_title="Développeur Backend Senior",
             employer="Ministère Test",
             complements="Poste à pourvoir immédiatement",
@@ -244,6 +269,7 @@ class TestOffersBySourceViewDbVerified:
                 "titre": offer.title,
                 "titre_long": offer.long_title,
                 "organisation": offer.organization,
+                "organisation_siret": organisme.siret,
                 "employeur": offer.employer,
                 "profil": offer.profile,
                 "mission": offer.mission,
@@ -255,6 +281,12 @@ class TestOffersBySourceViewDbVerified:
                 "nature_offre": offer.offer_nature,
                 "type_contrat": ContractKind.CDD_CDI.value,
                 "vacance_poste": offer.job_vacancy,
+                "profession": {
+                    "referentiel": "RMFPv2",
+                    "domaine": metier.domaine_fonctionnel_code,
+                    "metier": metier.offer_family_code,
+                    "metier_libelle": metier.libelle_long,
+                },
                 "url_offre": "https://exemple.gouv.fr/offres/e2e-1",
                 "url_candidature": "https://exemple.gouv.fr/candidature/e2e-1",
                 "email_candidature": None,
@@ -284,6 +316,8 @@ class TestOffersBySourceViewDbVerified:
                 "fin_candidature": "2024-05-15T00:00:00Z",
                 "debut_vacance_poste": "2024-07-01T00:00:00Z",
                 "date_archivage": None,
+                "date_creation": _iso(offer.created_at),
+                "date_mise_a_jour": _iso(offer.updated_at),
             }
         ]
 

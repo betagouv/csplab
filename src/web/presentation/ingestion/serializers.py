@@ -778,12 +778,22 @@ class ContactSerializer(serializers.Serializer):
     emails = serializers.ListField(child=serializers.EmailField())
 
 
+class ProfessionResponseSerializer(serializers.Serializer):
+    referentiel = serializers.CharField(
+        source="job_family_referential", allow_null=True
+    )
+    domaine = serializers.CharField(source="functional_area_code", allow_null=True)
+    metier = serializers.CharField(source="code_emploi_csp", allow_null=True)
+    metier_libelle = serializers.CharField(allow_null=True)
+
+
 class OfferDetailResponseSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
     titre = serializers.CharField(source="title")
     titre_long = serializers.CharField(source="long_title", allow_null=True)
     organisation = serializers.CharField(source="organization")
+    organisation_siret = serializers.CharField(allow_null=True)
     employeur = serializers.CharField(source="employer", allow_null=True)
     profil = serializers.CharField(source="profile")
     mission = serializers.CharField()
@@ -799,6 +809,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
     type_contrat = serializers.SerializerMethodField()
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
+    profession = ProfessionResponseSerializer(source="*")
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     url_candidature = serializers.CharField(source="application_url", allow_null=True)
     email_candidature = serializers.EmailField(
@@ -820,6 +831,8 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         source="job_vacancy_date", allow_null=True
     )
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
+    date_creation = serializers.DateTimeField(source="created_at")
+    date_mise_a_jour = serializers.DateTimeField(source="updated_at")
 
     @extend_schema_field(LocalisationSerializer(many=True))
     def get_localisation(self, obj):
