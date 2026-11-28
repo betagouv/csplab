@@ -21,5 +21,7 @@ def list_source_offers(source_id: UUID, user: UserModel | None) -> OfferQuerySet
         OfferModel.objects.by_source(source_id)
         .actives()
         .with_localisations()
+        .with_organisation_siret()
+        .with_metier_libelle()
         .order_by("-updated_at")
     )

@@ -8,7 +8,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Q
+from django.db.models import Exists, F, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -25,6 +26,7 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.utils.models import BaseDatedModel, related_model
 
 SEARCH_CONFIG = "french"
@@ -50,6 +52,22 @@ class OfferQuerySet(models.QuerySet):
 
     def with_localisations(self) -> "OfferQuerySet":
         return self.prefetch_related("localisations")
+
+    def with_organisation_siret(self) -> "OfferQuerySet":
+        return self.annotate(
+            organisation_siret=Coalesce(
+                "organisme__siret", "talentsoft_organisme_entity_code__organisme__siret"
+            )
+        )
+
+    def with_metier_libelle(self) -> "OfferQuerySet":
+        metiers = MetierModel.objects.filter(
+            offer_family_code=OuterRef("code_emploi_csp"),
+            job_family_referential=OuterRef("job_family_referential"),
+        ).stable_order()
+        return self.annotate(
+            metier_libelle=Subquery(metiers.values("libelle_long")[:1])
+        )
 
     def with_localisation_in(
         self,
